@@ -1,6 +1,6 @@
 "use client";
+import React, { useState, useEffect, FormEvent, useRef } from "react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import {
   GlassWater,
@@ -10,6 +10,8 @@ import {
   UtensilsCrossed,
   Grid,
   Soup,
+  Search,
+  X
 } from "lucide-react";
 
 const categories = [
@@ -87,21 +89,59 @@ const categories = [
 
 export const CategoryStrip = () => {
   const [scrollingDown, setScrollingDown] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const isScrollingRef = useRef(false);
+  const dragThreshold = 8;
+  const startX = useRef(0);
+  const startY = useRef(0);
+
+  const handleDragStart = (e: React.TouchEvent | React.MouseEvent) => {
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    startX.current = clientX;
+    startY.current = clientY;
+    isScrollingRef.current = false;
+  };
+
+  const handleDragMove = (e: React.TouchEvent | React.MouseEvent) => {
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const deltaX = Math.abs(clientX - startX.current);
+    const deltaY = Math.abs(clientY - startY.current);
+    if (deltaX > dragThreshold || deltaY > dragThreshold) {
+      isScrollingRef.current = true;
+    }
+  };
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (isScrollingRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.innerWidth <= 1024) return;
+      if (window.innerWidth <= 1024) {
+        setScrollingDown(false);
+        return;
+      }
       const currentScrollY = window.scrollY;
       
-      // Stick CategoryStrip to top-[36px] only when scrolled down (scrolled >= 20px)
+      // Stick CategoryStrip to top-[32px] only when scrolled down (scrolled >= 20px)
       const isScrolledPast = currentScrollY >= 20;
       setScrollingDown(isScrolledPast);
+      
+      // Collapse search if sticky header state changes
+      if (!isScrolledPast) {
+        setSearchExpanded(false);
+      }
     };
 
     // Initialize state on mount
-    if (window.innerWidth > 1024) {
-      handleScroll();
-    }
+    handleScroll();
 
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleScroll);
@@ -111,8 +151,15 @@ export const CategoryStrip = () => {
     };
   }, []);
 
+  const handleSearchSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
+    }
+  };
+
   return (
-    <div className={`z-40 w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-gradient-to-r from-[#ffd8b8]/90 via-[#ffe5cc]/95 to-[#ffd8b8]/90 dark:from-[#2e1305]/95 dark:via-[#1e0a02]/95 dark:to-[#2e1305]/95 md:bg-[var(--surface)] md:bg-none md:supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-md shadow-sm lg:transition-[top] lg:duration-300 lg:mt-[132px] ${scrollingDown ? "lg:sticky lg:top-[36px]" : "border-t border-t-orange-500/30 dark:border-t-orange-500/40 relative lg:sticky lg:top-[132px]"}`}>
+    <div className={`z-40 w-full md:border-t border-b border-orange-500/30 dark:border-orange-500/40 bg-gradient-to-r from-[#ffd8b8]/90 via-[#ffe5cc]/95 to-[#ffd8b8]/90 dark:from-[#2e1305]/95 dark:via-[#1e0a02]/95 dark:to-[#2e1305]/95 md:bg-[var(--surface)] md:bg-none md:supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-md shadow-sm lg:mt-[128px] relative lg:sticky lg:transition-[top] lg:duration-300 ${scrollingDown ? "lg:top-[32px]" : "lg:top-[128px]"}`}>
       <div className="max-w-7xl mx-auto relative px-4 sm:px-6 lg:px-8">
         
         {/* Left Scroll Fade Indicator (only visible on mobile overflow) */}
@@ -121,70 +168,125 @@ export const CategoryStrip = () => {
         {/* Right Scroll Fade Indicator (only visible on mobile overflow) */}
         <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[var(--surface)] to-transparent pointer-events-none z-10 md:hidden" />
 
-        <div className="flex items-center justify-between py-1 sm:py-2 w-full gap-1 transition-all duration-300">
-          {/* Left: Logo (scrollingDown only) */}
-          <div className={`flex items-center justify-start shrink-0 transition-all duration-300 ${scrollingDown ? "min-w-[140px] sm:min-w-[160px] pr-3 mr-1.5 sm:pr-4 sm:mr-2" : "w-0 overflow-hidden"}`}>
-            {scrollingDown && (
-              <Link href="/" className="flex items-center gap-2 transition-all duration-300">
+        <div className="flex items-center justify-between py-1 sm:py-2 w-full gap-4">
+          
+          {/* Left Side: Logo (only on desktop when scrollingDown is true) */}
+          {scrollingDown && (
+            <div className="hidden lg:flex items-center gap-2 flex-shrink-0 animate-in fade-in slide-in-from-left-2 duration-300">
+              <Link href="/" className="flex items-center gap-2 group">
                 <img 
-                  src="/logo.jpeg" 
+                  src="/logo4.jpg" 
                   alt="StopShop Logo" 
-                  className="w-6 h-6 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl object-cover border border-border shadow-sm animate-in fade-in scale-in duration-300"
+                  className="w-10 h-10 rounded-2xl bg-white p-1 object-contain shadow-sm border border-border group-hover:border-bronze-500/30 transition-all duration-200"
                 />
-                <span className="text-xs sm:text-lg font-display font-bold tracking-tight text-heading hidden sm:inline">
+                <span className="text-lg font-display font-bold tracking-tight text-heading">
                   Stop<span className="gradient-text">Shop</span>
                 </span>
               </Link>
+            </div>
+          )}
+
+          {/* Center: Category Scroll Container OR Search Input */}
+          <div className="flex-grow transition-all duration-300 flex justify-center items-center overflow-hidden">
+            {searchExpanded && scrollingDown ? (
+              /* Expandable Search Input (only shown when searchExpanded and scrollingDown are true) */
+              <form 
+                onSubmit={handleSearchSubmit} 
+                className="flex items-center gap-2 w-full max-w-[500px] mx-auto animate-in fade-in slide-in-from-top-1 duration-200"
+              >
+                <div className="relative flex-grow h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
+                  <Search size={14} className="ml-4 text-bronze-500/70" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search premium bronze, copper & brass..."
+                    autoFocus
+                    className="w-full h-full pl-2 pr-12 bg-transparent text-heading placeholder-muted text-xs focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchExpanded(false);
+                      setSearchQuery("");
+                    }}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full hover:bg-orange-500/10 text-muted hover:text-heading flex items-center justify-center transition-colors"
+                    aria-label="Close search"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Category Scroll Container */
+              <div 
+                onTouchStart={handleDragStart}
+                onMouseDown={handleDragStart}
+                onTouchMove={handleDragMove}
+                onMouseMove={handleDragMove}
+                className="flex overflow-x-auto scrollbar-none items-center gap-3 sm:gap-6 w-full justify-start md:justify-center"
+              >
+                {categories.map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <Link
+                      key={cat.id}
+                      href={cat.href}
+                      onClickCapture={handleLinkClick}
+                      className="group flex flex-col items-center gap-1 shrink-0 transition-all duration-300 w-[58px] sm:w-[92px] text-center"
+                    >
+                      {/* Slimmer rounded tile on mobile */}
+                      <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center border transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 shadow-sm group-hover:shadow-md ${cat.bgColor} ${cat.borderColor} ${cat.shadowColor}`}>
+                        <Icon
+                          size={14}
+                          strokeWidth={1.8}
+                          className={`${cat.iconColor} sm:hidden transition-transform duration-300 group-hover:scale-110`}
+                        />
+                        <Icon
+                          size={18}
+                          strokeWidth={1.8}
+                          className={`hidden sm:block ${cat.iconColor} transition-transform duration-300 group-hover:scale-110`}
+                        />
+                      </div>
+
+                      {/* Clean readable labels */}
+                      <span className="text-[8px] sm:text-[10px] font-semibold text-muted group-hover:text-heading whitespace-nowrap transition-colors duration-300 tracking-wide block w-full truncate">
+                        {cat.name}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
             )}
           </div>
 
-          {/* Center: Category Scroll Container */}
-          <div className={`flex overflow-x-auto scrollbar-none items-center gap-3 sm:gap-6 flex-grow transition-all duration-300 ${scrollingDown ? "justify-start md:justify-center" : "justify-start md:justify-evenly"}`}>
-            {categories.map((cat) => {
-              const Icon = cat.icon;
-              return (
-                <Link
-                  key={cat.id}
-                  href={cat.href}
-                  className="group flex flex-col items-center gap-1 shrink-0 transition-all duration-300 w-[58px] sm:w-[92px] text-center"
+          {/* Right Side: Search Icon & Contact Us (only on desktop when scrollingDown is true) */}
+          {scrollingDown && (
+            <div className="hidden lg:flex items-center gap-4 flex-shrink-0 animate-in fade-in slide-in-from-right-2 duration-300">
+              {/* Search Icon Toggle */}
+              {!searchExpanded && (
+                <button
+                  onClick={() => setSearchExpanded(true)}
+                  className="p-2 hover:bg-orange-500/10 text-muted hover:text-heading rounded-full transition-colors"
+                  aria-label="Open search"
                 >
-                  {/* Slimmer rounded tile on mobile */}
-                  <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center border transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 shadow-sm group-hover:shadow-md ${cat.bgColor} ${cat.borderColor} ${cat.shadowColor}`}>
-                    <Icon
-                      size={14}
-                      strokeWidth={1.8}
-                      className={`${cat.iconColor} sm:hidden transition-transform duration-300 group-hover:scale-110`}
-                    />
-                    <Icon
-                      size={18}
-                      strokeWidth={1.8}
-                      className={`hidden sm:block ${cat.iconColor} transition-transform duration-300 group-hover:scale-110`}
-                    />
-                  </div>
+                  <Search size={18} />
+                </button>
+              )}
 
-                  {/* Clean readable labels */}
-                  <span className="text-[8px] sm:text-[10px] font-semibold text-muted group-hover:text-heading whitespace-nowrap transition-colors duration-300 tracking-wide block w-full truncate">
-                    {cat.name}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+              {/* Theme Toggle */}
+              <ThemeToggle />
 
-          {/* Right: ThemeToggle & Contact Us (scrollingDown only) */}
-          <div className={`flex items-center justify-end gap-1.5 sm:gap-3 shrink-0 transition-all duration-300 ${scrollingDown ? "min-w-[140px] sm:min-w-[160px] pl-3 ml-1.5 sm:pl-4 sm:ml-2" : "w-0 overflow-hidden"}`}>
-            {scrollingDown && (
-              <>
-                <ThemeToggle />
-                <Link 
-                  href="/contact" 
-                  className="px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[10px] sm:text-sm font-semibold hover:from-orange-400 hover:to-orange-500 transition-all duration-300 shadow-md shadow-orange-500/20 hover:shadow-orange-500/40 whitespace-nowrap"
-                >
-                  Contact Us
-                </Link>
-              </>
-            )}
-          </div>
+              {/* Contact Us button */}
+              <Link
+                href="/contact"
+                className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold transition-all duration-300 shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/25 whitespace-nowrap"
+              >
+                Contact Us
+              </Link>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

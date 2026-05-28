@@ -53,7 +53,7 @@ export default function RootLayout({
             <Navbar />
             <CategoryStrip />
           </div>
-          <main className="overflow-x-hidden w-full">{children}</main>
+          <main className="overflow-x-hidden w-full pt-[146px] sm:pt-[172px] lg:pt-0">{children}</main>
           <Footer />
         </ThemeProvider>
       </body>

@@ -2,18 +2,19 @@ import {
   HeroSection,
   ShopByCollections,
   FeaturedProducts,
-  NewLaunchProducts,
-  GiftCollections,
   CategoryProductGrid,
-  ShopByVideos,
-  StatsSection,
-  WhyChooseUs,
-  ExportProcessPreview,
+  ShopByMaterial,
+  HeritageStory,
+  ExportProgram,
   TestimonialsSection,
-  CTASection,
+  FAQSection,
+  WhyChooseUs,
+  CategoryCards,
+  VendorSection,
 } from "@/features/home";
 
-const kitchenwareProducts = [
+
+const kitchenUtilityProducts = [
   {
     id: 1,
     name: "Heritage Bronze Kadai",
@@ -94,10 +95,37 @@ const kitchenwareProducts = [
     image: "/bronze-lota.png",
     rating: 4.8,
     reviews: 14
+  },
+  {
+    id: 10,
+    name: "Heritage Bronze Urli Pot",
+    description: "Wide-mouth heavy-duty bronze cooking pot ideal for traditional slow cooking.",
+    specs: "Capacity: 2 Litres | Heavy Base",
+    image: "/bronze-kadai.png",
+    rating: 4.9,
+    reviews: 32
+  },
+  {
+    id: 11,
+    name: "Artisanal Serving Ladle",
+    description: "Solid bronze serving spoon/ladle handcrafted with ergonomic handle design.",
+    specs: "Length: 12 inches | Solid Bronze",
+    image: "/collection-tableware.png",
+    rating: 4.7,
+    reviews: 18
+  },
+  {
+    id: 12,
+    name: "Pure Bell Metal Glass",
+    description: "Pure bell metal kansa drinking glass designed for water and natural wellness.",
+    specs: "Capacity: 300ml | Wellness Glass",
+    image: "/bronze-lota.png",
+    rating: 4.9,
+    reviews: 45
   }
 ];
 
-const tablewareProducts = [
+const brassCookwareProducts = [
   {
     id: 1,
     name: "Royal Bronze Thali Set",
@@ -118,7 +146,7 @@ const tablewareProducts = [
   },
   {
     id: 3,
-    name: "Spoon & Fork Set",
+    name: "Brass Spoon & Fork Set",
     description: "Hand-forged pure bronze dessert spoons and forks that add elegance to any dining table.",
     specs: "6 Spoons & 6 Forks | Gift Box",
     image: "/collection-tableware.png",
@@ -178,6 +206,90 @@ const tablewareProducts = [
     image: "/collection-tableware.png",
     rating: 4.9,
     reviews: 12
+  }
+];
+
+const copperProducts = [
+  {
+    id: 1,
+    name: "Pure Copper Water Bottle",
+    description: "Handcrafted pure copper bottle for daily Ayurvedic hydration and natural wellness.",
+    specs: "Capacity: 1 Litre | Leak-Proof",
+    image: "/bronze-lota.png",
+    rating: 4.9,
+    reviews: 156
+  },
+  {
+    id: 2,
+    name: "Copper Tumbler Set",
+    description: "Set of premium copper tumblers for serving water, lassi, or traditional drinks.",
+    specs: "Set of 4 | 350ml each",
+    image: "/bronze-lota.png",
+    rating: 4.8,
+    reviews: 89
+  },
+  {
+    id: 3,
+    name: "Copper Jug Classic",
+    description: "Traditional copper jug with hammered finish for storing and serving water overnight.",
+    specs: "Capacity: 1.5 Litres | Hammered",
+    image: "/bronze-lota.png",
+    rating: 4.7,
+    reviews: 64
+  },
+  {
+    id: 4,
+    name: "Copper Moscow Mule Mug",
+    description: "Premium copper mugs with brass handles, perfect for cocktails and cold beverages.",
+    specs: "Set of 2 | 500ml each",
+    image: "/bronze-lota.png",
+    rating: 4.8,
+    reviews: 42
+  },
+  {
+    id: 5,
+    name: "Copper Lota Traditional",
+    description: "Sacred copper lota used for pooja rituals and daily water storage with natural purification.",
+    specs: "Capacity: 750ml | Pure Copper",
+    image: "/bronze-lota.png",
+    rating: 4.9,
+    reviews: 78
+  },
+  {
+    id: 6,
+    name: "Copper Dinner Set",
+    description: "Complete copper dining set with plates, bowls, and glass for premium table setting.",
+    specs: "8-Piece Set | Gift Box",
+    image: "/bronze-lota.png",
+    rating: 5.0,
+    reviews: 35
+  },
+  {
+    id: 7,
+    name: "Copper Storage Container",
+    description: "Airtight copper container ideal for storing dry fruits, sugar, or spices.",
+    specs: "Capacity: 500ml | Lid Included",
+    image: "/bronze-lota.png",
+    rating: 4.6,
+    reviews: 28
+  },
+  {
+    id: 8,
+    name: "Copper Serving Tray",
+    description: "Hand-hammered round copper tray for elegant serving and home décor display.",
+    specs: "Diameter: 12 inches | Polished",
+    image: "/bronze-lota.png",
+    rating: 4.8,
+    reviews: 19
+  },
+  {
+    id: 9,
+    name: "Copper Water Dispenser",
+    description: "Large capacity copper matka-style dispenser for storing and dispensing purified water.",
+    specs: "Capacity: 5 Litres | With Stand",
+    image: "/bronze-lota.png",
+    rating: 4.9,
+    reviews: 47
   }
 ];
 
@@ -262,47 +374,107 @@ const poojaProducts = [
     image: "/collection-pooja.png",
     rating: 5.0,
     reviews: 17
+  },
+  {
+    id: 10,
+    name: "Hand-Hammered Pooja Bell",
+    description: "A resonant solid bronze pooja bell with a beautifully hand-carved handle.",
+    specs: "Height: 7 inches | Clear Resonance",
+    image: "/collection-pooja.png",
+    rating: 4.9,
+    reviews: 29
+  },
+  {
+    id: 11,
+    name: "Divine Lotus Diya",
+    description: "Lotus-shaped brass diya lamp perfect for traditional pooja rituals and festivals.",
+    specs: "Diameter: 5 inches | Solid Brass",
+    image: "/collection-pooja.png",
+    rating: 5.0,
+    reviews: 34
+  },
+  {
+    id: 12,
+    name: "Sacred Panchpatra Spoon",
+    description: "Traditional copper panchpatra water vessel with custom spoon for daily rituals.",
+    specs: "Capacity: 150ml | Pure Copper",
+    image: "/bronze-lota.png",
+    rating: 4.8,
+    reviews: 19
   }
 ];
 
 export default function HomePage() {
   return (
     <>
+      {/* 1. Hero Section */}
       <HeroSection />
+
+      {/* 2. Shop by Category Grid (10 categories, 2 rows) */}
       <ShopByCollections />
+
+      {/* 3. Best Sellers (with prices & Inquire Price) */}
       <FeaturedProducts />
-      <NewLaunchProducts />
-      <GiftCollections />
-      
-      {/* 2-Line Category Grids */}
+
+      {/* 4. Shop by Material (Brass, Copper, Steel, Ceramic, Glass) */}
+      <ShopByMaterial />
+
+      {/* 5. Kitchen Utility — Category Product Grid */}
       <CategoryProductGrid
-        title="Kitchenware Collection"
-        tagLine="Heritage Cooking Utensils"
-        products={kitchenwareProducts}
-        viewAllLink="/contact?collection=kitchenware"
+        title="Kitchen Utility"
+        tagLine="Heritage Cooking Essentials"
+        products={kitchenUtilityProducts}
+        viewAllLink="/category/kitchen-utility"
         accentColor="emerald"
       />
+
+      {/* 6. Amazon-style Category Cards (2x2 grids) */}
+      <CategoryCards />
+
+      {/* 7. Brass Cookware — Category Product Grid */}
       <CategoryProductGrid
-        title="Tableware Collection"
-        tagLine="Royal Dining Sets"
-        products={tablewareProducts}
-        viewAllLink="/contact?collection=tableware"
+        title="Brass Cookware"
+        tagLine="Royal Dining & Serveware"
+        products={brassCookwareProducts}
+        viewAllLink="/category/brass-cookware"
         accentColor="bronze"
       />
+
+      {/* 8. Pooja Collection 🔒 */}
       <CategoryProductGrid
-        title="Pooja Essentials"
+        title="Pooja Collection"
         tagLine="Sacred Ritual Vessels"
         products={poojaProducts}
-        viewAllLink="/contact?collection=pooja-item"
+        viewAllLink="/category/pooja-collection"
         accentColor="rose"
       />
-      <ShopByVideos />
 
-      <StatsSection />
-      <WhyChooseUs />
-      <ExportProcessPreview />
+      {/* 9. Copper Products — Category Product Grid */}
+      <CategoryProductGrid
+        title="Copper Products"
+        tagLine="Ayurvedic Wellness Essentials"
+        products={copperProducts}
+        viewAllLink="/category/copper-products"
+        accentColor="bronze"
+      />
+
+      {/* 10. Heritage + Artisan Story */}
+      <HeritageStory />
+
+      {/* Vendor Section - Artisan Clusters */}
+      <VendorSection />
+
+      {/* 11. Export Program */}
+      <ExportProgram />
+
+      {/* 12. Customer Reviews */}
       <TestimonialsSection />
-      <CTASection />
+
+      {/* 14. Why StopShop (Trust + Story) */}
+      <WhyChooseUs />
+
+      {/* 15. FAQ Section */}
+      <FAQSection />
     </>
   );
 }

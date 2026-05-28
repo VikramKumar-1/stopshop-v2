@@ -10,3 +10,11 @@ export { ExportProcessPreview } from "./components/ExportProcessPreview";
 export { TestimonialsSection } from "./components/TestimonialsSection";
 export { CTASection } from "./components/CTASection";
 export { ShopByVideos } from "./components/ShopByVideos";
+export { ShopByMaterial } from "./components/ShopByMaterial";
+export { HeritageStory } from "./components/HeritageStory";
+export { ExportProgram } from "./components/ExportProgram";
+export { FeaturedCollections } from "./components/FeaturedCollections";
+export { FAQSection } from "./components/FAQSection";
+export { CategoryCards } from "./components/CategoryCards";
+export { VendorSection } from "./components/VendorSection";
+

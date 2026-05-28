@@ -82,18 +82,22 @@ export const ShopByVideos = () => {
   const [playingId, setPlayingId] = useState<number | null>(null);
   const isScrollingRef = useRef(false);
   const dragThreshold = 8;
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
+  const startX = useRef(0);
+  const startY = useRef(0);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
+  const handleDragStart = (e: React.TouchEvent | React.MouseEvent) => {
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    startX.current = clientX;
+    startY.current = clientY;
     isScrollingRef.current = false;
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const deltaX = Math.abs(e.touches[0].clientX - touchStartX.current);
-    const deltaY = Math.abs(e.touches[0].clientY - touchStartY.current);
+  const handleDragMove = (e: React.TouchEvent | React.MouseEvent) => {
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const deltaX = Math.abs(clientX - startX.current);
+    const deltaY = Math.abs(clientY - startY.current);
     if (deltaX > dragThreshold || deltaY > dragThreshold) {
       isScrollingRef.current = true;
     }
@@ -180,8 +184,10 @@ export const ShopByVideos = () => {
 
           <div
             ref={scrollRef}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
+            onTouchStart={handleDragStart}
+            onMouseDown={handleDragStart}
+            onTouchMove={handleDragMove}
+            onMouseMove={handleDragMove}
             className="flex overflow-x-auto gap-6 pb-8 pt-2 scrollbar-none snap-x snap-mandatory scroll-smooth"
             style={{
               scrollbarWidth: "none",
