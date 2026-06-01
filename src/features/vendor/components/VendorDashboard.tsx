@@ -1058,7 +1058,7 @@ export const VendorDashboard = () => {
                                 
                                 {["PACKED", "DISPATCHED"].includes(currentStatus) && (
                                   <div className="w-full max-w-[190px] flex flex-col items-center gap-1.5 animate-in fade-in duration-200">
-                                    {editingDelivery?.inquiryId === inq.id && editingDelivery?.productId === item.id ? (
+                                    {editingDelivery && editingDelivery.inquiryId === inq.id && editingDelivery.productId === item.id ? (
                                       <div className="flex flex-col gap-1.5 w-full bg-surface-card border border-border p-2.5 rounded-2xl shadow-xl z-15 relative">
                                         <span className="text-[8px] text-muted font-bold uppercase tracking-wider block text-left">Set Est. Delivery:</span>
                                         <input
@@ -1069,7 +1069,7 @@ export const VendorDashboard = () => {
                                             return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
                                           })()}
                                           value={editingDelivery.value}
-                                          onChange={(e) => setEditingDelivery({ ...editingDelivery, value: e.target.value })}
+                                          onChange={(e) => setEditingDelivery(editingDelivery ? { ...editingDelivery, value: e.target.value } : null)}
                                           className="w-full bg-surface border border-border rounded-lg px-2 py-1.5 text-[10px] text-heading font-medium outline-none focus:border-orange-500 transition-colors"
                                         />
                                         <div className="flex gap-1.5 justify-end mt-1">
@@ -1083,8 +1083,10 @@ export const VendorDashboard = () => {
                                           <button
                                             type="button"
                                             onClick={() => {
-                                              handleUpdateItemStatus(inq.id, item.id, currentStatus, editingDelivery.value);
-                                              setEditingDelivery(null);
+                                              if (editingDelivery) {
+                                                handleUpdateItemStatus(inq.id, item.id, currentStatus, editingDelivery.value);
+                                                setEditingDelivery(null);
+                                              }
                                             }}
                                             className="px-2.5 py-1 text-[9px] text-white bg-orange-500 hover:bg-orange-600 rounded-lg font-bold transition-all shadow-sm shadow-orange-500/10"
                                           >

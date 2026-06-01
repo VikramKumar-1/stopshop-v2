@@ -10,6 +10,7 @@ import { useCart } from "@/context/CartContext";
 interface Product {
   id: number;
   name: string;
+  slug?: string;
   description: string;
   specs: string;
   image: string;

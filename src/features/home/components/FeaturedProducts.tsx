@@ -11,6 +11,7 @@ const products = [
   {
     id: 1,
     name: "Heritage Bronze Kadai",
+    slug: "heritage-bronze-kadai",
     category: "Cookware",
     tag: "Best Seller",
     tagColor: "from-orange-500 to-red-500",
@@ -26,6 +27,7 @@ const products = [
   {
     id: 2,
     name: "Artisanal Bronze Lota",
+    slug: "artisanal-bronze-lota",
     category: "Wellness",
     tag: "Trending",
     tagColor: "from-blue-500 to-indigo-500",
@@ -41,6 +43,7 @@ const products = [
   {
     id: 3,
     name: "Royal Bronze Thali Set",
+    slug: "royal-bronze-thali-set",
     category: "Serveware",
     tag: "Limited Edition",
     tagColor: "from-purple-500 to-pink-500",
@@ -56,6 +59,7 @@ const products = [
   {
     id: 4,
     name: "Handcrafted Bronze Handi",
+    slug: "handcrafted-bronze-handi",
     category: "Cookware",
     tag: "Traditional",
     tagColor: "from-emerald-500 to-teal-500",
@@ -71,6 +75,7 @@ const products = [
   {
     id: 5,
     name: "Premium Bronze Urli Bowl",
+    slug: "premium-bronze-urli-bowl",
     category: "Decor",
     tag: "New Arrival",
     tagColor: "from-rose-500 to-orange-500",
@@ -86,6 +91,7 @@ const products = [
   {
     id: 6,
     name: "Traditional Bronze Tumbler Set",
+    slug: "traditional-bronze-tumbler-set",
     category: "Drinkware",
     tag: "Value Pack",
     tagColor: "from-cyan-500 to-blue-500",
@@ -101,6 +107,7 @@ const products = [
   {
     id: 7,
     name: "Classic Bronze Patila",
+    slug: "classic-bronze-patila",
     category: "Cookware",
     tag: "Everyday Use",
     tagColor: "from-amber-500 to-orange-500",
@@ -116,6 +123,7 @@ const products = [
   {
     id: 8,
     name: "Brass Dinner Set Premium",
+    slug: "brass-dinner-set-premium",
     category: "Serveware",
     tag: "Popular",
     tagColor: "from-orange-500 to-amber-500",
