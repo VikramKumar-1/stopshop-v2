@@ -231,10 +231,10 @@ export const AdminPanel = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         {/* Navigation Tabs */}
-        <div className="flex border-b border-border gap-4 mb-8">
+        <div className="flex border-b border-border gap-6 mb-8 overflow-x-auto whitespace-nowrap scrollbar-none">
           <button
             onClick={() => setActiveTab("inquiries")}
-            className={`pb-4 text-sm font-bold transition-all relative ${
+            className={`pb-4 text-sm font-bold transition-all relative shrink-0 ${
               activeTab === "inquiries" ? "text-bronze-500" : "text-muted hover:text-heading"
             }`}
           >
@@ -243,7 +243,7 @@ export const AdminPanel = () => {
           </button>
           <button
             onClick={() => setActiveTab("products")}
-            className={`pb-4 text-sm font-bold transition-all relative ${
+            className={`pb-4 text-sm font-bold transition-all relative shrink-0 ${
               activeTab === "products" ? "text-bronze-500" : "text-muted hover:text-heading"
             }`}
           >
@@ -252,7 +252,7 @@ export const AdminPanel = () => {
           </button>
           <button
             onClick={() => setActiveTab("add-product")}
-            className={`pb-4 text-sm font-bold transition-all relative ${
+            className={`pb-4 text-sm font-bold transition-all relative shrink-0 ${
               activeTab === "add-product" ? "text-bronze-500" : "text-muted hover:text-heading"
             }`}
           >
@@ -328,8 +328,8 @@ export const AdminPanel = () => {
         )}
 
         {activeTab === "products" && (
-          <div className="bg-surface-card border border-border rounded-2xl overflow-hidden shadow-sm">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="bg-surface-card border border-border rounded-2xl overflow-x-auto shadow-sm">
+            <table className="w-full text-left text-xs border-collapse min-w-[600px]">
               <thead>
                 <tr className="bg-surface border-b border-border text-muted font-bold uppercase tracking-wider">
                   <th className="p-4">Product Name</th>
@@ -368,10 +368,10 @@ export const AdminPanel = () => {
         )}
 
         {activeTab === "add-product" && (
-          <div className="max-w-2xl bg-surface-card border border-border rounded-3xl p-8 shadow-sm">
+          <div className="max-w-2xl bg-surface-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm">
             <h2 className="text-xl font-bold text-heading mb-6">Create New Database Product</h2>
             <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="font-bold text-muted uppercase tracking-wider">Product Name *</label>
                   <input
@@ -408,7 +408,7 @@ export const AdminPanel = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="font-bold text-muted uppercase tracking-wider">Price (INR) *</label>
                   <input
@@ -441,7 +441,7 @@ export const AdminPanel = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="font-bold text-muted uppercase tracking-wider">Category *</label>
                   <select

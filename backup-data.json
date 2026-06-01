@@ -1,0 +1,421 @@
+{
+  "users": [
+    {
+      "id": 8,
+      "name": "Admin StopShop",
+      "email": "admin@stopshop.com",
+      "password": "$2a$10$QpsJ8WNFy0PpiQpasEfHYu5ixaUCvZRT3/0rVIWVlmtbucDm7CfPG",
+      "role": "admin",
+      "createdAt": "2026-05-29T12:00:11.907Z",
+      "mobile": null,
+      "location": "Moradabad, Uttar Pradesh, India",
+      "artisanId": null,
+      "gstin": null,
+      "aadhaar": null,
+      "pan": null,
+      "aadhaarUrl": null,
+      "panUrl": null,
+      "docUrl": null
+    },
+    {
+      "id": 9,
+      "name": "Moradabad Artisans Hub",
+      "email": "vendor@stopshop.com",
+      "password": "$2a$10$xwMkHWZ.Ct5IMPwdYYJB7uxhTBlJT2EPxXEuZ58PrJVcbsyCj1jn.",
+      "role": "vendor",
+      "createdAt": "2026-05-29T12:00:12.044Z",
+      "mobile": "+91 8789494262",
+      "location": "Global Export |  | India |  | Hight street, Road number 45",
+      "artisanId": "fdddddddddddddddddddd",
+      "gstin": "ddddddddddddddddddddddddddddddddd",
+      "aadhaar": "444444444444",
+      "pan": "444444444G",
+      "aadhaarUrl": "/uploads/1780295486167-d9kbrth.png",
+      "panUrl": "",
+      "docUrl": ""
+    },
+    {
+      "id": 10,
+      "name": "vikram",
+      "email": "209redclips@gmail.com",
+      "password": "$2a$10$nJumruh1PrHWkmEDD2H3YOF6sOsO9b.q9WPb0pvMhm.SdqYlMmCZO",
+      "role": "user",
+      "createdAt": "2026-05-30T12:45:21.312Z",
+      "mobile": null,
+      "location": "Moradabad, Uttar Pradesh, India",
+      "artisanId": null,
+      "gstin": null,
+      "aadhaar": null,
+      "pan": null,
+      "aadhaarUrl": null,
+      "panUrl": null,
+      "docUrl": null
+    }
+  ],
+  "categories": [
+    {
+      "id": 24,
+      "name": "Kitchen Utility",
+      "slug": "kitchen-utility",
+      "image": "/bronze-kadai.png"
+    },
+    {
+      "id": 25,
+      "name": "Brass Cookware",
+      "slug": "brass-cookware",
+      "image": "/collection-tableware.png"
+    },
+    {
+      "id": 26,
+      "name": "Pooja Collection",
+      "slug": "pooja-collection",
+      "image": "/collection-pooja.png"
+    },
+    {
+      "id": 27,
+      "name": "Copper Products",
+      "slug": "copper-products",
+      "image": "/bronze-lota.png"
+    },
+    {
+      "id": 28,
+      "name": "Steel Essentials",
+      "slug": "steel-essentials",
+      "image": "/bronze-kadai.png"
+    },
+    {
+      "id": 29,
+      "name": "Home Living",
+      "slug": "home-living",
+      "image": "/collection-pooja.png"
+    },
+    {
+      "id": 30,
+      "name": "Bedroom Essentials",
+      "slug": "bedroom-essentials",
+      "image": "/collection-tableware.png"
+    },
+    {
+      "id": 31,
+      "name": "Living Room",
+      "slug": "living-room",
+      "image": "/collection-pooja.png"
+    },
+    {
+      "id": 32,
+      "name": "Handicrafts",
+      "slug": "handicrafts",
+      "image": "/collection-pooja.png"
+    },
+    {
+      "id": 33,
+      "name": "Kitchen Racks",
+      "slug": "kitchen-racks",
+      "image": "/bronze-kadai.png"
+    },
+    {
+      "id": 34,
+      "name": "Dinner Sets",
+      "slug": "dinner-sets",
+      "image": "/collection-tableware.png"
+    }
+  ],
+  "products": [
+    {
+      "id": 33,
+      "name": "Heritage Bronze Kadai",
+      "slug": "heritage-bronze-kadai",
+      "description": "Heavy-duty pure bronze cooking kadai, hand-beaten by traditional coppersmiths for uniform heating.",
+      "specs": "Weight: 2.4 kg | Hand-Hammered",
+      "image": "/bronze-kadai.png",
+      "images": [
+        "/bronze-kadai.png",
+        "/bronze-hero.png"
+      ],
+      "price": 2499,
+      "mrp": 3199,
+      "discount": 22,
+      "rating": 4.9,
+      "reviews": 124,
+      "categoryName": "kitchen-utility",
+      "material": "Bronze",
+      "stock": 5,
+      "featured": true,
+      "newLaunch": false,
+      "active": true,
+      "createdAt": "2026-05-29T12:00:12.128Z",
+      "vendorId": 9
+    },
+    {
+      "id": 34,
+      "name": "Handcrafted Bronze Handi",
+      "slug": "handcrafted-bronze-handi",
+      "description": "Elegant deep-cooking pot with lid, perfect for slow-cooking curries and biryanis.",
+      "specs": "Capacity: 3 Litres | Heavy Bottom",
+      "image": "/bronze-hero.png",
+      "images": [
+        "/bronze-hero.png"
+      ],
+      "price": 3299,
+      "mrp": 4499,
+      "discount": 27,
+      "rating": 4.7,
+      "reviews": 67,
+      "categoryName": "kitchen-utility",
+      "material": "Bronze",
+      "stock": 3,
+      "featured": true,
+      "newLaunch": false,
+      "active": true,
+      "createdAt": "2026-05-29T12:00:12.134Z",
+      "vendorId": 9
+    },
+    {
+      "id": 35,
+      "name": "Classic Bronze Patila",
+      "slug": "classic-bronze-patila",
+      "description": "Flat-bottomed classic cooking vessel designed for day-to-day culinary needs.",
+      "specs": "Weight: 1.8 kg | Pure Bronze",
+      "image": "/bronze-hero.png",
+      "images": [
+        "/bronze-hero.png"
+      ],
+      "price": 1999,
+      "mrp": 2699,
+      "discount": 26,
+      "rating": 4.8,
+      "reviews": 73,
+      "categoryName": "kitchen-utility",
+      "material": "Bronze",
+      "stock": 8,
+      "featured": true,
+      "newLaunch": false,
+      "active": true,
+      "createdAt": "2026-05-29T12:00:12.140Z",
+      "vendorId": null
+    },
+    {
+      "id": 36,
+      "name": "Royal Bronze Thali Set",
+      "slug": "royal-bronze-thali-set",
+      "description": "An exquisite multi-piece dining set fit for royalty, featuring intricate hand-etched rims.",
+      "specs": "7-Piece Set | Velvet Case Included",
+      "image": "/collection-tableware.png",
+      "images": [
+        "/collection-tableware.png"
+      ],
+      "price": 5999,
+      "mrp": 7999,
+      "discount": 25,
+      "rating": 5,
+      "reviews": 42,
+      "categoryName": "brass-cookware",
+      "material": "Brass",
+      "stock": 2,
+      "featured": true,
+      "newLaunch": false,
+      "active": true,
+      "createdAt": "2026-05-29T12:00:12.145Z",
+      "vendorId": null
+    },
+    {
+      "id": 37,
+      "name": "Pure Copper Water Bottle",
+      "slug": "pure-copper-water-bottle",
+      "description": "Handcrafted pure copper bottle for daily Ayurvedic hydration and natural wellness.",
+      "specs": "Capacity: 1 Litre | Leak-Proof",
+      "image": "/bronze-lota.png",
+      "images": [
+        "/bronze-lota.png"
+      ],
+      "price": 899,
+      "mrp": 1200,
+      "discount": 25,
+      "rating": 4.9,
+      "reviews": 156,
+      "categoryName": "copper-products",
+      "material": "Copper",
+      "stock": 20,
+      "featured": true,
+      "newLaunch": false,
+      "active": true,
+      "createdAt": "2026-05-29T12:00:12.151Z",
+      "vendorId": 9
+    },
+    {
+      "id": 38,
+      "name": "Artisanal Bronze Lota",
+      "slug": "artisanal-bronze-lota",
+      "description": "Traditional wellness water vessel designed to naturally purify and alkaline drinking water overnight.",
+      "specs": "Capacity: 1.5 Litres | Pure Kansa",
+      "image": "/bronze-lota.png",
+      "images": [
+        "/bronze-lota.png"
+      ],
+      "price": 1899,
+      "mrp": 2499,
+      "discount": 24,
+      "rating": 4.8,
+      "reviews": 89,
+      "categoryName": "copper-products",
+      "material": "Bronze",
+      "stock": 4,
+      "featured": true,
+      "newLaunch": false,
+      "active": true,
+      "createdAt": "2026-05-29T12:00:12.157Z",
+      "vendorId": null
+    },
+    {
+      "id": 39,
+      "name": "Vikram Kumar",
+      "slug": "vikram-kumar",
+      "description": "this is purekjrkjrgrbgbdfbm",
+      "specs": "3 Kg | Pieces: 3",
+      "image": "/uploads/1780061236954-amu6950.png",
+      "images": [],
+      "price": 4850,
+      "mrp": 5000,
+      "discount": 3,
+      "rating": 5,
+      "reviews": 0,
+      "categoryName": "copper-products",
+      "material": "Copper",
+      "stock": 10,
+      "featured": false,
+      "newLaunch": false,
+      "active": true,
+      "createdAt": "2026-05-29T13:28:00.840Z",
+      "vendorId": 9
+    },
+    {
+      "id": 40,
+      "name": "John Star",
+      "slug": "john-star",
+      "description": "bdsbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb dbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+      "specs": "3 Kg | Pieces: 4 | Capacity: 3 ltr | Thickness: 4",
+      "image": "/uploads/1780132570817-1a6hx8s.png",
+      "images": [
+        "/uploads/1780135886872-s1am4vh.png",
+        "/uploads/1780135892576-dcr9azi.png",
+        "/uploads/1780135898055-2n8qbso.png",
+        "/uploads/1780136002405-pyv8l8o.png",
+        "/uploads/1780136010343-e40nliy.png",
+        "/uploads/1780136017124-84fyr4k.png",
+        "/uploads/1780136022140-j3yjdp3.png",
+        "/uploads/1780136035413-qku4mz0.png"
+      ],
+      "price": 5820,
+      "mrp": 6000,
+      "discount": 3,
+      "rating": 5,
+      "reviews": 0,
+      "categoryName": "kitchen-utility",
+      "material": "Bronze",
+      "stock": 10,
+      "featured": false,
+      "newLaunch": false,
+      "active": true,
+      "createdAt": "2026-05-30T09:16:38.060Z",
+      "vendorId": 9
+    }
+  ],
+  "inquiries": [
+    {
+      "id": 3,
+      "name": "David Miller",
+      "email": "david@millertraders.com",
+      "phone": "+1 415 555 2671",
+      "companyName": "Miller Import Traders",
+      "country": "United States",
+      "items": "[{\"id\":33,\"name\":\"Heritage Bronze Kadai\",\"price\":2499,\"quantity\":50,\"material\":\"Bronze\"},{\"id\":34,\"name\":\"Handcrafted Bronze Handi\",\"price\":3299,\"quantity\":50,\"material\":\"Bronze\"},{\"id\":37,\"name\":\"Pure Copper Water Bottle\",\"price\":899,\"quantity\":50,\"material\":\"Copper\"}]",
+      "message": "We need urgent pricing quotes for bulk shipping of copper bottles and bronze Kadais to San Francisco port. Please send certificate of purity.",
+      "status": "PENDING",
+      "createdAt": "2026-05-29T12:00:12.166Z"
+    },
+    {
+      "id": 4,
+      "name": "Vikram Kumar",
+      "email": "vikuraj3337@gmail.com",
+      "phone": "8789494263",
+      "companyName": "IGT solution",
+      "country": null,
+      "items": [],
+      "message": "Hello, I would like to inquire about bulk ordering the \"Artisanal Bronze Lota\". Please provide pricing, MOQ (Minimum Order Quantity), and export shipping details to my country.",
+      "status": "PENDING",
+      "createdAt": "2026-05-30T05:59:09.965Z"
+    },
+    {
+      "id": 5,
+      "name": "Vikram Kumar",
+      "email": "vikuraj3337@gmail.com",
+      "phone": "+91 8789494263",
+      "companyName": null,
+      "country": "USA",
+      "items": [
+        {
+          "id": 39,
+          "name": "Vikram Kumar",
+          "status": "DELIVERED",
+          "deliveryDate": "2026-06-03T12:35",
+          "sold": true
+        }
+      ],
+      "message": "Hello, I would like to inquire about bulk ordering the \"Vikram Kumar\". Please provide pricing, MOQ (Minimum Order Quantity), and export shipping details to my country.",
+      "status": "PENDING",
+      "createdAt": "2026-05-30T06:11:17.014Z"
+    },
+    {
+      "id": 6,
+      "name": "John Deo",
+      "email": "john@example.com",
+      "phone": "+966 8789494264",
+      "companyName": null,
+      "country": "USA",
+      "items": [
+        {
+          "id": 39,
+          "name": "Vikram Kumar",
+          "orderType": "Single Item",
+          "quantity": 1,
+          "status": "CANCELLED"
+        }
+      ],
+      "message": "Hello, I would like to inquire about bulk ordering the \"Vikram Kumar\". Please provide pricing, MOQ (Minimum Order Quantity), and export shipping details to my country.",
+      "status": "PENDING",
+      "createdAt": "2026-05-30T07:08:12.916Z"
+    },
+    {
+      "id": 7,
+      "name": "viku",
+      "email": "vikuraj3337@gmail.com",
+      "phone": "+91 8789494263",
+      "companyName": "NotionZoa ",
+      "country": "India",
+      "items": [],
+      "message": "xnz xmZz",
+      "status": "PENDING",
+      "createdAt": "2026-05-30T07:29:32.004Z"
+    },
+    {
+      "id": 8,
+      "name": "Moradabad Artisans Hub",
+      "email": "vendor@stopshop.com",
+      "phone": "+91 8789494262",
+      "companyName": null,
+      "country": "India",
+      "items": [
+        {
+          "id": 40,
+          "name": "John Star",
+          "orderType": "Single Item",
+          "quantity": 1,
+          "status": "PACKED"
+        }
+      ],
+      "message": "Hello, I would like to inquire about bulk ordering the \"John Star\". Please provide pricing, MOQ (Minimum Order Quantity), and export shipping details to my country.",
+      "status": "PENDING",
+      "createdAt": "2026-06-01T09:22:48.525Z"
+    }
+  ]
+}

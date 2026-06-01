@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 
 import { usePathname } from "next/navigation";
 import { useRegion } from "@/context/RegionContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 const navLinks = [
   { href: "/contact", label: "Get a Quote" },
@@ -17,6 +18,7 @@ export const Navbar = () => {
   const pathname = usePathname();
   const isDashboard = pathname.startsWith("/vendor") || pathname.startsWith("/admin");
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const { region, setRegion } = useRegion();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -378,7 +380,7 @@ export const Navbar = () => {
                             <span>User Dashboard</span>
                           </Link>
                         )}
-                        {!user && (
+                        {(!user || user.role === "user") && (
                           <Link
                             href="/vendor/login"
                             className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
@@ -430,9 +432,11 @@ export const Navbar = () => {
                       >
                         <div className="relative">
                           <Heart size={20} className="group-hover/wishlist:scale-105 transition-transform" />
-                          <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
-                            2
-                          </span>
+                          {wishlistCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
+                              {wishlistCount}
+                            </span>
+                          )}
                         </div>
                         <span className="hidden xl:inline text-xs font-bold text-heading">Wishlist</span>
                       </Link>
@@ -546,9 +550,11 @@ export const Navbar = () => {
                         aria-label="Wishlist"
                       >
                         <Heart size={18} />
-                        <span className="absolute top-0 right-0 bg-orange-500 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
-                          2
-                        </span>
+                        {wishlistCount > 0 && (
+                          <span className="absolute top-0 right-0 bg-orange-500 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
+                            {wishlistCount}
+                          </span>
+                        )}
                       </Link>
 
                       {/* Mobile Shopping Cart */}
@@ -613,14 +619,14 @@ export const Navbar = () => {
                   My Account / Profile
                 </Link>
 
-                {!isDashboard && (
+                 {!isDashboard && (
                   <Link
                     href="/wishlist"
                     onClick={() => setMobileOpen(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
                   >
                     <Heart size={16} />
-                    My Wishlist (2 items)
+                    My Wishlist {wishlistCount > 0 ? `(${wishlistCount} items)` : ""}
                   </Link>
                 )}
 

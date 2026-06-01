@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ShoppingCart, Heart, Check, ShieldAlert, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
+import { useWishlist } from "@/context/WishlistContext";
+
 interface ProductClientActionsProps {
   product: any;
   allImages: string[];
@@ -16,6 +18,9 @@ export default function ProductClientActions({ product, allImages }: ProductClie
   const [added, setAdded] = useState(false);
   
   const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist } = useWishlist();
+  
+  const wishlisted = isInWishlist(product.id);
 
   React.useEffect(() => {
     setSelectedImage(allImages[0]);
@@ -196,8 +201,16 @@ export default function ProductClientActions({ product, allImages }: ProductClie
                 Quick Inquiry
               </Link>
 
-              <button className="p-3.5 border border-border hover:border-red-500 hover:text-red-500 text-muted rounded-xl bg-surface-card hover:bg-red-500/5 transition-all duration-300 shrink-0">
-                <Heart size={18} />
+              <button 
+                onClick={() => addToWishlist(product)}
+                className={`p-3.5 border rounded-xl bg-surface-card transition-all duration-300 shrink-0 ${
+                  wishlisted 
+                    ? "border-red-500 text-red-500 bg-red-500/5 shadow-inner" 
+                    : "border-border hover:border-red-500 hover:text-red-500 text-muted hover:bg-red-500/5 shadow-sm"
+                }`}
+                title={wishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+              >
+                <Heart size={18} fill={wishlisted ? "currentColor" : "none"} />
               </button>
             </div>
           </div>

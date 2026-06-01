@@ -145,6 +145,7 @@ export default function ProfilePage() {
         } else {
           setUser(data.user);
           fetchProfileAndOrders();
+          window.location.reload(); // Refresh page to update the Navbar state
         }
       } else {
         setAuthError(data.error || "Authentication failed.");
@@ -404,6 +405,22 @@ export default function ProfilePage() {
             Sign Out Account
           </button>
         </div>
+
+        {/* Become a Vendor Invite Banner */}
+        {user && user.role === "user" && (
+          <div className="bg-gradient-to-r from-orange-500/10 via-orange-600/5 to-transparent border border-orange-500/25 rounded-3xl p-5 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 max-w-4xl mx-auto shadow-sm">
+            <div className="text-center sm:text-left">
+              <h4 className="text-sm font-bold text-heading font-display">Want to sell your handcrafted products?</h4>
+              <p className="text-[11px] text-muted mt-1">Upgrade your account to a Vendor account to list and sell copper, brass, and bronze handicrafts globally.</p>
+            </div>
+            <button
+              onClick={() => window.location.href = "/vendor/register"}
+              className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all whitespace-nowrap active:scale-[0.97]"
+            >
+              Become a Seller
+            </button>
+          </div>
+        )}
 
         {/* Centered Account Profile Details Card */}
         <div className="bg-surface-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 mb-8 relative max-w-4xl mx-auto">

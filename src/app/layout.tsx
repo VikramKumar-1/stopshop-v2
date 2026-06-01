@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 
 import { MainLayout } from "@/features/core/components/MainLayout";
 import { RegionProvider } from "@/context/RegionContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 export default function RootLayout({
   children,
@@ -56,12 +57,14 @@ export default function RootLayout({
         <ThemeProvider>
           <RegionProvider>
             <CartProvider>
-              <div className="fixed top-0 left-0 right-0 z-40 w-full lg:contents">
-                <Navbar />
-                <CategoryStrip />
-              </div>
-              <MainLayout>{children}</MainLayout>
-              <Footer />
+              <WishlistProvider>
+                <div className="fixed top-0 left-0 right-0 z-40 w-full lg:contents">
+                  <Navbar />
+                  <CategoryStrip />
+                </div>
+                <MainLayout>{children}</MainLayout>
+                <Footer />
+              </WishlistProvider>
             </CartProvider>
           </RegionProvider>
         </ThemeProvider>
