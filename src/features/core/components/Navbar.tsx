@@ -11,6 +11,8 @@ import { useRegion } from "@/context/RegionContext";
 import { useWishlist } from "@/context/WishlistContext";
 
 const navLinks = [
+  { href: "/products", label: "Shop Products" },
+  { href: "/about", label: "How We Do It" },
   { href: "/contact", label: "Get a Quote" },
 ];
 
@@ -26,6 +28,126 @@ export const Navbar = () => {
   const [visible, setVisible] = useState(true);
   const [user, setUser] = useState<any>(null);
   const isProfilePage = pathname.startsWith("/profile") && !user;
+
+  // Search suggestions states
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+
+  // Fetch search suggestions
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(searchQuery)}&take=5`);
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data);
+        }
+      } catch (err) {
+        console.error("Error fetching suggestions", err);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  // Click outside to close search suggestions
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".search-container")) {
+        setSuggestionsOpen(false);
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, []);
+
+  const renderSuggestions = (isMobile: boolean) => {
+    if (!suggestionsOpen || (!searchQuery.trim() && suggestions.length === 0)) return null;
+
+    return (
+      <div 
+        className={`absolute left-0 right-0 mt-2 bg-[var(--surface)] border border-border dark:border-white/10 rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.15)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.45)] z-[110] overflow-hidden ${isMobile ? "top-full" : "top-full"}`}
+        style={{ width: "100%" }}
+      >
+        {loadingSuggestions && suggestions.length === 0 && (
+          <div className="p-4 text-center text-xs text-muted">
+            <span className="inline-block animate-spin mr-2">⏳</span> Searching...
+          </div>
+        )}
+        
+        {!loadingSuggestions && suggestions.length === 0 && searchQuery.trim() && (
+          <div className="p-4 text-center text-xs text-muted">
+            No products found for "{searchQuery}"
+          </div>
+        )}
+
+        {suggestions.length > 0 && (
+          <div className="p-2 space-y-1">
+            <div className="px-3 py-1.5 text-[10px] font-semibold text-muted tracking-wider uppercase border-b border-border/50">
+              Suggested Products
+            </div>
+            {suggestions.map((product: any) => (
+              <button
+                key={product.id}
+                onClick={() => {
+                  window.location.href = `/product/${product.id}`;
+                  setSuggestionsOpen(false);
+                  setSearchOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface-hover rounded-xl transition-all cursor-pointer group"
+              >
+                {product.images && product.images.length > 0 ? (
+                  <img
+                    src={product.images[0]}
+                    alt={product.title}
+                    className="w-10 h-10 object-cover rounded-lg border border-border bg-white"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-bronze-100 dark:bg-bronze-900/40 rounded-lg flex items-center justify-center text-bronze-500 font-bold text-xs">
+                    SSP
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xs font-bold text-heading truncate group-hover:text-orange-500 transition-colors">
+                    {product.title}
+                  </h4>
+                  <p className="text-[10px] text-muted truncate">
+                    in {product.category || "General"}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-xs font-bold text-orange-500 dark:text-orange-400">
+                    {region === "IN" ? "₹" : "$"} {product.price}
+                  </span>
+                </div>
+              </button>
+            ))}
+            
+            <button
+              onClick={() => {
+                window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
+                setSuggestionsOpen(false);
+                setSearchOpen(false);
+              }}
+              className="w-full text-center py-2.5 text-[11px] font-bold text-orange-500 dark:text-orange-400 hover:bg-orange-500/5 rounded-xl border-t border-border/50 transition-all cursor-pointer"
+            >
+              See all results for "{searchQuery}"
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const checkUser = async () => {
     try {
@@ -202,46 +324,56 @@ export const Navbar = () => {
 
               {/* Centered Wide Search Bar (Desktop only, permanently visible) */}
               {!isDashboard && !isProfilePage && (
-                <div className="hidden lg:flex flex-1 max-w-[340px] xl:max-w-[400px] mx-6">
-                  <form onSubmit={handleSearchSubmit} className="relative overflow-hidden w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
+                <div className="hidden lg:flex flex-1 max-w-[340px] xl:max-w-[400px] mx-6 relative search-container">
+                  <form onSubmit={handleSearchSubmit} className="relative w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
                     <input
                       type="text"
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setSuggestionsOpen(true);
+                      }}
+                      onFocus={() => setSuggestionsOpen(true)}
                       placeholder="Search premium bronze, copper & brass..."
                       className="w-full h-full pl-5 pr-12 bg-transparent text-heading placeholder-muted text-xs focus:outline-none"
                     />
                     <button
                       type="submit"
-                      className="h-full px-4 xl:px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center transition-all border-l border-bronze-500/20 rounded-r-full"
+                      className="h-full px-4 xl:px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center transition-all border-l border-bronze-500/20 rounded-r-full absolute right-0 top-0 bottom-0"
                       aria-label="Search"
                     >
                       <Search size={14} />
                     </button>
                   </form>
+                  {renderSuggestions(false)}
                 </div>
               )}
-
+              
               {/* Expandable Search Input (Mobile only, shown when searchOpen is true) */}
               {!isDashboard && !isProfilePage && searchOpen && (
-                <div className="lg:hidden flex-grow max-w-[270px] mx-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <form onSubmit={handleSearchSubmit} className="relative overflow-hidden w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
+                <div className="lg:hidden flex-grow max-w-[270px] mx-2 relative search-container animate-in fade-in slide-in-from-top-1 duration-200">
+                  <form onSubmit={handleSearchSubmit} className="relative w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
                     <input
                       type="text"
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setSuggestionsOpen(true);
+                      }}
+                      onFocus={() => setSuggestionsOpen(true)}
                       placeholder="Search..."
                       autoFocus
                       className="w-full h-full pl-4 pr-10 bg-transparent text-heading placeholder-muted text-xs focus:outline-none"
                     />
                     <button
                       type="submit"
-                      className="h-full px-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center transition-all border-l border-bronze-500/20 rounded-r-full"
+                      className="h-full px-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center transition-all border-l border-bronze-500/20 rounded-r-full absolute right-0 top-0 bottom-0"
                       aria-label="Search"
                     >
                       <Search size={13} />
                     </button>
                   </form>
+                  {renderSuggestions(true)}
                 </div>
               )}
 
@@ -585,9 +717,31 @@ export const Navbar = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-border bg-[var(--surface)]"
+              className="lg:hidden border-t border-border bg-[var(--surface)] max-h-[calc(100vh-100px)] overflow-y-auto"
             >
               <div className="px-4 py-5 space-y-2">
+                {/* User Welcome Card on Mobile */}
+                {user ? (
+                  <div className="flex items-center gap-3 px-3 py-2 bg-orange-500/5 dark:bg-orange-500/10 rounded-xl border border-orange-500/10 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm">
+                      {user.name.charAt(0)}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] text-muted leading-tight">Logged in as</span>
+                      <span className="text-xs font-bold text-heading truncate">{user.name}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    href="/profile?mode=login"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-orange-500 font-bold hover:bg-orange-500/5 transition-all mb-2"
+                  >
+                    <User size={16} />
+                    Sign In / Register
+                  </Link>
+                )}
+
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
@@ -630,10 +784,46 @@ export const Navbar = () => {
                   </Link>
                 )}
 
+                {/* Dashboard shortcuts if authenticated */}
+                {user && user.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
+                  >
+                    <LayoutDashboard size={16} />
+                    Admin Panel
+                  </Link>
+                )}
+
+                {user && user.role === "vendor" && !isDashboard && (
+                  <Link
+                    href="/vendor/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
+                  >
+                    <LayoutDashboard size={16} />
+                    Vendor Dashboard
+                  </Link>
+                )}
+
+                {user && (
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-500 font-bold hover:bg-red-500/5 transition-all text-left cursor-pointer"
+                  >
+                    <LogOut size={16} />
+                    Sign Out
+                  </button>
+                )}
+
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="block text-center mt-4 px-6 py-3 rounded-full bg-gradient-to-r from-bronze-500 to-bronze-600 text-white font-semibold shadow-md shadow-bronze-500/15"
+                  className="block text-center mt-4 px-6 py-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold shadow-md shadow-orange-500/15"
                 >
                   Request Quote
                 </Link>
@@ -642,6 +832,19 @@ export const Navbar = () => {
           )}
         </AnimatePresence>
       </nav>
+
+      {/* Mobile Menu Backdrop */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm"
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 };

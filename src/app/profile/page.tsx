@@ -239,6 +239,12 @@ export default function ProfilePage() {
           <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full blur-3xl -z-10" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-bronze-500/5 rounded-full blur-3xl -z-10" />
 
+          {searchParams.get("reason") === "inquiry" && (
+            <div className="mb-5 p-3.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 rounded-2xl text-[10px] font-bold uppercase tracking-wider text-center animate-in fade-in duration-200">
+              🔒 Sign In to Add to Inquiry & Request Quotes
+            </div>
+          )}
+
           <div className="text-center mb-6">
             <h1 className="text-xl sm:text-2xl font-display font-bold text-heading">
               {isLogin ? "Welcome Back" : "Create Account"}

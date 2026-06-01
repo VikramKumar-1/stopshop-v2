@@ -36,7 +36,7 @@ export default function ProductClientActions({ product, allImages }: ProductClie
           setAdded(true);
           setTimeout(() => setAdded(false), 2000);
         } else {
-          window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}`;
+          window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}&reason=inquiry`;
         }
       } else {
         addToCart(product, quantity);

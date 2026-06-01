@@ -4,9 +4,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Star, ShoppingCart, SlidersHorizontal, ArrowUpDown, ShieldCheck } from "lucide-react";
+import { Search, Star, ShoppingCart, SlidersHorizontal, ArrowUpDown, ShieldCheck, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useRegion } from "@/context/RegionContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 // Meaningful messages tailored for each product category
 const categoryEndMessages: Record<string, string> = {
@@ -87,6 +88,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
   
   const { addToCart } = useCart();
   const { convertPrice, convertWeight } = useRegion();
+  const { addToWishlist, isInWishlist } = useWishlist();
  
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -482,7 +484,19 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                           </span>
                         )}
                         
-                        <span className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-medium px-2 py-0.5 rounded-md">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            addToWishlist(product);
+                          }}
+                          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-md border border-border/60 hover:text-red-500 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+                          title={isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                        >
+                          <Heart size={14} fill={isInWishlist(product.id) ? "currentColor" : "none"} className={isInWishlist(product.id) ? "text-red-500" : "text-muted"} />
+                        </button>
+                        
+                        <span className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-md">
                           {product.material}
                         </span>
 
@@ -544,10 +558,24 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                         <div className="flex items-center w-full">
                           {/* Add to Inquiry Button */}
                           <button
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              addToCart(product, 1);
+                              try {
+                                const res = await fetch("/api/auth/me");
+                                if (res.ok) {
+                                  const data = await res.json();
+                                  if (data.authenticated) {
+                                    addToCart(product, 1);
+                                  } else {
+                                    window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}&reason=inquiry`;
+                                  }
+                                } else {
+                                  addToCart(product, 1);
+                                }
+                              } catch (err) {
+                                addToCart(product, 1);
+                              }
                             }}
                             className="w-full group/btn inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-xs active:scale-[0.97]"
                           >
