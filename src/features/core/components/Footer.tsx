@@ -1,5 +1,7 @@
+"use client";
 import Link from "next/link";
 import { Globe, Mail, Phone, MapPin } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const footerLinks = {
   company: [
@@ -31,6 +33,31 @@ const socialLinks = [
 ];
 
 export const Footer = () => {
+  const pathname = usePathname();
+  const isDashboard = pathname.startsWith("/vendor") || pathname.startsWith("/admin");
+
+  if (isDashboard) {
+    return (
+      <footer className="bg-surface-card border-t border-border mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-muted">
+          <div className="flex items-center gap-2">
+            <span className="font-display font-bold text-heading text-sm">
+              Stop<span className="text-orange-500">Shop</span> <span className="font-normal text-xs text-muted">Artisan Partner</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-6 font-semibold">
+            <a href="/vendor/dashboard" className="hover:text-heading transition-colors">Dashboard Support</a>
+            <a href="#" className="hover:text-heading transition-colors">Seller Policies</a>
+            <a href="#" className="hover:text-heading transition-colors">Terms of Service</a>
+          </div>
+          <p className="text-[11px]">
+            &copy; {new Date().getFullYear()} StopShop. Artisan Partner Portal • Made in India 🇮🇳
+          </p>
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <footer className="bg-bronze-950 text-bronze-100">
       {/* Main Footer */}

@@ -171,7 +171,11 @@ export const ShopByMaterial = () => {
               key={material.id}
               className="snap-start snap-always shrink-0 w-[290px] sm:w-[400px] md:w-[440px] aspect-[16/10] sm:aspect-[1.8/1] relative rounded-3xl overflow-hidden shadow-lg border border-bronze-500/10 hover:border-bronze-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-bronze-500/[0.04]"
             >
-              <Link href={`/material/${material.id}`} onClickCapture={handleLinkClick} className="block w-full h-full">
+              <Link 
+                href={`/products/material/${material.id}`} 
+                onClickCapture={handleLinkClick} 
+                className="block w-full h-full"
+              >
                 {/* Background Color/Gradient matching user's dark palette */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${material.bgClass}`} />
 

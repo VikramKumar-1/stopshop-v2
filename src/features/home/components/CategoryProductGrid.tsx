@@ -4,6 +4,8 @@ import { ArrowRight, Star, Check, ShoppingCart, ChevronLeft, ChevronRight } from
 import Link from "next/link";
 import Image from "next/image";
 import { useRef } from "react";
+import { useRegion } from "@/context/RegionContext";
+import { useCart } from "@/context/CartContext";
 
 interface Product {
   id: number;
@@ -15,6 +17,7 @@ interface Product {
   reviews: number;
   price?: number;
   mrp?: number;
+  discount?: number;
 }
 
 interface CategoryProductGridProps {
@@ -33,6 +36,8 @@ export const CategoryProductGrid = ({
   accentColor
 }: CategoryProductGridProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { convertPrice, convertWeight } = useRegion();
+  const { addToCart } = useCart();
 
   const renderTitle = (titleText: string) => {
     const words = titleText.split(" ");
@@ -244,11 +249,16 @@ export const CategoryProductGrid = ({
             return (
               <Link
                 key={product.id}
-                href={`/product/${product.id}`}
+                href={`/product/${product.slug || product.id}`}
                 className="group snap-start snap-always shrink-0 w-full flex flex-col justify-between bg-surface-card border border-bronze-500/[0.14] rounded-2xl max-sm:rounded-xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-bronze-500/8 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
               >
                 {/* Product Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-orange-50/50 dark:bg-white/5 border-b border-bronze-500/[0.08]">
+                  {product.discount !== undefined && product.discount > 0 && (
+                    <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                      {product.discount}% OFF
+                    </div>
+                  )}
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -280,32 +290,52 @@ export const CategoryProductGrid = ({
                     </h3>
 
                     {/* Price Section */}
-                    <div className="flex items-baseline gap-1.5 mt-0.5 sm:mt-2 mb-1.5 sm:mb-4">
-                      <span className="text-sm sm:text-lg font-bold text-heading">₹{displayPrice.toLocaleString()}</span>
-                      <span className="text-[10px] sm:text-sm text-muted line-through">₹{displayMrp.toLocaleString()}</span>
+                    <div className="flex items-baseline gap-1.5 mt-0.5 sm:mt-2 mb-1.5 sm:mb-4 flex-wrap">
+                      <span className="text-sm sm:text-lg font-bold text-heading">{convertPrice(displayPrice)}</span>
+                      {displayMrp > displayPrice && (
+                        <>
+                          <span className="text-[10px] sm:text-sm text-muted line-through">{convertPrice(displayMrp)}</span>
+                          <span className="text-[9px] sm:text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">
+                            (Save {convertPrice(displayMrp - displayPrice)})
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 
                   <div>
-                    {/* Specs / Check */}
-                    <div className="flex items-center gap-1.5 text-[9px] sm:text-xs text-bronze-800 dark:text-bronze-400 font-semibold mb-3 sm:mb-4">
-                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-orange-500/10 dark:bg-bronze-500/20 flex items-center justify-center flex-shrink-0">
-                        <Check size={10} className="text-orange-600 dark:text-bronze-400" strokeWidth={3} />
-                      </div>
-                      <span className="line-clamp-1">{product.specs}</span>
+                    {/* Specs scroll list */}
+                    <div className="flex gap-1 overflow-x-auto scrollbar-none py-0.5 no-scrollbar max-w-full mb-3 sm:mb-4">
+                      {product.specs ? (
+                        product.specs.split(" | ").map((spec, i) => (
+                          <span key={i} className="whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-orange-500/5 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 text-[8px] sm:text-[10px] font-bold border border-orange-500/10">
+                            {spec.toLowerCase().includes("kg") || spec.toLowerCase().includes("gm") || spec.toLowerCase().includes("lbs")
+                              ? convertWeight(spec)
+                              : spec}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-orange-500/5 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 text-[8px] sm:text-[10px] font-bold border border-orange-500/10">
+                          Standard
+                        </span>
+                      )}
                     </div>
 
-                    {/* Button */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      className="group/btn inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-2.5 w-full rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-semibold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-[10px] sm:text-xs active:scale-[0.98]"
-                    >
-                      <ShoppingCart size={13} className="group-hover/btn:scale-110 transition-transform" />
-                      Add to Cart
-                    </button>
+                    {/* Actions Row */}
+                    <div className="flex w-full mt-2">
+                      {/* Add to Inquiry Button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          addToCart(product, 1);
+                        }}
+                        className="w-full group/btn inline-flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-[10px] sm:text-xs active:scale-[0.97]"
+                      >
+                        <ShoppingCart size={14} />
+                        Add to Inquiry
+                      </button>
+                    </div>
                   </div>
                 </div>
               </Link>

@@ -4,6 +4,7 @@ import { ArrowRight, Star, Gift, ShieldCheck, ChevronLeft, ChevronRight } from "
 import Link from "next/link";
 import Image from "next/image";
 import React, { useState, useRef } from "react";
+import { useRegion } from "@/context/RegionContext";
 
 const giftSets = [
   {
@@ -54,6 +55,7 @@ const giftSets = [
 
 export const GiftCollections = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { convertWeight } = useRegion();
   const isScrollingRef = useRef(false);
   const dragThreshold = 8;
   const startX = useRef(0);
@@ -199,9 +201,21 @@ export const GiftCollections = () => {
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-orange-700 dark:text-bronze-400 font-semibold mb-5">
-                    <ShieldCheck size={13} />
-                    <span className="line-clamp-1">{product.specs}</span>
+                  {/* Specs scroll list */}
+                  <div className="flex gap-1 overflow-x-auto scrollbar-none py-0.5 no-scrollbar max-w-full mb-5">
+                    {product.specs ? (
+                      product.specs.split(" | ").map((spec, i) => (
+                        <span key={i} className="whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-orange-500/5 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 text-[8px] sm:text-[10px] font-bold border border-orange-500/10">
+                          {spec.toLowerCase().includes("kg") || spec.toLowerCase().includes("gm") || spec.toLowerCase().includes("lbs")
+                            ? convertWeight(spec)
+                            : spec}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-orange-500/5 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 text-[8px] sm:text-[10px] font-bold border border-orange-500/10">
+                        Standard
+                      </span>
+                    )}
                   </div>
 
                   <Link

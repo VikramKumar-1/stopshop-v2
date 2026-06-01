@@ -1,0 +1,4 @@
+PUT Request for ID: 40
+User: {"userId":9,"email":"vendor@stopshop.com","role":"vendor","iat":1780293689,"exp":2095653689}
+Body: {"stock":10}
+Update successful!

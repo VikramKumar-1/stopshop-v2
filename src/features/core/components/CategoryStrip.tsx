@@ -11,15 +11,17 @@ import {
   Grid,
   Soup,
   Search,
-  X
+  X,
+  ShoppingCart
 } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 const categories = [
   {
     id: "copper",
     name: "Copper",
     icon: GlassWater,
-    href: "/contact?collection=copper",
+    href: "/products/material/copper",
     bgColor: "bg-orange-50/70 dark:bg-orange-950/20",
     borderColor: "border-orange-100 dark:border-orange-900/30",
     iconColor: "text-orange-600 dark:text-orange-400",
@@ -29,7 +31,7 @@ const categories = [
     id: "brass",
     name: "Brass",
     icon: Bell,
-    href: "/contact?collection=brass",
+    href: "/products/material/brass",
     bgColor: "bg-amber-50/70 dark:bg-amber-950/20",
     borderColor: "border-amber-100 dark:border-amber-900/30",
     iconColor: "text-amber-600 dark:text-amber-400",
@@ -39,7 +41,7 @@ const categories = [
     id: "steel",
     name: "Steel",
     icon: Boxes,
-    href: "/contact?collection=steel",
+    href: "/products/material/steel",
     bgColor: "bg-slate-50/70 dark:bg-slate-900/20",
     borderColor: "border-slate-100 dark:border-slate-800/30",
     iconColor: "text-slate-600 dark:text-slate-400",
@@ -49,7 +51,7 @@ const categories = [
     id: "ceramic",
     name: "Ceramic",
     icon: Coffee,
-    href: "/contact?collection=ceramic",
+    href: "/products/material/ceramic",
     bgColor: "bg-stone-50/70 dark:bg-stone-900/20",
     borderColor: "border-stone-100 dark:border-stone-850/30",
     iconColor: "text-stone-600 dark:text-stone-400",
@@ -59,7 +61,7 @@ const categories = [
     id: "kitchen-utility",
     name: "Kitchen Utility",
     icon: UtensilsCrossed,
-    href: "/contact?collection=kitchen-utility",
+    href: "/products?category=kitchen-utility",
     bgColor: "bg-emerald-50/70 dark:bg-emerald-950/20",
     borderColor: "border-emerald-100 dark:border-emerald-900/30",
     iconColor: "text-emerald-600 dark:text-emerald-400",
@@ -69,7 +71,7 @@ const categories = [
     id: "kitchen-racks",
     name: "Kitchen Racks",
     icon: Grid,
-    href: "/contact?collection=kitchen-racks",
+    href: "/products?category=kitchen-racks",
     bgColor: "bg-purple-50/70 dark:bg-purple-950/20",
     borderColor: "border-purple-100 dark:border-purple-900/30",
     iconColor: "text-purple-600 dark:text-purple-400",
@@ -79,7 +81,7 @@ const categories = [
     id: "dinner-sets",
     name: "Dinner Sets",
     icon: Soup,
-    href: "/contact?collection=dinner-sets",
+    href: "/products?category=dinner-sets",
     bgColor: "bg-rose-50/70 dark:bg-rose-950/20",
     borderColor: "border-rose-100 dark:border-rose-900/30",
     iconColor: "text-rose-600 dark:text-rose-400",
@@ -87,7 +89,12 @@ const categories = [
   },
 ];
 
+import { usePathname } from "next/navigation";
+
 export const CategoryStrip = () => {
+  const pathname = usePathname();
+  if (pathname.startsWith("/vendor") || pathname.startsWith("/admin") || pathname === "/contact" || pathname.startsWith("/product") || pathname.startsWith("/profile") || pathname === "/cart") return null;
+  const { cartCount } = useCart();
   const [scrollingDown, setScrollingDown] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -122,34 +129,66 @@ export const CategoryStrip = () => {
     }
   };
 
+  // Reset state on route change to prevent flickering
   useEffect(() => {
+    setScrollingDown(false);
+    setSearchExpanded(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
     const handleScroll = () => {
       if (window.innerWidth <= 1024) {
         setScrollingDown(false);
         return;
       }
       const currentScrollY = window.scrollY;
+      const isHomepage = window.location.pathname === "/";
       
-      // Stick CategoryStrip to top-[32px] only when scrolled down (scrolled >= 20px)
-      const isScrolledPast = currentScrollY >= 20;
-      setScrollingDown(isScrolledPast);
-      
-      // Collapse search if sticky header state changes
-      if (!isScrolledPast) {
-        setSearchExpanded(false);
+      if (isHomepage) {
+        const hero = document.getElementById("hero-section");
+        const heroHeight = hero ? hero.offsetHeight : 600;
+        
+        if (currentScrollY > lastScrollY) {
+          // Scrolling down: enter compact mode immediately past 120px
+          if (currentScrollY > 120) {
+            setScrollingDown(true);
+          }
+        } else {
+          // Scrolling up: exit compact mode when back inside/above the hero section
+          if (currentScrollY <= heroHeight) {
+            setScrollingDown(false);
+            setSearchExpanded(false);
+          }
+        }
+      } else {
+        // Standard page behavior: compact on scroll down, normal on scroll up
+        if (currentScrollY > 120 && currentScrollY > lastScrollY) {
+          setScrollingDown(true);
+        } else {
+          setScrollingDown(false);
+          
+          // Collapse search if sticky header state changes
+          if (currentScrollY < 120) {
+            setSearchExpanded(false);
+          }
+        }
       }
+      
+      lastScrollY = currentScrollY;
     };
 
     // Initialize state on mount
     handleScroll();
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [pathname]);
 
   const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -159,7 +198,7 @@ export const CategoryStrip = () => {
   };
 
   return (
-    <div className={`z-40 w-full md:border-t border-b border-orange-500/30 dark:border-orange-500/40 bg-gradient-to-r from-[#ffd8b8]/90 via-[#ffe5cc]/95 to-[#ffd8b8]/90 dark:from-[#2e1305]/95 dark:via-[#1e0a02]/95 dark:to-[#2e1305]/95 md:bg-[var(--surface)] md:bg-none md:supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-md shadow-sm lg:mt-[128px] relative lg:sticky lg:transition-[top] lg:duration-300 ${scrollingDown ? "lg:top-[32px]" : "lg:top-[128px]"}`}>
+    <div className={`z-40 w-full md:border-t border-b border-orange-500/30 dark:border-orange-500/40 bg-gradient-to-r from-[#ffd8b8]/90 via-[#ffe5cc]/95 to-[#ffd8b8]/90 dark:from-[#2e1305]/95 dark:via-[#1e0a02]/95 dark:to-[#2e1305]/95 md:bg-[var(--surface)] md:bg-none md:supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-md shadow-sm lg:mt-[112px] relative lg:sticky ${scrollingDown ? "lg:top-[32px]" : "lg:top-[112px]"}`}>
       <div className="max-w-7xl mx-auto relative px-4 sm:px-6 lg:px-8">
         
         {/* Left Scroll Fade Indicator (only visible on mobile overflow) */}
@@ -273,6 +312,20 @@ export const CategoryStrip = () => {
                   <Search size={18} />
                 </button>
               )}
+
+              {/* Cart Button */}
+              <Link
+                href="/cart"
+                className="p-2 hover:bg-orange-500/10 text-muted hover:text-heading rounded-full transition-colors relative flex items-center justify-center"
+                aria-label="View shopping cart"
+              >
+                <ShoppingCart size={18} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white font-bold text-[9px] rounded-full w-4 h-4 flex items-center justify-center shadow-md animate-pulse">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
 
               {/* Theme Toggle */}
               <ThemeToggle />

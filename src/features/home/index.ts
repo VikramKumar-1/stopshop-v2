@@ -17,4 +17,5 @@ export { FeaturedCollections } from "./components/FeaturedCollections";
 export { FAQSection } from "./components/FAQSection";
 export { CategoryCards } from "./components/CategoryCards";
 export { VendorSection } from "./components/VendorSection";
+export { HomePage } from "./components/HomePage";
 

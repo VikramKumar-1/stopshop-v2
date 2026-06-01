@@ -4,6 +4,8 @@ import { ArrowRight, Star, ShoppingCart, ShieldCheck, ChevronLeft, ChevronRight,
 import Link from "next/link";
 import Image from "next/image";
 import React, { useRef } from "react";
+import { useRegion } from "@/context/RegionContext";
+import { useCart } from "@/context/CartContext";
 
 const products = [
   {
@@ -130,6 +132,8 @@ const products = [
 
 export const FeaturedProducts = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { convertPrice, convertWeight } = useRegion();
+  const { addToCart } = useCart();
   const isScrollingRef = useRef(false);
   const dragThreshold = 8;
   const startX = useRef(0);
@@ -233,7 +237,7 @@ export const FeaturedProducts = () => {
             {products.map((product) => (
               <Link
                 key={product.id}
-                href={`/product/${product.id}`}
+                href={`/product/${product.slug || product.id}`}
                 onClickCapture={handleLinkClick}
                 className="group snap-start snap-always shrink-0 w-[200px] sm:w-[230px] lg:w-[250px] h-[365px] sm:h-[415px] lg:h-[450px] flex flex-col justify-between bg-surface-card border border-bronze-500/[0.12] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-bronze-500/[0.06] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
               >
@@ -274,31 +278,46 @@ export const FeaturedProducts = () => {
 
                     {/* Price Section — Amazon style */}
                     <div className="flex items-baseline gap-1.5 flex-wrap">
-                      <span className="text-base sm:text-lg font-bold text-heading">₹{product.price.toLocaleString()}</span>
-                      <span className="text-[10px] sm:text-xs text-muted line-through">₹{product.mrp.toLocaleString()}</span>
+                      <span className="text-base sm:text-lg font-bold text-heading">{convertPrice(product.price)}</span>
+                      <span className="text-[10px] sm:text-xs text-muted line-through">{convertPrice(product.mrp)}</span>
                       <span className="text-[9px] sm:text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">
-                        (Save ₹{(product.mrp - product.price).toLocaleString()})
+                        (Save {convertPrice(product.mrp - product.price)})
                       </span>
                     </div>
 
-                    {/* Specs */}
-                    <div className="flex items-center gap-1 text-[9px] sm:text-[11px] text-orange-700 dark:text-bronze-400 font-medium">
-                      <ShieldCheck size={11} />
-                      <span className="line-clamp-1">{product.specs}</span>
+                    {/* Specs scroll list */}
+                    <div className="flex gap-1 overflow-x-auto scrollbar-none py-0.5 no-scrollbar max-w-full">
+                      {product.specs ? (
+                        product.specs.split(" | ").map((spec, i) => (
+                          <span key={i} className="whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-orange-500/5 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 text-[8px] sm:text-[10px] font-bold border border-orange-500/10">
+                            {spec.toLowerCase().includes("kg") || spec.toLowerCase().includes("gm") || spec.toLowerCase().includes("lbs")
+                              ? convertWeight(spec)
+                              : spec}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-orange-500/5 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 text-[8px] sm:text-[10px] font-bold border border-orange-500/10">
+                          Standard
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Add to Cart Button */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    className="group/btn inline-flex items-center justify-center gap-1 px-4 py-2 w-full rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-semibold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-[11px] sm:text-sm active:scale-[0.97]"
-                  >
-                    <ShoppingCart size={15} className="group-hover/btn:scale-110 transition-transform" />
-                    Add to Cart
-                  </button>
+                  {/* Actions Row */}
+                  <div className="flex w-full mt-2">
+                    {/* Add to Inquiry Button */}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addToCart(product, 1);
+                      }}
+                      className="w-full group/btn inline-flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-[10px] sm:text-xs active:scale-[0.97]"
+                    >
+                      <ShoppingCart size={14} />
+                      Add to Inquiry
+                    </button>
+                  </div>
                 </div>
               </Link>
             ))}

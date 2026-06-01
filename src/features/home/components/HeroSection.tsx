@@ -101,7 +101,7 @@ export const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-0 py-4 sm:py-6 lg:py-6 flex items-center overflow-hidden section-glass-ambient bg-gradient-to-br from-blue-600/[0.12] via-indigo-500/[0.08] to-violet-600/[0.10]">
+    <section id="hero-section" className="relative min-h-0 py-4 sm:py-6 lg:py-6 flex items-center overflow-hidden section-glass-ambient bg-gradient-to-br from-blue-600/[0.12] via-indigo-500/[0.08] to-violet-600/[0.10]">
       {/* Background Effects */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-orange-500/[0.18] rounded-full blur-[160px]" />

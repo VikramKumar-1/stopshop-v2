@@ -1,0 +1,78 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user") // "user", "admin", "vendor"
+  createdAt DateTime @default(now())
+
+  // Vendor details & verification documents
+  mobile     String?
+  location   String? @default("Moradabad, Uttar Pradesh, India")
+  artisanId  String?
+  gstin      String?
+  aadhaar    String?
+  pan        String?
+  aadhaarUrl String?
+  panUrl     String?
+  docUrl     String?
+
+  products Product[]
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String
+  slug     String    @unique
+  image    String
+  products Product[]
+}
+
+model Product {
+  id           Int      @id @default(autoincrement())
+  name         String
+  slug         String   @unique
+  description  String   @db.Text
+  specs        String
+  image        String
+  images       Json? // Array of additional images
+  price        Float
+  mrp          Float
+  discount     Float
+  rating       Float    @default(5.0)
+  reviews      Int      @default(0)
+  categoryName String
+  material     String // "Bronze" | "Copper" | "Brass" | "Steel" | "Ceramic" | "Glass"
+  stock        Int      @default(10)
+  featured     Boolean  @default(false)
+  newLaunch    Boolean  @default(false)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  vendorId     Int?
+
+  category Category @relation(fields: [categoryName], references: [slug])
+  vendor   User?    @relation(fields: [vendorId], references: [id])
+}
+
+model Inquiry {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String
+  companyName String?
+  country     String?
+  items       Json? // Cart items or product details in JSON
+  message     String   @db.Text
+  status      String   @default("PENDING") // PENDING, RESPONDED, COMPLETED
+  createdAt   DateTime @default(now())
+}

@@ -5,6 +5,7 @@ import { Navbar } from "@/features/core/components/Navbar";
 import { CategoryStrip } from "@/features/core/components/CategoryStrip";
 import { Footer } from "@/features/core/components/Footer";
 import { ThemeProvider } from "@/features/core/components/ThemeProvider";
+import { CartProvider } from "@/context/CartContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,6 +22,9 @@ export const metadata: Metadata = {
   description:
     "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
 };
+
+import { MainLayout } from "@/features/core/components/MainLayout";
+import { RegionProvider } from "@/context/RegionContext";
 
 export default function RootLayout({
   children,
@@ -46,15 +50,20 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${outfit.variable} font-sans bg-surface text-body antialiased`}
+        className={`${inter.variable} ${outfit.variable} font-sans bg-surface text-body antialiased flex flex-col min-h-screen`}
+        style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
         <ThemeProvider>
-          <div className="fixed top-0 left-0 right-0 z-40 w-full lg:contents">
-            <Navbar />
-            <CategoryStrip />
-          </div>
-          <main className="overflow-x-hidden w-full pt-[146px] sm:pt-[172px] lg:pt-0">{children}</main>
-          <Footer />
+          <RegionProvider>
+            <CartProvider>
+              <div className="fixed top-0 left-0 right-0 z-40 w-full lg:contents">
+                <Navbar />
+                <CategoryStrip />
+              </div>
+              <MainLayout>{children}</MainLayout>
+              <Footer />
+            </CartProvider>
+          </RegionProvider>
         </ThemeProvider>
       </body>
     </html>
