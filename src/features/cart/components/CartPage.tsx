@@ -26,6 +26,30 @@ export const CartPage = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            setFormData((prev) => ({
+              ...prev,
+              name: data.user.name || "",
+              email: data.user.email || "",
+              phone: data.user.mobile || "",
+              companyName: data.user.companyName || "",
+              country: data.user.country || "",
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to prefill user details in cart:", err);
+      }
+    };
+    fetchUser();
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -225,7 +249,25 @@ export const CartPage = () => {
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500" />
               
               <div>
-                <h2 className="text-xl font-display font-bold text-heading mb-1.5">Quote Request</h2>
+                <div className="flex justify-between items-center mb-1.5 gap-2">
+                  <h2 className="text-base font-display font-bold text-heading">Quote Request</h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        name: "Vikram Kumar",
+                        email: "vikram@example.com",
+                        phone: "+91 98765 43210",
+                        companyName: "Indo-Western Imports LLC",
+                        country: "India",
+                        message: "Requesting immediate bulk export price list for premium bronze cookwares with custom branding."
+                      });
+                    }}
+                    className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-orange-500 bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/20 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer"
+                  >
+                    ⚡ Autofill Demo
+                  </button>
+                </div>
                 <p className="text-xs text-muted leading-relaxed">Please provide your contact details. A custom trade quotation will be prepared for you.</p>
               </div>
 

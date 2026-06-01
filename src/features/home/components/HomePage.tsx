@@ -21,14 +21,54 @@ const ShopByVideos = dynamic(() => import("./ShopByVideos").then(mod => mod.Shop
 const GiftCollections = dynamic(() => import("./GiftCollections").then(mod => mod.GiftCollections), { ssr: false });
 
 // Mock Fallbacks in case database has no products yet
-const mockKitchenUtility = [
-  { id: 1, name: "Heritage Bronze Kadai", description: "Heavy-duty pure bronze cooking kadai.", specs: "Weight: 2.4 kg | Hand-Hammered", image: "/bronze-kadai.png", rating: 4.9, reviews: 124, price: 2499, mrp: 3199 },
-  { id: 2, name: "Handcrafted Bronze Handi", description: "Elegant deep-cooking pot with lid.", specs: "Capacity: 3 Litres", image: "/bronze-hero.png", rating: 4.7, reviews: 67, price: 3299, mrp: 4499 }
-];
+const generateMock = (base: any[]) => {
+  return Array.from({ length: 12 }).map((_, i) => ({
+    ...base[i % base.length],
+    id: base[i % base.length].id * 100 + i,
+  }));
+};
+
+const mockKitchenUtility = generateMock([
+  { id: 1, name: "Heritage Bronze Kadai", description: "Heavy-duty pure bronze cooking kadai.", specs: "Weight: 2.4 kg | Hand-Hammered", image: "/bronze-kadai.png", rating: 4.9, reviews: 124, price: 2499, mrp: 3199, material: "Bronze", categoryName: "kitchen-utility" },
+  { id: 2, name: "Handcrafted Bronze Handi", description: "Elegant deep-cooking pot with lid.", specs: "Capacity: 3 Litres", image: "/bronze-hero.png", rating: 4.7, reviews: 67, price: 3299, mrp: 4499, material: "Bronze", categoryName: "kitchen-utility" }
+]);
+
+const mockPoojaCollection = generateMock([
+  { id: 101, name: "Premium Brass Puja Thali Set", description: "Complete handcrafted puja thali with components.", specs: "Material: Brass | 7 Pieces", image: "/collection-pooja.png", rating: 4.8, reviews: 89, price: 1899, mrp: 2499, material: "Brass", categoryName: "pooja-collection" },
+  { id: 102, name: "Hand-Hammered Copper Lota", description: "Traditional copper vessel for prayer water.", specs: "Material: Copper | 500ml", image: "/bronze-lota.png", rating: 4.9, reviews: 210, price: 899, mrp: 1299, material: "Copper", categoryName: "pooja-collection" }
+]);
+
+const mockBrassCookware = generateMock([
+  { id: 201, name: "Royal Brass Cookware Kadai", description: "Traditional solid brass cooking vessel.", specs: "Material: Brass | 2.5 Litre", image: "/bronze-kadai.png", rating: 4.8, reviews: 54, price: 2899, mrp: 3599, material: "Brass", categoryName: "brass-cookware" },
+  { id: 202, name: "Artisan Brass Patila Pot", description: "Deep-bottom brass pot for milk and curries.", specs: "Capacity: 2 Litres", image: "/bronze-hero.png", rating: 4.6, reviews: 32, price: 3599, mrp: 4299, material: "Brass", categoryName: "brass-cookware" }
+]);
+
+const mockCopperProducts = generateMock([
+  { id: 301, name: "Ayurvedic Pure Copper Water Bottle", description: "Joint-less pure copper leakproof water bottle.", specs: "Capacity: 1 Litre", image: "/bronze-lota.png", rating: 4.9, reviews: 342, price: 999, mrp: 1399, material: "Copper", categoryName: "copper-products" },
+  { id: 302, name: "Traditional Copper Hammered Jug Set", description: "Elegant copper jug with matching glasses.", specs: "1 Jug + 2 Glasses", image: "/collection-tableware.png", rating: 4.7, reviews: 118, price: 1899, mrp: 2499, material: "Copper", categoryName: "copper-products" }
+]);
+
+const mockSteelEssentials = generateMock([
+  { id: 401, name: "Premium Tri-Ply Stainless Steel Frypan", description: "High-grade tri-ply stainless steel skillet.", specs: "Diameter: 24cm", image: "/collection-tableware.png", rating: 4.8, reviews: 93, price: 1499, mrp: 1999, material: "Steel", categoryName: "steel-essentials" },
+  { id: 402, name: "Durable Steel Storage Containers", description: "Airtight modular kitchen container set.", specs: "Set of 3 Containers", image: "/bronze-kadai.png", rating: 4.6, reviews: 45, price: 799, mrp: 1099, material: "Steel", categoryName: "steel-essentials" }
+]);
+
+const mockDinnerSets = generateMock([
+  { id: 501, name: "Vedic Bronze Thali Dinner Set", description: "Traditional pure bronze dinner set.", specs: "Kansa / Bronze | 6 Pieces", image: "/collection-tableware.png", rating: 4.9, reviews: 156, price: 4999, mrp: 5999, material: "Bronze", categoryName: "dinner-sets" },
+  { id: 502, name: "Royal Brass Dinner Set", description: "Exquisite solid brass design dinner set.", specs: "Brass | 5 Pieces", image: "/collection-tableware.png", rating: 4.8, reviews: 78, price: 3899, mrp: 4599, material: "Brass", categoryName: "dinner-sets" }
+]);
 
 export const HomePage = () => {
   const [groupedProducts, setGroupedProducts] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
+
+  const hasCategory = (slug: string) => {
+    return Object.entries(groupedProducts).some(([name, products]) => {
+      const prodSlug = products[0]?.categoryName || "";
+      const normalizedName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      return prodSlug === slug || normalizedName.includes(slug) || slug.includes(normalizedName);
+    });
+  };
 
   const fetchHomeProducts = async () => {
     try {
@@ -116,62 +156,77 @@ export const HomePage = () => {
           </div>
         </section>
       ) : Object.keys(groupedProducts).length === 0 ? (
-        // Fallback display if DB is empty
+        // Fallback display if DB is empty - Render ALL sections
         <>
-          <CategoryProductGrid
-            title="Kitchen Utility"
-            tagLine="Heritage Cooking Essentials"
-            products={mockKitchenUtility}
-            viewAllLink="/products?category=kitchen-utility"
-            accentColor="emerald"
-          />
+          <CategoryProductGrid title="Kitchen Utility" tagLine="Heritage Cooking Essentials" products={mockKitchenUtility} viewAllLink="/products?category=kitchen-utility" accentColor="emerald" />
+          <CategoryProductGrid title="Brass Cookware" tagLine="Royal Dining & Serveware" products={mockBrassCookware} viewAllLink="/products?category=brass-cookware" accentColor="bronze" />
+          <CategoryProductGrid title="Pooja Collection" tagLine="Sacred Ritual Vessels" products={mockPoojaCollection} viewAllLink="/products?category=pooja-collection" accentColor="rose" />
+          <CategoryProductGrid title="Copper Products" tagLine="Ayurvedic Wellness Essentials" products={mockCopperProducts} viewAllLink="/products?category=copper-products" accentColor="bronze" />
+          <CategoryProductGrid title="Steel Essentials" tagLine="Durable Steel Collections" products={mockSteelEssentials} viewAllLink="/products?category=steel-essentials" accentColor="emerald" />
+          <CategoryProductGrid title="Dinner Sets" tagLine="Exquisite Dining Sets" products={mockDinnerSets} viewAllLink="/products?category=dinner-sets" accentColor="bronze" />
         </>
       ) : (
         // Dynamic generation of sections for categories containing products
-        Object.entries(groupedProducts).map(([categoryName, productsList]) => {
-          const categorySlug = productsList[0]?.categoryName || "";
-          
-          // Tailor colors and headers dynamically
-          let accentColor = "bronze";
-          let tagLine = "Premium Workshop Crafts";
+        <>
+          {Object.entries(groupedProducts).map(([categoryName, productsList]) => {
+            const categorySlug = productsList[0]?.categoryName || "";
+            
+            // Tailor colors and headers dynamically
+            let accentColor = "bronze";
+            let tagLine = "Premium Workshop Crafts";
 
-          if (categorySlug === "kitchen-utility") {
-            accentColor = "emerald";
-            tagLine = "Heritage Cooking Essentials";
-          } else if (categorySlug === "brass-cookware") {
-            accentColor = "bronze";
-            tagLine = "Royal Dining & Serveware";
-          } else if (categorySlug === "pooja-collection") {
-            accentColor = "rose";
-            tagLine = "Sacred Ritual Vessels";
-          } else if (categorySlug === "copper-products") {
-            accentColor = "bronze";
-            tagLine = "Ayurvedic Wellness Essentials";
-          } else if (categorySlug === "steel-essentials") {
-            accentColor = "emerald";
-            tagLine = "Durable Steel Collections";
-          } else if (categorySlug === "dinner-sets") {
-            accentColor = "rose";
-            tagLine = "Exquisite Dining Sets";
-          } else if (categorySlug === "home-living") {
-            accentColor = "bronze";
-            tagLine = "Elegant Household Decor";
-          } else if (categorySlug === "handicrafts") {
-            accentColor = "rose";
-            tagLine = "Individually Hammered Handicrafts";
-          }
+            if (categorySlug === "kitchen-utility") {
+              accentColor = "emerald";
+              tagLine = "Heritage Cooking Essentials";
+            } else if (categorySlug === "brass-cookware") {
+              accentColor = "bronze";
+              tagLine = "Royal Dining & Serveware";
+            } else if (categorySlug === "pooja-collection") {
+              accentColor = "rose";
+              tagLine = "Sacred Ritual Vessels";
+            } else if (categorySlug === "copper-products") {
+              accentColor = "bronze";
+              tagLine = "Ayurvedic Wellness Essentials";
+            } else if (categorySlug === "steel-essentials") {
+              accentColor = "emerald";
+              tagLine = "Durable Steel Collections";
+            } else if (categorySlug === "dinner-sets") {
+              accentColor = "bronze";
+              tagLine = "Exquisite Dining Sets";
+            }
 
-          return (
-            <CategoryProductGrid
-              key={categoryName}
-              title={categoryName}
-              tagLine={tagLine}
-              products={productsList}
-              viewAllLink={`/products?category=${categorySlug}`}
-              accentColor={accentColor}
-            />
-          );
-        })
+            return (
+              <CategoryProductGrid
+                key={categoryName}
+                title={categoryName}
+                tagLine={tagLine}
+                products={productsList}
+                viewAllLink={`/products?category=${categorySlug}`}
+                accentColor={accentColor}
+              />
+            );
+          })}
+
+          {/* Always render other major categories as fallbacks if not present in dynamic database groups */}
+          {!hasCategory("kitchen-utility") && (
+            <CategoryProductGrid title="Kitchen Utility" tagLine="Heritage Cooking Essentials" products={mockKitchenUtility} viewAllLink="/products?category=kitchen-utility" accentColor="emerald" />
+          )}
+          {!hasCategory("brass-cookware") && (
+            <CategoryProductGrid title="Brass Cookware" tagLine="Royal Dining & Serveware" products={mockBrassCookware} viewAllLink="/products?category=brass-cookware" accentColor="bronze" />
+          )}
+          {!hasCategory("pooja-collection") && (
+            <CategoryProductGrid title="Pooja Collection" tagLine="Sacred Ritual Vessels" products={mockPoojaCollection} viewAllLink="/products?category=pooja-collection" accentColor="rose" />
+          )}
+          {!hasCategory("copper-products") && (
+            <CategoryProductGrid title="Copper Products" tagLine="Ayurvedic Wellness Essentials" products={mockCopperProducts} viewAllLink="/products?category=copper-products" accentColor="bronze" />
+          )}
+          {!hasCategory("steel-essentials") && (
+            <CategoryProductGrid title="Steel Essentials" tagLine="Durable Steel Collections" products={mockSteelEssentials} viewAllLink="/products?category=steel-essentials" accentColor="emerald" />
+          )}
+          {!hasCategory("dinner-sets") && (
+            <CategoryProductGrid title="Dinner Sets" tagLine="Exquisite Dining Sets" products={mockDinnerSets} viewAllLink="/products?category=dinner-sets" accentColor="bronze" />
+          )}
+        </>
       )}
 
       {/* 6. Amazon-style Category Cards */}

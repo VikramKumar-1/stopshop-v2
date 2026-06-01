@@ -19,6 +19,9 @@ interface Product {
   price?: number;
   mrp?: number;
   discount?: number;
+  categoryName?: string;
+  category?: { name: string };
+  material?: string;
 }
 
 interface CategoryProductGridProps {
@@ -260,6 +263,11 @@ export const CategoryProductGrid = ({
                       {product.discount}% OFF
                     </div>
                   )}
+                  
+                  <span className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-md capitalize">
+                    {product.category?.name || product.categoryName?.replace("-", " ") || title || "Premium"}
+                  </span>
+
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -275,7 +283,7 @@ export const CategoryProductGrid = ({
                 <div className="p-3 sm:p-5 flex-grow flex flex-col justify-between">
                   <div>
                     {/* Stars and Rating */}
-                    <div className="flex items-center gap-1 mb-1 sm:mb-2 text-[10px] sm:text-xs">
+                    <div className="flex items-center gap-1 mb-1 sm:mb-2 text-[10px] sm:text-xs flex-wrap">
                       <div className="flex items-center text-orange-500">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} size={11} fill="currentColor" className="stroke-none" />
@@ -283,6 +291,12 @@ export const CategoryProductGrid = ({
                       </div>
                       <span className="font-semibold text-heading ml-1">{product.rating}</span>
                       <span className="text-muted">({product.reviews})</span>
+                      {product.material && (
+                        <>
+                          <span className="text-bronze-500 font-semibold">•</span>
+                          <span className="font-semibold text-bronze-700 dark:text-bronze-300">{product.material}</span>
+                        </>
+                      )}
                     </div>
 
                     {/* Product Name */}

@@ -618,64 +618,64 @@ export const Navbar = () => {
                 </div>
               )}
 
-              {/* Mobile Actions (Icons visible on mobile only, hidden when search is active) */}
+              {/* Mobile Actions (Icons visible on mobile only) */}
               {!isProfilePage && (
-                <div className={`flex items-center gap-1.5 lg:hidden flex-shrink-0 ${searchOpen ? "hidden" : "flex"}`}>
-                  {/* Click-to-Expand Search Icon */}
-                  {!isDashboard && (
-                    <button
-                      onClick={() => setSearchOpen(true)}
-                      className="p-1.5 text-muted hover:text-heading"
-                      aria-label="Open search"
-                    >
-                      <Search size={18} />
-                    </button>
-                  )}
-
-                  {/* Mobile Region Switcher */}
-                  <div className="flex items-center gap-1 bg-surface border border-border px-2 py-1 rounded-xl text-xs font-semibold text-heading focus-within:border-orange-500 shadow-sm">
-                    <span className="text-xs">
-                      {region === "US" ? "🇺🇸" : region === "IN" ? "🇮🇳" : region === "AE" ? "🇦🇪" : region === "EU" ? "🇪🇺" : "🇯🇵"}
-                    </span>
-                    <select
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value as any)}
-                      className="bg-transparent border-none text-heading text-[10px] font-bold focus:outline-none cursor-pointer p-0"
-                    >
-                      <option value="IN">IN</option>
-                      <option value="US">US</option>
-                      <option value="AE">AE</option>
-                      <option value="EU">EU</option>
-                      <option value="JP">JP</option>
-                    </select>
-                  </div>
-
-                  <ThemeToggle />
-
-                  {/* Mobile Account Profile */}
-                  {isDashboard ? (
-                    user && user.role === "user" ? (
-                      <Link 
-                        href="/" 
+                <div className="flex items-center gap-1.5 lg:hidden flex-shrink-0">
+                  <div className={`items-center gap-1.5 ${searchOpen ? "hidden" : "flex"}`}>
+                    {/* Click-to-Expand Search Icon */}
+                    {!isDashboard && (
+                      <button
+                        onClick={() => setSearchOpen(true)}
                         className="p-1.5 text-muted hover:text-heading"
-                        aria-label="Homepage"
+                        aria-label="Open search"
+                      >
+                        <Search size={18} />
+                      </button>
+                    )}
+
+                    {/* Mobile Region Switcher */}
+                    <div className="flex items-center gap-1 bg-surface border border-border px-2 py-1 rounded-xl text-xs font-semibold text-heading focus-within:border-orange-500 shadow-sm">
+                      <span className="text-xs">
+                        {region === "US" ? "🇺🇸" : region === "IN" ? "🇮🇳" : region === "AE" ? "🇦🇪" : region === "EU" ? "🇪🇺" : "🇯🇵"}
+                      </span>
+                      <select
+                        value={region}
+                        onChange={(e) => setRegion(e.target.value as any)}
+                        className="bg-transparent border-none text-heading text-[10px] font-bold focus:outline-none cursor-pointer p-0"
+                      >
+                        <option value="IN">IN</option>
+                        <option value="US">US</option>
+                        <option value="AE">AE</option>
+                        <option value="EU">EU</option>
+                        <option value="JP">JP</option>
+                      </select>
+                    </div>
+
+                    <ThemeToggle />
+
+                    {/* Mobile Account Profile */}
+                    {isDashboard ? (
+                      user && user.role === "user" ? (
+                        <Link 
+                          href="/" 
+                          className="p-1.5 text-muted hover:text-heading"
+                          aria-label="Homepage"
+                        >
+                          <User size={18} />
+                        </Link>
+                      ) : null
+                    ) : (
+                      <Link 
+                        href="/profile" 
+                        className="p-1.5 text-muted hover:text-heading"
+                        aria-label="Profile"
                       >
                         <User size={18} />
                       </Link>
-                    ) : null
-                  ) : (
-                    <Link 
-                      href="/profile" 
-                      className="p-1.5 text-muted hover:text-heading"
-                      aria-label="Profile"
-                    >
-                      <User size={18} />
-                    </Link>
-                  )}
+                    )}
 
-                  {!isDashboard && (
-                    <>
-                      {/* Mobile Wishlist */}
+                    {!isDashboard && (
+                      /* Mobile Wishlist */
                       <Link 
                         href="/wishlist" 
                         className="p-1.5 relative text-muted hover:text-heading"
@@ -688,19 +688,21 @@ export const Navbar = () => {
                           </span>
                         )}
                       </Link>
+                    )}
+                  </div>
 
-                      {/* Mobile Shopping Cart */}
-                      <Link 
-                        href="/cart" 
-                        className="p-1.5 relative text-muted hover:text-heading"
-                        aria-label="Cart"
-                      >
-                        <span className="absolute -top-0.5 -right-0.5 bg-orange-500 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
-                          {cartCount}
-                        </span>
-                        <ShoppingCart size={18} />
-                      </Link>
-                    </>
+                  {/* Mobile Shopping Cart (Always visible on mobile) */}
+                  {!isDashboard && (
+                    <Link 
+                      href="/cart" 
+                      className="p-1.5 relative text-muted hover:text-heading flex-shrink-0"
+                      aria-label="Cart"
+                    >
+                      <span className="absolute -top-0.5 -right-0.5 bg-orange-500 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
+                        {cartCount}
+                      </span>
+                      <ShoppingCart size={18} />
+                    </Link>
                   )}
                 </div>
               )}

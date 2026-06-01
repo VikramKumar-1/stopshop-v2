@@ -198,7 +198,7 @@ export const CategoryStrip = () => {
   };
 
   return (
-    <div className={`z-40 w-full md:border-t border-b border-orange-500/30 dark:border-orange-500/40 bg-gradient-to-r from-[#ffd8b8]/90 via-[#ffe5cc]/95 to-[#ffd8b8]/90 dark:from-[#2e1305]/95 dark:via-[#1e0a02]/95 dark:to-[#2e1305]/95 md:bg-[var(--surface)] md:bg-none md:supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-md shadow-sm lg:mt-[112px] relative lg:sticky ${scrollingDown ? "lg:top-[32px]" : "lg:top-[112px]"}`}>
+    <div className={`z-40 w-full md:border-t border-b border-orange-500/30 dark:border-orange-500/40 bg-gradient-to-r from-[#ffd8b8]/90 via-[#ffe5cc]/95 to-[#ffd8b8]/90 dark:from-[#2e1305]/95 dark:via-[#1e0a02]/95 dark:to-[#2e1305]/95 md:bg-[var(--surface)] md:bg-none md:supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-md shadow-sm mt-16 lg:mt-[112px] relative lg:sticky ${scrollingDown ? "lg:top-[32px]" : "lg:top-[112px]"}`}>
       <div className="max-w-7xl mx-auto relative px-4 sm:px-6 lg:px-8">
         
         {/* Left Scroll Fade Indicator (only visible on mobile overflow) */}

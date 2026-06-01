@@ -74,6 +74,50 @@ const categoryHeaderContents: Record<string, { title: string; description: strin
   }
 };
 
+const generateMock = (base: any[], categorySlug: string) => {
+  let mat = "Bronze";
+  if (categorySlug === "copper-products") mat = "Copper";
+  else if (categorySlug === "steel-essentials") mat = "Steel";
+  else if (categorySlug === "brass-cookware") mat = "Brass";
+
+  return Array.from({ length: 12 }).map((_, i) => ({
+    ...base[i % base.length],
+    id: base[i % base.length].id * 100 + i,
+    discount: 0,
+    stock: 10,
+    material: mat,
+    categoryName: categorySlug,
+    category: { name: categorySlug.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase()) }
+  }));
+};
+
+const mockDataMap: Record<string, any[]> = {
+  "kitchen-utility": generateMock([
+    { id: 1, name: "Heritage Bronze Kadai", description: "Heavy-duty pure bronze cooking kadai.", specs: "Weight: 2.4 kg | Hand-Hammered", image: "/bronze-kadai.png", rating: 4.9, reviews: 124, price: 2499, mrp: 3199 },
+    { id: 2, name: "Handcrafted Bronze Handi", description: "Elegant deep-cooking pot with lid.", specs: "Capacity: 3 Litres", image: "/bronze-hero.png", rating: 4.7, reviews: 67, price: 3299, mrp: 4499 }
+  ], "kitchen-utility"),
+  "pooja-collection": generateMock([
+    { id: 101, name: "Premium Brass Puja Thali Set", description: "Complete handcrafted puja thali with components.", specs: "Material: Brass | 7 Pieces", image: "/collection-pooja.png", rating: 4.8, reviews: 89, price: 1899, mrp: 2499 },
+    { id: 102, name: "Hand-Hammered Copper Lota", description: "Traditional copper vessel for prayer water.", specs: "Material: Copper | 500ml", image: "/bronze-lota.png", rating: 4.9, reviews: 210, price: 899, mrp: 1299 }
+  ], "pooja-collection"),
+  "brass-cookware": generateMock([
+    { id: 201, name: "Royal Brass Cookware Kadai", description: "Traditional solid brass cooking vessel.", specs: "Material: Brass | 2.5 Litre", image: "/bronze-kadai.png", rating: 4.8, reviews: 54, price: 2899, mrp: 3599 },
+    { id: 202, name: "Artisan Brass Patila Pot", description: "Deep-bottom brass pot for milk and curries.", specs: "Capacity: 2 Litres", image: "/bronze-hero.png", rating: 4.6, reviews: 32, price: 3599, mrp: 4299 }
+  ], "brass-cookware"),
+  "copper-products": generateMock([
+    { id: 301, name: "Ayurvedic Pure Copper Water Bottle", description: "Joint-less pure copper leakproof water bottle.", specs: "Capacity: 1 Litre", image: "/bronze-lota.png", rating: 4.9, reviews: 342, price: 999, mrp: 1399 },
+    { id: 302, name: "Traditional Copper Hammered Jug Set", description: "Elegant copper jug with matching glasses.", specs: "1 Jug + 2 Glasses", image: "/collection-tableware.png", rating: 4.7, reviews: 118, price: 1899, mrp: 2499 }
+  ], "copper-products"),
+  "steel-essentials": generateMock([
+    { id: 401, name: "Premium Tri-Ply Stainless Steel Frypan", description: "High-grade tri-ply stainless steel skillet.", specs: "Diameter: 24cm", image: "/collection-tableware.png", rating: 4.8, reviews: 93, price: 1499, mrp: 1999 },
+    { id: 402, name: "Durable Steel Storage Containers", description: "Airtight modular kitchen container set.", specs: "Set of 3 Containers", image: "/bronze-kadai.png", rating: 4.6, reviews: 45, price: 799, mrp: 1099 }
+  ], "steel-essentials"),
+  "dinner-sets": generateMock([
+    { id: 501, name: "Vedic Bronze Thali Dinner Set", description: "Traditional pure bronze dinner set.", specs: "Kansa / Bronze | 6 Pieces", image: "/collection-tableware.png", rating: 4.9, reviews: 156, price: 4999, mrp: 5999 },
+    { id: 502, name: "Royal Brass Dinner Set", description: "Exquisite solid brass design dinner set.", specs: "Brass | 5 Pieces", image: "/collection-tableware.png", rating: 4.8, reviews: 78, price: 3899, mrp: 4599 }
+  ], "dinner-sets")
+};
+
 interface ProductCatalogProps {
   initialMaterialOverride?: string;
 }
@@ -165,15 +209,17 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
         const res = await fetch("/api/categories");
         if (res.ok) {
           const data = await res.json();
-          // Map to match the { name, slug } structure of filters
-          const formatted = data.map((cat: any) => ({
-            name: cat.name,
-            slug: cat.slug
-          }));
-          setCategories([
-            { name: "All Categories", slug: "" },
-            ...formatted
-          ]);
+          if (data && data.length > 0) {
+            // Map to match the { name, slug } structure of filters
+            const formatted = data.map((cat: any) => ({
+              name: cat.name,
+              slug: cat.slug
+            }));
+            setCategories([
+              { name: "All Categories", slug: "" },
+              ...formatted
+            ]);
+          }
         }
       } catch (err) {
         console.error("Failed to load categories dynamically:", err);
@@ -234,13 +280,25 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
       
       if (res.ok) {
         const data = await res.json();
+        
+        let finalData = data;
+        
+        // Inject mock data if database is empty, but only on the first page
+        if (data.length === 0 && isInitial) {
+          if (category && mockDataMap[category]) {
+            finalData = mockDataMap[category];
+          } else if (!category) {
+            finalData = Object.values(mockDataMap).flat().slice(0, BATCH_SIZE);
+          }
+        }
+
         if (isInitial) {
-          setProducts(data);
+          setProducts(finalData);
         } else {
-          setProducts((prev) => [...prev, ...data]);
+          setProducts((prev) => [...prev, ...finalData]);
         }
         
-        if (data.length < BATCH_SIZE) {
+        if (finalData.length < BATCH_SIZE) {
           setHasMore(false);
         }
       }
@@ -378,7 +436,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="bg-transparent focus:outline-none cursor-pointer text-white text-xs pr-2"
+                className="bg-transparent focus:outline-none cursor-pointer text-white text-xs appearance-none pr-6 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.1rem_center] bg-no-repeat"
               >
                 <option value="" className="bg-bronze-950 text-white">Default Sorting</option>
                 <option value="best-sellers" className="bg-bronze-950 text-white">Best Sellers</option>
@@ -440,6 +498,41 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
 
           {/* Product Grid */}
           <div className="flex-1">
+            {/* Mobile Filter Dropdowns (lg:hidden) */}
+            <div className="lg:hidden flex flex-row gap-3 mb-6 bg-surface-card border border-border p-3.5 rounded-2xl shadow-sm">
+              {/* Category Select */}
+              <div className="flex-1 space-y-1">
+                <label className="text-[9px] font-bold text-muted uppercase tracking-wider block">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-surface border border-border hover:border-bronze-500/30 focus:border-bronze-500 rounded-xl px-2.5 py-2 text-heading text-xs font-semibold focus:outline-none cursor-pointer transition-all appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b5a48d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat.slug} value={cat.slug} className="text-black bg-white dark:text-white dark:bg-zinc-800">
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Material Select */}
+              <div className="flex-1 space-y-1">
+                <label className="text-[9px] font-bold text-muted uppercase tracking-wider block">Material</label>
+                <select
+                  value={material}
+                  onChange={(e) => setMaterial(e.target.value)}
+                  className="w-full bg-surface border border-border hover:border-bronze-500/30 focus:border-bronze-500 rounded-xl px-2.5 py-2 text-heading text-xs font-semibold focus:outline-none cursor-pointer transition-all appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b5a48d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
+                >
+                  {materials.map((mat) => (
+                    <option key={mat.value} value={mat.value} className="text-black bg-white dark:text-white dark:bg-zinc-800">
+                      {mat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {[...Array(8)].map((_, i) => (
@@ -496,8 +589,8 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                           <Heart size={14} fill={isInWishlist(product.id) ? "currentColor" : "none"} className={isInWishlist(product.id) ? "text-red-500" : "text-muted"} />
                         </button>
                         
-                        <span className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-md">
-                          {product.material}
+                        <span className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-md capitalize">
+                          {product.category?.name || product.categoryName?.replace("-", " ") || "Premium"}
                         </span>
 
                         <Image
@@ -511,12 +604,18 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
 
                       <div className="p-4 flex-grow flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted mb-1.5">
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted mb-1.5 flex-wrap">
                             <div className="flex items-center gap-0.5 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold">
                               <span>{product.rating}</span>
                               <Star size={8} fill="currentColor" className="stroke-none" />
                             </div>
                             <span>({product.reviews} reviews)</span>
+                            {product.material && (
+                              <>
+                                <span className="text-bronze-500 font-semibold">•</span>
+                                <span className="font-semibold text-bronze-700 dark:text-bronze-300">{product.material}</span>
+                              </>
+                            )}
                           </div>
 
                           <Link href={`/product/${product.slug || product.id}`}>
@@ -647,13 +746,13 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                         setSort(e.target.value);
                         setSidebarOpen(false);
                       }}
-                      className="bg-transparent focus:outline-none cursor-pointer text-heading w-full text-xs"
+                      className="bg-transparent focus:outline-none cursor-pointer text-heading w-full text-xs appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b5a48d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_0.2rem_center] bg-no-repeat"
                     >
-                      <option value="">Default Sorting</option>
-                      <option value="best-sellers">Best Sellers</option>
-                      <option value="rating">Top Rated</option>
-                      <option value="price-low-high">Price: Low to High</option>
-                      <option value="price-high-low">Price: High to Low</option>
+                      <option value="" className="text-black bg-white dark:text-white dark:bg-zinc-800">Default Sorting</option>
+                      <option value="best-sellers" className="text-black bg-white dark:text-white dark:bg-zinc-800">Best Sellers</option>
+                      <option value="rating" className="text-black bg-white dark:text-white dark:bg-zinc-800">Top Rated</option>
+                      <option value="price-low-high" className="text-black bg-white dark:text-white dark:bg-zinc-800">Price: Low to High</option>
+                      <option value="price-high-low" className="text-black bg-white dark:text-white dark:bg-zinc-800">Price: High to Low</option>
                     </select>
                   </div>
                 </div>
