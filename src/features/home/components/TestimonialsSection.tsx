@@ -8,7 +8,7 @@ const testimonials = [
     quote: "Excellent brass cookware quality. The kadai is exactly like traditional ones my grandmother used.",
     name: "James Carter",
     role: "Wholesale Buyer, UK",
-    flag: "🇬🇧",
+    flag: "GB",
     rating: 5,
     product: "Heritage Bronze Kadai",
   },
@@ -16,7 +16,7 @@ const testimonials = [
     quote: "Received safely in Qatar. Premium packaging and the copper bottles are stunning. Will reorder.",
     name: "Sarah Al-Rashid",
     role: "Hospitality Procurement, UAE",
-    flag: "🇦🇪",
+    flag: "AE",
     rating: 5,
     product: "Copper Water Bottle Set",
   },
@@ -24,7 +24,7 @@ const testimonials = [
     quote: "Premium packaging. The entire shipment of 200 units arrived in perfect condition. Outstanding.",
     name: "Klaus Weber",
     role: "Retail Chain Manager, Germany",
-    flag: "🇩🇪",
+    flag: "DE",
     rating: 5,
     product: "Brass Dinner Set",
   },
@@ -32,7 +32,7 @@ const testimonials = [
     quote: "Best supplier for authentic Indian kitchenware. Quality is consistent across every batch.",
     name: "Fatima Hassan",
     role: "Restaurant Owner, Saudi Arabia",
-    flag: "🇸🇦",
+    flag: "SA",
     rating: 5,
     product: "Steel Cookware Set",
   },
@@ -40,7 +40,7 @@ const testimonials = [
     quote: "The artisan story behind each product resonates with our customers. Beautiful craftsmanship.",
     name: "Emily Richardson",
     role: "Boutique Owner, Australia",
-    flag: "🇦🇺",
+    flag: "AU",
     rating: 5,
     product: "Handicraft Collection",
   },
@@ -48,7 +48,7 @@ const testimonials = [
     quote: "Seamless export process. From quote to delivery in 10 days. Very professional team.",
     name: "Rajesh Gupta",
     role: "Distributor, Singapore",
-    flag: "🇸🇬",
+    flag: "SG",
     rating: 5,
     product: "Bulk Brass Utensils",
   },
@@ -152,8 +152,12 @@ export const TestimonialsSection = () => {
 
               {/* Reviewer */}
               <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-bronze-400/20 to-bronze-600/20 flex items-center justify-center text-base sm:text-lg">
-                  {t.flag}
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-bronze-400/20 to-bronze-600/20 flex items-center justify-center overflow-hidden border border-border/40">
+                  <img
+                    src={`https://flagcdn.com/w40/${t.flag.toLowerCase()}.png`}
+                    alt={`${t.name} Flag`}
+                    className="w-6 h-4 object-cover rounded-sm"
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-heading">{t.name}</p>

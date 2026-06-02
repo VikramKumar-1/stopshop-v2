@@ -225,7 +225,7 @@ function ProfilePageInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface pt-6 pb-16 flex items-center justify-center">
+      <div className="min-h-[60vh] w-full flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
@@ -703,7 +703,7 @@ function ProfilePageInner() {
 export default function ProfilePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-surface pt-6 pb-16 flex items-center justify-center">
+      <div className="min-h-[60vh] w-full flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     }>

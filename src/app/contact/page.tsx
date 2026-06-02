@@ -9,7 +9,7 @@ export default function ContactPage() {
   return (
     <div className="flex flex-col">
       <Suspense fallback={
-        <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="min-h-[60vh] w-full flex items-center justify-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" />
         </div>
       }>

@@ -743,7 +743,7 @@ export const VendorDashboard = () => {
 
   if (authorized === null) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <div className="min-h-[60vh] w-full flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" />
       </div>
     );
@@ -1610,7 +1610,7 @@ export const VendorDashboard = () => {
                       type="file"
                       accept="image/*"
                       onChange={handleFileUpload}
-                      className="hidden"
+                      className="sr-only"
                       id="product-image-upload"
                     />
                     <label
@@ -1643,7 +1643,7 @@ export const VendorDashboard = () => {
                       accept="image/*"
                       multiple
                       onChange={(e) => handleGalleryUpload(e, false)}
-                      className="hidden"
+                      className="sr-only"
                       id="product-gallery-upload"
                     />
                     <label
@@ -2283,7 +2283,7 @@ export const VendorDashboard = () => {
                         type="file"
                         accept="image/*"
                         onChange={handleEditFileUpload}
-                        className="hidden"
+                        className="sr-only"
                         id="edit-product-image-upload"
                       />
                       <label
@@ -2315,7 +2315,7 @@ export const VendorDashboard = () => {
                         accept="image/*"
                         multiple
                         onChange={(e) => handleGalleryUpload(e, true)}
-                        className="hidden"
+                        className="sr-only"
                         id="edit-product-gallery-upload"
                       />
                       <label

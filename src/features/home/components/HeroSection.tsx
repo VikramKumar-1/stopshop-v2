@@ -32,33 +32,11 @@ const slides = [
   }
 ];
 
-const IndiaEmblemIcon = (props: any) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={props.className}>
-    {/* Ashoka Chakra */}
-    <circle cx="12" cy="16" r="4.5" stroke="currentColor" />
-    <circle cx="12" cy="16" r="1" fill="currentColor" />
-    {[...Array(12)].map((_, i) => {
-      const angle = (i * 30 * Math.PI) / 180;
-      const x1 = 12 + 4.5 * Math.cos(angle);
-      const y1 = 16 + 4.5 * Math.sin(angle);
-      const x2 = 12 - 4.5 * Math.cos(angle);
-      const y2 = 16 - 4.5 * Math.sin(angle);
-      return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="0.5" />;
-    })}
-    {/* Stylized outline of Lion Capital */}
-    <path d="M8.5 11.5 C8.5 7.5, 10 5, 12 5 C14 5, 15.5 7.5, 15.5 11.5" stroke="currentColor" strokeLinecap="round" />
-    <path d="M6.5 11.5 C6.5 8, 8.5 6, 12 6 C15.5 6, 17.5 8, 17.5 11.5" stroke="currentColor" strokeLinecap="round" />
-    <path d="M12 5 V11.5" stroke="currentColor" />
-    {/* Base stand */}
-    <path d="M9 11.5 H15" stroke="currentColor" strokeLinecap="round" />
-  </svg>
-);
-
 const trustBadges = [
   { icon: Star, label: "Trusted by buyers in 20+ countries", color: "text-amber-500" },
   { icon: ShieldCheck, label: "Quality Checked", color: "text-emerald-500" },
   { icon: Package, label: "Export Packaging", color: "text-bronze-500 dark:text-bronze-400" },
-  { icon: IndiaEmblemIcon, label: "Recognised by Govt. of India", color: "text-orange-600 dark:text-orange-400" },
+  { icon: null, label: "Recognised by Govt. of India", color: "text-orange-600 dark:text-orange-400", isEmblem: true },
 ];
 
 export const HeroSection = () => {
@@ -150,9 +128,19 @@ export const HeroSection = () => {
             <div className="grid grid-cols-2 gap-3 pt-2">
               {trustBadges.map((badge, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <div className={`w-8 h-8 rounded-lg bg-surface-card border border-bronze-500/10 flex items-center justify-center shadow-sm ${badge.color}`}>
-                    <badge.icon size={15} />
-                  </div>
+                  {badge.isEmblem ? (
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 flex items-center justify-center shadow-sm shrink-0 p-1">
+                      <img
+                        src="/Emblem_of_India.svg"
+                        alt="Emblem of India"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-surface-card border border-bronze-500/10 flex items-center justify-center shadow-sm shrink-0">
+                      {badge.icon && <badge.icon size={15} className={badge.color} />}
+                    </div>
+                  )}
                   <span className="text-xs sm:text-sm text-body font-medium leading-tight">{badge.label}</span>
                 </div>
               ))}

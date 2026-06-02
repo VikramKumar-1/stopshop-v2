@@ -7,8 +7,9 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 
 import { usePathname } from "next/navigation";
-import { useRegion } from "@/context/RegionContext";
+import { useRegion, currencyDatabase } from "@/context/RegionContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { countries, getFlagEmoji } from "@/lib/countries";
 
 const navLinks = [
   { href: "/products", label: "Shop Products" },
@@ -28,6 +29,26 @@ export const Navbar = () => {
   const [visible, setVisible] = useState(true);
   const [user, setUser] = useState<any>(null);
   const isProfilePage = pathname.startsWith("/profile") && !user;
+
+  // Custom searchable currency dropdown states
+  const [desktopCurrencyOpen, setDesktopCurrencyOpen] = useState(false);
+  const [mobileCurrencyOpen, setMobileCurrencyOpen] = useState(false);
+  const [currencySearch, setCurrencySearch] = useState("");
+
+  // Close currency dropdowns when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".currency-container-desktop")) {
+        setDesktopCurrencyOpen(false);
+      }
+      if (!target.closest(".currency-container-mobile")) {
+        setMobileCurrencyOpen(false);
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, []);
 
   // Search suggestions states
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -100,16 +121,16 @@ export const Navbar = () => {
               <button
                 key={product.id}
                 onClick={() => {
-                  window.location.href = `/product/${product.id}`;
+                  window.location.href = `/product/${product.slug || product.id}`;
                   setSuggestionsOpen(false);
                   setSearchOpen(false);
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface-hover rounded-xl transition-all cursor-pointer group"
               >
-                {product.images && product.images.length > 0 ? (
+                {product.image ? (
                   <img
-                    src={product.images[0]}
-                    alt={product.title}
+                    src={product.image}
+                    alt={product.name}
                     className="w-10 h-10 object-cover rounded-lg border border-border bg-white"
                   />
                 ) : (
@@ -119,10 +140,10 @@ export const Navbar = () => {
                 )}
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs font-bold text-heading truncate group-hover:text-orange-500 transition-colors">
-                    {product.title}
+                    {product.name}
                   </h4>
                   <p className="text-[10px] text-muted truncate">
-                    in {product.category || "General"}
+                    in {product.category?.name || product.categoryName?.replace("-", " ") || "General"}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
@@ -290,7 +311,7 @@ export const Navbar = () => {
 
       {/* Main Navigation bar */}
       <nav
-        className={`fixed ${isDashboard ? "top-0" : "top-8"} left-0 right-0 z-[100] w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-[var(--surface)] supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-xl ${isDashboard ? "" : "lg:transition-transform lg:duration-300"} ${visible || isDashboard ? "translate-y-0" : "lg:-translate-y-full"}`}
+        className={`relative lg:fixed ${isDashboard ? "top-0 lg:top-0" : "lg:top-8"} left-0 right-0 z-[100] w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-[var(--surface)] supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-xl ${isDashboard ? "" : "lg:transition-transform lg:duration-300"} ${visible || isDashboard ? "translate-y-0" : "lg:-translate-y-full"}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col w-full pt-1.5 pb-0 lg:py-0">
@@ -335,7 +356,7 @@ export const Navbar = () => {
                       }}
                       onFocus={() => setSuggestionsOpen(true)}
                       placeholder="Search premium bronze, copper & brass..."
-                      className="w-full h-full pl-5 pr-12 bg-transparent text-heading placeholder-muted text-xs focus:outline-none"
+                      className="w-full h-full pl-5 pr-12 bg-transparent text-heading placeholder-muted text-[16px] lg:text-xs focus:outline-none"
                     />
                     <button
                       type="submit"
@@ -363,7 +384,7 @@ export const Navbar = () => {
                       onFocus={() => setSuggestionsOpen(true)}
                       placeholder="Search..."
                       autoFocus
-                      className="w-full h-full pl-4 pr-10 bg-transparent text-heading placeholder-muted text-xs focus:outline-none"
+                      className="w-full h-full pl-4 pr-10 bg-transparent text-heading placeholder-muted text-[16px] lg:text-xs focus:outline-none"
                     />
                     <button
                       type="submit"
@@ -395,21 +416,96 @@ export const Navbar = () => {
               {!isProfilePage && (
                 <div className="hidden lg:flex items-center gap-5 xl:gap-7 flex-shrink-0">
                   {/* Region / Currency Switcher */}
-                  <div className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-xl text-xs font-semibold text-heading focus-within:border-orange-500 transition-colors shadow-sm">
-                    <span className="text-sm">
-                      {region === "US" ? "🇺🇸" : region === "IN" ? "🇮🇳" : region === "AE" ? "🇦🇪" : region === "EU" ? "🇪🇺" : "🇯🇵"}
-                    </span>
-                    <select
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value as any)}
-                      className="bg-transparent border-none text-heading text-xs font-bold focus:outline-none cursor-pointer p-0 pr-1"
+                  <div className="relative currency-container-desktop">
+                    <button
+                      onClick={() => setDesktopCurrencyOpen(!desktopCurrencyOpen)}
+                      className="flex items-center gap-1.5 bg-surface hover:bg-surface-hover border border-border px-2.5 py-1.5 rounded-xl text-xs font-bold text-heading transition-colors shadow-sm cursor-pointer"
                     >
-                      <option value="IN">IN (₹)</option>
-                      <option value="US">US ($)</option>
-                      <option value="AE">AE (د.إ)</option>
-                      <option value="EU">EU (€)</option>
-                      <option value="JP">JP (¥)</option>
-                    </select>
+                      <img
+                        src={`https://flagcdn.com/w20/${region.toLowerCase()}.png`}
+                        alt={region}
+                        className="w-4 h-3 object-cover rounded-sm"
+                      />
+                      <span>{region} ({currencyDatabase[region]?.s || "$"})</span>
+                      <span className="text-[8px] text-muted">▼</span>
+                    </button>
+                    
+                    {desktopCurrencyOpen && (
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-52 bg-[var(--surface)] border border-border shadow-2xl rounded-xl p-2 z-[999] text-xs">
+                        <input
+                          type="text"
+                          placeholder="Search country..."
+                          value={currencySearch}
+                          onChange={(e) => setCurrencySearch(e.target.value)}
+                          className="w-full px-2.5 py-1.5 mb-2 rounded-lg bg-surface-card border border-border text-xs text-heading outline-none focus:border-orange-500"
+                        />
+                        <div className="max-h-48 overflow-y-auto space-y-0.5">
+                          {!currencySearch && (
+                            <>
+                              <div className="px-2 py-1 text-[9px] font-bold text-orange-500 uppercase tracking-wider">
+                                Popular Regions
+                              </div>
+                              {countries
+                                .filter((c) => ["IN", "US", "GB", "AE", "CA"].includes(c.code))
+                                .map((c) => {
+                                  const currencyInfo = currencyDatabase[c.code] || { c: "USD", s: "$" };
+                                  return (
+                                    <button
+                                      key={`pop-desktop-${c.code}`}
+                                      onClick={() => {
+                                        setRegion(c.code);
+                                        setDesktopCurrencyOpen(false);
+                                        setCurrencySearch("");
+                                      }}
+                                      className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading font-semibold transition-colors cursor-pointer border-l-2 border-orange-500 bg-orange-500/[0.03]"
+                                    >
+                                      <span className="flex items-center gap-2">
+                                        <img
+                                          src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`}
+                                          alt={c.name}
+                                          className="w-4 h-3 object-cover rounded-sm"
+                                        />
+                                        <span className="font-bold">{c.code} - {c.name.substring(0, 12)}</span>
+                                      </span>
+                                      <span className="text-orange-500 font-bold">{currencyInfo.s}</span>
+                                    </button>
+                                  );
+                                })}
+                              <div className="h-px bg-border my-1.5" />
+                              <div className="px-2 py-1 text-[9px] font-bold text-muted uppercase tracking-wider">
+                                All Regions
+                              </div>
+                            </>
+                          )}
+                          {countries
+                            .filter((c) => c.name.toLowerCase().includes(currencySearch.toLowerCase()) || c.code.toLowerCase().includes(currencySearch.toLowerCase()))
+                            .map((c) => {
+                              const currencyInfo = currencyDatabase[c.code] || { c: "USD", s: "$" };
+                              return (
+                                <button
+                                  key={c.code}
+                                  onClick={() => {
+                                    setRegion(c.code);
+                                    setDesktopCurrencyOpen(false);
+                                    setCurrencySearch("");
+                                  }}
+                                  className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading transition-colors cursor-pointer"
+                                >
+                                  <span className="flex items-center gap-2">
+                                    <img
+                                      src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`}
+                                      alt={c.name}
+                                      className="w-4 h-3 object-cover rounded-sm"
+                                    />
+                                    <span className="font-semibold">{c.code} - {c.name.substring(0, 12)}{c.name.length > 12 ? ".." : ""}</span>
+                                  </span>
+                                  <span className="text-muted font-bold">{currencyInfo.s}</span>
+                                </button>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <ThemeToggle />
@@ -619,7 +715,6 @@ export const Navbar = () => {
               )}
 
               {/* Mobile Actions (Icons visible on mobile only) */}
-              {!isProfilePage && (
                 <div className="flex items-center gap-1.5 lg:hidden flex-shrink-0">
                   <div className={`items-center gap-1.5 ${searchOpen ? "hidden" : "flex"}`}>
                     {/* Click-to-Expand Search Icon */}
@@ -634,21 +729,96 @@ export const Navbar = () => {
                     )}
 
                     {/* Mobile Region Switcher */}
-                    <div className="flex items-center gap-1 bg-surface border border-border px-2 py-1 rounded-xl text-xs font-semibold text-heading focus-within:border-orange-500 shadow-sm">
-                      <span className="text-xs">
-                        {region === "US" ? "🇺🇸" : region === "IN" ? "🇮🇳" : region === "AE" ? "🇦🇪" : region === "EU" ? "🇪🇺" : "🇯🇵"}
-                      </span>
-                      <select
-                        value={region}
-                        onChange={(e) => setRegion(e.target.value as any)}
-                        className="bg-transparent border-none text-heading text-[10px] font-bold focus:outline-none cursor-pointer p-0"
+                    <div className="relative currency-container-mobile">
+                      <button
+                        onClick={() => setMobileCurrencyOpen(!mobileCurrencyOpen)}
+                        className="flex items-center gap-1 bg-surface hover:bg-surface-hover border border-border px-2 py-1 rounded-xl text-[10px] font-bold text-heading transition-colors shadow-sm cursor-pointer"
                       >
-                        <option value="IN">IN</option>
-                        <option value="US">US</option>
-                        <option value="AE">AE</option>
-                        <option value="EU">EU</option>
-                        <option value="JP">JP</option>
-                      </select>
+                        <img
+                          src={`https://flagcdn.com/w20/${region.toLowerCase()}.png`}
+                          alt={region}
+                          className="w-4 h-3 object-cover rounded-sm"
+                        />
+                        <span>{region}</span>
+                        <span className="text-[6px] text-muted ml-0.5">▼</span>
+                      </button>
+                      
+                      {mobileCurrencyOpen && (
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-48 bg-[var(--surface)] border border-border shadow-2xl rounded-xl p-2 z-[999] text-xs">
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            value={currencySearch}
+                            onChange={(e) => setCurrencySearch(e.target.value)}
+                            className="w-full px-2 py-1 mb-2 rounded-lg bg-surface-card border border-border text-xs text-heading outline-none focus:border-orange-500"
+                          />
+                          <div className="max-h-40 overflow-y-auto space-y-0.5">
+                            {!currencySearch && (
+                              <>
+                                <div className="px-2 py-1 text-[8px] font-bold text-orange-500 uppercase tracking-wider">
+                                  Popular
+                                </div>
+                                {countries
+                                  .filter((c) => ["IN", "US", "GB", "AE", "CA"].includes(c.code))
+                                  .map((c) => {
+                                    const currencyInfo = currencyDatabase[c.code] || { c: "USD", s: "$" };
+                                    return (
+                                      <button
+                                        key={`pop-mobile-${c.code}`}
+                                        onClick={() => {
+                                          setRegion(c.code);
+                                          setMobileCurrencyOpen(false);
+                                          setCurrencySearch("");
+                                        }}
+                                        className="w-full text-left px-2 py-1 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading font-semibold transition-colors cursor-pointer border-l border-orange-500 bg-orange-500/[0.03]"
+                                      >
+                                        <span className="flex items-center gap-1.5">
+                                          <img
+                                            src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`}
+                                            alt={c.name}
+                                            className="w-4 h-3 object-cover rounded-sm"
+                                          />
+                                          <span className="font-bold">{c.code}</span>
+                                        </span>
+                                        <span className="text-orange-500 font-bold">{currencyInfo.s}</span>
+                                      </button>
+                                    );
+                                  })}
+                                <div className="h-px bg-border my-1" />
+                                <div className="px-2 py-1 text-[8px] font-bold text-muted uppercase tracking-wider">
+                                  All
+                                </div>
+                              </>
+                            )}
+                            {countries
+                              .filter((c) => c.name.toLowerCase().includes(currencySearch.toLowerCase()) || c.code.toLowerCase().includes(currencySearch.toLowerCase()))
+                              .map((c) => {
+                                const currencyInfo = currencyDatabase[c.code] || { c: "USD", s: "$" };
+                                return (
+                                  <button
+                                    key={c.code}
+                                    onClick={() => {
+                                      setRegion(c.code);
+                                      setMobileCurrencyOpen(false);
+                                      setCurrencySearch("");
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading transition-colors cursor-pointer"
+                                  >
+                                    <span className="flex items-center gap-1.5">
+                                      <img
+                                        src={`https://flagcdn.com/w20/${c.code.toLowerCase()}.png`}
+                                        alt={c.name}
+                                        className="w-4 h-3 object-cover rounded-sm"
+                                      />
+                                      <span className="font-semibold">{c.code}</span>
+                                    </span>
+                                    <span className="text-muted font-bold">{currencyInfo.s}</span>
+                                  </button>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <ThemeToggle />
@@ -673,22 +843,6 @@ export const Navbar = () => {
                         <User size={18} />
                       </Link>
                     )}
-
-                    {!isDashboard && (
-                      /* Mobile Wishlist */
-                      <Link 
-                        href="/wishlist" 
-                        className="p-1.5 relative text-muted hover:text-heading"
-                        aria-label="Wishlist"
-                      >
-                        <Heart size={18} />
-                        {wishlistCount > 0 && (
-                          <span className="absolute top-0 right-0 bg-orange-500 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
-                            {wishlistCount}
-                          </span>
-                        )}
-                      </Link>
-                    )}
                   </div>
 
                   {/* Mobile Shopping Cart (Always visible on mobile) */}
@@ -705,7 +859,6 @@ export const Navbar = () => {
                     </Link>
                   )}
                 </div>
-              )}
 
             </div>
 
@@ -722,6 +875,7 @@ export const Navbar = () => {
               className="lg:hidden border-t border-border bg-[var(--surface)] max-h-[calc(100vh-100px)] overflow-y-auto"
             >
               <div className="px-4 py-5 space-y-2">
+
                 {/* User Welcome Card on Mobile */}
                 {user ? (
                   <div className="flex items-center gap-3 px-3 py-2 bg-orange-500/5 dark:bg-orange-500/10 rounded-xl border border-orange-500/10 mb-3">
@@ -783,6 +937,17 @@ export const Navbar = () => {
                   >
                     <Heart size={16} />
                     My Wishlist {wishlistCount > 0 ? `(${wishlistCount} items)` : ""}
+                  </Link>
+                )}
+
+                {!isDashboard && (
+                  <Link
+                    href="/cart"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
+                  >
+                    <ShoppingCart size={16} />
+                    My Cart {cartCount > 0 ? `(${cartCount} items)` : ""}
                   </Link>
                 )}
 

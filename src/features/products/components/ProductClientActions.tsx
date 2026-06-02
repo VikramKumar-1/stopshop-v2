@@ -24,7 +24,7 @@ export default function ProductClientActions({ product, allImages }: ProductClie
 
   React.useEffect(() => {
     setSelectedImage(allImages[0]);
-  }, [allImages]);
+  }, [allImages.join(",")]);
 
   const handleAddToCart = async () => {
     try {
