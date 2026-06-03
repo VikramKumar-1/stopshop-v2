@@ -69,6 +69,11 @@ function ProfilePageInner() {
             window.location.href = redirectUrl;
             return;
           }
+          if (meData.user.role === "admin") {
+            window.location.href = "/admin/profile";
+            return;
+          }
+
           setUser(meData.user);
           setProfileName(meData.user.name || "");
           

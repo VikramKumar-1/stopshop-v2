@@ -549,13 +549,25 @@ export const Navbar = () => {
 
                       {/* Menu List Options */}
                       <div className="p-1 space-y-0.5">
-                        <Link
-                          href="/profile"
-                          className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
-                        >
-                          <User size={15} className="text-muted" />
-                          <span>My Profile</span>
-                        </Link>
+                        {!isDashboard && (
+                          <Link
+                            href="/profile"
+                            className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                          >
+                            <User size={15} className="text-muted" />
+                            <span>My Profile</span>
+                          </Link>
+                        )}
+                        
+                        {user?.role === "vendor" && (
+                          <Link
+                            href="/vendor/profile"
+                            className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                          >
+                            <Store size={15} className="text-muted" />
+                            <span>Vendor Profile</span>
+                          </Link>
+                        )}
 
 
 
@@ -599,15 +611,6 @@ export const Navbar = () => {
                             <span>Vendor Dashboard</span>
                           </Link>
                         )}
-                        {user && user.role === "user" && (
-                          <Link
-                            href="/profile"
-                            className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
-                          >
-                            <LayoutDashboard size={15} className="text-muted" />
-                            <span>User Dashboard</span>
-                          </Link>
-                        )}
                         {(!user || user.role === "user") && (
                           <Link
                             href="/vendor/login"
@@ -631,8 +634,8 @@ export const Navbar = () => {
                             href="/"
                             className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
                           >
-                            <Store size={15} className="text-muted" />
-                            <span>User website homepage</span>
+                            <LayoutDashboard size={15} className="text-muted" />
+                            <span>User Dashboard</span>
                           </Link>
                         )}
 
