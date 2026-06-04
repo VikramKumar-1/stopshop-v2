@@ -122,7 +122,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           } else if (tz.includes("Dubai") || tz.includes("Abu_Dhabi") || tz.includes("Muscat")) {
             setRegionState("AE");
           } else if (tz.includes("Tokyo")) {
-            setRegionStateState("JP");
+            setRegionState("JP");
           } else {
             setRegionState("IN");
           }
