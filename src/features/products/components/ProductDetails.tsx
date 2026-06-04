@@ -12,7 +12,7 @@ interface ProductDetailsProps {
 }
 
 export default function ProductDetails({ product, allImages }: ProductDetailsProps) {
-  const { convertPrice, convertWeight } = useRegion();
+  const { convertPrice, convertWeight, getRawPrice } = useRegion();
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [backPath, setBackPath] = useState({
     href: product.categoryName ? `/products?category=${product.categoryName}` : "/products",
@@ -178,10 +178,10 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
 
               {/* Price Tag */}
               <div className="flex items-baseline gap-3 flex-wrap border-b border-border pb-4">
-                <span className="text-3xl font-black text-heading">{convertPrice(product.price)}</span>
-                {product.mrp > product.price && (
+                <span className="text-3xl font-black text-heading">{convertPrice(product.price, product, false)}</span>
+                {getRawPrice(product.mrp, product, true) > getRawPrice(product.price, product, false) && (
                   <>
-                    <span className="text-base text-muted line-through">MRP: {convertPrice(product.mrp)}</span>
+                    <span className="text-base text-muted line-through">MRP: {convertPrice(product.mrp, product, true)}</span>
                     <span className="bg-emerald-500 text-white text-[11px] font-black px-2.5 py-0.5 rounded-lg shadow-sm">
                       {product.discount}% OFF
                     </span>

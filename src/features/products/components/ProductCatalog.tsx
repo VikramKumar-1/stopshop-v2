@@ -131,7 +131,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
   const initialSort = searchParams.get("sort") || "";
   
   const { addToCart } = useCart();
-  const { convertPrice, convertWeight } = useRegion();
+  const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
   const { addToWishlist, isInWishlist } = useWishlist();
  
   const [products, setProducts] = useState<any[]>([]);
@@ -564,7 +564,9 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {products.map((product) => {
-                  const savedAmount = product.mrp - product.price;
+                  const rawMrp = getRawPrice(product.mrp, product, true);
+                  const rawPrice = getRawPrice(product.price, product, false);
+                  const savedAmount = Math.max(0, rawMrp - rawPrice);
 
                   return (
                     <motion.div
@@ -631,12 +633,12 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                           </Link>
 
                           <div className="flex items-baseline gap-1.5 mb-2.5 flex-wrap">
-                            <span className="text-base font-bold text-heading">{convertPrice(product.price)}</span>
-                            {product.mrp > product.price && (
+                            <span className="text-base font-bold text-heading">{convertPrice(product.price, product, false)}</span>
+                            {rawMrp > rawPrice && (
                               <>
-                                <span className="text-xs text-muted line-through">{convertPrice(product.mrp)}</span>
+                                <span className="text-xs text-muted line-through">{convertPrice(product.mrp, product, true)}</span>
                                 <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">
-                                  Save {convertPrice(savedAmount)}
+                                  Save {formatPrice(savedAmount)}
                                 </span>
                               </>
                             )}

@@ -46,6 +46,7 @@ model Product {
   specs        String
   image        String
   images       Json? // Array of additional images
+  prices       Json? // Country-specific prices config (e.g. { "IN": { "mrp": 120 }, "US": { "mrp": 25 } })
   price        Float
   mrp          Float
   discount     Float

@@ -60,6 +60,7 @@ export const VendorDashboard = () => {
     price: string;
     mrp: string;
     discount: string;
+    prices: Record<string, { mrp: string }>;
     categoryName: string;
     material: string;
     stock: string;
@@ -84,6 +85,14 @@ export const VendorDashboard = () => {
     price: "",
     mrp: "",
     discount: "0",
+    prices: {
+      US: { mrp: "" },
+      EU: { mrp: "" },
+      GB: { mrp: "" },
+      AE: { mrp: "" },
+      JP: { mrp: "" },
+      CN: { mrp: "" }
+    },
     categoryName: "kitchen-utility",
     material: "Bronze",
     stock: "10",
@@ -210,6 +219,30 @@ export const VendorDashboard = () => {
       }
     }
 
+    let pricesVal = {
+      US: { mrp: "" },
+      EU: { mrp: "" },
+      GB: { mrp: "" },
+      AE: { mrp: "" },
+      JP: { mrp: "" },
+      CN: { mrp: "" }
+    };
+    if (prod.prices) {
+      try {
+        const parsed = typeof prod.prices === "string" ? JSON.parse(prod.prices) : prod.prices;
+        pricesVal = {
+          US: { mrp: parsed.US?.mrp?.toString() || "" },
+          EU: { mrp: parsed.EU?.mrp?.toString() || "" },
+          GB: { mrp: parsed.GB?.mrp?.toString() || "" },
+          AE: { mrp: parsed.AE?.mrp?.toString() || "" },
+          JP: { mrp: parsed.JP?.mrp?.toString() || "" },
+          CN: { mrp: parsed.CN?.mrp?.toString() || "" }
+        };
+      } catch (e) {
+        console.error("Error parsing product regional prices:", e);
+      }
+    }
+
     setEditForm({
       id: prod.id,
       name: prod.name,
@@ -228,6 +261,7 @@ export const VendorDashboard = () => {
       price: prod.price.toString(),
       mrp: prod.mrp.toString(),
       discount: prod.discount.toString(),
+      prices: pricesVal,
       categoryName: prod.categoryName,
       material: prod.material,
       stock: prod.stock.toString(),
@@ -307,6 +341,7 @@ export const VendorDashboard = () => {
         price: editForm.price,
         mrp: editForm.mrp,
         discount: editForm.discount,
+        prices: editForm.prices,
         categoryName: editForm.categoryName,
         material: editForm.material,
         stock: editForm.stock,
@@ -363,6 +398,7 @@ export const VendorDashboard = () => {
     price: string;
     mrp: string;
     discount: string;
+    prices: Record<string, { mrp: string }>;
     categoryName: string;
     material: string;
     stock: string;
@@ -385,6 +421,14 @@ export const VendorDashboard = () => {
     price: "",
     mrp: "",
     discount: "0",
+    prices: {
+      US: { mrp: "" },
+      EU: { mrp: "" },
+      GB: { mrp: "" },
+      AE: { mrp: "" },
+      JP: { mrp: "" },
+      CN: { mrp: "" }
+    },
     categoryName: "kitchen-utility",
     material: "Bronze",
     stock: "10",
@@ -627,6 +671,7 @@ export const VendorDashboard = () => {
         price: productForm.price,
         mrp: productForm.mrp,
         discount: productForm.discount,
+        prices: productForm.prices,
         categoryName: productForm.categoryName,
         material: productForm.material,
         stock: productForm.stock,
@@ -659,6 +704,14 @@ export const VendorDashboard = () => {
           price: "",
           mrp: "",
           discount: "0",
+          prices: {
+            US: { mrp: "" },
+            EU: { mrp: "" },
+            GB: { mrp: "" },
+            AE: { mrp: "" },
+            JP: { mrp: "" },
+            CN: { mrp: "" }
+          },
           categoryName: "kitchen-utility",
           material: "Bronze",
           stock: "10",
@@ -1762,39 +1815,43 @@ export const VendorDashboard = () => {
                 </div>
               </div>
 
-              {/* Horizontal B2B Export Currency Equivalents */}
-              {productForm.price && parseFloat(productForm.price) > 0 && (
-                <div className="p-4 bg-surface border border-border rounded-2xl space-y-2.5">
-                  <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">B2B Export Price Estimates:</span>
-                  <div className="flex flex-wrap gap-2 text-[10px] font-bold">
-                    <div className="bg-blue-500/5 text-blue-500 border border-blue-500/20 px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-                      <span className="text-xs">🇺🇸</span>
-                      <span>United States (USD):</span>
-                      <span>${Math.round(parseFloat(productForm.price) / 83.5).toLocaleString()}</span>
+              {/* Custom Regional Pricing Grid */}
+              <div className="p-5 bg-surface border border-border rounded-2xl space-y-3.5">
+                <span className="text-xs font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices (MRP)</span>
+                <p className="text-[10px] text-muted -mt-2">Leave blank to use standard INR conversion. Discount is applied globally.</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
+                  {[
+                    { code: "US", name: "USA (USD)", label: "🇺🇸", placeholder: "e.g. 25" },
+                    { code: "EU", name: "Europe (EUR)", label: "🇪🇺", placeholder: "e.g. 23" },
+                    { code: "GB", name: "UK (GBP)", label: "🇬🇧", placeholder: "e.g. 20" },
+                    { code: "AE", name: "UAE (AED)", label: "🇦🇪", placeholder: "e.g. 90" },
+                    { code: "JP", name: "Japan (JPY)", label: "🇯🇵", placeholder: "e.g. 3800" },
+                    { code: "CN", name: "China (CNY)", label: "🇨🇳", placeholder: "e.g. 180" }
+                  ].map((r) => (
+                    <div key={r.code} className="space-y-1 bg-surface-card p-3 rounded-xl border border-border">
+                      <div className="flex items-center gap-1 font-bold text-[10px] text-muted uppercase tracking-wider">
+                        <span>{r.label} {r.name}</span>
+                      </div>
+                      <input
+                        type="number"
+                        placeholder={r.placeholder}
+                        value={productForm.prices[r.code]?.mrp || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProductForm({
+                            ...productForm,
+                            prices: {
+                              ...productForm.prices,
+                              [r.code]: { mrp: val }
+                            }
+                          });
+                        }}
+                        className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
+                      />
                     </div>
-                    <div className="bg-amber-500/5 text-amber-500 border border-amber-500/20 px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-                      <span className="text-xs">🇦🇪</span>
-                      <span>Middle East (AED):</span>
-                      <span>{Math.round(parseFloat(productForm.price) / 22.7).toLocaleString()} د.إ</span>
-                    </div>
-                    <div className="bg-emerald-500/5 text-emerald-500 border border-emerald-500/20 px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-                      <span className="text-xs">🇪🇺</span>
-                      <span>Europe (EUR):</span>
-                      <span>€{Math.round(parseFloat(productForm.price) / 90).toLocaleString()}</span>
-                    </div>
-                    <div className="bg-rose-500/5 text-rose-500 border border-rose-500/20 px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-                      <span className="text-xs">🇯🇵</span>
-                      <span>Japan (JPY):</span>
-                      <span>¥{Math.round(parseFloat(productForm.price) * 1.88).toLocaleString()}</span>
-                    </div>
-                    <div className="bg-purple-500/5 text-purple-500 border border-purple-500/20 px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-                      <span className="text-xs">🇨🇳</span>
-                      <span>China (CNY):</span>
-                      <span>¥{Math.round(parseFloat(productForm.price) / 11.5).toLocaleString()}</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
@@ -2427,6 +2484,42 @@ export const VendorDashboard = () => {
                     />
                   </div>
                 </div>
+
+                {/* Custom Regional Pricing Grid for Edit Modal */}
+                <div className="p-4 bg-surface border border-border rounded-xl space-y-2">
+                  <span className="text-[10px] font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices (MRP)</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                    {[
+                      { code: "US", name: "USA (USD)", label: "🇺🇸", placeholder: "e.g. 25" },
+                      { code: "EU", name: "Europe (EUR)", label: "🇪🇺", placeholder: "e.g. 23" },
+                      { code: "GB", name: "UK (GBP)", label: "🇬🇧", placeholder: "e.g. 20" },
+                      { code: "AE", name: "UAE (AED)", label: "🇦🇪", placeholder: "e.g. 90" },
+                      { code: "JP", name: "Japan (JPY)", label: "🇯🇵", placeholder: "e.g. 3800" },
+                      { code: "CN", name: "China (CNY)", label: "🇨🇳", placeholder: "e.g. 180" }
+                    ].map((r) => (
+                      <div key={r.code} className="space-y-0.5 bg-surface-card p-2 rounded-lg border border-border">
+                        <span className="font-bold text-[9px] text-muted block">{r.label} {r.name}</span>
+                        <input
+                          type="number"
+                          placeholder={r.placeholder}
+                          value={editForm.prices?.[r.code]?.mrp || ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setEditForm({
+                              ...editForm,
+                              prices: {
+                                ...editForm.prices,
+                                 [r.code]: { mrp: val }
+                              }
+                            });
+                          }}
+                          className="w-full bg-surface border border-border focus:border-orange-500 rounded px-2 py-1 text-xs text-heading focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                   <div className="space-y-1 col-span-1 sm:col-span-2">
                     <label className="font-bold text-muted uppercase tracking-wider">Store Category *</label>

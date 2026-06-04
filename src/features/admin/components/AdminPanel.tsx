@@ -18,13 +18,34 @@ export const AdminPanel = () => {
   const [loadingCategories, setLoadingCategories] = useState(true);
 
   // Create Product Form
-  const [productForm, setProductForm] = useState({
+  const [productForm, setProductForm] = useState<{
+    name: string;
+    description: string;
+    specs: string;
+    price: string;
+    mrp: string;
+    discount: string;
+    prices: Record<string, { mrp: string }>;
+    categoryName: string;
+    material: string;
+    stock: string;
+    featured: boolean;
+    newLaunch: boolean;
+  }>({
     name: "",
     description: "",
     specs: "",
     price: "",
     mrp: "",
     discount: "0",
+    prices: {
+      US: { mrp: "" },
+      EU: { mrp: "" },
+      GB: { mrp: "" },
+      AE: { mrp: "" },
+      JP: { mrp: "" },
+      CN: { mrp: "" }
+    },
     categoryName: "kitchen-utility",
     material: "Bronze",
     stock: "10",
@@ -131,6 +152,14 @@ export const AdminPanel = () => {
           price: "",
           mrp: "",
           discount: "0",
+          prices: {
+            US: { mrp: "" },
+            EU: { mrp: "" },
+            GB: { mrp: "" },
+            AE: { mrp: "" },
+            JP: { mrp: "" },
+            CN: { mrp: "" }
+          },
           categoryName: dbCategories[0]?.slug || "kitchen-utility",
           material: "Bronze",
           stock: "10",
@@ -454,6 +483,44 @@ export const AdminPanel = () => {
                     onChange={(e) => setProductForm({ ...productForm, discount: e.target.value })}
                     className="w-full bg-surface border border-border focus:border-bronze-500/80 rounded-xl px-4 py-2.5 text-heading focus:outline-none"
                   />
+                </div>
+              </div>
+
+              {/* Custom Regional Pricing Grid for Admin Panel */}
+              <div className="p-5 bg-surface border border-border rounded-2xl space-y-3.5">
+                <span className="text-xs font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices (MRP)</span>
+                <p className="text-[10px] text-muted -mt-2">Leave blank to use standard INR conversion. Discount is applied globally.</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
+                  {[
+                    { code: "US", name: "USA (USD)", label: "🇺🇸", placeholder: "e.g. 25" },
+                    { code: "EU", name: "Europe (EUR)", label: "🇪🇺", placeholder: "e.g. 23" },
+                    { code: "GB", name: "UK (GBP)", label: "🇬🇧", placeholder: "e.g. 20" },
+                    { code: "AE", name: "UAE (AED)", label: "🇦🇪", placeholder: "e.g. 90" },
+                    { code: "JP", name: "Japan (JPY)", label: "🇯🇵", placeholder: "e.g. 3800" },
+                    { code: "CN", name: "China (CNY)", label: "🇨🇳", placeholder: "e.g. 180" }
+                  ].map((r) => (
+                    <div key={r.code} className="space-y-1 bg-surface-card p-3 rounded-xl border border-border">
+                      <div className="flex items-center gap-1 font-bold text-[10px] text-muted uppercase tracking-wider">
+                        <span>{r.label} {r.name}</span>
+                      </div>
+                      <input
+                        type="number"
+                        placeholder={r.placeholder}
+                        value={productForm.prices?.[r.code]?.mrp || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProductForm({
+                            ...productForm,
+                            prices: {
+                              ...productForm.prices,
+                              [r.code]: { mrp: val }
+                            }
+                          });
+                        }}
+                        className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
 

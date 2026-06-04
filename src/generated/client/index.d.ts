@@ -3201,6 +3201,7 @@ export namespace Prisma {
     specs: number
     image: number
     images: number
+    prices: number
     price: number
     mrp: number
     discount: number
@@ -3292,6 +3293,7 @@ export namespace Prisma {
     specs?: true
     image?: true
     images?: true
+    prices?: true
     price?: true
     mrp?: true
     discount?: true
@@ -3402,6 +3404,7 @@ export namespace Prisma {
     specs: string
     image: string
     images: JsonValue | null
+    prices: JsonValue | null
     price: number
     mrp: number
     discount: number
@@ -3444,6 +3447,7 @@ export namespace Prisma {
     specs?: boolean
     image?: boolean
     images?: boolean
+    prices?: boolean
     price?: boolean
     mrp?: boolean
     discount?: boolean
@@ -3470,6 +3474,7 @@ export namespace Prisma {
     specs?: boolean
     image?: boolean
     images?: boolean
+    prices?: boolean
     price?: boolean
     mrp?: boolean
     discount?: boolean
@@ -3504,6 +3509,7 @@ export namespace Prisma {
       specs: string
       image: string
       images: Prisma.JsonValue | null
+      prices: Prisma.JsonValue | null
       price: number
       mrp: number
       discount: number
@@ -3895,6 +3901,7 @@ export namespace Prisma {
     readonly specs: FieldRef<"Product", 'String'>
     readonly image: FieldRef<"Product", 'String'>
     readonly images: FieldRef<"Product", 'Json'>
+    readonly prices: FieldRef<"Product", 'Json'>
     readonly price: FieldRef<"Product", 'Float'>
     readonly mrp: FieldRef<"Product", 'Float'>
     readonly discount: FieldRef<"Product", 'Float'>
@@ -5206,6 +5213,7 @@ export namespace Prisma {
     specs: 'specs',
     image: 'image',
     images: 'images',
+    prices: 'prices',
     price: 'price',
     mrp: 'mrp',
     discount: 'discount',
@@ -5493,6 +5501,7 @@ export namespace Prisma {
     specs?: StringFilter<"Product"> | string
     image?: StringFilter<"Product"> | string
     images?: JsonNullableFilter<"Product">
+    prices?: JsonNullableFilter<"Product">
     price?: FloatFilter<"Product"> | number
     mrp?: FloatFilter<"Product"> | number
     discount?: FloatFilter<"Product"> | number
@@ -5518,6 +5527,7 @@ export namespace Prisma {
     specs?: SortOrder
     image?: SortOrder
     images?: SortOrderInput | SortOrder
+    prices?: SortOrderInput | SortOrder
     price?: SortOrder
     mrp?: SortOrder
     discount?: SortOrder
@@ -5546,6 +5556,7 @@ export namespace Prisma {
     specs?: StringFilter<"Product"> | string
     image?: StringFilter<"Product"> | string
     images?: JsonNullableFilter<"Product">
+    prices?: JsonNullableFilter<"Product">
     price?: FloatFilter<"Product"> | number
     mrp?: FloatFilter<"Product"> | number
     discount?: FloatFilter<"Product"> | number
@@ -5571,6 +5582,7 @@ export namespace Prisma {
     specs?: SortOrder
     image?: SortOrder
     images?: SortOrderInput | SortOrder
+    prices?: SortOrderInput | SortOrder
     price?: SortOrder
     mrp?: SortOrder
     discount?: SortOrder
@@ -5602,6 +5614,7 @@ export namespace Prisma {
     specs?: StringWithAggregatesFilter<"Product"> | string
     image?: StringWithAggregatesFilter<"Product"> | string
     images?: JsonNullableWithAggregatesFilter<"Product">
+    prices?: JsonNullableWithAggregatesFilter<"Product">
     price?: FloatWithAggregatesFilter<"Product"> | number
     mrp?: FloatWithAggregatesFilter<"Product"> | number
     discount?: FloatWithAggregatesFilter<"Product"> | number
@@ -5880,6 +5893,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -5903,6 +5917,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -5925,6 +5940,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -5948,6 +5964,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -5971,6 +5988,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -5993,6 +6011,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -6014,6 +6033,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -6404,6 +6424,7 @@ export namespace Prisma {
     specs?: SortOrder
     image?: SortOrder
     images?: SortOrder
+    prices?: SortOrder
     price?: SortOrder
     mrp?: SortOrder
     discount?: SortOrder
@@ -6970,6 +6991,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -6992,6 +7014,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -7043,6 +7066,7 @@ export namespace Prisma {
     specs?: StringFilter<"Product"> | string
     image?: StringFilter<"Product"> | string
     images?: JsonNullableFilter<"Product">
+    prices?: JsonNullableFilter<"Product">
     price?: FloatFilter<"Product"> | number
     mrp?: FloatFilter<"Product"> | number
     discount?: FloatFilter<"Product"> | number
@@ -7065,6 +7089,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -7087,6 +7112,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -7263,6 +7289,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -7284,6 +7311,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -7306,6 +7334,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -7328,6 +7357,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -7350,6 +7380,7 @@ export namespace Prisma {
     specs: string
     image: string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price: number
     mrp: number
     discount: number
@@ -7371,6 +7402,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -7393,6 +7425,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number
@@ -7415,6 +7448,7 @@ export namespace Prisma {
     specs?: StringFieldUpdateOperationsInput | string
     image?: StringFieldUpdateOperationsInput | string
     images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
     price?: FloatFieldUpdateOperationsInput | number
     mrp?: FloatFieldUpdateOperationsInput | number
     discount?: FloatFieldUpdateOperationsInput | number

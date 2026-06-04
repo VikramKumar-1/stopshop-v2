@@ -10,7 +10,7 @@ import { useRegion } from "@/context/RegionContext";
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { convertPrice } = useRegion();
+  const { convertPrice, getRawPrice } = useRegion();
 
   return (
     <div className="min-h-screen bg-surface pt-6 pb-20">
@@ -113,9 +113,9 @@ export default function WishlistPage() {
 
                       {/* Price Section */}
                       <div className="flex items-baseline gap-1.5 mb-4 flex-wrap">
-                        <span className="text-base font-bold text-heading">{convertPrice(displayPrice)}</span>
-                        {displayMrp > displayPrice && (
-                          <span className="text-xs text-muted line-through">{convertPrice(displayMrp)}</span>
+                        <span className="text-base font-bold text-heading">{convertPrice(displayPrice, item, false)}</span>
+                        {getRawPrice(displayMrp, item, true) > getRawPrice(displayPrice, item, false) && (
+                          <span className="text-xs text-muted line-through">{convertPrice(displayMrp, item, true)}</span>
                         )}
                       </div>
                     </div>

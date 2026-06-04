@@ -40,7 +40,7 @@ export const CategoryProductGrid = ({
   accentColor
 }: CategoryProductGridProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { convertPrice, convertWeight } = useRegion();
+  const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
   const { addToCart } = useCart();
 
   const renderTitle = (titleText: string) => {
@@ -249,6 +249,9 @@ export const CategoryProductGrid = ({
           {products.slice(0, 12).map((product, index) => {
             const displayPrice = product.price || Math.round(product.id * 100 + 299);
             const displayMrp = product.mrp || Math.round(product.id * 150 + 499);
+            const rawMrp = getRawPrice(displayMrp, product, true);
+            const rawPrice = getRawPrice(displayPrice, product, false);
+            const savedAmount = Math.max(0, rawMrp - rawPrice);
 
             return (
               <Link
@@ -306,12 +309,12 @@ export const CategoryProductGrid = ({
 
                     {/* Price Section */}
                     <div className="flex items-baseline gap-1.5 mt-0.5 sm:mt-2 mb-1.5 sm:mb-4 flex-wrap">
-                      <span className="text-sm sm:text-lg font-bold text-heading">{convertPrice(displayPrice)}</span>
-                      {displayMrp > displayPrice && (
+                      <span className="text-sm sm:text-lg font-bold text-heading">{convertPrice(displayPrice, product, false)}</span>
+                      {rawMrp > rawPrice && (
                         <>
-                          <span className="text-[10px] sm:text-sm text-muted line-through">{convertPrice(displayMrp)}</span>
+                          <span className="text-[10px] sm:text-sm text-muted line-through">{convertPrice(displayMrp, product, true)}</span>
                           <span className="text-[9px] sm:text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">
-                            (Save {convertPrice(displayMrp - displayPrice)})
+                            (Save {formatPrice(savedAmount)})
                           </span>
                         </>
                       )}

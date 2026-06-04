@@ -8,7 +8,7 @@ import { useRegion } from "@/context/RegionContext";
 
 export const CartPage = () => {
   const { cart, updateQuantity, removeFromCart, clearCart, cartCount, cartTotal, loaded } = useCart();
-  const { convertPrice, convertWeight } = useRegion();
+  const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
 
   // Wait for cart to hydrate from localStorage before rendering
   if (!loaded) return <div className="min-h-screen bg-surface" />;
@@ -206,9 +206,9 @@ export const CartPage = () => {
                     <p className="text-xs text-muted font-medium">Specs: {convertWeight(item.specs)}</p>
                     
                     <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
-                      <span className="text-sm font-bold text-heading">{convertPrice(item.price)}</span>
+                      <span className="text-sm font-bold text-heading">{convertPrice(item.price, item, false)}</span>
                       {item.mrp > item.price && (
-                        <span className="text-xs text-muted/70 line-through">{convertPrice(item.mrp)}</span>
+                        <span className="text-xs text-muted/70 line-through">{convertPrice(item.mrp, item, true)}</span>
                       )}
                     </div>
                   </div>
@@ -280,7 +280,9 @@ export const CartPage = () => {
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs text-muted font-medium">Estimated Value:</span>
                   <div className="text-right">
-                    <span className="text-lg font-black text-heading">{convertPrice(cartTotal)}</span>
+                    <span className="text-lg font-black text-heading">
+                      {formatPrice(cart.reduce((sum, i) => sum + getRawPrice(i.price, i, false) * i.quantity, 0))}
+                    </span>
                     <p className="text-[10px] text-muted/70 mt-0.5">* Excluding shipping & export duties</p>
                   </div>
                 </div>

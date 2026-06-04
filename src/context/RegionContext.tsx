@@ -8,7 +8,9 @@ interface RegionContextType {
   currency: string;
   symbol: string;
   setRegion: (region: Region) => void;
-  convertPrice: (priceInInr: number) => string;
+  convertPrice: (priceInInr: number, product?: any, isMrp?: boolean) => string;
+  formatPrice: (value: number) => string;
+  getRawPrice: (priceInInr: number, product?: any, isMrp?: boolean) => number;
   convertWeight: (specs: string) => string;
 }
 
@@ -87,32 +89,47 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (tz.includes("London") || tz.includes("Belfast")) {
-        setRegionState("GB");
-      } else if (tz.includes("Toronto") || tz.includes("Vancouver") || tz.includes("Montreal") || tz.includes("Winnipeg")) {
-        setRegionState("CA");
-      } else if (tz.includes("Sydney") || tz.includes("Melbourne") || tz.includes("Brisbane") || tz.includes("Adelaide") || tz.includes("Perth")) {
-        setRegionState("AU");
-      } else if (tz.includes("Singapore")) {
-        setRegionState("SG");
-      } else if (tz.includes("Riyadh") || tz.includes("Jeddah")) {
-        setRegionState("SA");
-      } else if (tz.includes("America")) {
-        setRegionState("US");
-      } else if (tz.includes("Europe") || tz.includes("Paris") || tz.includes("Berlin") || tz.includes("Rome") || tz.includes("Madrid") || tz.includes("Amsterdam")) {
-        setRegionState("EU");
-      } else if (tz.includes("Dubai") || tz.includes("Abu_Dhabi") || tz.includes("Muscat")) {
-        setRegionState("AE");
-      } else if (tz.includes("Tokyo")) {
-        setRegionState("JP");
-      } else {
-        setRegionState("IN");
-      }
-    } catch (e) {
-      setRegionState("IN");
-    }
+    // Try server-side geo detection route first
+    fetch("/api/detect-region")
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("API call failed");
+      })
+      .then((data) => {
+        if (data && data.country && currencyDatabase[data.country]) {
+          setRegionState(data.country);
+        } else {
+          throw new Error("No country in response");
+        }
+      })
+      .catch(() => {
+        try {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          if (tz.includes("London") || tz.includes("Belfast")) {
+            setRegionState("GB");
+          } else if (tz.includes("Toronto") || tz.includes("Vancouver") || tz.includes("Montreal") || tz.includes("Winnipeg")) {
+            setRegionState("CA");
+          } else if (tz.includes("Sydney") || tz.includes("Melbourne") || tz.includes("Brisbane") || tz.includes("Adelaide") || tz.includes("Perth")) {
+            setRegionState("AU");
+          } else if (tz.includes("Singapore")) {
+            setRegionState("SG");
+          } else if (tz.includes("Riyadh") || tz.includes("Jeddah")) {
+            setRegionState("SA");
+          } else if (tz.includes("America")) {
+            setRegionState("US");
+          } else if (tz.includes("Europe") || tz.includes("Paris") || tz.includes("Berlin") || tz.includes("Rome") || tz.includes("Madrid") || tz.includes("Amsterdam")) {
+            setRegionState("EU");
+          } else if (tz.includes("Dubai") || tz.includes("Abu_Dhabi") || tz.includes("Muscat")) {
+            setRegionState("AE");
+          } else if (tz.includes("Tokyo")) {
+            setRegionStateState("JP");
+          } else {
+            setRegionState("IN");
+          }
+        } catch (e) {
+          setRegionState("IN");
+        }
+      });
   }, []);
 
   const setRegion = (newRegion: Region) => {
@@ -120,9 +137,30 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem("stopshop_region", newRegion);
   };
 
-  const convertPrice = (priceInInr: number): string => {
-    const config = currencyDatabase[region] || { c: "USD", s: "$" };
-    // Safe fallbacks in case API fails
+  const getRawPrice = (priceInInr: number, product?: any, isMrp?: boolean): number => {
+    if (product) {
+      let pricesObj: any = null;
+      if (product.prices) {
+        if (typeof product.prices === "string") {
+          try {
+            pricesObj = JSON.parse(product.prices);
+          } catch (e) {}
+        } else {
+          pricesObj = product.prices;
+        }
+      }
+      if (pricesObj && pricesObj[region] && pricesObj[region].mrp !== undefined) {
+        const customMrp = parseFloat(pricesObj[region].mrp);
+        if (!isNaN(customMrp)) {
+          if (isMrp) {
+            return customMrp;
+          } else {
+            const discount = parseFloat(product.discount) || 0;
+            return customMrp - (customMrp * discount / 100);
+          }
+        }
+      }
+    }
     const defaultRates: Record<string, number> = {
       INR: 1.0,
       USD: 1 / 83.5,
@@ -135,14 +173,23 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       SGD: 1 / 61.5,
       JPY: 1.88
     };
-
+    const config = currencyDatabase[region] || { c: "USD" };
     const rate = rates[config.c] || defaultRates[config.c] || 1 / 83.5;
-    const converted = Math.round(priceInInr * rate);
-    
+    return Math.round(priceInInr * rate);
+  };
+
+  const formatPrice = (value: number): string => {
+    const config = currencyDatabase[region] || { c: "USD", s: "$" };
+    const formatted = value % 1 === 0 ? value.toLocaleString() : value.toFixed(2);
     if (config.p === "suffix") {
-      return `${converted.toLocaleString()} ${config.s}`;
+      return `${formatted} ${config.s}`;
     }
-    return `${config.s}${converted.toLocaleString()}`;
+    return `${config.s}${formatted}`;
+  };
+
+  const convertPrice = (priceInInr: number, product?: any, isMrp?: boolean): string => {
+    const rawPrice = getRawPrice(priceInInr, product, isMrp);
+    return formatPrice(rawPrice);
   };
 
   const convertWeight = (specs: string): string => {
@@ -181,6 +228,8 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         symbol: (currencyDatabase[region] || { s: "$" }).s,
         setRegion,
         convertPrice,
+        formatPrice,
+        getRawPrice,
         convertWeight
       }}
     >

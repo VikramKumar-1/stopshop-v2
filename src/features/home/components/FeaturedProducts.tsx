@@ -140,7 +140,7 @@ const products = [
 
 export const FeaturedProducts = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { convertPrice, convertWeight } = useRegion();
+  const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
   const { addToCart } = useCart();
   const isScrollingRef = useRef(false);
   const dragThreshold = 8;
@@ -286,10 +286,10 @@ export const FeaturedProducts = () => {
 
                     {/* Price Section — Amazon style */}
                     <div className="flex items-baseline gap-1.5 flex-wrap">
-                      <span className="text-base sm:text-lg font-bold text-heading">{convertPrice(product.price)}</span>
-                      <span className="text-[10px] sm:text-xs text-muted line-through">{convertPrice(product.mrp)}</span>
+                      <span className="text-base sm:text-lg font-bold text-heading">{convertPrice(product.price, product, false)}</span>
+                      <span className="text-[10px] sm:text-xs text-muted line-through">{convertPrice(product.mrp, product, true)}</span>
                       <span className="text-[9px] sm:text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">
-                        (Save {convertPrice(product.mrp - product.price)})
+                        (Save {formatPrice(Math.max(0, getRawPrice(product.mrp, product, true) - getRawPrice(product.price, product, false)))})
                       </span>
                     </div>
 

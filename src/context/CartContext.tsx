@@ -8,6 +8,7 @@ export interface CartItem {
   name: string;
   price: number;
   mrp: number;
+  prices?: any;
   image: string;
   specs: string;
   material: string;
@@ -75,6 +76,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
               name: product.name,
               price,
               mrp,
+              prices: product.prices,
               image: product.image,
               specs: product.specs || "",
               material: product.material || "Bronze",
