@@ -14,6 +14,9 @@ export const AdminPanel = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"inquiries" | "products" | "add-product">("inquiries");
 
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
   // Create Product Form
   const [productForm, setProductForm] = useState({
     name: "",
@@ -92,8 +95,21 @@ export const AdminPanel = () => {
         const dataProd = await resProd.json();
         setProducts(dataProd);
       }
+
+      // Fetch categories dynamically
+      setLoadingCategories(true);
+      const resCat = await fetch("/api/categories");
+      if (resCat.ok) {
+        const dataCat = await resCat.json();
+        setDbCategories(dataCat);
+        if (dataCat.length > 0) {
+          setProductForm(prev => ({ ...prev, categoryName: dataCat[0].slug }));
+        }
+      }
+      setLoadingCategories(false);
     } catch (e) {
       console.error("Failed to load admin data");
+      setLoadingCategories(false);
     }
   };
 
@@ -115,7 +131,7 @@ export const AdminPanel = () => {
           price: "",
           mrp: "",
           discount: "0",
-          categoryName: "kitchen-utility",
+          categoryName: dbCategories[0]?.slug || "kitchen-utility",
           material: "Bronze",
           stock: "10",
           featured: false,
@@ -444,23 +460,24 @@ export const AdminPanel = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="font-bold text-muted uppercase tracking-wider">Category *</label>
-                  <select
-                    value={productForm.categoryName}
-                    onChange={(e) => setProductForm({ ...productForm, categoryName: e.target.value })}
-                    className="w-full bg-surface border border-border focus:border-bronze-500/80 rounded-xl px-4 py-2.5 text-heading focus:outline-none cursor-pointer"
-                  >
-                    <option value="kitchen-utility">Kitchen Utility</option>
-                    <option value="brass-cookware">Brass Cookware</option>
-                    <option value="copper-products">Copper Products</option>
-                    <option value="steel-essentials">Steel Essentials</option>
-                    <option value="home-living">Home Living</option>
-                    <option value="bedroom-essentials">Bedroom Essentials</option>
-                    <option value="living-room">Living Room</option>
-                    <option value="handicrafts">Handicrafts</option>
-                    <option value="pooja-collection">Pooja Collection</option>
-                    <option value="kitchen-racks">Kitchen Racks</option>
-                    <option value="dinner-sets">Dinner Sets</option>
-                  </select>
+                  {loadingCategories ? (
+                    <div className="flex items-center gap-2 h-10 px-4 bg-surface border border-border rounded-xl">
+                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-bronze-500" />
+                      <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Loading...</span>
+                    </div>
+                  ) : (
+                    <select
+                      value={productForm.categoryName}
+                      onChange={(e) => setProductForm({ ...productForm, categoryName: e.target.value })}
+                      className="w-full bg-surface border border-border focus:border-bronze-500/80 rounded-xl px-4 py-2.5 text-heading focus:outline-none cursor-pointer"
+                    >
+                      {dbCategories.map((cat) => (
+                        <option key={cat.slug} value={cat.slug}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div className="space-y-1">

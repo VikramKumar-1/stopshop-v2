@@ -37,6 +37,8 @@ export const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel">("inquiries");
   const [allInquiries, setAllInquiries] = useState<any[]>([]);
   const [editingDelivery, setEditingDelivery] = useState<{ inquiryId: number, productId: number, value: string } | null>(null);
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   // Edit Product Modal states & handlers
   const [modalEditProduct, setModalEditProduct] = useState<any | null>(null);
@@ -537,6 +539,19 @@ export const VendorDashboard = () => {
 
   const fetchData = async (vendorId: number) => {
     try {
+      // Fetch categories
+      setLoadingCategories(true);
+      const resCat = await fetch("/api/categories");
+      if (resCat.ok) {
+        const dataCat = await resCat.json();
+        setDbCategories(dataCat);
+        if (dataCat.length > 0) {
+          setProductForm(prev => ({ ...prev, categoryName: dataCat[0].slug }));
+          setEditForm(prev => ({ ...prev, categoryName: dataCat[0].slug }));
+        }
+      }
+      setLoadingCategories(false);
+
       // Fetch vendor's own products
       const resProd = await fetch(`/api/products?vendorId=${vendorId}`);
       if (resProd.ok) {
@@ -566,6 +581,7 @@ export const VendorDashboard = () => {
       }
     } catch (e) {
       console.error("Failed to load vendor dashboard details:", e);
+      setLoadingCategories(false);
     }
   };
 
@@ -1783,23 +1799,24 @@ export const VendorDashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="font-bold text-muted uppercase tracking-wider">Store Category *</label>
-                  <select
-                    value={productForm.categoryName}
-                    onChange={(e) => setProductForm({ ...productForm, categoryName: e.target.value })}
-                    className="w-full bg-surface border border-border hover:border-orange-500/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 rounded-xl px-4 py-2.5 text-heading font-semibold focus:outline-none cursor-pointer shadow-sm transition-all appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ea580c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
-                  >
-                    <option value="kitchen-utility">Kitchen Utility</option>
-                    <option value="brass-cookware">Brass Cookware</option>
-                    <option value="copper-products">Copper Products</option>
-                    <option value="steel-essentials">Steel Essentials</option>
-                    <option value="home-living">Home Living</option>
-                    <option value="bedroom-essentials">Bedroom Essentials</option>
-                    <option value="living-room">Living Room</option>
-                    <option value="handicrafts">Handicrafts</option>
-                    <option value="pooja-collection">Pooja Collection</option>
-                    <option value="kitchen-racks">Kitchen Racks</option>
-                    <option value="dinner-sets">Dinner Sets</option>
-                  </select>
+                  {loadingCategories ? (
+                    <div className="flex items-center gap-2 h-10 px-4 bg-surface border border-border rounded-xl">
+                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-orange-500" />
+                      <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Loading...</span>
+                    </div>
+                  ) : (
+                    <select
+                      value={productForm.categoryName}
+                      onChange={(e) => setProductForm({ ...productForm, categoryName: e.target.value })}
+                      className="w-full bg-surface border border-border hover:border-orange-500/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 rounded-xl px-4 py-2.5 text-heading font-semibold focus:outline-none cursor-pointer shadow-sm transition-all appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ea580c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
+                    >
+                      {dbCategories.map((cat) => (
+                        <option key={cat.slug} value={cat.slug}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div className="space-y-1">
@@ -2410,27 +2427,27 @@ export const VendorDashboard = () => {
                     />
                   </div>
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                   <div className="space-y-1 col-span-1 sm:col-span-2">
                     <label className="font-bold text-muted uppercase tracking-wider">Store Category *</label>
-                    <select
-                      value={editForm.categoryName}
-                      onChange={(e) => setEditForm({ ...editForm, categoryName: e.target.value })}
-                      className="w-full bg-surface border border-border rounded-xl px-4 py-2 text-heading font-semibold focus:outline-none cursor-pointer appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ea580c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
-                    >
-                      <option value="kitchen-utility">Kitchen Utility</option>
-                      <option value="brass-cookware">Brass Cookware</option>
-                      <option value="copper-products">Copper Products</option>
-                      <option value="steel-essentials">Steel Essentials</option>
-                      <option value="home-living">Home Living</option>
-                      <option value="bedroom-essentials">Bedroom Essentials</option>
-                      <option value="living-room">Living Room</option>
-                      <option value="handicrafts">Handicrafts</option>
-                      <option value="pooja-collection">Pooja Collection</option>
-                      <option value="kitchen-racks">Kitchen Racks</option>
-                      <option value="dinner-sets">Dinner Sets</option>
-                    </select>
+                    {loadingCategories ? (
+                      <div className="flex items-center gap-2 h-10 px-4 bg-surface border border-border rounded-xl">
+                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-orange-500" />
+                        <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Loading...</span>
+                      </div>
+                    ) : (
+                      <select
+                        value={editForm.categoryName}
+                        onChange={(e) => setEditForm({ ...editForm, categoryName: e.target.value })}
+                        className="w-full bg-surface border border-border rounded-xl px-4 py-2 text-heading font-semibold focus:outline-none cursor-pointer appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ea580c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
+                      >
+                        {dbCategories.map((cat) => (
+                          <option key={cat.slug} value={cat.slug}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   <div className="space-y-1">

@@ -334,14 +334,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
     fetchProducts(true);
   }, [search, category, material, sort]);
 
-  // Auto-refresh when tab gains focus (e.g. returning from vendor dashboard tab)
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchProducts(true);
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [search, category, material, sort]);
+
 
   useEffect(() => {
     const sentinel = observerRef.current;
