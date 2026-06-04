@@ -237,6 +237,8 @@ export async function updateProduct(id: number, body: any, session: TokenPayload
   if (body.discount !== undefined) body.discount = parseFloat(body.discount) || 0;
   if (body.stock !== undefined) body.stock = parseInt(body.stock) || 0;
   if (body.active !== undefined) body.active = !!body.active;
+  if (body.featured !== undefined) body.featured = !!body.featured;
+  if (body.newLaunch !== undefined) body.newLaunch = !!body.newLaunch;
 
   if (body.prices) {
     const cleaned: any = {};
@@ -286,22 +288,30 @@ export async function updateProduct(id: number, body: any, session: TokenPayload
     body.slug = slug;
   }
 
-  if (body.categoryName) {
-    body.category = {
-      connect: { slug: body.categoryName }
-    };
-    delete body.categoryName;
+  // Create whitelisted data payload for Prisma Update
+  const updateData: any = {};
+  const allowedFields = [
+    "name", "slug", "description", "specs", "image", "images",
+    "prices", "price", "mrp", "discount", "material", "stock",
+    "featured", "newLaunch", "active"
+  ];
+
+  for (const field of allowedFields) {
+    if (body[field] !== undefined) {
+      updateData[field] = body[field];
+    }
   }
 
-  // Sanitize incoming body
-  delete body.id;
-  delete body.createdAt;
-  delete body.vendorId;
+  if (body.categoryName) {
+    updateData.category = {
+      connect: { slug: body.categoryName }
+    };
+  }
 
   try {
     return await prisma.product.update({
       where: { id },
-      data: body,
+      data: updateData,
     });
   } catch (error: any) {
     console.error("Database update error:", error);
