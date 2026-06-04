@@ -692,12 +692,12 @@ export const Navbar = () => {
                         <span className="text-xs font-bold text-heading">Cart</span>
                       </Link>
 
-                      {/* Contact Us button */}
+                      {/* Sell with us button */}
                       <Link
-                        href="/contact"
+                        href="/vendor/register"
                         className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold transition-all duration-300 shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/25 whitespace-nowrap ml-2"
                       >
-                        Contact Us
+                        Sell with us
                       </Link>
                     </>
                   )}
@@ -715,10 +715,10 @@ export const Navbar = () => {
               {isProfilePage && (
                 <div className="flex items-center gap-5 flex-shrink-0">
                   <Link
-                    href="/contact"
+                    href="/vendor/register"
                     className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold transition-all duration-300 shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/25 whitespace-nowrap ml-2"
                   >
-                    Contact Us
+                    Sell with us
                   </Link>
                 </div>
               )}

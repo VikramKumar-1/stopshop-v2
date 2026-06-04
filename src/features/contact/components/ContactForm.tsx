@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Mail, MapPin, Phone, Send, CheckCircle2 } from "lucide-react";
+import { Mail, MapPin, Phone, Send, CheckCircle2, Store, ArrowRight } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { parseLocation } from "@/lib/pincodeResolver";
 import { countries, getPhoneRule } from "@/lib/countries";
+import Link from "next/link";
 
 export const ContactForm = () => {
   const searchParams = useSearchParams();
@@ -195,6 +196,30 @@ export const ContactForm = () => {
                 </div>
               </div>
             ))}
+
+            {/* Sell With Us Section */}
+            <div className="glass rounded-3xl p-6 bg-gradient-to-br from-orange-500/[0.08] via-orange-500/[0.03] to-transparent border border-orange-500/25 space-y-4 shadow-sm relative overflow-hidden">
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-orange-500/15 text-orange-500 flex items-center justify-center flex-shrink-0">
+                  <Store size={22} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-heading font-display">Are you an artisan?</h3>
+                  <p className="text-[10px] text-muted font-medium">Sell your handmade crafts globally.</p>
+                </div>
+              </div>
+              <p className="text-[11px] text-body leading-relaxed">
+                Join StopShop's craftsman network. Register as an artisan vendor to list and sell your copper, brass, and bronze utensils.
+              </p>
+              <Link
+                href="/vendor/register"
+                className="inline-flex w-full items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-md shadow-orange-500/10 active:scale-[0.98] cursor-pointer"
+              >
+                Become a Seller
+                <ArrowRight size={13} />
+              </Link>
+            </div>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="lg:col-span-3">
@@ -217,7 +242,7 @@ export const ContactForm = () => {
                 <form className="space-y-4" onSubmit={handleSubmit}>
                   {error && <div className="p-3 bg-red-500/5 text-red-500 text-xs border border-red-500/20 rounded-xl">{error}</div>}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5 sm:gap-y-6">
                     <div className="space-y-1">
                       <label className="text-[10px] font-medium text-muted uppercase tracking-wider">Full Name *</label>
                       <input
@@ -243,7 +268,7 @@ export const ContactForm = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5 sm:gap-y-6">
                     <div className="space-y-1">
                       <label className="text-[10px] font-medium text-muted uppercase tracking-wider">Phone / WhatsApp *</label>
                       <div className="flex gap-2 items-stretch">
@@ -322,7 +347,7 @@ export const ContactForm = () => {
                               phone: cleanDigits.slice(0, phoneRule.maxLength),
                             }));
                           }}
-                          className={`flex-1 px-3 py-2.5 rounded-xl bg-surface-card border border-border focus:border-bronze-500/50 focus:ring-1 focus:ring-bronze-500/20 outline-none text-heading placeholder-subtle text-xs transition-all ${
+                          className={`flex-1 w-full min-w-0 px-3 py-2.5 rounded-xl bg-surface-card border border-border focus:border-bronze-500/50 focus:ring-1 focus:ring-bronze-500/20 outline-none text-heading placeholder-subtle text-xs transition-all ${
                             !formData.phoneCode ? "cursor-not-allowed opacity-50 bg-surface/20" : ""
                           }`}
                           placeholder={formData.phoneCode ? `e.g. ${phoneRule.placeholder}` : "Select country code first"}
@@ -344,7 +369,7 @@ export const ContactForm = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5 sm:gap-y-6">
                     <div className="space-y-1 relative">
                       <label className="text-[10px] font-medium text-muted uppercase tracking-wider">Country *</label>
                       <button
