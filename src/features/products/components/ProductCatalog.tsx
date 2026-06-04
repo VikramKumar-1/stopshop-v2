@@ -87,7 +87,7 @@ const generateMock = (base: any[], categorySlug: string) => {
     stock: 10,
     material: mat,
     categoryName: categorySlug,
-    category: { name: categorySlug.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase()) }
+    category: { name: categorySlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) }
   }));
 };
 
@@ -290,6 +290,19 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
           } else if (!category) {
             finalData = Object.values(mockDataMap).flat().slice(0, BATCH_SIZE);
           }
+
+          // Filter mock data by material to match active filters
+          if (material) {
+            finalData = finalData.filter((p: any) => p.material?.toLowerCase() === material.toLowerCase());
+          }
+
+          // Filter mock data by search query to match active filters
+          if (search) {
+            finalData = finalData.filter((p: any) => 
+              p.name.toLowerCase().includes(search.toLowerCase()) || 
+              p.description.toLowerCase().includes(search.toLowerCase())
+            );
+          }
         }
 
         if (isInitial) {
@@ -386,10 +399,10 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                     <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
                       {material ? (
                         <Link itemProp="item" href={`/products?category=${category}`} className="hover:text-white transition-colors capitalize font-medium">
-                          <span itemProp="name">{category.replace("-", " ")}</span>
+                          <span itemProp="name">{category.replace(/-/g, " ")}</span>
                         </Link>
                       ) : (
-                        <span itemProp="name" className="text-bronze-200 capitalize font-semibold">{category.replace("-", " ")}</span>
+                        <span itemProp="name" className="text-bronze-200 capitalize font-semibold">{category.replace(/-/g, " ")}</span>
                       )}
                       <meta itemProp="position" content="3" />
                     </li>
@@ -590,7 +603,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                         </button>
                         
                         <span className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-md capitalize">
-                          {product.category?.name || product.categoryName?.replace("-", " ") || "Premium"}
+                          {product.category?.name || product.categoryName?.replace(/-/g, " ") || "Premium"}
                         </span>
 
                         <Image

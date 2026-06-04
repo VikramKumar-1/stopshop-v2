@@ -143,7 +143,7 @@ export const Navbar = () => {
                     {product.name}
                   </h4>
                   <p className="text-[10px] text-muted truncate">
-                    in {product.category?.name || product.categoryName?.replace("-", " ") || "General"}
+                    in {product.category?.name || product.categoryName?.replace(/-/g, " ") || "General"}
                   </p>
                 </div>
                 <div className="text-right shrink-0">

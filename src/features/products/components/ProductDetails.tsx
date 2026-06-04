@@ -16,7 +16,7 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [backPath, setBackPath] = useState({
     href: product.categoryName ? `/products?category=${product.categoryName}` : "/products",
-    label: `Back to ${product.category?.name || product.categoryName?.replace("-", " ") || "Collections"} Collection`
+    label: `Back to ${product.category?.name || product.categoryName?.replace(/-/g, " ") || "Collections"} Collection`
   });
   const [referrerType, setReferrerType] = useState<"cart" | "admin" | "vendor" | "default">("default");
 
@@ -114,7 +114,7 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
                       className="hover:text-heading hover:text-bronze-500 transition-colors capitalize"
                     >
                       <span itemProp="name">
-                        {product.category?.name || product.categoryName?.replace("-", " ") || "Collection"}
+                        {product.category?.name || product.categoryName?.replace(/-/g, " ") || "Collection"}
                       </span>
                     </Link>
                     <meta itemProp="position" content="3" />

@@ -265,7 +265,7 @@ export const CategoryProductGrid = ({
                   )}
                   
                   <span className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-md capitalize">
-                    {product.category?.name || product.categoryName?.replace("-", " ") || title || "Premium"}
+                    {product.category?.name || product.categoryName?.replace(/-/g, " ") || title || "Premium"}
                   </span>
 
                   <Image
