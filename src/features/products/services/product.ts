@@ -126,6 +126,37 @@ export async function createProduct(body: any, session: TokenPayload) {
     counter++;
   }
 
+  let parsedPrices: any = null;
+  if (prices) {
+    const cleaned: any = {};
+    for (const key in prices) {
+      const valMrp = prices[key]?.mrp;
+      const valDiscount = prices[key]?.discount;
+      const entry: any = {};
+      
+      if (valMrp !== undefined && valMrp !== null && valMrp !== "") {
+        const numMrp = parseFloat(valMrp);
+        if (!isNaN(numMrp)) {
+          entry.mrp = numMrp;
+        }
+      }
+      
+      if (valDiscount !== undefined && valDiscount !== null && valDiscount !== "") {
+        const numDiscount = parseFloat(valDiscount);
+        if (!isNaN(numDiscount)) {
+          entry.discount = numDiscount;
+        }
+      }
+      
+      if (entry.mrp !== undefined) {
+        cleaned[key] = entry;
+      }
+    }
+    if (Object.keys(cleaned).length > 0) {
+      parsedPrices = JSON.parse(JSON.stringify(cleaned));
+    }
+  }
+
   return prisma.product.create({
     data: {
       name,
@@ -134,7 +165,7 @@ export async function createProduct(body: any, session: TokenPayload) {
       specs,
       image: image || "/bronze-kadai.png",
       images: images ? JSON.parse(JSON.stringify(images)) : [],
-      prices: prices ? JSON.parse(JSON.stringify(prices)) : null,
+      prices: parsedPrices,
       price: parsedPrice,
       mrp: parsedMrp,
       discount: parsedDiscount,
@@ -206,6 +237,34 @@ export async function updateProduct(id: number, body: any, session: TokenPayload
   if (body.discount !== undefined) body.discount = parseFloat(body.discount) || 0;
   if (body.stock !== undefined) body.stock = parseInt(body.stock) || 0;
   if (body.active !== undefined) body.active = !!body.active;
+
+  if (body.prices) {
+    const cleaned: any = {};
+    for (const key in body.prices) {
+      const valMrp = body.prices[key]?.mrp;
+      const valDiscount = body.prices[key]?.discount;
+      const entry: any = {};
+      
+      if (valMrp !== undefined && valMrp !== null && valMrp !== "") {
+        const numMrp = parseFloat(valMrp);
+        if (!isNaN(numMrp)) {
+          entry.mrp = numMrp;
+        }
+      }
+      
+      if (valDiscount !== undefined && valDiscount !== null && valDiscount !== "") {
+        const numDiscount = parseFloat(valDiscount);
+        if (!isNaN(numDiscount)) {
+          entry.discount = numDiscount;
+        }
+      }
+      
+      if (entry.mrp !== undefined) {
+        cleaned[key] = entry;
+      }
+    }
+    body.prices = Object.keys(cleaned).length > 0 ? JSON.parse(JSON.stringify(cleaned)) : null;
+  }
 
   if (body.name) {
     let baseSlug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");

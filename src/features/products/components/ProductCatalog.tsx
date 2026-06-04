@@ -540,10 +540,9 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="h-[420px] bg-surface-card border border-border animate-pulse rounded-2xl" />
-                ))}
+              <div className="flex flex-col items-center justify-center py-20 w-full min-h-[300px] bg-surface-card border border-border/60 rounded-3xl">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-bronze-500 mb-3" />
+                <span className="text-xs text-muted font-bold uppercase tracking-wider">Fetching Crafted Items...</span>
               </div>
             ) : products.length === 0 ? (
               <div className="text-center py-16 bg-surface-card border border-border rounded-2xl">

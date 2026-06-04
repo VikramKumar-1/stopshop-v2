@@ -89,7 +89,35 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    // Try server-side geo detection route first
+    // 1. Guess timezone synchronously on mount to avoid the "IN" flicker
+    let initialTzCountry = "IN";
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz.includes("London") || tz.includes("Belfast")) {
+        initialTzCountry = "GB";
+      } else if (tz.includes("Toronto") || tz.includes("Vancouver") || tz.includes("Montreal") || tz.includes("Winnipeg")) {
+        initialTzCountry = "CA";
+      } else if (tz.includes("Sydney") || tz.includes("Melbourne") || tz.includes("Brisbane") || tz.includes("Adelaide") || tz.includes("Perth")) {
+        initialTzCountry = "AU";
+      } else if (tz.includes("Singapore")) {
+        initialTzCountry = "SG";
+      } else if (tz.includes("Riyadh") || tz.includes("Jeddah")) {
+        initialTzCountry = "SA";
+      } else if (tz.includes("America")) {
+        initialTzCountry = "US";
+      } else if (tz.includes("Europe") || tz.includes("Paris") || tz.includes("Berlin") || tz.includes("Rome") || tz.includes("Madrid") || tz.includes("Amsterdam")) {
+        initialTzCountry = "EU";
+      } else if (tz.includes("Dubai") || tz.includes("Abu_Dhabi") || tz.includes("Muscat")) {
+        initialTzCountry = "AE";
+      } else if (tz.includes("Tokyo")) {
+        initialTzCountry = "JP";
+      }
+    } catch (e) {}
+
+    // Apply fast guess immediately
+    setRegionState(initialTzCountry);
+
+    // 2. Fetch the highly-accurate IP header detection
     fetch("/api/detect-region")
       .then((res) => {
         if (res.ok) return res.json();
@@ -98,37 +126,10 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       .then((data) => {
         if (data && data.country && currencyDatabase[data.country]) {
           setRegionState(data.country);
-        } else {
-          throw new Error("No country in response");
         }
       })
       .catch(() => {
-        try {
-          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-          if (tz.includes("London") || tz.includes("Belfast")) {
-            setRegionState("GB");
-          } else if (tz.includes("Toronto") || tz.includes("Vancouver") || tz.includes("Montreal") || tz.includes("Winnipeg")) {
-            setRegionState("CA");
-          } else if (tz.includes("Sydney") || tz.includes("Melbourne") || tz.includes("Brisbane") || tz.includes("Adelaide") || tz.includes("Perth")) {
-            setRegionState("AU");
-          } else if (tz.includes("Singapore")) {
-            setRegionState("SG");
-          } else if (tz.includes("Riyadh") || tz.includes("Jeddah")) {
-            setRegionState("SA");
-          } else if (tz.includes("America")) {
-            setRegionState("US");
-          } else if (tz.includes("Europe") || tz.includes("Paris") || tz.includes("Berlin") || tz.includes("Rome") || tz.includes("Madrid") || tz.includes("Amsterdam")) {
-            setRegionState("EU");
-          } else if (tz.includes("Dubai") || tz.includes("Abu_Dhabi") || tz.includes("Muscat")) {
-            setRegionState("AE");
-          } else if (tz.includes("Tokyo")) {
-            setRegionState("JP");
-          } else {
-            setRegionState("IN");
-          }
-        } catch (e) {
-          setRegionState("IN");
-        }
+        // Fallback guess is already set
       });
   }, []);
 
@@ -155,7 +156,10 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (isMrp) {
             return customMrp;
           } else {
-            const discount = parseFloat(product.discount) || 0;
+            const regDiscountVal = pricesObj[region].discount;
+            const discount = (regDiscountVal !== undefined && regDiscountVal !== null && regDiscountVal !== "")
+              ? parseFloat(regDiscountVal)
+              : (parseFloat(product.discount) || 0);
             return customMrp - (customMrp * discount / 100);
           }
         }

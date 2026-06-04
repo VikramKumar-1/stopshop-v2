@@ -4,6 +4,7 @@ import { Plus, Trash2, Store, LogOut, CheckCircle, Mail, Phone, MapPin, Package,
 import { AnimatePresence, motion } from "framer-motion";
 
 import { useRouter } from "next/navigation";
+import { currencyDatabase } from "@/context/RegionContext";
 
 export const VendorDashboard = () => {
   const router = useRouter();
@@ -60,7 +61,7 @@ export const VendorDashboard = () => {
     price: string;
     mrp: string;
     discount: string;
-    prices: Record<string, { mrp: string }>;
+    prices: Record<string, { mrp: string; discount?: string }>;
     categoryName: string;
     material: string;
     stock: string;
@@ -101,6 +102,9 @@ export const VendorDashboard = () => {
     active: true,
   });
   const [savingEdit, setSavingEdit] = useState(false);
+  const [listingProduct, setListingProduct] = useState(false);
+  const [selectedCountryToAdd, setSelectedCountryToAdd] = useState("");
+  const [selectedCountryToEdit, setSelectedCountryToEdit] = useState("");
 
   const addCustomSpecRow = (isEdit: boolean) => {
     if (isEdit) {
@@ -398,7 +402,7 @@ export const VendorDashboard = () => {
     price: string;
     mrp: string;
     discount: string;
-    prices: Record<string, { mrp: string }>;
+    prices: Record<string, { mrp: string; discount?: string }>;
     categoryName: string;
     material: string;
     stock: string;
@@ -631,6 +635,7 @@ export const VendorDashboard = () => {
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    setListingProduct(true);
     try {
       // Build final specs string (e.g. "1.8 Kg | Pieces: 3 | Combo Pack")
       const specParts = [];
@@ -725,6 +730,8 @@ export const VendorDashboard = () => {
       }
     } catch (err) {
       showToast("Error listing product", "error");
+    } finally {
+      setListingProduct(false);
     }
   };
 
@@ -1816,41 +1823,120 @@ export const VendorDashboard = () => {
               </div>
 
               {/* Custom Regional Pricing Grid */}
-              <div className="p-5 bg-surface border border-border rounded-2xl space-y-3.5">
-                <span className="text-xs font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices (MRP)</span>
-                <p className="text-[10px] text-muted -mt-2">Leave blank to use standard INR conversion. Discount is applied globally.</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
-                  {[
-                    { code: "US", name: "USA (USD)", label: "🇺🇸", placeholder: "e.g. 25" },
-                    { code: "EU", name: "Europe (EUR)", label: "🇪🇺", placeholder: "e.g. 23" },
-                    { code: "GB", name: "UK (GBP)", label: "🇬🇧", placeholder: "e.g. 20" },
-                    { code: "AE", name: "UAE (AED)", label: "🇦🇪", placeholder: "e.g. 90" },
-                    { code: "JP", name: "Japan (JPY)", label: "🇯🇵", placeholder: "e.g. 3800" },
-                    { code: "CN", name: "China (CNY)", label: "🇨🇳", placeholder: "e.g. 180" }
-                  ].map((r) => (
-                    <div key={r.code} className="space-y-1 bg-surface-card p-3 rounded-xl border border-border">
-                      <div className="flex items-center gap-1 font-bold text-[10px] text-muted uppercase tracking-wider">
-                        <span>{r.label} {r.name}</span>
-                      </div>
-                      <input
-                        type="number"
-                        placeholder={r.placeholder}
-                        value={productForm.prices[r.code]?.mrp || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
+              <div className="p-5 bg-surface border border-border rounded-2xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3.5">
+                  <div>
+                    <span className="text-xs font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices & Discounts</span>
+                    <p className="text-[10px] text-muted mt-0.5">Define unique country MRPs and regional discounts (falls back to global discount if empty).</p>
+                  </div>
+                  
+                  {/* Dropdown to dynamically add countries */}
+                  <div className="flex gap-2 items-center">
+                    <select
+                      value={selectedCountryToAdd}
+                      onChange={(e) => setSelectedCountryToAdd(e.target.value)}
+                      className="bg-surface border border-border hover:border-orange-500/40 rounded-xl px-3 py-1.5 text-xs font-semibold text-heading focus:outline-none cursor-pointer"
+                    >
+                      <option value="">-- Add Country --</option>
+                      {Object.keys(currencyDatabase)
+                        .filter(code => code !== "IN" && !productForm.prices[code])
+                        .map(code => (
+                          <option key={code} value={code}>
+                            {code} - {currencyDatabase[code].c} ({currencyDatabase[code].s})
+                          </option>
+                        ))
+                      }
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedCountryToAdd) {
                           setProductForm({
                             ...productForm,
                             prices: {
                               ...productForm.prices,
-                              [r.code]: { mrp: val }
+                              [selectedCountryToAdd]: { mrp: "", discount: "" }
                             }
                           });
-                        }}
-                        className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
-                      />
-                    </div>
-                  ))}
+                          setSelectedCountryToAdd("");
+                        }
+                      }}
+                      className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow transition-all cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
+
+                {Object.keys(productForm.prices).length === 0 ? (
+                  <p className="text-[10px] text-muted text-center py-4">No custom country prices added yet. Using standard INR exchange rates.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {Object.keys(productForm.prices).map((code) => {
+                      const config = currencyDatabase[code] || { c: "USD", s: "$" };
+                      return (
+                        <div key={code} className="bg-surface-card p-4 rounded-xl border border-border space-y-3 relative group">
+                          {/* Close / Remove button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = { ...productForm.prices };
+                              delete updated[code];
+                              setProductForm({ ...productForm, prices: updated });
+                            }}
+                            className="absolute top-2.5 right-2.5 text-muted hover:text-red-500 transition-colors p-1"
+                            title="Remove country pricing"
+                          >
+                            <X size={14} />
+                          </button>
+
+                          <div className="font-bold text-[11px] text-heading uppercase tracking-wider border-b border-border/60 pb-1.5">
+                            <span>📍 {code} - {config.c} ({config.s})</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-bold text-muted uppercase tracking-wider">MRP ({config.s})</label>
+                              <input
+                                type="number"
+                                placeholder="Retail MRP"
+                                value={productForm.prices[code]?.mrp || ""}
+                                onChange={(e) => {
+                                  setProductForm({
+                                    ...productForm,
+                                    prices: {
+                                      ...productForm.prices,
+                                      [code]: { ...productForm.prices[code], mrp: e.target.value }
+                                    }
+                                  });
+                                }}
+                                className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
+                              />
+                            </div>
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-bold text-muted uppercase tracking-wider">Discount (%)</label>
+                              <input
+                                type="number"
+                                placeholder="Optional"
+                                value={productForm.prices[code]?.discount || ""}
+                                onChange={(e) => {
+                                  setProductForm({
+                                    ...productForm,
+                                    prices: {
+                                      ...productForm.prices,
+                                      [code]: { ...productForm.prices[code], discount: e.target.value }
+                                    }
+                                  });
+                                }}
+                                className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1905,9 +1991,10 @@ export const VendorDashboard = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all duration-300"
+                disabled={listingProduct}
+                className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all duration-300 disabled:opacity-50"
               >
-                List Crafted Item
+                {listingProduct ? "Publishing..." : "List Crafted Item"}
               </button>
             </form>
           </div>
@@ -2486,38 +2573,120 @@ export const VendorDashboard = () => {
                 </div>
 
                 {/* Custom Regional Pricing Grid for Edit Modal */}
-                <div className="p-4 bg-surface border border-border rounded-xl space-y-2">
-                  <span className="text-[10px] font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices (MRP)</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
-                    {[
-                      { code: "US", name: "USA (USD)", label: "🇺🇸", placeholder: "e.g. 25" },
-                      { code: "EU", name: "Europe (EUR)", label: "🇪🇺", placeholder: "e.g. 23" },
-                      { code: "GB", name: "UK (GBP)", label: "🇬🇧", placeholder: "e.g. 20" },
-                      { code: "AE", name: "UAE (AED)", label: "🇦🇪", placeholder: "e.g. 90" },
-                      { code: "JP", name: "Japan (JPY)", label: "🇯🇵", placeholder: "e.g. 3800" },
-                      { code: "CN", name: "China (CNY)", label: "🇨🇳", placeholder: "e.g. 180" }
-                    ].map((r) => (
-                      <div key={r.code} className="space-y-0.5 bg-surface-card p-2 rounded-lg border border-border">
-                        <span className="font-bold text-[9px] text-muted block">{r.label} {r.name}</span>
-                        <input
-                          type="number"
-                          placeholder={r.placeholder}
-                          value={editForm.prices?.[r.code]?.mrp || ""}
-                          onChange={(e) => {
-                            const val = e.target.value;
+                <div className="p-4 bg-surface border border-border rounded-xl space-y-3.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-2">
+                    <div>
+                      <span className="text-[10px] font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices & Discounts</span>
+                      <p className="text-[9px] text-muted mt-0.5">Customize MRP and discount % per country (falls back to global discount if empty).</p>
+                    </div>
+                    
+                    {/* Selector to add custom country price in edit mode */}
+                    <div className="flex gap-2 items-center">
+                      <select
+                        value={selectedCountryToEdit}
+                        onChange={(e) => setSelectedCountryToEdit(e.target.value)}
+                        className="bg-surface border border-border rounded-lg px-2 py-1 text-xs font-semibold text-heading focus:outline-none cursor-pointer"
+                      >
+                        <option value="">-- Add Country --</option>
+                        {Object.keys(currencyDatabase)
+                          .filter(code => code !== "IN" && !editForm.prices?.[code])
+                          .map(code => (
+                            <option key={code} value={code}>
+                              {code} - {currencyDatabase[code].c} ({currencyDatabase[code].s})
+                            </option>
+                          ))
+                        }
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedCountryToEdit) {
                             setEditForm({
                               ...editForm,
                               prices: {
                                 ...editForm.prices,
-                                 [r.code]: { mrp: val }
+                                [selectedCountryToEdit]: { mrp: "", discount: "" }
                               }
                             });
-                          }}
-                          className="w-full bg-surface border border-border focus:border-orange-500 rounded px-2 py-1 text-xs text-heading focus:outline-none"
-                        />
-                      </div>
-                    ))}
+                            setSelectedCountryToEdit("");
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow transition-all cursor-pointer"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
+
+                  {!editForm.prices || Object.keys(editForm.prices).length === 0 ? (
+                    <p className="text-[9px] text-muted text-center py-2">No custom country prices added yet. Using standard INR exchange rates.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {Object.keys(editForm.prices).map((code) => {
+                        const config = currencyDatabase[code] || { c: "USD", s: "$" };
+                        return (
+                          <div key={code} className="bg-surface-card p-3 rounded-lg border border-border space-y-2 relative">
+                            {/* Remove button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = { ...editForm.prices };
+                                delete updated[code];
+                                setEditForm({ ...editForm, prices: updated });
+                              }}
+                              className="absolute top-1.5 right-1.5 text-muted hover:text-red-500 transition-colors p-1"
+                              title="Remove country pricing"
+                            >
+                              <X size={12} />
+                            </button>
+
+                            <div className="font-bold text-[10px] text-heading uppercase tracking-wider border-b border-border/50 pb-1">
+                              <span>📍 {code} - {config.c} ({config.s})</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <div className="space-y-0.5">
+                                <label className="text-[8px] font-bold text-muted uppercase tracking-wider block">MRP ({config.s})</label>
+                                <input
+                                  type="number"
+                                  placeholder="Retail MRP"
+                                  value={editForm.prices?.[code]?.mrp || ""}
+                                  onChange={(e) => {
+                                    setEditForm({
+                                      ...editForm,
+                                      prices: {
+                                        ...editForm.prices,
+                                        [code]: { ...editForm.prices?.[code], mrp: e.target.value }
+                                      }
+                                    });
+                                  }}
+                                  className="w-full bg-surface border border-border focus:border-orange-500 rounded px-2 py-1 text-xs text-heading focus:outline-none"
+                                />
+                              </div>
+                              <div className="space-y-0.5">
+                                <label className="text-[8px] font-bold text-muted uppercase tracking-wider block">Discount (%)</label>
+                                <input
+                                  type="number"
+                                  placeholder="Optional"
+                                  value={editForm.prices?.[code]?.discount || ""}
+                                  onChange={(e) => {
+                                    setEditForm({
+                                      ...editForm,
+                                      prices: {
+                                        ...editForm.prices,
+                                        [code]: { ...editForm.prices?.[code], discount: e.target.value }
+                                      }
+                                    });
+                                  }}
+                                  className="w-full bg-surface border border-border focus:border-orange-500 rounded px-2 py-1 text-xs text-heading focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">

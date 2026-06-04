@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, Trash2, Edit, ShieldAlert, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award } from "lucide-react";
+import { Plus, Trash2, Edit, ShieldAlert, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X } from "lucide-react";
+import { currencyDatabase } from "@/context/RegionContext";
 
 export const AdminPanel = () => {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
@@ -16,6 +17,8 @@ export const AdminPanel = () => {
 
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [creatingProduct, setCreatingProduct] = useState(false);
+  const [selectedCountryToAdd, setSelectedCountryToAdd] = useState("");
 
   // Create Product Form
   const [productForm, setProductForm] = useState<{
@@ -25,7 +28,7 @@ export const AdminPanel = () => {
     price: string;
     mrp: string;
     discount: string;
-    prices: Record<string, { mrp: string }>;
+    prices: Record<string, { mrp: string; discount?: string }>;
     categoryName: string;
     material: string;
     stock: string;
@@ -136,6 +139,7 @@ export const AdminPanel = () => {
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCreatingProduct(true);
     try {
       const res = await fetch("/api/products", {
         method: "POST",
@@ -174,6 +178,8 @@ export const AdminPanel = () => {
       }
     } catch (err) {
       alert("Error creating product");
+    } finally {
+      setCreatingProduct(false);
     }
   };
 
@@ -487,41 +493,120 @@ export const AdminPanel = () => {
               </div>
 
               {/* Custom Regional Pricing Grid for Admin Panel */}
-              <div className="p-5 bg-surface border border-border rounded-2xl space-y-3.5">
-                <span className="text-xs font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices (MRP)</span>
-                <p className="text-[10px] text-muted -mt-2">Leave blank to use standard INR conversion. Discount is applied globally.</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
-                  {[
-                    { code: "US", name: "USA (USD)", label: "🇺🇸", placeholder: "e.g. 25" },
-                    { code: "EU", name: "Europe (EUR)", label: "🇪🇺", placeholder: "e.g. 23" },
-                    { code: "GB", name: "UK (GBP)", label: "🇬🇧", placeholder: "e.g. 20" },
-                    { code: "AE", name: "UAE (AED)", label: "🇦🇪", placeholder: "e.g. 90" },
-                    { code: "JP", name: "Japan (JPY)", label: "🇯🇵", placeholder: "e.g. 3800" },
-                    { code: "CN", name: "China (CNY)", label: "🇨🇳", placeholder: "e.g. 180" }
-                  ].map((r) => (
-                    <div key={r.code} className="space-y-1 bg-surface-card p-3 rounded-xl border border-border">
-                      <div className="flex items-center gap-1 font-bold text-[10px] text-muted uppercase tracking-wider">
-                        <span>{r.label} {r.name}</span>
-                      </div>
-                      <input
-                        type="number"
-                        placeholder={r.placeholder}
-                        value={productForm.prices?.[r.code]?.mrp || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
+              <div className="p-5 bg-surface border border-border rounded-2xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3.5">
+                  <div>
+                    <span className="text-xs font-bold text-heading uppercase tracking-wider block">Custom Regional Retail Prices & Discounts</span>
+                    <p className="text-[10px] text-muted mt-0.5">Define unique country MRPs and regional discounts (falls back to global discount if empty).</p>
+                  </div>
+                  
+                  {/* Dropdown to dynamically add countries */}
+                  <div className="flex gap-2 items-center">
+                    <select
+                      value={selectedCountryToAdd}
+                      onChange={(e) => setSelectedCountryToAdd(e.target.value)}
+                      className="bg-surface border border-border hover:border-orange-500/40 rounded-xl px-3 py-1.5 text-xs font-semibold text-heading focus:outline-none cursor-pointer"
+                    >
+                      <option value="">-- Add Country --</option>
+                      {Object.keys(currencyDatabase)
+                        .filter(code => code !== "IN" && !productForm.prices[code])
+                        .map(code => (
+                          <option key={code} value={code}>
+                            {code} - {currencyDatabase[code].c} ({currencyDatabase[code].s})
+                          </option>
+                        ))
+                      }
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedCountryToAdd) {
                           setProductForm({
                             ...productForm,
                             prices: {
                               ...productForm.prices,
-                              [r.code]: { mrp: val }
+                              [selectedCountryToAdd]: { mrp: "", discount: "" }
                             }
                           });
-                        }}
-                        className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
-                      />
-                    </div>
-                  ))}
+                          setSelectedCountryToAdd("");
+                        }
+                      }}
+                      className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow transition-all cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
+
+                {!productForm.prices || Object.keys(productForm.prices).length === 0 ? (
+                  <p className="text-[10px] text-muted text-center py-4">No custom country prices added yet. Using standard INR exchange rates.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {Object.keys(productForm.prices).map((code) => {
+                      const config = currencyDatabase[code] || { c: "USD", s: "$" };
+                      return (
+                        <div key={code} className="bg-surface-card p-4 rounded-xl border border-border space-y-3 relative group">
+                          {/* Close / Remove button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = { ...productForm.prices };
+                              delete updated[code];
+                              setProductForm({ ...productForm, prices: updated });
+                            }}
+                            className="absolute top-2.5 right-2.5 text-muted hover:text-red-500 transition-colors p-1"
+                            title="Remove country pricing"
+                          >
+                            <X size={14} />
+                          </button>
+
+                          <div className="font-bold text-[11px] text-heading uppercase tracking-wider border-b border-border/60 pb-1.5">
+                            <span>📍 {code} - {config.c} ({config.s})</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-bold text-muted uppercase tracking-wider">MRP ({config.s})</label>
+                              <input
+                                type="number"
+                                placeholder="Retail MRP"
+                                value={productForm.prices[code]?.mrp || ""}
+                                onChange={(e) => {
+                                  setProductForm({
+                                    ...productForm,
+                                    prices: {
+                                      ...productForm.prices,
+                                      [code]: { ...productForm.prices[code], mrp: e.target.value }
+                                    }
+                                  });
+                                }}
+                                className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
+                              />
+                            </div>
+                            <div className="space-y-0.5">
+                              <label className="text-[9px] font-bold text-muted uppercase tracking-wider">Discount (%)</label>
+                              <input
+                                type="number"
+                                placeholder="Optional"
+                                value={productForm.prices[code]?.discount || ""}
+                                onChange={(e) => {
+                                  setProductForm({
+                                    ...productForm,
+                                    prices: {
+                                      ...productForm.prices,
+                                      [code]: { ...productForm.prices[code], discount: e.target.value }
+                                    }
+                                  });
+                                }}
+                                className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -596,9 +681,10 @@ export const AdminPanel = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-bronze-500 to-bronze-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all duration-300"
+                disabled={creatingProduct}
+                className="w-full py-3 bg-gradient-to-r from-bronze-500 to-bronze-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all duration-300 disabled:opacity-50"
               >
-                Add Product to Catalog
+                {creatingProduct ? "Publishing..." : "Add Product to Catalog"}
               </button>
             </form>
           </div>
