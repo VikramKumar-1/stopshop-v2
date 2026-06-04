@@ -434,6 +434,22 @@ function ProfilePageInner() {
           </div>
         )}
 
+        {/* Vendor Dashboard Quick Access Banner */}
+        {user && user.role === "vendor" && (
+          <div className="bg-gradient-to-r from-orange-500/10 via-orange-600/5 to-transparent border border-orange-500/25 rounded-3xl p-5 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 max-w-4xl mx-auto shadow-sm">
+            <div className="text-center sm:text-left">
+              <h4 className="text-sm font-bold text-heading font-display">Manage Your Workshop</h4>
+              <p className="text-[11px] text-muted mt-1">Access your Vendor Dashboard to view inquiries, manage products, and update shop details.</p>
+            </div>
+            <button
+              onClick={() => window.location.href = "/vendor/dashboard"}
+              className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all whitespace-nowrap active:scale-[0.97]"
+            >
+              Vendor Dashboard
+            </button>
+          </div>
+        )}
+
         {/* Centered Account Profile Details Card */}
         <div className="bg-surface-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 mb-8 relative max-w-4xl mx-auto">
           <div className="flex items-center justify-between border-b border-border pb-4">

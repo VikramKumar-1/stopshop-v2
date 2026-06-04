@@ -425,30 +425,29 @@ export const VendorDashboard = () => {
     if (!files || files.length === 0) return;
 
     setUploadingGallery(true);
-    const uploadedUrls: string[] = [];
+    const fileArray = Array.from(files);
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
+    try {
+      const uploadPromises = fileArray.map(async (file, idx) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        
         const res = await fetch("/api/upload", {
           method: "POST",
           body: formData,
         });
-        if (res.ok) {
-          const data = await res.json();
-          uploadedUrls.push(data.url);
-        } else {
-          showToast(`Failed to upload gallery image ${i+1}`, "error");
-        }
-      } catch (err) {
-        showToast("Error uploading gallery image", "error");
-      }
-    }
 
-    if (uploadedUrls.length > 0) {
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || `Image ${idx + 1} failed`);
+        }
+
+        const data = await res.json();
+        return data.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+
       if (isEdit) {
         setEditForm((prev) => ({
           ...prev,
@@ -461,8 +460,12 @@ export const VendorDashboard = () => {
         }));
       }
       showToast("Gallery images uploaded successfully!", "success");
+    } catch (err: any) {
+      console.error("Gallery upload error:", err);
+      showToast(err.message || "Error uploading gallery images", "error");
+    } finally {
+      setUploadingGallery(false);
     }
-    setUploadingGallery(false);
   };
 
   const removeGalleryImage = (idx: number, isEdit: boolean) => {

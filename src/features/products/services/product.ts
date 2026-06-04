@@ -111,7 +111,19 @@ export async function createProduct(body: any, session: TokenPayload) {
   const parsedDiscount = discount ? (parseFloat(discount) || 0) : 0;
   const parsedStock = stock ? (parseInt(stock) || 0) : 10;
 
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  let baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  let slug = baseSlug;
+  let counter = 1;
+  while (true) {
+    const existing = await prisma.product.findUnique({
+      where: { slug },
+    });
+    if (!existing) {
+      break;
+    }
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
 
   return prisma.product.create({
     data: {
@@ -194,7 +206,23 @@ export async function updateProduct(id: number, body: any, session: TokenPayload
   if (body.active !== undefined) body.active = !!body.active;
 
   if (body.name) {
-    body.slug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    let baseSlug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    let slug = baseSlug;
+    let counter = 1;
+    while (true) {
+      const existing = await prisma.product.findFirst({
+        where: {
+          slug,
+          id: { not: id }
+        },
+      });
+      if (!existing) {
+        break;
+      }
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+    body.slug = slug;
   }
 
   if (body.categoryName) {
