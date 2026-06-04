@@ -612,18 +612,29 @@ export default function VendorProfilePage() {
                       <input
                         type="text"
                         required
+                        maxLength={15}
                         value={gstin}
                         readOnly={!isEditing}
                         onClick={() => setIsEditing(true)}
                         onFocus={() => setIsEditing(true)}
-                        onChange={(e) => setGstin(e.target.value)}
-                        placeholder="Enter 15-digit GSTIN"
+                        onChange={(e) => setGstin(e.target.value.toUpperCase())}
+                        placeholder="Enter 15-character GSTIN"
                         className={`w-full px-4 py-3 bg-surface border rounded-xl text-heading outline-none transition-all duration-300 ${
                           isEditing 
                             ? "border-orange-500/50 focus:border-orange-500 shadow-sm" 
                             : "border-border/50 cursor-pointer hover:border-orange-500/30"
                         }`}
                       />
+                      {gstin && gstin.length > 0 && gstin.length < 15 && (
+                        <span className="text-[10px] text-rose-500 font-bold block mt-1 animate-in fade-in duration-200">
+                          ⚠️ GSTIN must be exactly 15 characters.
+                        </span>
+                      )}
+                      {gstin && gstin.length === 15 && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstin) && (
+                        <span className="text-[10px] text-rose-500 font-bold block mt-1 animate-in fade-in duration-200">
+                          ⚠️ Invalid GSTIN format. Please verify the characters.
+                        </span>
+                      )}
                     </div>
 
                     {/* Aadhaar Number & Upload */}

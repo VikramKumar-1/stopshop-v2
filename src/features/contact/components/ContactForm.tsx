@@ -246,13 +246,13 @@ export const ContactForm = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-medium text-muted uppercase tracking-wider">Phone / WhatsApp *</label>
-                      <div className="flex gap-2 relative">
+                      <div className="flex gap-2 items-stretch">
                         {/* Searchable Dropdown Button */}
-                        <div className="relative">
+                        <div className="relative flex items-stretch">
                           <button
                             type="button"
                             onClick={() => setDropdownOpen(!dropdownOpen)}
-                            className="h-full px-2.5 rounded-xl bg-surface-card border border-border text-heading text-xs flex items-center gap-1.5 min-w-[85px] justify-between focus:border-bronze-500/50 transition-all"
+                            className="py-2.5 px-2.5 rounded-xl bg-surface-card border border-border text-heading text-xs flex items-center gap-1.5 min-w-[85px] justify-between focus:border-bronze-500/50 transition-all"
                           >
                             <span className="flex items-center gap-1">
                               <img

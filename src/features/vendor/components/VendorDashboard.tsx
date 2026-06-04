@@ -223,25 +223,23 @@ export const VendorDashboard = () => {
       }
     }
 
-    let pricesVal = {
-      US: { mrp: "" },
-      EU: { mrp: "" },
-      GB: { mrp: "" },
-      AE: { mrp: "" },
-      JP: { mrp: "" },
-      CN: { mrp: "" }
+    let pricesVal: Record<string, { mrp: string; discount?: string }> = {
+      US: { mrp: "", discount: "" },
+      EU: { mrp: "", discount: "" },
+      GB: { mrp: "", discount: "" },
+      AE: { mrp: "", discount: "" },
+      JP: { mrp: "", discount: "" },
+      CN: { mrp: "", discount: "" }
     };
     if (prod.prices) {
       try {
         const parsed = typeof prod.prices === "string" ? JSON.parse(prod.prices) : prod.prices;
-        pricesVal = {
-          US: { mrp: parsed.US?.mrp?.toString() || "" },
-          EU: { mrp: parsed.EU?.mrp?.toString() || "" },
-          GB: { mrp: parsed.GB?.mrp?.toString() || "" },
-          AE: { mrp: parsed.AE?.mrp?.toString() || "" },
-          JP: { mrp: parsed.JP?.mrp?.toString() || "" },
-          CN: { mrp: parsed.CN?.mrp?.toString() || "" }
-        };
+        for (const code in parsed) {
+          pricesVal[code] = {
+            mrp: parsed[code]?.mrp?.toString() || "",
+            discount: parsed[code]?.discount?.toString() || ""
+          };
+        }
       } catch (e) {
         console.error("Error parsing product regional prices:", e);
       }

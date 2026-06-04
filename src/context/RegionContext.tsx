@@ -5,6 +5,7 @@ export type Region = string;
 
 interface RegionContextType {
   region: Region;
+  isLoaded: boolean;
   currency: string;
   symbol: string;
   setRegion: (region: Region) => void;
@@ -62,6 +63,7 @@ export const currencyDatabase: Record<string, { c: string; s: string; p?: "suffi
 
 export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [region, setRegionState] = useState<Region>("IN");
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [rates, setRates] = useState<Record<string, number>>({});
 
   // Fetch live exchange rates relative to INR on mount
@@ -86,6 +88,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const stored = localStorage.getItem("stopshop_region") as Region;
     if (stored && currencyDatabase[stored]) {
       setRegionState(stored);
+      setIsLoaded(true);
       return;
     }
 
@@ -116,6 +119,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Apply fast guess immediately
     setRegionState(initialTzCountry);
+    setIsLoaded(true);
 
     // 2. Fetch the highly-accurate IP header detection
     fetch("/api/detect-region")
@@ -228,6 +232,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <RegionContext.Provider
       value={{
         region,
+        isLoaded,
         currency: (currencyDatabase[region] || { c: "USD" }).c,
         symbol: (currencyDatabase[region] || { s: "$" }).s,
         setRegion,

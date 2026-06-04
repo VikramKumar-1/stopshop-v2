@@ -32,10 +32,6 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const fs = require("fs");
-  const path = require("path");
-  const logPath = path.join(process.cwd(), "prisma_put_debug.log");
-
   let body: any = null;
   try {
     const session = getAuthUser(req);
@@ -49,11 +45,9 @@ export async function PUT(
     }
 
     body = await req.json();
-    fs.writeFileSync(logPath, `PUT Request for ID: ${id}\nUser: ${JSON.stringify(session)}\nBody: ${JSON.stringify(body)}\n`);
 
     // Call service layer for ownership check and prisma updates
     const updatedProduct = await updateProduct(id, body, session);
-    fs.appendFileSync(logPath, `Update successful!\n`);
 
     // Clear caches instantly so changes are live immediately
     revalidatePath("/");
@@ -63,7 +57,6 @@ export async function PUT(
     return NextResponse.json(updatedProduct);
   } catch (error: any) {
     console.error("PUT Error:", error);
-    fs.writeFileSync(logPath, `PUT Error on body: ${JSON.stringify(body)}\nError: ${error.message || error.toString()}\nStack: ${error.stack}\n`, { flag: 'a' });
     return NextResponse.json(
       { error: error.message || "Failed to update product" },
       { status: error.message?.includes("Access Denied") || error.message?.includes("Unauthorized") ? 403 : 500 }

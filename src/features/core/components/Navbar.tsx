@@ -22,7 +22,7 @@ export const Navbar = () => {
   const isDashboard = pathname.startsWith("/vendor") || pathname.startsWith("/admin");
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
-  const { region, setRegion } = useRegion();
+  const { region, isLoaded, setRegion } = useRegion();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -418,16 +418,22 @@ export const Navbar = () => {
                   {/* Region / Currency Switcher */}
                   <div className="relative currency-container-desktop">
                     <button
-                      onClick={() => setDesktopCurrencyOpen(!desktopCurrencyOpen)}
-                      className="flex items-center gap-1.5 bg-surface hover:bg-surface-hover border border-border px-2.5 py-1.5 rounded-xl text-xs font-bold text-heading transition-colors shadow-sm cursor-pointer"
+                      onClick={() => isLoaded && setDesktopCurrencyOpen(!desktopCurrencyOpen)}
+                      className={`flex items-center gap-1.5 bg-surface hover:bg-surface-hover border border-border px-2.5 py-1.5 rounded-xl text-xs font-bold text-heading transition-colors shadow-sm cursor-pointer ${!isLoaded ? 'opacity-50 pointer-events-none' : ''}`}
                     >
-                      <img
-                        src={`https://flagcdn.com/w20/${region.toLowerCase()}.png`}
-                        alt={region}
-                        className="w-4 h-3 object-cover rounded-sm"
-                      />
-                      <span>{region} ({currencyDatabase[region]?.s || "$"})</span>
-                      <span className="text-[8px] text-muted">▼</span>
+                      {isLoaded ? (
+                        <>
+                          <img
+                            src={`https://flagcdn.com/w20/${region.toLowerCase()}.png`}
+                            alt={region}
+                            className="w-4 h-3 object-cover rounded-sm"
+                          />
+                          <span>{region} ({currencyDatabase[region]?.s || "$"})</span>
+                          <span className="text-[8px] text-muted">▼</span>
+                        </>
+                      ) : (
+                        <span className="w-16 h-3 bg-border/40 rounded-sm animate-pulse"></span>
+                      )}
                     </button>
                     
                     {desktopCurrencyOpen && (
@@ -734,16 +740,22 @@ export const Navbar = () => {
                     {/* Mobile Region Switcher */}
                     <div className="relative currency-container-mobile">
                       <button
-                        onClick={() => setMobileCurrencyOpen(!mobileCurrencyOpen)}
-                        className="flex items-center gap-1 bg-surface hover:bg-surface-hover border border-border px-2 py-1 rounded-xl text-[10px] font-bold text-heading transition-colors shadow-sm cursor-pointer"
+                        onClick={() => isLoaded && setMobileCurrencyOpen(!mobileCurrencyOpen)}
+                        className={`flex items-center gap-1 bg-surface hover:bg-surface-hover border border-border px-2 py-1 rounded-xl text-[10px] font-bold text-heading transition-colors shadow-sm cursor-pointer ${!isLoaded ? 'opacity-50 pointer-events-none' : ''}`}
                       >
-                        <img
-                          src={`https://flagcdn.com/w20/${region.toLowerCase()}.png`}
-                          alt={region}
-                          className="w-4 h-3 object-cover rounded-sm"
-                        />
-                        <span>{region}</span>
-                        <span className="text-[6px] text-muted ml-0.5">▼</span>
+                        {isLoaded ? (
+                          <>
+                            <img
+                              src={`https://flagcdn.com/w20/${region.toLowerCase()}.png`}
+                              alt={region}
+                              className="w-4 h-3 object-cover rounded-sm"
+                            />
+                            <span>{region}</span>
+                            <span className="text-[6px] text-muted ml-0.5">▼</span>
+                          </>
+                        ) : (
+                          <span className="w-10 h-3 bg-border/40 rounded-sm animate-pulse"></span>
+                        )}
                       </button>
                       
                       {mobileCurrencyOpen && (
