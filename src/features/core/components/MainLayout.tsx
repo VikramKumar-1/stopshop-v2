@@ -77,7 +77,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     };
   }, [active]);
 
-  let ptClass = "pt-[146px] sm:pt-[172px] lg:pt-0";
+  let ptClass = "pt-[88px] sm:pt-[172px] lg:pt-0";
   if (isDashboard) {
     ptClass = "pt-14 lg:pt-20";
   } else if (isNoStripPage) {

@@ -11,6 +11,7 @@ import {
   CategoryCards,
   VendorSection,
 } from "../index";
+import { BlinkitMobileSection } from "./BlinkitMobileSection";
 
 // Lazy load below-the-fold components to reduce bundle size and speed up page load
 const ExportProgram = dynamic(() => import("./ExportProgram").then(mod => mod.ExportProgram), { ssr: false });
@@ -108,6 +109,9 @@ export const HomePage = () => {
 
   return (
     <>
+      {/* Blinkit-style mobile section (category grid + banners) — mobile only */}
+      <BlinkitMobileSection />
+
       {/* 1. Hero Section */}
       <HeroSection />
 

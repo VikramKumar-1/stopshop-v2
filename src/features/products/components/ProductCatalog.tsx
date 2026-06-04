@@ -143,6 +143,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
   const [material, setMaterial] = useState(initialMaterial);
   const [sort, setSort] = useState(initialSort);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
  
   const activeHeader = categoryHeaderContents[category] || categoryHeaderContents.default;
@@ -417,7 +418,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
             <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight mb-1">
               {activeHeader.title}
             </h1>
-            <p className="text-xs sm:text-sm text-bronze-200/70 max-w-xl">
+            <p className="hidden sm:block text-xs sm:text-sm text-bronze-200/70 max-w-xl">
               {activeHeader.description}
             </p>
           </div>
@@ -436,20 +437,47 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
               <Search size={12} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-bronze-300/60" />
             </form>
 
-            {/* Sorting */}
-            <div className="flex items-center gap-2 bg-white/10 border border-white/10 hover:border-white/20 px-3 py-2 rounded-full text-xs text-bronze-200 w-full sm:w-auto shrink-0 transition-all shadow-inner">
-              <ArrowUpDown size={12} className="text-bronze-300/60" />
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="bg-transparent focus:outline-none cursor-pointer text-white text-xs appearance-none pr-6 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.1rem_center] bg-no-repeat"
+            {/* Mobile Filters and Sorting Row */}
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              {/* Filters Button (Visible on mobile/tablet only) */}
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden flex-1 flex items-center justify-center gap-2 bg-white/10 border border-white/10 hover:border-white/20 px-4 py-2.5 rounded-full text-xs font-bold text-white transition-all shadow-inner active:scale-95 cursor-pointer h-10"
               >
-                <option value="" className="bg-bronze-950 text-white">Default Sorting</option>
-                <option value="best-sellers" className="bg-bronze-950 text-white">Best Sellers</option>
-                <option value="rating" className="bg-bronze-950 text-white">Top Rated</option>
-                <option value="price-low-high" className="bg-bronze-950 text-white">Price: Low to High</option>
-                <option value="price-high-low" className="bg-bronze-950 text-white">Price: High to Low</option>
-              </select>
+                <SlidersHorizontal size={12} className="text-bronze-300/60" />
+                Filters
+              </button>
+
+              {/* Mobile Sort Trigger (Only visible on lg:hidden) */}
+              <button
+                type="button"
+                onClick={() => setSortOpen(true)}
+                className="lg:hidden flex-1 flex items-center justify-center gap-2 bg-white/10 border border-white/10 hover:border-white/20 px-4 py-2.5 rounded-full text-xs font-bold text-white transition-all shadow-inner active:scale-95 cursor-pointer h-10"
+              >
+                <ArrowUpDown size={12} className="text-bronze-300/60 shrink-0" />
+                {sort === "best-sellers" && "Best Sellers"}
+                {sort === "rating" && "Top Rated"}
+                {sort === "price-low-high" && "Price: Low-High"}
+                {sort === "price-high-low" && "Price: High-Low"}
+                {sort === "" && "Sort By"}
+              </button>
+
+              {/* Desktop Sorting Select (Only visible on lg:flex) */}
+              <div className="hidden lg:flex flex-initial items-center gap-2 bg-white/10 border border-white/10 hover:border-white/20 px-4 py-2.5 rounded-full text-xs text-bronze-200 transition-all shadow-inner h-10 justify-center">
+                <ArrowUpDown size={12} className="text-bronze-300/60 shrink-0" />
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  className="bg-transparent focus:outline-none cursor-pointer text-white text-xs appearance-none pr-4 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.5rem_auto] bg-[right_0.1rem_center] bg-no-repeat w-full text-center"
+                >
+                  <option value="" className="bg-bronze-950 text-white">Default Sorting</option>
+                  <option value="best-sellers" className="bg-bronze-950 text-white">Best Sellers</option>
+                  <option value="rating" className="bg-bronze-950 text-white">Top Rated</option>
+                  <option value="price-low-high" className="bg-bronze-950 text-white">Price: Low to High</option>
+                  <option value="price-high-low" className="bg-bronze-950 text-white">Price: High to Low</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -504,40 +532,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
 
           {/* Product Grid */}
           <div className="flex-1">
-            {/* Mobile Filter Dropdowns (lg:hidden) */}
-            <div className="lg:hidden flex flex-row gap-3 mb-6 bg-surface-card border border-border p-3.5 rounded-2xl shadow-sm">
-              {/* Category Select */}
-              <div className="flex-1 space-y-1">
-                <label className="text-[9px] font-bold text-muted uppercase tracking-wider block">Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-surface border border-border hover:border-bronze-500/30 focus:border-bronze-500 rounded-xl px-2.5 py-2 text-heading text-xs font-semibold focus:outline-none cursor-pointer transition-all appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b5a48d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat.slug} value={cat.slug} className="text-black bg-white dark:text-white dark:bg-zinc-800">
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              {/* Material Select */}
-              <div className="flex-1 space-y-1">
-                <label className="text-[9px] font-bold text-muted uppercase tracking-wider block">Material</label>
-                <select
-                  value={material}
-                  onChange={(e) => setMaterial(e.target.value)}
-                  className="w-full bg-surface border border-border hover:border-bronze-500/30 focus:border-bronze-500 rounded-xl px-2.5 py-2 text-heading text-xs font-semibold focus:outline-none cursor-pointer transition-all appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b5a48d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
-                >
-                  {materials.map((mat) => (
-                    <option key={mat.value} value={mat.value} className="text-black bg-white dark:text-white dark:bg-zinc-800">
-                      {mat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
 
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 w-full min-h-[300px] bg-surface-card border border-border/60 rounded-3xl">
@@ -756,28 +751,6 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                   </button>
                 </div>
 
-                {/* Mobile Sort Option */}
-                <div>
-                  <h3 className="text-xs font-bold text-heading mb-2.5 uppercase tracking-wider">Sort By</h3>
-                  <div className="flex items-center gap-2 bg-surface border border-border px-3 py-2 rounded-xl text-xs text-body w-full">
-                    <ArrowUpDown size={14} className="text-muted" />
-                    <select
-                      value={sort}
-                      onChange={(e) => {
-                        setSort(e.target.value);
-                        setSidebarOpen(false);
-                      }}
-                      className="bg-transparent focus:outline-none cursor-pointer text-heading w-full text-xs appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b5a48d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_0.2rem_center] bg-no-repeat"
-                    >
-                      <option value="" className="text-black bg-white dark:text-white dark:bg-zinc-800">Default Sorting</option>
-                      <option value="best-sellers" className="text-black bg-white dark:text-white dark:bg-zinc-800">Best Sellers</option>
-                      <option value="rating" className="text-black bg-white dark:text-white dark:bg-zinc-800">Top Rated</option>
-                      <option value="price-low-high" className="text-black bg-white dark:text-white dark:bg-zinc-800">Price: Low to High</option>
-                      <option value="price-high-low" className="text-black bg-white dark:text-white dark:bg-zinc-800">Price: High to Low</option>
-                    </select>
-                  </div>
-                </div>
-
                 <div>
                   <h3 className="text-xs font-bold text-heading mb-2.5 uppercase tracking-wider">Categories</h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -840,14 +813,74 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
         )}
       </AnimatePresence>
 
-      {/* Floating Filter Button (Mobile Only) */}
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 z-40 flex items-center gap-1.5 bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white px-5 py-3 rounded-full text-xs font-bold shadow-lg shadow-bronze-500/30 transition-all duration-300 active:scale-95 border border-bronze-400/20"
-      >
-        <SlidersHorizontal size={14} />
-        Filters
-      </button>
+      {/* Slide-up Bottom Sheet for Mobile Sorting */}
+      <AnimatePresence>
+        {sortOpen && (
+          <>
+            {/* Backdrop Mask */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSortOpen(false)}
+              className="fixed inset-0 bg-black z-[9999]"
+            />
+            {/* Bottom Sheet Container */}
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="fixed bottom-0 left-0 right-0 bg-surface-card border-t border-border rounded-t-3xl z-[10000] px-6 pt-5 pb-8 shadow-2xl space-y-4"
+            >
+              {/* Drag Handle */}
+              <div className="w-12 h-1 bg-muted/45 rounded-full mx-auto mb-2" />
+
+              <div className="flex items-center justify-between pb-3 border-b border-border/80">
+                <h3 className="text-sm font-bold text-heading">Sort Products By</h3>
+                <button 
+                  onClick={() => setSortOpen(false)} 
+                  className="text-xs font-bold text-orange-500 hover:text-orange-600 cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+
+              {/* Sorting List Rows */}
+              <div className="space-y-1">
+                {[
+                  { value: "", label: "Default / Featured" },
+                  { value: "best-sellers", label: "Best Sellers" },
+                  { value: "rating", label: "Top Rated" },
+                  { value: "price-low-high", label: "Price: Low to High" },
+                  { value: "price-high-low", label: "Price: High to Low" },
+                ].map((option) => {
+                  const isActive = sort === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setSort(option.value);
+                        setSortOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between py-3.5 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-orange-500/10 text-orange-500 border border-orange-500/20 font-bold"
+                          : "text-body hover:bg-surface border border-transparent"
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                      {isActive && <span className="text-orange-500 text-xs font-black">✔</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+
     </div>
   );
 };

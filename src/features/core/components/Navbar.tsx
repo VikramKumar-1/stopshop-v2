@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Menu, X, Search, User, Heart, ShoppingCart, ChevronDown, LogOut, Store, PhoneCall, LayoutDashboard, Package } from "lucide-react";
+import { Menu, X, Search, User, Heart, ShoppingCart, ChevronDown, LogOut, Store, PhoneCall, LayoutDashboard, Package, Home, Grid } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 
@@ -29,6 +29,43 @@ export const Navbar = () => {
   const [visible, setVisible] = useState(true);
   const [user, setUser] = useState<any>(null);
   const isProfilePage = pathname.startsWith("/profile") && !user;
+
+  // Industry-level e-commerce smart search states
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  // Mobile bottom navigation scroll state
+  const [bottomVisible, setBottomVisible] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("stopshops_recent_searches");
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
+
+  const addToRecentSearches = (term: string) => {
+    if (!term.trim()) return;
+    const cleanTerm = term.trim();
+    const updated = [
+      cleanTerm,
+      ...recentSearches.filter((q) => q.toLowerCase() !== cleanTerm.toLowerCase())
+    ].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem("stopshops_recent_searches", JSON.stringify(updated));
+  };
+
+  const removeRecentSearch = (term: string) => {
+    const updated = recentSearches.filter((q) => q !== term);
+    setRecentSearches(updated);
+    localStorage.setItem("stopshops_recent_searches", JSON.stringify(updated));
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    localStorage.removeItem("stopshops_recent_searches");
+  };
 
   // Custom searchable currency dropdown states
   const [desktopCurrencyOpen, setDesktopCurrencyOpen] = useState(false);
@@ -93,7 +130,87 @@ export const Navbar = () => {
   }, []);
 
   const renderSuggestions = (isMobile: boolean) => {
-    if (!suggestionsOpen || (!searchQuery.trim() && suggestions.length === 0)) return null;
+    if (!suggestionsOpen) return null;
+
+    // Empty query: Show smart Recent searches and Popular keyword badges
+    if (!searchQuery.trim()) {
+      return (
+        <div 
+          className="absolute left-0 right-0 mt-2 bg-[var(--surface)] border border-border dark:border-white/10 rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.15)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.45)] z-[110] p-4 space-y-4 top-full overflow-hidden"
+          style={{ width: "100%" }}
+        >
+          {/* Recent Searches section */}
+          {recentSearches.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[10px] font-bold text-muted uppercase tracking-wider">
+                <span>Recent Searches</span>
+                <button 
+                  type="button" 
+                  onClick={clearRecentSearches}
+                  className="hover:text-orange-500 transition-colors cursor-pointer text-[10px] font-semibold"
+                >
+                  Clear All
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {recentSearches.map((term, idx) => (
+                  <div 
+                    key={idx} 
+                    className="flex items-center gap-1.5 bg-bronze-500/[0.05] hover:bg-bronze-500/10 border border-border rounded-full px-3 py-1 transition-all text-[11px] text-heading font-medium shrink-0 cursor-pointer"
+                    onClick={() => {
+                      addToRecentSearches(term);
+                      setSearchQuery(term);
+                      setSuggestionsOpen(true);
+                      window.location.href = `/products?search=${encodeURIComponent(term)}`;
+                    }}
+                  >
+                    <span>{term}</span>
+                    <button 
+                      type="button" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeRecentSearch(term);
+                      }}
+                      className="text-muted hover:text-red-500 text-[12px] font-black cursor-pointer leading-none"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Popular/Trending searches */}
+          <div className="space-y-2">
+            <div className="text-[10px] font-bold text-muted uppercase tracking-wider">
+              🔥 Popular Searches
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {[
+                { term: "Copper Bottle", category: "copper-products" },
+                { term: "Bronze Kadai", category: "kitchen-utility" },
+                { term: "Puja Set", category: "pooja-collection" },
+                { term: "Dinner Plate", category: "dinner-sets" }
+              ].map((item, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    addToRecentSearches(item.term);
+                    setSearchQuery(item.term);
+                    window.location.href = `/products?search=${encodeURIComponent(item.term)}&category=${item.category}`;
+                  }}
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-orange-500/5 hover:border-orange-500/20 text-left transition-all cursor-pointer text-body hover:text-orange-500 font-semibold"
+                >
+                  <span className="text-[10px]">🔍</span>
+                  <span className="font-semibold">{item.term}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div 
@@ -121,6 +238,7 @@ export const Navbar = () => {
               <button
                 key={product.id}
                 onClick={() => {
+                  addToRecentSearches(product.name);
                   window.location.href = `/product/${product.slug || product.id}`;
                   setSuggestionsOpen(false);
                   setSearchOpen(false);
@@ -156,6 +274,7 @@ export const Navbar = () => {
             
             <button
               onClick={() => {
+                addToRecentSearches(searchQuery);
                 window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
                 setSuggestionsOpen(false);
                 setSearchOpen(false);
@@ -205,6 +324,7 @@ export const Navbar = () => {
   // Reset navbar state on route change to prevent flickering
   useEffect(() => {
     setVisible(true);
+    setBottomVisible(true);
     setMobileOpen(false);
     setSearchOpen(false);
   }, [pathname]);
@@ -244,6 +364,13 @@ export const Navbar = () => {
           setVisible(true);
         }
       }
+
+      // Handle mobile bottom navbar scroll visibility (Blinkit style)
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setBottomVisible(false);
+      } else {
+        setBottomVisible(true);
+      }
       
       lastScrollY = currentScrollY;
     };
@@ -261,6 +388,7 @@ export const Navbar = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      addToRecentSearches(searchQuery);
       window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
     }
   };
@@ -324,20 +452,20 @@ export const Navbar = () => {
                 {!isDashboard && !isProfilePage && (
                   <button
                     onClick={() => setMobileOpen(!mobileOpen)}
-                    className={`lg:hidden p-1.5 text-muted hover:text-heading -ml-2 ${searchOpen ? "hidden" : "block"}`}
+                    className="lg:hidden p-1.5 text-muted hover:text-heading -ml-2 block flex-shrink-0"
                     aria-label="Toggle menu"
                   >
                     {mobileOpen ? <X size={20} /> : <Menu size={20} />}
                   </button>
                 )}
 
-                <Link href="/" className="flex items-center gap-2 group">
+                <Link href="/" className={`flex items-center gap-2 group ${searchOpen ? "hidden" : "flex"}`}>
                   <img 
                     src="/logo4.jpg" 
                     alt="StopShop Logo" 
                     className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white rounded-xl sm:rounded-2xl p-1 object-contain shadow-sm border border-border group-hover:border-bronze-500/30 transition-all duration-200"
                   />
-                  <span className="text-sm sm:text-base lg:text-2xl xl:text-2xl font-display font-bold tracking-tight text-heading">
+                  <span className="hidden sm:inline-block text-sm sm:text-base lg:text-2xl xl:text-2xl font-display font-bold tracking-tight text-heading">
                     Stop<span className="gradient-text">Shop</span>
                   </span>
                 </Link>
@@ -355,9 +483,18 @@ export const Navbar = () => {
                         setSuggestionsOpen(true);
                       }}
                       onFocus={() => setSuggestionsOpen(true)}
-                      placeholder="Search premium bronze, copper & brass..."
-                      className="w-full h-full pl-5 pr-12 bg-transparent text-heading placeholder-muted text-[16px] lg:text-xs focus:outline-none"
+                      placeholder="Search premium bronze, brass & copper..."
+                      className="w-full h-full pl-5 pr-20 bg-transparent text-heading placeholder-muted text-[16px] lg:text-xs focus:outline-none"
                     />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-14 top-1/2 -translate-y-1/2 p-1 hover:bg-orange-500/10 text-muted hover:text-heading rounded-full cursor-pointer z-[120]"
+                      >
+                        <X size={12} strokeWidth={2.5} />
+                      </button>
+                    )}
                     <button
                       type="submit"
                       className="h-full px-4 xl:px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center transition-all border-l border-bronze-500/20 rounded-r-full absolute right-0 top-0 bottom-0"
@@ -372,7 +509,7 @@ export const Navbar = () => {
               
               {/* Expandable Search Input (Mobile only, shown when searchOpen is true) */}
               {!isDashboard && !isProfilePage && searchOpen && (
-                <div className="lg:hidden flex-grow max-w-[270px] mx-2 relative search-container animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="lg:hidden flex-grow mx-1 relative search-container animate-in fade-in slide-in-from-top-1 duration-200">
                   <form onSubmit={handleSearchSubmit} className="relative w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
                     <input
                       type="text"
@@ -384,8 +521,17 @@ export const Navbar = () => {
                       onFocus={() => setSuggestionsOpen(true)}
                       placeholder="Search..."
                       autoFocus
-                      className="w-full h-full pl-4 pr-10 bg-transparent text-heading placeholder-muted text-[16px] lg:text-xs focus:outline-none"
+                      className="w-full h-full pl-4 pr-16 bg-transparent text-heading placeholder-muted text-[16px] lg:text-xs focus:outline-none"
                     />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-12 top-1/2 -translate-y-1/2 p-1 hover:bg-orange-500/10 text-muted hover:text-heading rounded-full cursor-pointer z-[120]"
+                      >
+                        <X size={12} strokeWidth={2.5} />
+                      </button>
+                    )}
                     <button
                       type="submit"
                       className="h-full px-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center transition-all border-l border-bronze-500/20 rounded-r-full absolute right-0 top-0 bottom-0"
@@ -726,7 +872,7 @@ export const Navbar = () => {
               )}
 
               {/* Mobile Actions (Icons visible on mobile only) */}
-                <div className="flex items-center gap-1.5 lg:hidden flex-shrink-0">
+                <div className={`flex items-center gap-1.5 lg:hidden flex-shrink-0 ${searchOpen ? "hidden" : "flex"}`}>
                   <div className={`items-center gap-1.5 ${searchOpen ? "hidden" : "flex"}`}>
                     {/* Click-to-Expand Search Icon */}
                     {!isDashboard && (
@@ -840,43 +986,7 @@ export const Navbar = () => {
 
                     <ThemeToggle />
 
-                    {/* Mobile Account Profile */}
-                    {isDashboard ? (
-                      user && user.role === "user" ? (
-                        <Link 
-                          href="/" 
-                          className="p-1.5 text-muted hover:text-heading"
-                          aria-label="Homepage"
-                        >
-                          <User size={18} />
-                        </Link>
-                      ) : null
-                    ) : (
-                      <button 
-                        onClick={() => {
-                          window.location.href = user ? "/profile" : "/profile?mode=login";
-                        }}
-                        className="p-3 text-muted hover:text-heading flex items-center justify-center min-w-[44px] min-h-[44px]"
-                        aria-label="Profile"
-                      >
-                        <User size={18} />
-                      </button>
-                    )}
                   </div>
-
-                  {/* Mobile Shopping Cart (Always visible on mobile) */}
-                  {!isDashboard && (
-                    <Link 
-                      href="/cart" 
-                      className="p-1.5 relative text-muted hover:text-heading flex-shrink-0"
-                      aria-label="Cart"
-                    >
-                      <span className="absolute -top-0.5 -right-0.5 bg-orange-500 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
-                        {cartCount}
-                      </span>
-                      <ShoppingCart size={18} />
-                    </Link>
-                  )}
                 </div>
 
             </div>
@@ -940,7 +1050,7 @@ export const Navbar = () => {
                   </Link>
                 )}
                  <Link
-                  href={user ? "/profile" : "/profile?mode=login"}
+                  href={user ? "/profile" : "/profile?mode=login&reason=profile&redirect=/profile"}
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
                 >
@@ -1042,6 +1152,88 @@ export const Navbar = () => {
           />
         )}
       </AnimatePresence>
+
+      {/* Sticky Bottom Navigation Bar for Mobile (Blinkit Style) */}
+      {!isDashboard && (
+        <div 
+          className={`lg:hidden fixed bottom-4 left-4 right-4 z-[120] rounded-2xl backdrop-blur-xl bg-white/75 dark:bg-zinc-900/75 border border-white/50 dark:border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] transition-all duration-300 ease-out ${
+            bottomVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
+          }`}
+        >
+          <div className="flex justify-around items-center px-1 py-1">
+              {/* Home */}
+              <Link 
+                href="/" 
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
+              >
+                {pathname === "/" && (
+                  <motion.div 
+                    layoutId="blinkit-tab"
+                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-md border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
+                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  />
+                )}
+                <Home size={22} className={`relative z-10 ${pathname === "/" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname === "/" ? 2.2 : 1.6} />
+                <span className={`relative z-10 text-[10px] font-semibold ${pathname === "/" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`}>Home</span>
+              </Link>
+
+              {/* Categories */}
+              <Link 
+                href="/products" 
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
+              >
+                {pathname === "/products" && (
+                  <motion.div 
+                    layoutId="blinkit-tab"
+                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-md border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
+                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  />
+                )}
+                <Grid size={22} className={`relative z-10 ${pathname === "/products" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname === "/products" ? 2.2 : 1.6} />
+                <span className={`relative z-10 text-[10px] font-semibold ${pathname === "/products" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`}>Categories</span>
+              </Link>
+
+              {/* Cart */}
+              <Link 
+                href={user ? "/cart" : "/profile?mode=login&reason=cart&redirect=/cart"} 
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
+              >
+                {pathname === "/cart" && (
+                  <motion.div 
+                    layoutId="blinkit-tab"
+                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-md border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
+                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  />
+                )}
+                <div className="relative z-10">
+                  <ShoppingCart size={22} className={pathname === "/cart" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"} strokeWidth={pathname === "/cart" ? 2.2 : 1.6} />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2.5 bg-orange-500 text-white text-[8px] font-bold min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+                <span className={`relative z-10 text-[10px] font-semibold ${pathname === "/cart" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`}>Cart</span>
+              </Link>
+
+              {/* Profile */}
+              <Link 
+                href={user ? "/profile" : "/profile?mode=login&reason=profile&redirect=/profile"} 
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
+              >
+                {pathname.startsWith("/profile") && (
+                  <motion.div 
+                    layoutId="blinkit-tab"
+                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-md border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
+                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  />
+                )}
+                <User size={22} className={`relative z-10 ${pathname.startsWith("/profile") ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname.startsWith("/profile") ? 2.2 : 1.6} />
+                <span className={`relative z-10 text-[10px] font-semibold ${pathname.startsWith("/profile") ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`}>Profile</span>
+              </Link>
+          </div>
+        </div>
+      )}
     </>
   );
 };
