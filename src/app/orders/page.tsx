@@ -9,6 +9,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [inquiries, setInquiries] = useState<any[]>([]);
+  const [directOrders, setDirectOrders] = useState<any[]>([]);
 
   // Auth Forms State (if not logged in)
   const [isLogin, setIsLogin] = useState(true);
@@ -39,6 +40,12 @@ export default function OrdersPage() {
           if (inqRes.ok) {
             const inqData = await inqRes.json();
             setInquiries(inqData);
+          }
+          // Fetch user's Buy Now direct orders
+          const directOrdersRes = await fetch(`/api/orders?email=${encodeURIComponent(meData.user.email)}`);
+          if (directOrdersRes.ok) {
+            const directOrdersData = await directOrdersRes.json();
+            setDirectOrders(directOrdersData);
           }
         }
       }
@@ -88,6 +95,7 @@ export default function OrdersPage() {
     await fetch("/api/auth/me", { method: "POST" });
     setUser(null);
     setInquiries([]);
+    setDirectOrders([]);
   };
 
   if (loading) {
@@ -247,8 +255,11 @@ export default function OrdersPage() {
     return { ...inq, items: archivedItems };
   }).filter(inq => inq.items.length > 0);
 
-  const activeItemsCount = activeInquiries.reduce((sum, inq) => sum + inq.items.length, 0);
-  const archiveItemsCount = archiveInquiries.reduce((sum, inq) => sum + inq.items.length, 0);
+  const activeDirectOrders = directOrders.filter(o => !["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING"));
+  const archiveDirectOrders = directOrders.filter(o => ["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING"));
+
+  const activeItemsCount = activeInquiries.reduce((sum, inq) => sum + inq.items.length, 0) + activeDirectOrders.length;
+  const archiveItemsCount = archiveInquiries.reduce((sum, inq) => sum + inq.items.length, 0) + archiveDirectOrders.length;
 
   // Logged In - Render Orders tracking
   return (
@@ -282,26 +293,125 @@ export default function OrdersPage() {
         {/* Tab Contents */}
         <div className="space-y-6">
           {activeTab === "active" ? (
-            activeInquiries.length === 0 ? (
+            activeInquiries.length === 0 && activeDirectOrders.length === 0 ? (
               <div className="text-center py-16 bg-surface-card border border-border rounded-3xl">
                 <p className="text-sm text-muted">You have no active orders or quotes at the moment.</p>
               </div>
             ) : (
               <div className="space-y-6">
+                {/* 1. Direct Buy Now Orders */}
+                {activeDirectOrders.map((order) => (
+                  <div key={order.id} className="bg-surface-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
+                    <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
+                      <div>
+                        <span className="font-bold text-muted uppercase">Order ID:</span>
+                        <span className="font-bold text-heading ml-1.5 bg-surface border border-border px-2 py-0.5 rounded-lg">#{order.id}</span>
+                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-[9px] font-bold text-orange-500 uppercase">
+                          Buy Now
+                        </span>
+                      </div>
+                      <div className="text-muted flex items-center gap-2">
+                        <span>Ordered on: <span className="font-bold text-heading">{new Date(order.createdAt).toLocaleDateString()}</span></span>
+                        <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-bold px-2 py-0.5 rounded-lg uppercase">
+                          {order.paymentStatus || "PAID"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative">
+                          <img src={order.productImage || "/logo4.jpg"} alt={order.productName} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-heading text-xs">{order.productName}</h4>
+                          <div className="flex gap-2 items-center mt-1 text-[10px] text-muted">
+                            <span>Qty: <strong className="text-heading font-black">{order.quantity}</strong></span>
+                            <span>•</span>
+                            <span>Total: <strong className="text-heading font-black">₹{order.totalAmount.toLocaleString()}</strong></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stepper Timeline */}
+                      <div className="relative pt-4 pb-2">
+                        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2 -z-10" />
+
+                        <div className="grid grid-cols-4 text-center text-[10px] font-bold relative">
+                          {/* Step 1: Paid */}
+                          <div className="flex flex-col items-center">
+                            <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 bg-emerald-500 border-emerald-600 text-white shadow-md shadow-emerald-500/20">
+                              ✓
+                            </div>
+                            <span className="mt-2 text-emerald-600 font-bold">Paid</span>
+                          </div>
+
+                          {/* Step 2: Packed */}
+                          <div className="flex flex-col items-center">
+                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
+                              order.status === "PACKED"
+                                ? "bg-blue-500 border-blue-600 text-white shadow-md shadow-blue-500/20 animate-pulse"
+                                : ["DISPATCHED", "DELIVERED"].includes(order.status)
+                                ? "bg-emerald-500 border-emerald-600 text-white"
+                                : "bg-surface border-border text-muted"
+                            }`}>
+                              {order.status === "PENDING" ? "2" : order.status === "PACKED" ? "●" : "✓"}
+                            </div>
+                            <span className={`mt-2 ${order.status === "PACKED" ? "text-blue-600 dark:text-blue-400 font-bold" : "text-muted"}`}>Packed</span>
+                          </div>
+
+                          {/* Step 3: Dispatched */}
+                          <div className="flex flex-col items-center">
+                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
+                              order.status === "DISPATCHED"
+                                ? "bg-orange-500 border-orange-600 text-white shadow-md shadow-orange-500/20"
+                                : order.status === "DELIVERED"
+                                ? "bg-emerald-500 border-emerald-600 text-white"
+                                : "bg-surface border-border text-muted"
+                            }`}>
+                              {["PENDING", "PACKED"].includes(order.status) ? "3" : order.status === "DISPATCHED" ? "●" : "✓"}
+                            </div>
+                            <span className={`mt-2 ${order.status === "DISPATCHED" ? "text-orange-600 dark:text-orange-400 font-bold" : "text-muted"}`}>
+                              {order.status === "DISPATCHED" ? "Delivering Today!" : "Dispatched"}
+                            </span>
+                            {order.status === "DISPATCHED" && order.deliveryDate && (
+                              <span className="text-[8px] text-orange-500 mt-0.5">Est: {new Date(order.deliveryDate).toLocaleDateString()}</span>
+                            )}
+                          </div>
+
+                          {/* Step 4: Delivered */}
+                          <div className="flex flex-col items-center">
+                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
+                              order.status === "DELIVERED"
+                                ? "bg-emerald-500 border-emerald-600 text-white shadow-md shadow-emerald-500/20"
+                                : "bg-surface border-border text-muted"
+                            }`}>
+                              {order.status === "DELIVERED" ? "✓" : "4"}
+                            </div>
+                            <span className={`mt-2 ${order.status === "DELIVERED" ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-muted"}`}>Delivered</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* 2. Custom B2B Inquiry Quotes */}
                 {activeInquiries.map((inq) => (
                   <div key={inq.id} className="bg-surface-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
-                    {/* Inquiry Header */}
                     <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
                       <div>
                         <span className="font-bold text-muted uppercase">Inquiry ID:</span>
                         <span className="font-bold text-heading ml-1.5 bg-surface border border-border px-2 py-0.5 rounded-lg">#{inq.id}</span>
+                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-[9px] font-bold text-purple-600 uppercase">
+                          Quote Request
+                        </span>
                       </div>
                       <div className="text-muted">
                         Requested on: <span className="font-bold text-heading">{new Date(inq.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
 
-                    {/* Items list with progressive tracking timelines */}
                     <div className="space-y-6 divide-y divide-border/40">
                       {inq.items.map((item: any, idx: number) => {
                         const status = item.status || "PENDING";
@@ -309,7 +419,6 @@ export default function OrdersPage() {
 
                         return (
                           <div key={idx} className="pt-6 first:pt-0 space-y-6">
-                            {/* Item header */}
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative">
                                 <img src={item.image || "/logo4.jpg"} alt={item.name} className="w-full h-full object-cover" />
@@ -322,13 +431,10 @@ export default function OrdersPage() {
                               </div>
                             </div>
 
-                            {/* Stepper Timeline */}
                             <div className="relative pt-4 pb-2">
-                              {/* Horizontal bar */}
                               <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2 -z-10" />
 
-                              <div className="grid grid-cols-4 text-center text-[10px] font-bold relative">
-                                {/* Step 1: Pending */}
+                              <div className="grid grid-cols-3 text-center text-[10px] font-bold relative">
                                 <div className="flex flex-col items-center">
                                   <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
                                     status === "PENDING"
@@ -340,7 +446,6 @@ export default function OrdersPage() {
                                   <span className={`mt-2 ${status === "PENDING" ? "text-yellow-600 dark:text-yellow-400" : "text-muted"}`}>Inquiry Sent</span>
                                 </div>
 
-                                {/* Step 2: Packed */}
                                 <div className="flex flex-col items-center">
                                   <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
                                     status === "PACKED"
@@ -354,35 +459,17 @@ export default function OrdersPage() {
                                   <span className={`mt-2 ${status === "PACKED" ? "text-blue-600 dark:text-blue-400" : "text-muted"}`}>Workshop Packed</span>
                                 </div>
 
-                                {/* Step 3: Dispatched */}
                                 <div className="flex flex-col items-center">
                                   <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
-                                    status === "DISPATCHED"
+                                    status === "DISPATCHED" || status === "DELIVERED"
                                       ? "bg-orange-500 border-orange-600 text-white shadow-md shadow-orange-500/20"
-                                      : status === "DELIVERED"
-                                      ? "bg-emerald-500 border-emerald-600 text-white"
                                       : "bg-surface border-border text-muted"
                                   }`}>
-                                    {["PENDING", "PACKED"].includes(status) ? "3" : status === "DISPATCHED" ? "●" : "✓"}
+                                    {["PENDING", "PACKED"].includes(status) ? "3" : "●"}
                                   </div>
-                                  <span className={`mt-2 ${status === "DISPATCHED" ? "text-orange-600 dark:text-orange-400 font-bold" : "text-muted"}`}>
-                                    {status === "DISPATCHED" ? "Delivering Today!" : "Dispatched"}
+                                  <span className={`mt-2 ${["DISPATCHED", "DELIVERED"].includes(status) ? "text-orange-600 dark:text-orange-400 font-bold" : "text-muted"}`}>
+                                    Proposal Sent
                                   </span>
-                                  {status === "DISPATCHED" && deliveryDate && (
-                                    <span className="text-[8px] text-orange-500 mt-0.5">Est: {new Date(deliveryDate).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
-                                  )}
-                                </div>
-
-                                {/* Step 4: Delivered */}
-                                <div className="flex flex-col items-center">
-                                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
-                                    status === "DELIVERED"
-                                      ? "bg-emerald-500 border-emerald-600 text-white shadow-md shadow-emerald-500/20"
-                                      : "bg-surface border-border text-muted"
-                                  }`}>
-                                    {status === "DELIVERED" ? "✓" : "4"}
-                                  </div>
-                                  <span className={`mt-2 ${status === "DELIVERED" ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-muted"}`}>Delivered</span>
                                 </div>
                               </div>
                             </div>
@@ -395,26 +482,73 @@ export default function OrdersPage() {
               </div>
             )
           ) : (
-            archiveInquiries.length === 0 ? (
+            archiveInquiries.length === 0 && archiveDirectOrders.length === 0 ? (
               <div className="text-center py-16 bg-surface-card border border-border rounded-3xl">
                 <p className="text-sm text-muted">You have no delivered or archived history.</p>
               </div>
             ) : (
               <div className="space-y-6">
+                {/* Direct Buy Now Orders Archived */}
+                {archiveDirectOrders.map((order) => (
+                  <div key={order.id} className="bg-surface-card/60 border border-border rounded-3xl p-6 shadow-sm opacity-95 space-y-4">
+                    <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
+                      <div>
+                        <span className="font-bold text-muted uppercase">Order ID:</span>
+                        <span className="font-bold text-heading ml-1.5 bg-surface border border-border px-2 py-0.5 rounded-lg">#{order.id}</span>
+                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-[9px] font-bold text-orange-500 uppercase">
+                          Buy Now
+                        </span>
+                      </div>
+                      <div className="text-muted flex items-center gap-2">
+                        <span>Ordered on: <span className="font-bold text-heading">{new Date(order.createdAt).toLocaleDateString()}</span></span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative opacity-75">
+                          <img src={order.productImage || "/logo4.jpg"} alt={order.productName} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-muted text-xs">{order.productName}</h4>
+                          <div className="flex gap-2 items-center mt-1">
+                            <span className="text-[9px] text-emerald-600 font-semibold">
+                              Delivered on: {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : "Recently"}
+                            </span>
+                            <span className="text-[10px] text-muted">₹{order.totalAmount.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
+                          order.status === "DELIVERED" ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/20" :
+                          order.status === "RETURNED" ? "bg-amber-500/5 text-amber-600 border-amber-500/20" :
+                          "bg-red-500/5 text-red-500 border-red-500/20"
+                        }`}>
+                          {order.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Inquiry Quotes Archived */}
                 {archiveInquiries.map((inq) => (
                   <div key={inq.id} className="bg-surface-card/60 border border-border rounded-3xl p-6 shadow-sm opacity-95 space-y-4">
-                    {/* Inquiry Header */}
                     <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
                       <div>
                         <span className="font-bold text-muted uppercase">Inquiry ID:</span>
                         <span className="font-bold text-heading ml-1.5 bg-surface border border-border px-2 py-0.5 rounded-lg">#{inq.id}</span>
+                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-[9px] font-bold text-purple-600 uppercase">
+                          Quote Request
+                        </span>
                       </div>
                       <div className="text-muted">
                         Requested on: <span className="font-bold text-heading">{new Date(inq.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
 
-                    {/* Items list */}
                     <div className="space-y-4 divide-y divide-border/40">
                       {inq.items.map((item: any, idx: number) => {
                         const status = item.status || "PENDING";
@@ -422,7 +556,6 @@ export default function OrdersPage() {
 
                         return (
                           <div key={idx} className="pt-4 first:pt-0 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                            {/* Item details */}
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative opacity-75">
                                 <img src={item.image || "/logo4.jpg"} alt={item.name} className="w-full h-full object-cover" />
@@ -434,13 +567,12 @@ export default function OrdersPage() {
                                     {item.orderType || "Bulk Order"}
                                   </span>
                                   {status === "DELIVERED" && deliveryDate && (
-                                    <span className="text-[9px] text-emerald-600 font-semibold">Delivered on: {new Date(deliveryDate).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                    <span className="text-[9px] text-emerald-600 font-semibold">Delivered on: {new Date(deliveryDate).toLocaleDateString()}</span>
                                   )}
                                 </div>
                               </div>
                             </div>
 
-                            {/* Status display banner */}
                             <div className="flex items-center gap-3">
                               <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
                                 status === "DELIVERED" ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/20" :

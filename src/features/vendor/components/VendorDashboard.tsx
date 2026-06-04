@@ -35,9 +35,11 @@ export const VendorDashboard = () => {
   const [modalMessage, setModalMessage] = useState<any | null>(null);
   const [editStockValue, setEditStockValue] = useState("");
   const [updatingStock, setUpdatingStock] = useState(false);
-  const [activeTab, setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel">("inquiries");
+  const [activeTab, setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders">("inquiries");
   const [allInquiries, setAllInquiries] = useState<any[]>([]);
   const [editingDelivery, setEditingDelivery] = useState<{ inquiryId: number, productId: number, value: string } | null>(null);
+  const [editingDirectDelivery, setEditingDirectDelivery] = useState<{ orderId: string, value: string } | null>(null);
+  const [directOrders, setDirectOrders] = useState<any[]>([]);
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
@@ -616,13 +618,20 @@ export const VendorDashboard = () => {
             try {
               const itemsList = inq.items as any[];
               return itemsList.some((item: any) => 
-                dataProd.some((p: any) => p.id === item.id)
+                dataProd.some((p: any) => String(p.id) === String(item.id))
               );
             } catch (e) {
               return false;
             }
           });
           setInquiries(filteredInq);
+        }
+
+        // Fetch direct orders
+        const resOrders = await fetch(`/api/orders?vendorId=${vendorId}`);
+        if (resOrders.ok) {
+          const dataOrders = await resOrders.json();
+          setDirectOrders(dataOrders);
         }
       }
     } catch (e) {
@@ -767,6 +776,26 @@ export const VendorDashboard = () => {
     }
   };
 
+  const handleUpdateDirectOrderStatus = async (orderId: string, status: string, deliveryDate?: string) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, deliveryDate }),
+      });
+
+      if (res.ok) {
+        showToast("Order status updated successfully!", "success");
+        if (vendor) fetchData(vendor.id);
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Failed to update order status", "error");
+      }
+    } catch (err) {
+      showToast("Error updating order status", "error");
+    }
+  };
+
   const getUnitsSold = (productId: number) => {
     let count = 0;
     inquiries.forEach((inq) => {
@@ -831,7 +860,7 @@ export const VendorDashboard = () => {
     try {
       const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
       return itemsList.filter((item: any) =>
-        products.some((p) => p.id === item.id) && !["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
+        products.some((p) => String(p.id) === String(item.id)) && !["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
       );
     } catch (e) {
       return [];
@@ -842,7 +871,7 @@ export const VendorDashboard = () => {
     try {
       const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
       return itemsList.filter((item: any) =>
-        products.some((p) => p.id === item.id) && ["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
+        products.some((p) => String(p.id) === String(item.id)) && ["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
       );
     } catch (e) {
       return [];
@@ -868,7 +897,7 @@ export const VendorDashboard = () => {
       } catch (e) {}
 
       itemsList.forEach((item: any) => {
-        const belongsToVendor = products.some((p) => p.id === item.id);
+        const belongsToVendor = products.some((p) => String(p.id) === String(item.id));
         if (!belongsToVendor) return;
 
         totalReceived++;
@@ -947,8 +976,17 @@ export const VendorDashboard = () => {
                 activeTab === "inquiries" ? "text-orange-500" : "text-muted hover:text-heading"
               }`}
             >
-              Active Orders ({activeInquiriesCount})
+              Active Quotes ({activeInquiriesCount})
               {activeTab === "inquiries" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+            </button>
+            <button
+              onClick={() => setActiveTab("direct-orders")}
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer ${
+                activeTab === "direct-orders" ? "text-orange-500" : "text-muted hover:text-heading"
+              }`}
+            >
+              Orders ({directOrders.filter(o => !["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING")).length})
+              {activeTab === "direct-orders" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
             <button
               onClick={() => setActiveTab("history")}
@@ -956,7 +994,7 @@ export const VendorDashboard = () => {
                 activeTab === "history" ? "text-orange-500" : "text-muted hover:text-heading"
               }`}
             >
-              Order History ({historyInquiriesCount})
+              Order History ({historyInquiriesCount + directOrders.filter(o => ["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING")).length})
               {activeTab === "history" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
             <button
@@ -991,6 +1029,265 @@ export const VendorDashboard = () => {
       </div>
 
       <div className="max-w-[95%] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">  {/* Tab Contents */}
+        {activeTab === "direct-orders" && (
+          <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
+            <div className="bg-gradient-to-r from-orange-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-display font-bold text-sm text-heading uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+                  Direct Orders & Transactions
+                </h3>
+                <p className="text-[10px] text-muted mt-0.5">Manage automated checkout orders, payments, and dispatch dates</p>
+              </div>
+            </div>
+
+            {/* Stats Overview Grid */}
+            <div className="grid grid-cols-3 gap-4 p-4 bg-surface/50 border-b border-border/80 text-xs">
+              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300">
+                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Today's Orders</span>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                    {(() => {
+                      const startOfToday = new Date();
+                      startOfToday.setHours(0, 0, 0, 0);
+                      return directOrders.filter(o => new Date(o.createdAt).getTime() >= startOfToday.getTime()).length;
+                    })()}
+                  </span>
+                  <span className="px-2 py-0.5 text-[9px] bg-orange-500/10 text-orange-500 rounded-md font-bold uppercase">Today</span>
+                </div>
+              </div>
+
+              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300">
+                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Today Packed</span>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                    {directOrders.filter(o => o.status === "PACKED").length}
+                  </span>
+                  <span className="px-2 py-0.5 text-[9px] bg-blue-500/10 text-blue-500 rounded-md font-bold uppercase">Packed</span>
+                </div>
+              </div>
+
+              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
+                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Total Delivered</span>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                    {directOrders.filter(o => o.status === "DELIVERED").length}
+                  </span>
+                  <span className="px-2 py-0.5 text-[9px] bg-emerald-500/10 text-emerald-600 rounded-md font-bold uppercase">Delivered</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-gradient-to-r from-surface via-surface-card to-surface border-b border-border/60 text-muted font-bold uppercase tracking-[0.15em] text-[10px]">
+                    <th className="px-5 py-4 font-bold">Order Date</th>
+                    <th className="px-5 py-4 font-bold min-w-[200px]">Buyer & Transaction</th>
+                    <th className="px-5 py-4 font-bold min-w-[220px]">Product details</th>
+                    <th className="px-5 py-4 font-bold text-center">Amount Paid</th>
+                    <th className="px-5 py-4 font-bold text-center min-w-[210px]">Shipping Stage</th>
+                    <th className="px-5 py-4 font-bold text-right min-w-[280px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {(() => {
+                    const activeDirects = directOrders.filter((o) => 
+                      !["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING")
+                    );
+
+                    if (activeDirects.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={6} className="text-center py-16 text-muted text-sm">
+                            No active "Buy Now" orders found.
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return activeDirects.map((order) => {
+                      const currentStatus = order.status || "PENDING";
+                      return (
+                        <tr key={order.id} className="hover:bg-orange-500/[0.03] transition-all duration-200 text-body align-middle group/row">
+                          {/* Order Date */}
+                          <td className="px-5 py-4 whitespace-nowrap text-muted font-semibold text-[11px]">
+                            {new Date(order.createdAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
+                          </td>
+
+                          {/* Buyer & Transaction */}
+                          <td className="p-4">
+                            <div className="flex flex-col gap-0.5 max-w-[260px] min-w-[160px]">
+                              <span className="font-bold text-heading text-xs tracking-tight">{order.shippingName}</span>
+                              <span className="text-[10px] text-muted font-medium flex flex-wrap gap-1">
+                                📍 {order.shippingCity}, {order.shippingState} - {order.shippingPincode}
+                              </span>
+                              <span className="text-[10px] text-muted/80 truncate">✉️ {order.userEmail}</span>
+                              <span className="text-[10px] text-muted/80">📞 {order.shippingPhone}</span>
+                              <span className="mt-1 inline-flex self-start items-center gap-1 bg-surface border border-border px-1.5 py-0.5 rounded text-[8px] font-mono text-muted/95 uppercase">
+                                ID: {order.paymentId}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Product Details */}
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl overflow-hidden border border-border/60 bg-white flex-shrink-0 relative shadow-sm">
+                                <img src={order.productImage || "/logo4.jpg"} alt={order.productName} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex flex-col max-w-[240px] overflow-hidden min-w-[150px]">
+                                <span className="font-bold text-heading text-xs truncate" title={order.productName}>
+                                  {order.productName}
+                                </span>
+                                <div className="flex gap-1.5 items-center mt-0.5">
+                                  <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono font-bold px-1.5 py-0.5 rounded text-[9px]">
+                                    Qty: {order.quantity}
+                                  </span>
+                                  <span className="text-[10px] text-muted font-medium">{order.productMaterial || "Bronze"}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Amount Paid */}
+                          <td className="p-4 text-center whitespace-nowrap">
+                            <div className="flex flex-col items-center">
+                              <span className="font-bold text-heading text-xs">₹{order.totalAmount.toLocaleString()}</span>
+                              <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold px-1.5 py-0.5 rounded text-[8px] uppercase mt-0.5">
+                                {order.paymentStatus || "PAID"}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Shipping Stage */}
+                          <td className="p-4 text-center min-w-[210px]">
+                            <div className="flex flex-col items-center gap-2">
+                              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
+                                currentStatus === "PENDING" ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/25" :
+                                currentStatus === "PACKED" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25" :
+                                "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/25"
+                              }`}>
+                                {currentStatus === "PENDING" ? "Ordered / Paid" : currentStatus}
+                              </span>
+
+                              {["PACKED", "DISPATCHED"].includes(currentStatus) && (
+                                <div className="w-full max-w-[190px] flex flex-col items-center gap-1.5">
+                                  {editingDirectDelivery && editingDirectDelivery.orderId === order.id ? (
+                                    <div className="flex flex-col gap-1.5 w-full bg-surface-card border border-border p-2.5 rounded-2xl shadow-xl z-15 relative">
+                                      <span className="text-[8px] text-muted font-bold uppercase tracking-wider block text-left">Set Est. Delivery:</span>
+                                      <input
+                                        type="datetime-local"
+                                        min={(() => {
+                                          const now = new Date();
+                                          const tzOffset = now.getTimezoneOffset() * 60000;
+                                          return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+                                        })()}
+                                        value={editingDirectDelivery.value}
+                                        onChange={(e) => setEditingDirectDelivery(editingDirectDelivery ? { ...editingDirectDelivery, value: e.target.value } : null)}
+                                        className="w-full bg-surface border border-border rounded-lg px-2 py-1.5 text-[10px] text-heading font-medium outline-none focus:border-orange-500 transition-colors"
+                                      />
+                                      <div className="flex gap-1.5 justify-end mt-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setEditingDirectDelivery(null)}
+                                          className="px-2 py-1 text-[9px] text-muted hover:text-heading bg-surface hover:bg-surface-hover border border-border rounded-lg font-semibold transition-all"
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (editingDirectDelivery) {
+                                              handleUpdateDirectOrderStatus(order.id, currentStatus, editingDirectDelivery.value);
+                                              setEditingDirectDelivery(null);
+                                            }
+                                          }}
+                                          className="px-2.5 py-1 text-[9px] text-white bg-orange-500 hover:bg-orange-600 rounded-lg font-bold transition-all shadow-sm shadow-orange-500/10"
+                                        >
+                                          Done
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center gap-1 w-full">
+                                      {order.deliveryDate ? (
+                                        <div className="flex flex-col items-center gap-0.5">
+                                          <span className="text-[8px] text-muted font-bold uppercase tracking-wider">Est. Delivery:</span>
+                                          <span className="text-[10px] text-heading font-semibold bg-surface border border-border px-2 py-0.5 rounded-lg whitespace-nowrap">
+                                            {formatDateTime(order.deliveryDate)}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => setEditingDirectDelivery({ orderId: order.id, value: order.deliveryDate || "" })}
+                                            className="mt-1 text-[9px] text-orange-500 hover:text-orange-600 font-bold transition-colors underline"
+                                          >
+                                            Change Date
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => setEditingDirectDelivery({ orderId: order.id, value: "" })}
+                                          className="w-full py-1.5 px-3 text-[10px] font-bold text-orange-500 border border-orange-500/20 hover:border-orange-500 hover:bg-orange-500/5 rounded-lg transition-all shadow-sm"
+                                        >
+                                          Set Delivery Date
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="p-4 text-right whitespace-nowrap space-x-2">
+                            {currentStatus === "PENDING" && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateDirectOrderStatus(order.id, "PACKED")}
+                                className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold shadow-sm shadow-blue-500/10 transition-all duration-200"
+                              >
+                                Start Packing
+                              </button>
+                            )}
+                            {currentStatus === "PACKED" && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateDirectOrderStatus(order.id, "DISPATCHED")}
+                                className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 rounded-xl font-bold shadow-sm shadow-orange-500/10 transition-all duration-200"
+                              >
+                                Dispatch Order
+                              </button>
+                            )}
+                            {currentStatus === "DISPATCHED" && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateDirectOrderStatus(order.id, "DELIVERED")}
+                                className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 rounded-xl font-bold shadow-sm shadow-emerald-500/10 transition-all duration-200"
+                              >
+                                Mark Delivered
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateDirectOrderStatus(order.id, "CANCELLED")}
+                              className="px-3 py-1.5 text-[10px] text-red-500 hover:text-white border border-red-500/20 hover:bg-red-500 rounded-xl font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-red-500/10"
+                            >
+                              Cancel Order
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {activeTab === "inquiries" && (
           <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
             <div className="bg-gradient-to-r from-orange-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex items-center justify-between">
@@ -1064,11 +1361,11 @@ export const VendorDashboard = () => {
                     let activeCount = 0;
                     const rows = inquiries.flatMap((inq) => {
                       const itemsList = (inq.items as any[]).filter((item: any) =>
-                        products.some((p) => p.id === item.id)
+                        products.some((p) => String(p.id) === String(item.id))
                       );
                       
                       return itemsList.map((item: any, idx: number) => {
-                        const originalProduct = products.find((p) => p.id === item.id);
+                        const originalProduct = products.find((p) => String(p.id) === String(item.id));
                         const imgUrl = originalProduct?.image || item.image || "/logo4.jpg";
                         const currentStatus = item.status || "PENDING";
                         
@@ -1282,11 +1579,11 @@ export const VendorDashboard = () => {
                     let historyCount = 0;
                     const rows = inquiries.flatMap((inq) => {
                       const itemsList = (inq.items as any[]).filter((item: any) =>
-                        products.some((p) => p.id === item.id)
+                        products.some((p) => String(p.id) === String(item.id))
                       );
                       
                       return itemsList.map((item: any, idx: number) => {
-                        const originalProduct = products.find((p) => p.id === item.id);
+                        const originalProduct = products.find((p) => String(p.id) === String(item.id));
                         const imgUrl = originalProduct?.image || item.image || "/logo4.jpg";
                         const currentStatus = item.status || "PENDING";
                         
@@ -1378,14 +1675,83 @@ export const VendorDashboard = () => {
                       });
                     });
                     
-                    if (historyCount === 0) {
+                    const directRows = directOrders.map((order) => {
+                      const currentStatus = order.status || "PENDING";
+                      if (!["DELIVERED", "CANCELLED", "RETURNED"].includes(currentStatus)) {
+                        return null;
+                      }
+                      
+                      historyCount++;
+                      return (
+                        <tr key={order.id} className="hover:bg-surface-hover/40 transition-all duration-200 align-middle">
+                          <td className="p-4 whitespace-nowrap font-medium text-muted font-semibold text-[11px]">
+                            {new Date(order.createdAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex flex-col gap-0.5 max-w-[260px] min-w-[160px] text-muted/80">
+                              <span className="font-bold text-muted text-xs">{order.shippingName}</span>
+                              <span className="text-[10px] flex items-center gap-1">📍 {order.shippingCity}, {order.shippingState}</span>
+                              <span className="text-[10px] truncate">✉️ {order.userEmail}</span>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-3 opacity-70">
+                              <div className="w-8 h-8 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative">
+                                <img src={order.productImage || "/logo4.jpg"} alt={order.productName} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex flex-col max-w-[240px] overflow-hidden min-w-[150px]">
+                                <span className="font-bold text-muted text-xs truncate" title={order.productName}>
+                                  {order.productName}
+                                </span>
+                                <span className="text-[9px] font-mono">Qty: {order.quantity}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 text-center opacity-70 whitespace-nowrap">
+                            <span className="inline-block whitespace-nowrap text-[10px] font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-2.5 py-1 rounded-full">
+                              Buy Now
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
+                                currentStatus === "DELIVERED" ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/20" :
+                                currentStatus === "RETURNED" ? "bg-amber-500/5 text-amber-600 border-amber-500/20" :
+                                "bg-red-500/5 text-red-500 border-red-500/20"
+                              }`}>
+                                {currentStatus}
+                              </span>
+                              {currentStatus === "DELIVERED" && order.deliveryDate && (
+                                <span className="text-[8px] text-muted font-semibold mt-0.5">
+                                  Delivered: {new Date(order.deliveryDate).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4 text-center font-bold text-heading">
+                            ₹{order.totalAmount.toLocaleString()}
+                          </td>
+                          <td className="p-4 text-right whitespace-nowrap space-x-1.5">
+                            {currentStatus === "DELIVERED" && (
+                              <button type="button" onClick={() => handleUpdateDirectOrderStatus(order.id, "RETURNED")} className="px-2 py-1 text-[10px] text-amber-600 hover:text-white border border-amber-500/20 hover:bg-amber-600 rounded-lg font-bold">
+                                Mark Returned
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    });
+
+                    const allRows = [...rows.filter(Boolean), ...directRows.filter(Boolean)];
+                    
+                    if (allRows.length === 0) {
                       return (
                         <tr>
                           <td colSpan={7} className="text-center py-12 text-muted/60 text-sm">No archive records found.</td>
                         </tr>
                       );
                     }
-                    return rows;
+                    return allRows;
                   })()}
                 </tbody>
               </table>

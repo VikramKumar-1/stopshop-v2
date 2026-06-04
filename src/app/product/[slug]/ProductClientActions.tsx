@@ -126,7 +126,16 @@ export default function ProductClientActions({ product, allImages }: ProductClie
             </div>
 
             {/* Actions Buttons */}
-            <div className="flex items-center gap-3 w-full sm:flex-1">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:flex-1">
+              <button
+                onClick={() => {
+                  window.location.href = `/checkout?productId=${product.id}`;
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-black shadow-md hover:shadow-lg transition-all duration-300 text-sm active:scale-[0.98]"
+              >
+                Buy Now
+              </button>
+
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock <= 0}
@@ -145,7 +154,7 @@ export default function ProductClientActions({ product, allImages }: ProductClie
                 )}
               </button>
 
-              <button className="p-3.5 border border-border hover:border-red-500 hover:text-red-500 text-muted rounded-xl bg-surface-card hover:bg-red-500/5 transition-all duration-300">
+              <button className="p-3.5 border border-border hover:border-red-500 hover:text-red-500 text-muted rounded-xl bg-surface-card hover:bg-red-500/5 transition-all duration-300 flex items-center justify-center shrink-0">
                 <Heart size={18} />
               </button>
             </div>

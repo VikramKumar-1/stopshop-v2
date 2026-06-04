@@ -617,7 +617,7 @@ export const Navbar = () => {
                             <span>Vendor Dashboard</span>
                           </Link>
                         )}
-                        {(!user || user.role === "user") && (
+                        {(!user || user.role !== "vendor") && (
                           <Link
                             href="/vendor/login"
                             className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
@@ -693,12 +693,14 @@ export const Navbar = () => {
                       </Link>
 
                       {/* Sell with us button */}
-                      <Link
-                        href="/vendor/register"
-                        className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold transition-all duration-300 shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/25 whitespace-nowrap ml-2"
-                      >
-                        Sell with us
-                      </Link>
+                      {(!user || user.role !== "vendor") && (
+                        <Link
+                          href="/vendor/register"
+                          className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold transition-all duration-300 shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/25 whitespace-nowrap ml-2"
+                        >
+                          Sell with us
+                        </Link>
+                      )}
                     </>
                   )}
                   {pathname.startsWith("/vendor") && (
@@ -712,7 +714,7 @@ export const Navbar = () => {
                   )}
                 </div>
               )}
-              {isProfilePage && (
+              {isProfilePage && (!user || user.role !== "vendor") && (
                 <div className="flex items-center gap-5 flex-shrink-0">
                   <Link
                     href="/vendor/register"
@@ -850,13 +852,15 @@ export const Navbar = () => {
                         </Link>
                       ) : null
                     ) : (
-                      <Link 
-                        href="/profile" 
-                        className="p-1.5 text-muted hover:text-heading"
+                      <button 
+                        onClick={() => {
+                          window.location.href = user ? "/profile" : "/profile?mode=login";
+                        }}
+                        className="p-3 text-muted hover:text-heading flex items-center justify-center min-w-[44px] min-h-[44px]"
                         aria-label="Profile"
                       >
                         <User size={18} />
-                      </Link>
+                      </button>
                     )}
                   </div>
 
@@ -936,13 +940,24 @@ export const Navbar = () => {
                   </Link>
                 )}
                  <Link
-                  href="/profile"
+                  href={user ? "/profile" : "/profile?mode=login"}
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
                 >
                   <User size={16} />
                   My Account / Profile
                 </Link>
+
+                {(!user || user.role !== "vendor") && (
+                  <Link
+                    href="/vendor/register"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-orange-500 font-bold hover:bg-orange-500/5 transition-all"
+                  >
+                    <Store size={16} />
+                    Sell With Us
+                  </Link>
+                )}
 
                  {!isDashboard && (
                   <Link

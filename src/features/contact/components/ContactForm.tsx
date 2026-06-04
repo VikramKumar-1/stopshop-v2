@@ -163,7 +163,7 @@ export const ContactForm = () => {
   };
 
   return (
-    <section className="pt-6 pb-20 lg:pt-10 relative min-h-screen">
+    <section className="pt-6 pb-20 lg:pt-10 relative min-h-screen overflow-hidden">
       <div className="absolute top-1/3 -right-32 w-96 h-96 bg-bronze-500/5 rounded-full blur-[160px]" />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
