@@ -250,25 +250,9 @@ export const CartPage = () => {
               
               <div>
                 <div className="flex justify-between items-center mb-1.5 gap-2">
-                  <h2 className="text-base font-display font-bold text-heading">Quote Request</h2>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormData({
-                        name: "Vikram Kumar",
-                        email: "vikram@example.com",
-                        phone: "+91 98765 43210",
-                        companyName: "Indo-Western Imports LLC",
-                        country: "India",
-                        message: "Requesting immediate bulk export price list for premium bronze cookwares with custom branding."
-                      });
-                    }}
-                    className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-orange-500 bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/20 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer"
-                  >
-                    ⚡ Autofill Demo
-                  </button>
+                  <h2 className="text-base font-display font-bold text-heading">Cart Summary</h2>
                 </div>
-                <p className="text-xs text-muted leading-relaxed">Please provide your contact details. A custom trade quotation will be prepared for you.</p>
+                <p className="text-xs text-muted leading-relaxed">Review your items before proceeding to secure checkout.</p>
               </div>
 
               {/* Aggregates */}
@@ -288,118 +272,26 @@ export const CartPage = () => {
                 </div>
               </div>
 
-              {/* Inquiry Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {error && <div className="text-xs text-red-500 bg-red-500/[0.04] p-3.5 rounded-xl border border-red-500/20">{error}</div>}
-
-                {/* Name */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Your Name *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your name"
-                    className="w-full bg-surface/60 border border-border focus:border-orange-500/80 focus:ring-1 focus:ring-orange-500/30 rounded-xl px-4 py-3 text-xs text-heading placeholder-muted/60 focus:outline-none transition-all"
-                  />
-                </div>
-
-                {/* Email */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Email Address *</label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="name@company.com"
-                      className="w-full bg-surface/60 border border-border focus:border-orange-500/80 focus:ring-1 focus:ring-orange-500/30 rounded-xl pl-10 pr-4 py-3 text-xs text-heading placeholder-muted/60 focus:outline-none transition-all"
-                    />
-                    <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted/60" />
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Phone Number *</label>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      name="phone"
-                      required
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+91 XXXXX XXXXX"
-                      className="w-full bg-surface/60 border border-border focus:border-orange-500/80 focus:ring-1 focus:ring-orange-500/30 rounded-xl pl-10 pr-4 py-3 text-xs text-heading placeholder-muted/60 focus:outline-none transition-all"
-                    />
-                    <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted/60" />
-                  </div>
-                </div>
-
-                {/* Company Name */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Company Name</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="companyName"
-                      value={formData.companyName}
-                      onChange={handleChange}
-                      placeholder="Optional"
-                      className="w-full bg-surface/60 border border-border focus:border-orange-500/80 focus:ring-1 focus:ring-orange-500/30 rounded-xl pl-10 pr-4 py-3 text-xs text-heading placeholder-muted/60 focus:outline-none transition-all"
-                    />
-                    <Building size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted/60" />
-                  </div>
-                </div>
-
-                {/* Country */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Country *</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="country"
-                      required
-                      value={formData.country}
-                      onChange={handleChange}
-                      placeholder="e.g. United States, Germany"
-                      className="w-full bg-surface/60 border border-border focus:border-orange-500/80 focus:ring-1 focus:ring-orange-500/30 rounded-xl pl-10 pr-4 py-3 text-xs text-heading placeholder-muted/60 focus:outline-none transition-all"
-                    />
-                    <Globe size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted/60" />
-                  </div>
-                </div>
-
-                {/* Message */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Inquiry Details</label>
-                  <textarea
-                    name="message"
-                    rows={3}
-                    value={formData.message}
-                    onChange={handleChange}
-                    placeholder="Enter customized specifications, port requirements, or packaging instructions..."
-                    className="w-full bg-surface/60 border border-border focus:border-orange-500/80 focus:ring-1 focus:ring-orange-500/30 rounded-xl px-4 py-3 text-xs text-heading placeholder-muted/60 focus:outline-none resize-none transition-all"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 text-[10px] text-muted/80 pt-1">
+              {/* Checkout Button */}
+              <div className="pt-4">
+                <div className="flex items-center gap-2 text-[10px] text-muted/80 pb-4">
                   <Lock size={12} className="text-emerald-600 dark:text-emerald-400" />
-                  <span>Secure inquiry processing guaranteed.</span>
+                  <span>Secure checkout processing guaranteed.</span>
                 </div>
 
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                  type="button"
+                  onClick={() => {
+                    if (cart.length > 0) {
+                      window.location.href = `/checkout?productId=${cart[0].id}&qty=${cart[0].quantity}`;
+                    }
+                  }}
+                  className="w-full py-4 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <FileText size={14} />
-                  {loading ? "Submitting Request..." : "Request Commercial Quote"}
+                  <ShoppingBag size={16} />
+                  Buy Now
                 </button>
-              </form>
+              </div>
             </div>
 
           </div>

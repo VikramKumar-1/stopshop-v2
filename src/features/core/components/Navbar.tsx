@@ -1128,11 +1128,11 @@ export const Navbar = () => {
                 )}
 
                 <Link
-                  href="/contact"
+                  href="/cart"
                   onClick={() => setMobileOpen(false)}
                   className="block text-center mt-4 px-6 py-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold shadow-md shadow-orange-500/15"
                 >
-                  Request Quote
+                  Checkout
                 </Link>
               </div>
             </motion.div>

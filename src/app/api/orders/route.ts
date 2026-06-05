@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOrders, createOrder } from "@/lib/ordersDb";
 import { getProductById } from "@/features/products/services/product";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,23 @@ export async function POST(req: Request) {
       shippingCountry,
       userEmail: userEmail || "guest@stopshop.com"
     });
+
+    // Deduct stock
+    try {
+      if (product.stock !== undefined && product.stock !== null && product.stock >= quantity) {
+        await prisma.product.update({
+          where: { id: productId },
+          data: {
+            stock: {
+              decrement: quantity
+            }
+          }
+        });
+      }
+    } catch (stockErr) {
+      console.error("Failed to deduct stock:", stockErr);
+      // We still return success since the order was placed and paid for
+    }
 
     return NextResponse.json({ success: true, order: created });
   } catch (e: any) {
