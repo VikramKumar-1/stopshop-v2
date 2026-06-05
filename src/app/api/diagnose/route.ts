@@ -1,1 +1,5 @@
-// File reverted. You can delete this file.
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  return NextResponse.json({ status: "ok" });
+}
