@@ -2204,11 +2204,15 @@ export const VendorDashboard = () => {
                       <option value="">-- Add Country --</option>
                       {Object.keys(currencyDatabase)
                         .filter(code => code !== "IN" && !productForm.prices[code])
-                        .map(code => (
-                          <option key={code} value={code}>
-                            {code} - {currencyDatabase[code].c} ({currencyDatabase[code].s})
-                          </option>
-                        ))
+                        .map(code => {
+                          let countryName = code;
+                          try { countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(code) || code; } catch(e){}
+                          return (
+                            <option key={code} value={code}>
+                              {countryName} ({code}) - {currencyDatabase[code].c} ({currencyDatabase[code].s})
+                            </option>
+                          );
+                        })
                       }
                     </select>
                     <button
@@ -2255,7 +2259,7 @@ export const VendorDashboard = () => {
                           </button>
 
                           <div className="font-bold text-[11px] text-heading uppercase tracking-wider border-b border-border/60 pb-1.5">
-                            <span>📍 {code} - {config.c} ({config.s})</span>
+                            <span>📍 {(()=>{try{return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) || code;}catch(e){return code;}})()} - {config.c} ({config.s})</span>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2">
@@ -2276,6 +2280,11 @@ export const VendorDashboard = () => {
                                 }}
                                 className="w-full bg-surface border border-border focus:border-orange-500 rounded-lg px-2.5 py-1.5 text-xs text-heading focus:outline-none"
                               />
+                              {productForm.prices[code]?.mrp && !isNaN(parseFloat(productForm.prices[code]?.mrp)) && (
+                                <span className="text-[9px] text-orange-500 block font-bold mt-1">
+                                  {new Intl.NumberFormat(code === 'IN' ? 'en-IN' : 'en-US', { style: 'currency', currency: config.c }).format(parseFloat(productForm.prices[code].mrp))}
+                                </span>
+                              )}
                             </div>
                             <div className="space-y-0.5">
                               <label className="text-[9px] font-bold text-muted uppercase tracking-wider">Discount (%)</label>
@@ -2954,11 +2963,15 @@ export const VendorDashboard = () => {
                         <option value="">-- Add Country --</option>
                         {Object.keys(currencyDatabase)
                           .filter(code => code !== "IN" && !editForm.prices?.[code])
-                          .map(code => (
-                            <option key={code} value={code}>
-                              {code} - {currencyDatabase[code].c} ({currencyDatabase[code].s})
-                            </option>
-                          ))
+                          .map(code => {
+                            let countryName = code;
+                            try { countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(code) || code; } catch(e){}
+                            return (
+                              <option key={code} value={code}>
+                                {countryName} ({code}) - {currencyDatabase[code].c} ({currencyDatabase[code].s})
+                              </option>
+                            );
+                          })
                         }
                       </select>
                       <button
@@ -3005,7 +3018,7 @@ export const VendorDashboard = () => {
                             </button>
 
                             <div className="font-bold text-[10px] text-heading uppercase tracking-wider border-b border-border/50 pb-1">
-                              <span>📍 {code} - {config.c} ({config.s})</span>
+                              <span>📍 {(()=>{try{return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) || code;}catch(e){return code;}})()} - {config.c} ({config.s})</span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-1.5">
@@ -3026,6 +3039,11 @@ export const VendorDashboard = () => {
                                   }}
                                   className="w-full bg-surface border border-border focus:border-orange-500 rounded px-2 py-1 text-xs text-heading focus:outline-none"
                                 />
+                                {editForm.prices?.[code]?.mrp && !isNaN(parseFloat(editForm.prices[code].mrp)) && (
+                                  <span className="text-[9px] text-orange-500 block font-bold mt-1">
+                                    {new Intl.NumberFormat(code === 'IN' ? 'en-IN' : 'en-US', { style: 'currency', currency: config.c }).format(parseFloat(editForm.prices[code].mrp))}
+                                  </span>
+                                )}
                               </div>
                               <div className="space-y-0.5">
                                 <label className="text-[8px] font-bold text-muted uppercase tracking-wider block">Discount (%)</label>
