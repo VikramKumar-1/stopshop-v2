@@ -283,7 +283,7 @@ export const CartPage = () => {
                   type="button"
                   onClick={() => {
                     if (cart.length > 0) {
-                      window.location.href = `/checkout?productId=${cart[0].id}&qty=${cart[0].quantity}`;
+                      window.location.href = `/checkout`;
                     }
                   }}
                   className="w-full py-4 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"

@@ -61,6 +61,7 @@ const mockDinnerSets = generateMock([
 
 export const HomePage = () => {
   const [groupedProducts, setGroupedProducts] = useState<Record<string, any[]>>({});
+  const [homepageSections, setHomepageSections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const hasCategory = (slug: string) => {
@@ -73,7 +74,11 @@ export const HomePage = () => {
 
   const fetchHomeProducts = async () => {
     try {
-      const res = await fetch("/api/products", { cache: "no-store" });
+      const [res, hpRes] = await Promise.all([
+        fetch("/api/products", { cache: "no-store" }),
+        fetch("/api/homepage", { cache: "no-store" }),
+      ]);
+
       if (res.ok) {
         const data = await res.json();
         
@@ -88,6 +93,11 @@ export const HomePage = () => {
         });
 
         setGroupedProducts(groups);
+      }
+
+      if (hpRes.ok) {
+        const hpData = await hpRes.json();
+        setHomepageSections(hpData.sections || []);
       }
     } catch (e) {
       console.error("Failed to load products dynamically on homepage", e);
@@ -159,8 +169,8 @@ export const HomePage = () => {
             </div>
           </div>
         </section>
-      ) : Object.keys(groupedProducts).length === 0 ? (
-        // Fallback display if DB is empty - Render ALL sections
+      ) : Object.keys(groupedProducts).length === 0 && homepageSections.length === 0 ? (
+        // Fallback display if DB is empty and no admin sections - Render ALL mock sections
         <>
           <CategoryProductGrid title="Kitchen Utility" tagLine="Heritage Cooking Essentials" products={mockKitchenUtility} viewAllLink="/products?category=kitchen-utility" accentColor="emerald" />
           <CategoryProductGrid title="Brass Cookware" tagLine="Royal Dining & Serveware" products={mockBrassCookware} viewAllLink="/products?category=brass-cookware" accentColor="bronze" />
@@ -169,69 +179,94 @@ export const HomePage = () => {
           <CategoryProductGrid title="Steel Essentials" tagLine="Durable Steel Collections" products={mockSteelEssentials} viewAllLink="/products?category=steel-essentials" accentColor="emerald" />
           <CategoryProductGrid title="Dinner Sets" tagLine="Exquisite Dining Sets" products={mockDinnerSets} viewAllLink="/products?category=dinner-sets" accentColor="bronze" />
         </>
-      ) : (
-        // Dynamic generation of sections for categories containing products
-        <>
-          {Object.entries(groupedProducts).map(([categoryName, productsList]) => {
-            const categorySlug = productsList[0]?.categoryName || "";
-            
-            // Tailor colors and headers dynamically
-            let accentColor = "bronze";
-            let tagLine = "Premium Workshop Crafts";
+      ) : (() => {
+        // Merge admin-configured sections + remaining DB categories
+        const getAccent = (slug: string) => {
+          if (slug === "kitchen-utility") return { accentColor: "emerald", tagLine: "Heritage Cooking Essentials" };
+          if (slug === "brass-cookware") return { accentColor: "bronze", tagLine: "Royal Dining & Serveware" };
+          if (slug === "pooja-collection") return { accentColor: "rose", tagLine: "Sacred Ritual Vessels" };
+          if (slug === "copper-products") return { accentColor: "bronze", tagLine: "Ayurvedic Wellness Essentials" };
+          if (slug === "steel-essentials") return { accentColor: "emerald", tagLine: "Durable Steel Collections" };
+          if (slug === "dinner-sets") return { accentColor: "bronze", tagLine: "Exquisite Dining Sets" };
+          return { accentColor: "bronze", tagLine: "Premium Workshop Crafts" };
+        };
 
-            if (categorySlug === "kitchen-utility") {
-              accentColor = "emerald";
-              tagLine = "Heritage Cooking Essentials";
-            } else if (categorySlug === "brass-cookware") {
-              accentColor = "bronze";
-              tagLine = "Royal Dining & Serveware";
-            } else if (categorySlug === "pooja-collection") {
-              accentColor = "rose";
-              tagLine = "Sacred Ritual Vessels";
-            } else if (categorySlug === "copper-products") {
-              accentColor = "bronze";
-              tagLine = "Ayurvedic Wellness Essentials";
-            } else if (categorySlug === "steel-essentials") {
-              accentColor = "emerald";
-              tagLine = "Durable Steel Collections";
-            } else if (categorySlug === "dinner-sets") {
-              accentColor = "bronze";
-              tagLine = "Exquisite Dining Sets";
-            }
+        // Track which category slugs admin has configured
+        const adminConfiguredSlugs = new Set(homepageSections.map((s: any) => s.slug));
 
-            return (
-              <CategoryProductGrid
-                key={categoryName}
-                title={categoryName}
-                tagLine={tagLine}
-                products={productsList}
-                viewAllLink={`/products?category=${categorySlug}`}
-                accentColor={accentColor}
-              />
-            );
-          })}
+        return (
+          <>
+            {/* 1. Admin-configured sections first — show assigned products + auto-fill remaining up to 15 */}
+            {homepageSections.map((section: any) => {
+              const { accentColor, tagLine } = getAccent(section.slug);
+              
+              const manualProducts = section.products || [];
+              const manualIds = new Set(manualProducts.map((p: any) => p.id));
+              let autoProducts = [];
 
-          {/* Always render other major categories as fallbacks if not present in dynamic database groups */}
-          {!hasCategory("kitchen-utility") && (
-            <CategoryProductGrid title="Kitchen Utility" tagLine="Heritage Cooking Essentials" products={mockKitchenUtility} viewAllLink="/products?category=kitchen-utility" accentColor="emerald" />
-          )}
-          {!hasCategory("brass-cookware") && (
-            <CategoryProductGrid title="Brass Cookware" tagLine="Royal Dining & Serveware" products={mockBrassCookware} viewAllLink="/products?category=brass-cookware" accentColor="bronze" />
-          )}
-          {!hasCategory("pooja-collection") && (
-            <CategoryProductGrid title="Pooja Collection" tagLine="Sacred Ritual Vessels" products={mockPoojaCollection} viewAllLink="/products?category=pooja-collection" accentColor="rose" />
-          )}
-          {!hasCategory("copper-products") && (
-            <CategoryProductGrid title="Copper Products" tagLine="Ayurvedic Wellness Essentials" products={mockCopperProducts} viewAllLink="/products?category=copper-products" accentColor="bronze" />
-          )}
-          {!hasCategory("steel-essentials") && (
-            <CategoryProductGrid title="Steel Essentials" tagLine="Durable Steel Collections" products={mockSteelEssentials} viewAllLink="/products?category=steel-essentials" accentColor="emerald" />
-          )}
-          {!hasCategory("dinner-sets") && (
-            <CategoryProductGrid title="Dinner Sets" tagLine="Exquisite Dining Sets" products={mockDinnerSets} viewAllLink="/products?category=dinner-sets" accentColor="bronze" />
-          )}
-        </>
-      )}
+              if (manualProducts.length < 15) {
+                const listEntry = Object.entries(groupedProducts).find(([_, list]: any) => list[0]?.categoryName === section.slug);
+                const availableAuto = listEntry ? (listEntry[1] as any[]) : [];
+                autoProducts = availableAuto
+                  .filter((p: any) => !manualIds.has(p.id))
+                  .slice(0, 15 - manualProducts.length);
+              }
+
+              const finalProducts = [...manualProducts, ...autoProducts];
+
+              return (
+                <CategoryProductGrid
+                  key={`hp-${section.slug}`}
+                  title={section.title || section.slug}
+                  tagLine={tagLine}
+                  products={finalProducts}
+                  viewAllLink={`/products?category=${section.slug}`}
+                  accentColor={accentColor}
+                />
+              );
+            })}
+
+            {/* 2. Remaining categories from DB that admin hasn't configured */}
+            {Object.entries(groupedProducts).map(([categoryName, productsList]) => {
+              const categorySlug = productsList[0]?.categoryName || "";
+              // Skip if admin already configured this category
+              if (adminConfiguredSlugs.has(categorySlug)) return null;
+
+              const { accentColor, tagLine } = getAccent(categorySlug);
+              return (
+                <CategoryProductGrid
+                  key={categoryName}
+                  title={categoryName}
+                  tagLine={tagLine}
+                  products={productsList}
+                  viewAllLink={`/products?category=${categorySlug}`}
+                  accentColor={accentColor}
+                />
+              );
+            })}
+
+            {/* 3. Mock fallbacks for categories not in DB at all */}
+            {!hasCategory("kitchen-utility") && !adminConfiguredSlugs.has("kitchen-utility") && (
+              <CategoryProductGrid title="Kitchen Utility" tagLine="Heritage Cooking Essentials" products={mockKitchenUtility} viewAllLink="/products?category=kitchen-utility" accentColor="emerald" />
+            )}
+            {!hasCategory("brass-cookware") && !adminConfiguredSlugs.has("brass-cookware") && (
+              <CategoryProductGrid title="Brass Cookware" tagLine="Royal Dining & Serveware" products={mockBrassCookware} viewAllLink="/products?category=brass-cookware" accentColor="bronze" />
+            )}
+            {!hasCategory("pooja-collection") && !adminConfiguredSlugs.has("pooja-collection") && (
+              <CategoryProductGrid title="Pooja Collection" tagLine="Sacred Ritual Vessels" products={mockPoojaCollection} viewAllLink="/products?category=pooja-collection" accentColor="rose" />
+            )}
+            {!hasCategory("copper-products") && !adminConfiguredSlugs.has("copper-products") && (
+              <CategoryProductGrid title="Copper Products" tagLine="Ayurvedic Wellness Essentials" products={mockCopperProducts} viewAllLink="/products?category=copper-products" accentColor="bronze" />
+            )}
+            {!hasCategory("steel-essentials") && !adminConfiguredSlugs.has("steel-essentials") && (
+              <CategoryProductGrid title="Steel Essentials" tagLine="Durable Steel Collections" products={mockSteelEssentials} viewAllLink="/products?category=steel-essentials" accentColor="emerald" />
+            )}
+            {!hasCategory("dinner-sets") && !adminConfiguredSlugs.has("dinner-sets") && (
+              <CategoryProductGrid title="Dinner Sets" tagLine="Exquisite Dining Sets" products={mockDinnerSets} viewAllLink="/products?category=dinner-sets" accentColor="bronze" />
+            )}
+          </>
+        );
+      })()}
 
       {/* 6. Amazon-style Category Cards */}
       <CategoryCards />

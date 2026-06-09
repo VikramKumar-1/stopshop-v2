@@ -17,17 +17,23 @@ model User {
   createdAt DateTime @default(now())
 
   // Vendor details & verification documents
-  mobile     String?
-  location   String? @default("Moradabad, Uttar Pradesh, India")
-  artisanId  String?
-  gstin      String?
-  aadhaar    String?
-  pan        String?
-  aadhaarUrl String?
-  panUrl     String?
-  docUrl     String?
+  mobile            String?
+  location          String? @default("Moradabad, Uttar Pradesh, India")
+  artisanId         String?
+  gstin             String?
+  aadhaar           String?
+  pan               String?
+  aadhaarUrl        String?
+  panUrl            String?
+  docUrl            String?
+  vendorStatus      String  @default("PENDING") // PENDING, IN_REVIEW, APPROVED, REJECTED
+  allowedCategories String? // Comma-separated list of category slugs allowed for vendor
+  razorpayAccountId String? // For Razorpay Route Linked Accounts (Vendor Payouts)
+  payoutsPaused     Boolean @default(false) // Admin override to hold vendor money
 
-  products Product[]
+  products  Product[]
+  orders    Order[]
+  addresses Address[]
 }
 
 model Category {
@@ -61,8 +67,9 @@ model Product {
   createdAt    DateTime @default(now())
   vendorId     Int?
 
-  category Category @relation(fields: [categoryName], references: [slug])
-  vendor   User?    @relation(fields: [vendorId], references: [id])
+  category   Category    @relation(fields: [categoryName], references: [slug])
+  vendor     User?       @relation(fields: [vendorId], references: [id])
+  orderItems OrderItem[]
 }
 
 model Inquiry {
@@ -76,4 +83,258 @@ model Inquiry {
   message     String   @db.Text
   status      String   @default("PENDING") // PENDING, RESPONDED, COMPLETED
   createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// ==================== ORDERS ====================
+
+model Order {
+  id          String @id @default(cuid())
+  orderNumber String @unique // "SS-240606-XXXX"
+  userId      Int
+  user        User   @relation(fields: [userId], references: [id])
+
+  // Payment & Shipping
+  paymentMethod     String // "razorpay" | "payu" | "cod"
+  paymentGateway    String? // "razorpay" | "payu"
+  paymentStatus     String  @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  razorpayPaymentId String? // Transaction ID from Razorpay or PayU
+  paymentOrderId    String? @unique // Razorpay order_id / PayU txn ref
+  paymentData       Json? // Full payment response for audit
+
+  // Amounts (always stored in INR paise for precision)
+  subtotalPaise  Int
+  shippingPaise  Int    @default(0) // Admin-controlled shipping charge
+  codChargePaise Int    @default(0)
+  totalPaise     Int
+  currency       String @default("INR")
+
+  // Commission (marketplace model)
+  commissionRate    Float     @default(0) // % at time of order (snapshot)
+  commissionPaise   Int       @default(0) // Calculated commission amount
+  vendorPayoutPaise Int       @default(0) // totalPaise - commissionPaise
+  settlementStatus  String    @default("HOLD") // HOLD | ELIGIBLE | SETTLED | DISPUTED
+  settlementDate    DateTime? // When payout becomes eligible
+
+  // Shipping
+  shippingName    String
+  shippingPhone   String
+  shippingEmail   String
+  shippingAddress String @db.Text
+  shippingCity    String
+  shippingState   String
+  shippingPincode String
+  shippingCountry String @default("IN")
+
+  // Status & tracking
+  status           String    @default("PENDING")
+  // PENDING | CONFIRMED | PACKED | DISPATCHED | DELIVERED | CANCELLED
+  // RETURN_REQUESTED | RETURN_APPROVED | RETURN_PICKED | RETURN_RECEIVED | RETURN_REJECTED | RETURNED
+  deliveryDate     DateTime?
+  deliveredAt      DateTime? // Actual delivery timestamp
+  trackingId       String?
+  returnWindowDays Int       @default(7) // Days after delivery to allow return
+
+  // Shiprocket logistics
+  shiprocketOrderId    Int? // Shiprocket's order ID
+  shiprocketShipmentId Int? // Shiprocket's shipment ID
+  awbCode              String? // Air Waybill number (courier tracking #)
+  courierName          String? // e.g., "Delhivery", "BlueDart"
+  courierId            Int? // Shiprocket courier ID
+  shippingLabelUrl     String? // PDF label download URL
+  manifestUrl          String? // Manifest PDF URL
+  estimatedDelivery    DateTime? // Courier's estimated delivery
+  shiprocketStatus     String? // Raw Shiprocket status string
+
+  // Return shipping (Shiprocket reverse pickup)
+  returnShiprocketId Int? // Reverse order ID
+  returnAwbCode      String? // Return AWB
+  returnCourierName  String? // Return courier
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items         OrderItem[]
+  returnRequest ReturnRequest?
+  settlements   Settlement[]
+
+  @@index([userId])
+  @@index([paymentOrderId])
+  @@index([status])
+  @@index([settlementStatus])
+  @@index([awbCode])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  vendorId  Int?
+
+  quantity        Int
+  unitPaise       Int // Price per unit in paise at time of purchase (snapshot)
+  totalPaise      Int // quantity × unitPaise
+  productName     String // Snapshot at time of purchase
+  productImage    String // Snapshot
+  productMaterial String
+
+  // Return tracking & QC per item
+  returnQuantity Int     @default(0) // How many units returned
+  returnStatus   String? // null | REQUESTED | APPROVED | RECEIVED | REJECTED
+  stockRestored  Boolean @default(false) // Has stock been added back?
+  dispatchImages Json? // Array of 5-8 mandatory photos taken by vendor during packing
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// ==================== RETURNS (Flipkart/Amazon Style) ====================
+
+model ReturnRequest {
+  id      Int    @id @default(autoincrement())
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+  userId  Int
+
+  // Return details
+  reason       String // "wrong_product" | "damaged" | "not_as_described" | "size_issue" | "changed_mind" | "other"
+  reasonDetail String? @db.Text // User's description
+  returnImages Json? // Array of image URLs (proof photos)
+
+  // Items being returned
+  returnItems Json // [{orderItemId, quantity, reason}]
+
+  // Verification (Admin & Vendor reviews)
+  status String @default("PENDING")
+  // PENDING (User requested) | REJECTED_PRE_PICKUP (Admin rejected immediately) | APPROVED (Admin approved pickup) | 
+  // PICKED_UP | RECEIVED_AT_VENDOR | VENDOR_QC_PASSED | VENDOR_QC_FAILED | 
+  // ADMIN_RESOLUTION_PENDING | REFUND_INITIATED | REFUND_COMPLETED | CLOSED
+
+  // Admin/Vendor verification
+  adminNotes      String? @db.Text // Admin's internal notes
+  qcNotes         String? @db.Text // Quality check notes
+  qcImages        Json? // QC proof photos by admin/vendor
+  vendorQcNotes   String? @db.Text // Why the vendor failed the QC
+  vendorQcImages  Json? // Proof photos from vendor showing fake/damaged return
+  rejectionReason String? @db.Text // Message sent to user if return is rejected
+
+  // Refund tracking (manual refund by admin)
+  refundAmount Int? // Amount in paise to refund
+  refundMethod String? // "original_payment" | "store_credit" | "bank_transfer"
+  refundStatus String? // "pending" | "initiated" | "completed"
+  refundId     String? // Razorpay refund ID or manual ref
+  refundedAt   DateTime?
+
+  // Stock restoration
+  stockRestored Boolean @default(false)
+
+  // Timestamps
+  vendorDeliveredAt DateTime? // When Shiprocket delivered the item back to the vendor
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ==================== COMMISSION & SETTLEMENTS ====================
+
+model Settlement {
+  id       Int    @id @default(autoincrement())
+  orderId  String
+  order    Order  @relation(fields: [orderId], references: [id])
+  vendorId Int
+
+  // Amounts
+  orderAmountPaise  Int // Original order amount
+  commissionPaise   Int // Admin's commission
+  vendorPayoutPaise Int // What vendor receives
+
+  // Status
+  status String @default("HOLD")
+  // HOLD → ELIGIBLE → SETTLED
+  // HOLD → DISPUTED → RESOLVED_VENDOR | RESOLVED_ADMIN
+
+  holdUntil DateTime // Release date (delivery + return window)
+  settledAt DateTime?
+
+  // Payment to vendor
+  vendorPaymentRef  String? // UTR/NEFT ref when admin pays vendor
+  vendorPaymentMode String? // "bank_transfer" | "upi" | "cash"
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vendorId])
+  @@index([status])
+  @@index([holdUntil])
+  @@index([createdAt])
+}
+
+// ==================== ADDRESSES ====================
+
+model Address {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  label     String   @default("Home")
+  name      String
+  phone     String
+  address   String   @db.Text
+  city      String
+  state     String
+  pincode   String
+  country   String   @default("IN")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ==================== ADMIN SETTINGS ====================
+
+model AdminSettings {
+  id Int @id @default(1) // Singleton row
+
+  // Commission
+  defaultCommissionRate Float @default(10) // 10% default
+
+  // Shipping (admin manipulates these)
+  shippingFreeAbove          Int @default(99900) // Free shipping above ₹999 (in paise)
+  shippingChargePaise        Int @default(4900) // ₹49 default
+  codShippingChargePaise     Int @default(4900) // COD shipping (can be different)
+  internationalShippingPaise Int @default(49900) // International ₹499
+
+  // COD
+  codEnabled        Boolean @default(true)
+  codMaxAmountPaise Int     @default(1000000) // ₹10,000
+  codSurchargePaise Int     @default(0)
+
+  // Return policy
+  returnWindowDays     Int       @default(7)
+  returnEnabled        Boolean   @default(true)
+  vendorReturnSlaHours Int       @default(24) // SLA for vendor to QC returned items
+  payoutSchedule       String    @default("MANUAL") // MANUAL, DAILY, WEEKLY_WED, WEEKLY_THU, BIWEEKLY, MONTHLY, CUSTOM_DAYS
+  payoutCustomDays     Int       @default(10) // If schedule is CUSTOM_DAYS, run every X days
+  lastPayoutRun        DateTime? // Tracks when the automated payout last ran
+
+  // Shiprocket
+  shiprocketPickupLocation  String? // Pickup address name (configured in Shiprocket panel)
+  shiprocketAutoAssign      Boolean @default(true) // Auto-assign best courier
+  shiprocketCourierPriority String  @default("cheapest") // "cheapest" | "fastest" | "best_rated"
+
+  // Homepage CMS
+  homepageSections Json? // Array of { title, productIds: [] }
+
+  updatedAt DateTime @updatedAt
 }

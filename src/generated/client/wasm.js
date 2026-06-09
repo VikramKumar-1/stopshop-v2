@@ -137,7 +137,11 @@ exports.Prisma.UserScalarFieldEnum = {
   pan: 'pan',
   aadhaarUrl: 'aadhaarUrl',
   panUrl: 'panUrl',
-  docUrl: 'docUrl'
+  docUrl: 'docUrl',
+  vendorStatus: 'vendorStatus',
+  allowedCategories: 'allowedCategories',
+  razorpayAccountId: 'razorpayAccountId',
+  payoutsPaused: 'payoutsPaused'
 };
 
 exports.Prisma.CategoryScalarFieldEnum = {
@@ -184,6 +188,155 @@ exports.Prisma.InquiryScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.OrderScalarFieldEnum = {
+  id: 'id',
+  orderNumber: 'orderNumber',
+  userId: 'userId',
+  paymentMethod: 'paymentMethod',
+  paymentGateway: 'paymentGateway',
+  paymentStatus: 'paymentStatus',
+  razorpayPaymentId: 'razorpayPaymentId',
+  paymentOrderId: 'paymentOrderId',
+  paymentData: 'paymentData',
+  subtotalPaise: 'subtotalPaise',
+  shippingPaise: 'shippingPaise',
+  codChargePaise: 'codChargePaise',
+  taxPaise: 'taxPaise',
+  totalPaise: 'totalPaise',
+  currency: 'currency',
+  commissionRate: 'commissionRate',
+  commissionPaise: 'commissionPaise',
+  vendorPayoutPaise: 'vendorPayoutPaise',
+  settlementStatus: 'settlementStatus',
+  settlementDate: 'settlementDate',
+  shippingName: 'shippingName',
+  shippingPhone: 'shippingPhone',
+  shippingEmail: 'shippingEmail',
+  shippingAddress: 'shippingAddress',
+  shippingCity: 'shippingCity',
+  shippingState: 'shippingState',
+  shippingPincode: 'shippingPincode',
+  shippingCountry: 'shippingCountry',
+  status: 'status',
+  deliveryDate: 'deliveryDate',
+  deliveredAt: 'deliveredAt',
+  trackingId: 'trackingId',
+  returnWindowDays: 'returnWindowDays',
+  shiprocketOrderId: 'shiprocketOrderId',
+  shiprocketShipmentId: 'shiprocketShipmentId',
+  awbCode: 'awbCode',
+  courierName: 'courierName',
+  courierId: 'courierId',
+  shippingLabelUrl: 'shippingLabelUrl',
+  manifestUrl: 'manifestUrl',
+  estimatedDelivery: 'estimatedDelivery',
+  shiprocketStatus: 'shiprocketStatus',
+  returnShiprocketId: 'returnShiprocketId',
+  returnAwbCode: 'returnAwbCode',
+  returnCourierName: 'returnCourierName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderItemScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  productId: 'productId',
+  vendorId: 'vendorId',
+  quantity: 'quantity',
+  unitPaise: 'unitPaise',
+  totalPaise: 'totalPaise',
+  productName: 'productName',
+  productImage: 'productImage',
+  productMaterial: 'productMaterial',
+  returnQuantity: 'returnQuantity',
+  returnStatus: 'returnStatus',
+  stockRestored: 'stockRestored',
+  dispatchImages: 'dispatchImages'
+};
+
+exports.Prisma.ReturnRequestScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  userId: 'userId',
+  reason: 'reason',
+  reasonDetail: 'reasonDetail',
+  returnImages: 'returnImages',
+  returnItems: 'returnItems',
+  status: 'status',
+  adminNotes: 'adminNotes',
+  qcNotes: 'qcNotes',
+  qcImages: 'qcImages',
+  vendorQcNotes: 'vendorQcNotes',
+  vendorQcImages: 'vendorQcImages',
+  rejectionReason: 'rejectionReason',
+  refundAmount: 'refundAmount',
+  refundMethod: 'refundMethod',
+  refundStatus: 'refundStatus',
+  refundId: 'refundId',
+  refundedAt: 'refundedAt',
+  stockRestored: 'stockRestored',
+  vendorDeliveredAt: 'vendorDeliveredAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SettlementScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  vendorId: 'vendorId',
+  orderAmountPaise: 'orderAmountPaise',
+  commissionPaise: 'commissionPaise',
+  vendorPayoutPaise: 'vendorPayoutPaise',
+  status: 'status',
+  holdUntil: 'holdUntil',
+  settledAt: 'settledAt',
+  vendorPaymentRef: 'vendorPaymentRef',
+  vendorPaymentMode: 'vendorPaymentMode',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AddressScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  label: 'label',
+  name: 'name',
+  phone: 'phone',
+  address: 'address',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
+  country: 'country',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AdminSettingsScalarFieldEnum = {
+  id: 'id',
+  defaultCommissionRate: 'defaultCommissionRate',
+  taxRate: 'taxRate',
+  shippingFreeAbove: 'shippingFreeAbove',
+  shippingChargePaise: 'shippingChargePaise',
+  codShippingChargePaise: 'codShippingChargePaise',
+  internationalShippingPaise: 'internationalShippingPaise',
+  codEnabled: 'codEnabled',
+  codMaxAmountPaise: 'codMaxAmountPaise',
+  codSurchargePaise: 'codSurchargePaise',
+  returnWindowDays: 'returnWindowDays',
+  returnEnabled: 'returnEnabled',
+  vendorReturnSlaHours: 'vendorReturnSlaHours',
+  payoutSchedule: 'payoutSchedule',
+  payoutCustomDays: 'payoutCustomDays',
+  lastPayoutRun: 'lastPayoutRun',
+  shiprocketPickupLocation: 'shiprocketPickupLocation',
+  shiprocketAutoAssign: 'shiprocketAutoAssign',
+  shiprocketCourierPriority: 'shiprocketCourierPriority',
+  homepageSections: 'homepageSections',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -191,6 +344,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -210,7 +367,13 @@ exports.Prisma.ModelName = {
   User: 'User',
   Category: 'Category',
   Product: 'Product',
-  Inquiry: 'Inquiry'
+  Inquiry: 'Inquiry',
+  Order: 'Order',
+  OrderItem: 'OrderItem',
+  ReturnRequest: 'ReturnRequest',
+  Settlement: 'Settlement',
+  Address: 'Address',
+  AdminSettings: 'AdminSettings'
 };
 
 /**

@@ -93,7 +93,7 @@ import { usePathname } from "next/navigation";
 
 export const CategoryStrip = () => {
   const pathname = usePathname();
-  if (pathname.startsWith("/vendor") || pathname.startsWith("/admin") || pathname === "/contact" || pathname.startsWith("/product") || pathname.startsWith("/profile") || pathname === "/cart" || pathname === "/checkout") return null;
+  if (pathname.startsWith("/vendor") || pathname.startsWith("/admin") || pathname === "/contact" || pathname.startsWith("/product") || pathname.startsWith("/profile") || pathname === "/cart" || pathname.startsWith("/checkout")) return null;
   const { cartCount } = useCart();
   const [scrollingDown, setScrollingDown] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);

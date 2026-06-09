@@ -46,7 +46,8 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
   }, [product]);
 
   const descriptionMaxLen = 240;
-  const isLongDescription = product.description && product.description.length > descriptionMaxLen;
+  const newlineCount = (product.description || "").split("\n").length;
+  const isLongDescription = product.description && (product.description.length > descriptionMaxLen || newlineCount > 5);
 
   return (
     <div className="min-h-screen bg-surface pb-16 pt-6 sm:pt-10">
@@ -192,17 +193,19 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
               {/* Short Description */}
               <div className="space-y-2">
                 <h3 className="text-xs font-bold text-heading uppercase tracking-wider">Description</h3>
-                <div className="text-xs sm:text-sm text-body leading-relaxed whitespace-pre-line">
-                  {isLongDescription && !isDescExpanded
-                    ? `${product.description.slice(0, descriptionMaxLen)}...`
-                    : product.description}
+                <div className={`text-xs sm:text-sm text-body leading-relaxed whitespace-pre-line break-words overflow-hidden transition-all duration-300 relative ${!isDescExpanded ? 'max-h-[140px]' : ''}`}>
+                  <div className={`${!isDescExpanded ? 'line-clamp-6' : ''}`}>
+                    {product.description}
+                  </div>
                   {isLongDescription && (
-                    <button
-                      onClick={() => setIsDescExpanded(!isDescExpanded)}
-                      className="ml-1.5 text-xs font-black text-bronze-600 dark:text-bronze-400 hover:underline cursor-pointer focus:outline-none"
-                    >
-                      {isDescExpanded ? "Read Less" : "Read More"}
-                    </button>
+                    <div className={`${!isDescExpanded ? 'absolute bottom-0 right-0 bg-surface pl-4 pt-1' : 'mt-2'}`}>
+                      <button
+                        onClick={() => setIsDescExpanded(!isDescExpanded)}
+                        className="text-xs font-black text-bronze-600 dark:text-bronze-400 hover:underline cursor-pointer focus:outline-none bg-surface"
+                      >
+                        {isDescExpanded ? "Read Less" : "Read More..."}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

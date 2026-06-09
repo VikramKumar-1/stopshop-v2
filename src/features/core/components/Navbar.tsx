@@ -459,7 +459,10 @@ export const Navbar = () => {
                   </button>
                 )}
 
-                <Link href="/" className={`flex items-center gap-2 group ${searchOpen ? "hidden" : "flex"}`}>
+                <Link 
+                  href={pathname.startsWith("/vendor") ? "/vendor/dashboard" : pathname.startsWith("/admin") ? "/admin" : "/"} 
+                  className={`flex items-center gap-2 group ${searchOpen ? "hidden" : "flex"}`}
+                >
                   <img 
                     src="/logo4.jpg" 
                     alt="StopShop Logo" 

@@ -81,6 +81,21 @@ export async function createProduct(body: any, session: TokenPayload) {
     throw new Error("Unauthorized access");
   }
 
+  // Vendor verification check
+  if (session.role === "vendor") {
+    const user = await prisma.user.findUnique({ where: { id: session.userId } });
+    if (!user || user.vendorStatus !== "APPROVED") {
+      throw new Error("Unauthorized: Your vendor profile must be approved before you can add products.");
+    }
+
+    if (user.allowedCategories) {
+      const allowed = user.allowedCategories.split(',').map(c => c.trim());
+      if (!allowed.includes(body.categoryName)) {
+        throw new Error(`Unauthorized: You do not have permission to upload products to the '${body.categoryName}' category.`);
+      }
+    }
+  }
+
   const {
     name,
     description,

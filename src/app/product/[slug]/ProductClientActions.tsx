@@ -129,7 +129,7 @@ export default function ProductClientActions({ product, allImages }: ProductClie
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:flex-1">
               <button
                 onClick={() => {
-                  window.location.href = `/checkout?productId=${product.id}`;
+                  window.location.href = `/checkout?productId=${product.id}&qty=${quantity}`;
                 }}
                 className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-black shadow-md hover:shadow-lg transition-all duration-300 text-sm active:scale-[0.98]"
               >

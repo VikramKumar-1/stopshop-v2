@@ -1,15 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Loader2, ArrowRight, User as UserIcon, Lock, Package, Truck, CheckCircle2 } from "lucide-react";
-import { countries } from "@/lib/countries";
+import { Mail, Loader2, ArrowRight, User as UserIcon, Lock, Package, Truck, Download, RefreshCcw, Camera, X, AlertTriangle } from "lucide-react";
 
 export default function OrdersPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [inquiries, setInquiries] = useState<any[]>([]);
-  const [directOrders, setDirectOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
 
   // Auth Forms State (if not logged in)
   const [isLogin, setIsLogin] = useState(true);
@@ -17,15 +15,52 @@ export default function OrdersPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
-  const [oauthError, setOauthError] = useState("");
-  const [rememberMe, setRememberMe] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
 
   // Tab State
   const [activeTab, setActiveTab] = useState("active");
 
-  const handleGoogleLogin = () => {
-    window.location.href = `/api/auth/oauth/google?redirect=${encodeURIComponent("/orders")}`;
+  // Return Modal State
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [returnOrderId, setReturnOrderId] = useState<string | null>(null);
+  const [returnItems, setReturnItems] = useState<any[]>([]);
+  const [returnReason, setReturnReason] = useState("DEFECTIVE");
+  const [returnNotes, setReturnNotes] = useState("");
+  // Mock image upload state for simplicity
+  const [returnImages, setReturnImages] = useState<string[]>([]); 
+  const [submittingReturn, setSubmittingReturn] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+
+  const handleUploadReturnImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImage(true);
+    try {
+      if (returnImages.length + files.length > 8) {
+        throw new Error("Maximum 8 photos allowed.");
+      }
+
+      const fileArray = Array.from(files);
+      const uploadPromises = fileArray.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        if (!res.ok) throw new Error("Upload failed");
+        const data = await res.json();
+        return data.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setReturnImages(prev => [...prev, ...uploadedUrls]);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to upload photo");
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
+    }
   };
 
   const fetchProfileAndOrders = async () => {
@@ -35,22 +70,15 @@ export default function OrdersPage() {
         const meData = await meRes.json();
         if (meData.authenticated) {
           setUser(meData.user);
-          // Fetch user's B2B Inquiries/Orders
-          const inqRes = await fetch("/api/inquiries");
-          if (inqRes.ok) {
-            const inqData = await inqRes.json();
-            setInquiries(inqData);
-          }
-          // Fetch user's Buy Now direct orders
-          const directOrdersRes = await fetch(`/api/orders?email=${encodeURIComponent(meData.user.email)}`);
-          if (directOrdersRes.ok) {
-            const directOrdersData = await directOrdersRes.json();
-            setDirectOrders(directOrdersData);
+          const ordersRes = await fetch(`/api/orders?limit=50`);
+          if (ordersRes.ok) {
+            const data = await ordersRes.json();
+            setOrders(data.orders || []);
           }
         }
       }
     } catch (err) {
-      console.error("Error loading orders page profile:", err);
+      console.error("Error loading orders:", err);
     } finally {
       setLoading(false);
     }
@@ -67,8 +95,8 @@ export default function OrdersPage() {
 
     const url = isLogin ? "/api/auth/login" : "/api/auth/register";
     const payload = isLogin
-      ? { email, password, rememberMe }
-      : { name, email, password, role: "user", rememberMe };
+      ? { email, password, rememberMe: true }
+      : { name, email, password, role: "user", rememberMe: true };
 
     try {
       const res = await fetch(url, {
@@ -91,142 +119,83 @@ export default function OrdersPage() {
     }
   };
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/me", { method: "POST" });
-    setUser(null);
-    setInquiries([]);
-    setDirectOrders([]);
+  const handleDownloadInvoice = (orderId: string, orderNumber: string) => {
+     window.location.href = `/api/orders/${orderId}/invoice`;
+  };
+
+  const openReturnModal = (order: any) => {
+     setReturnOrderId(order.id);
+     setReturnItems(order.items.map((i: any) => ({
+        productId: i.productId,
+        productName: i.productName,
+        quantity: i.quantity,
+        unitPaise: i.unitPaise
+     })));
+     setReturnImages([]);
+     setReturnNotes("");
+     setShowReturnModal(true);
+  };
+
+  const submitReturn = async () => {
+     if (returnImages.length < 6 || returnImages.length > 8) {
+        alert(`You must upload between 6 and 8 photos. You currently have ${returnImages.length}.`);
+        return;
+     }
+
+     setSubmittingReturn(true);
+     try {
+        const res = await fetch("/api/returns/request", {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({
+              orderId: returnOrderId,
+              reason: returnReason,
+              reasonDetail: returnNotes,
+              returnImages,
+              returnItems
+           })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+           alert("Return request submitted successfully. We will review it shortly.");
+           setShowReturnModal(false);
+           fetchProfileAndOrders();
+        } else {
+           alert(data.error || "Failed to submit return request");
+        }
+     } catch (err) {
+        alert("Network error");
+     } finally {
+        setSubmittingReturn(false);
+     }
   };
 
   if (loading) {
-    return (
-      <div className="min-h-[60vh] w-full flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-      </div>
-    );
+    return <div className="min-h-[60vh] w-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500" /></div>;
   }
 
-  // Not Logged In - Render Login / Signup Form
   if (!user) {
     return (
       <div className="min-h-screen bg-surface pt-6 pb-16 px-4 flex items-center justify-center">
-        <div className="max-w-md w-full bg-surface-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full blur-3xl -z-10" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-bronze-500/5 rounded-full blur-3xl -z-10" />
-
+        <div className="max-w-md w-full bg-surface-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl">
           <div className="text-center mb-6">
-            <h1 className="text-xl sm:text-2xl font-display font-bold text-heading">
-              {isLogin ? "Welcome Back" : "Create Account"}
-            </h1>
-            <p className="text-[11px] text-muted mt-1.5 leading-normal">
-              Sign in to track your custom B2B orders & quotes
-            </p>
+            <h1 className="text-xl font-display font-bold text-heading">{isLogin ? "Sign In" : "Create Account"}</h1>
           </div>
-
           <form onSubmit={handleAuthSubmit} className="space-y-3.5 text-xs">
-            {(authError || oauthError) && (
-              <div className="p-3 bg-red-500/5 text-red-500 border border-red-500/20 rounded-xl font-medium">
-                {authError || oauthError}
-              </div>
-            )}
-
+            {authError && <div className="p-3 bg-red-500/5 text-red-500 border border-red-500/20 rounded-xl font-medium">{authError}</div>}
             {!isLogin && (
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Full Name *</label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3.5 top-2.5 w-4 h-4 text-muted" />
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="John Doe"
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl text-heading outline-none transition-colors"
-                  />
-                </div>
-              </div>
+              <input type="text" required value={name} onChange={e=>setName(e.target.value)} placeholder="Full Name" className="w-full px-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl outline-none" />
             )}
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Email Address *</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-2.5 w-4 h-4 text-muted" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl text-heading outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Password *</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-2.5 w-4 h-4 text-muted" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl text-heading outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between py-0.5">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-border text-orange-500 focus:ring-orange-500 bg-surface accent-orange-500"
-                />
-                <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Remember Me</span>
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-1.5"
-            >
-              {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isLogin ? "Sign In" : "Register"}
-              {!authLoading && <ArrowRight className="w-3.5 h-3.5" />}
-            </button>
-
-            <div className="relative flex py-1 items-center">
-              <div className="flex-grow border-t border-border"></div>
-              <span className="flex-shrink mx-4 text-muted text-[10px] uppercase font-bold tracking-wider">or</span>
-              <div className="flex-grow border-t border-border"></div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="w-full py-3 bg-surface border border-border hover:bg-surface-hover text-heading font-bold rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.65l3.15-3.15C17.45 1.77 14.93 1 12 1 7.37 1 3.44 3.73 1.64 7.69l3.77 2.92C6.31 7.07 8.92 5.04 12 5.04z" />
-                <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.35H12v4.45h6.44c-.28 1.48-1.12 2.74-2.38 3.59l3.7 2.87c2.16-2 3.73-4.94 3.73-8.56z" />
-                <path fill="#FBBC05" d="M5.41 14.88c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.64 7.38C.6 9.48 0 11.67 0 14s.6 4.52 1.64 6.62l3.77-2.74z" />
-                <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.92l-3.7-2.87c-1.03.69-2.34 1.1-4.26 1.1-3.08 0-5.69-2.03-6.62-5.57L1.61 15.48C3.41 19.44 7.34 23 12 23z" />
-              </svg>
-              Continue with Google
+            <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email Address" className="w-full px-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl outline-none" />
+            <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl outline-none" />
+            
+            <button type="submit" disabled={authLoading} className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl flex items-center justify-center gap-1.5">
+              {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isLogin ? "Sign In" : "Register")}
             </button>
           </form>
-
           <div className="mt-6 text-center border-t border-border pt-4">
-            <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setAuthError("");
-              }}
-              className="text-xs text-orange-500 hover:text-orange-600 font-bold transition-colors"
-            >
+            <button onClick={() => { setIsLogin(!isLogin); setAuthError(""); }} className="text-xs text-orange-500 font-bold">
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
           </div>
@@ -235,364 +204,364 @@ export default function OrdersPage() {
     );
   }
 
-  const activeInquiries = inquiries.map(inq => {
-    let items = inq.items;
-    if (typeof items === "string") {
-      try { items = JSON.parse(items); } catch (e) { items = []; }
-    }
-    const itemsArr = Array.isArray(items) ? items : [];
-    const activeItems = itemsArr.filter(item => !["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING"));
-    return { ...inq, items: activeItems };
-  }).filter(inq => inq.items.length > 0);
+  const activeOrders = orders.filter(o => !["DELIVERED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURNED", "RETURN_REJECTED", "RTO", "RTO_DELIVERED"].includes(o.status));
+  const archiveOrders = orders.filter(o => ["DELIVERED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURNED", "RETURN_REJECTED", "RTO", "RTO_DELIVERED"].includes(o.status));
 
-  const archiveInquiries = inquiries.map(inq => {
-    let items = inq.items;
-    if (typeof items === "string") {
-      try { items = JSON.parse(items); } catch (e) { items = []; }
-    }
-    const itemsArr = Array.isArray(items) ? items : [];
-    const archivedItems = itemsArr.filter(item => ["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING"));
-    return { ...inq, items: archivedItems };
-  }).filter(inq => inq.items.length > 0);
-
-  const activeDirectOrders = directOrders.filter(o => !["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING"));
-  const archiveDirectOrders = directOrders.filter(o => ["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING"));
-
-  const activeItemsCount = activeInquiries.reduce((sum, inq) => sum + inq.items.length, 0) + activeDirectOrders.length;
-  const archiveItemsCount = archiveInquiries.reduce((sum, inq) => sum + inq.items.length, 0) + archiveDirectOrders.length;
-
-  // Logged In - Render Orders tracking
   return (
     <div className="min-h-screen bg-surface pt-10 pb-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Navigation Tabs */}
         <div className="flex border-b border-border mb-8">
-          <button
-            onClick={() => setActiveTab("active")}
-            className={`flex-1 pb-4 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider transition-all border-b-2 outline-none cursor-pointer ${
-              activeTab === "active"
-                ? "border-orange-500 text-orange-500 font-bold"
-                : "border-transparent text-muted hover:text-heading"
-            }`}
-          >
-            Active Orders & Quotes ({activeItemsCount})
+          <button onClick={() => setActiveTab("active")} className={`flex-1 pb-4 text-center text-xs font-semibold uppercase ${activeTab === "active" ? "border-b-2 border-orange-500 text-orange-500" : "text-muted"}`}>
+            Active Orders ({activeOrders.length})
           </button>
-          <button
-            onClick={() => setActiveTab("archived")}
-            className={`flex-1 pb-4 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider transition-all border-b-2 outline-none cursor-pointer ${
-              activeTab === "archived"
-                ? "border-orange-500 text-orange-500 font-bold"
-                : "border-transparent text-muted hover:text-heading"
-            }`}
-          >
-            Delivered & Archival History ({archiveItemsCount})
+          <button onClick={() => setActiveTab("archived")} className={`flex-1 pb-4 text-center text-xs font-semibold uppercase ${activeTab === "archived" ? "border-b-2 border-orange-500 text-orange-500" : "text-muted"}`}>
+            Past & Returns ({archiveOrders.length})
           </button>
         </div>
 
-        {/* Tab Contents */}
         <div className="space-y-6">
-          {activeTab === "active" ? (
-            activeInquiries.length === 0 && activeDirectOrders.length === 0 ? (
-              <div className="text-center py-16 bg-surface-card border border-border rounded-3xl">
-                <p className="text-sm text-muted">You have no active orders or quotes at the moment.</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* 1. Direct Buy Now Orders */}
-                {activeDirectOrders.map((order) => (
-                  <div key={order.id} className="bg-surface-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
-                    <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
-                      <div>
-                        <span className="font-bold text-muted uppercase">Order ID:</span>
-                        <span className="font-bold text-heading ml-1.5 bg-surface border border-border px-2 py-0.5 rounded-lg">#{order.id}</span>
-                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-[9px] font-bold text-orange-500 uppercase">
-                          Buy Now
-                        </span>
-                      </div>
-                      <div className="text-muted flex items-center gap-2">
-                        <span>Ordered on: <span className="font-bold text-heading">{new Date(order.createdAt).toLocaleDateString()}</span></span>
-                        <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-bold px-2 py-0.5 rounded-lg uppercase">
-                          {order.paymentStatus || "PAID"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative">
-                          <img src={order.productImage || "/logo4.jpg"} alt={order.productName} className="w-full h-full object-cover" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-heading text-xs">{order.productName}</h4>
-                          <div className="flex gap-2 items-center mt-1 text-[10px] text-muted">
-                            <span>Qty: <strong className="text-heading font-black">{order.quantity}</strong></span>
-                            <span>•</span>
-                            <span>Total: <strong className="text-heading font-black">₹{order.totalAmount.toLocaleString()}</strong></span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Stepper Timeline */}
-                      <div className="relative pt-4 pb-2">
-                        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2 -z-10" />
-
-                        <div className="grid grid-cols-4 text-center text-[10px] font-bold relative">
-                          {/* Step 1: Paid */}
-                          <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 bg-emerald-500 border-emerald-600 text-white shadow-md shadow-emerald-500/20">
-                              ✓
-                            </div>
-                            <span className="mt-2 text-emerald-600 font-bold">Paid</span>
-                          </div>
-
-                          {/* Step 2: Packed */}
-                          <div className="flex flex-col items-center">
-                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
-                              order.status === "PACKED"
-                                ? "bg-blue-500 border-blue-600 text-white shadow-md shadow-blue-500/20 animate-pulse"
-                                : ["DISPATCHED", "DELIVERED"].includes(order.status)
-                                ? "bg-emerald-500 border-emerald-600 text-white"
-                                : "bg-surface border-border text-muted"
-                            }`}>
-                              {order.status === "PENDING" ? "2" : order.status === "PACKED" ? "●" : "✓"}
-                            </div>
-                            <span className={`mt-2 ${order.status === "PACKED" ? "text-blue-600 dark:text-blue-400 font-bold" : "text-muted"}`}>Packed</span>
-                          </div>
-
-                          {/* Step 3: Dispatched */}
-                          <div className="flex flex-col items-center">
-                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
-                              order.status === "DISPATCHED"
-                                ? "bg-orange-500 border-orange-600 text-white shadow-md shadow-orange-500/20"
-                                : order.status === "DELIVERED"
-                                ? "bg-emerald-500 border-emerald-600 text-white"
-                                : "bg-surface border-border text-muted"
-                            }`}>
-                              {["PENDING", "PACKED"].includes(order.status) ? "3" : order.status === "DISPATCHED" ? "●" : "✓"}
-                            </div>
-                            <span className={`mt-2 ${order.status === "DISPATCHED" ? "text-orange-600 dark:text-orange-400 font-bold" : "text-muted"}`}>
-                              {order.status === "DISPATCHED" ? "Delivering Today!" : "Dispatched"}
-                            </span>
-                            {order.status === "DISPATCHED" && order.deliveryDate && (
-                              <span className="text-[8px] text-orange-500 mt-0.5">Est: {new Date(order.deliveryDate).toLocaleDateString()}</span>
-                            )}
-                          </div>
-
-                          {/* Step 4: Delivered */}
-                          <div className="flex flex-col items-center">
-                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
-                              order.status === "DELIVERED"
-                                ? "bg-emerald-500 border-emerald-600 text-white shadow-md shadow-emerald-500/20"
-                                : "bg-surface border-border text-muted"
-                            }`}>
-                              {order.status === "DELIVERED" ? "✓" : "4"}
-                            </div>
-                            <span className={`mt-2 ${order.status === "DELIVERED" ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-muted"}`}>Delivered</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* 2. Custom B2B Inquiry Quotes */}
-                {activeInquiries.map((inq) => (
-                  <div key={inq.id} className="bg-surface-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
-                    <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
-                      <div>
-                        <span className="font-bold text-muted uppercase">Inquiry ID:</span>
-                        <span className="font-bold text-heading ml-1.5 bg-surface border border-border px-2 py-0.5 rounded-lg">#{inq.id}</span>
-                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-[9px] font-bold text-purple-600 uppercase">
-                          Quote Request
-                        </span>
-                      </div>
-                      <div className="text-muted">
-                        Requested on: <span className="font-bold text-heading">{new Date(inq.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6 divide-y divide-border/40">
-                      {inq.items.map((item: any, idx: number) => {
-                        const status = item.status || "PENDING";
-                        const deliveryDate = item.deliveryDate || "";
-
-                        return (
-                          <div key={idx} className="pt-6 first:pt-0 space-y-6">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative">
-                                <img src={item.image || "/logo4.jpg"} alt={item.name} className="w-full h-full object-cover" />
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-heading text-xs">{item.name}</h4>
-                                <span className="text-[9px] font-bold text-muted uppercase bg-surface border border-border px-1.5 py-0.5 rounded">
-                                  {item.orderType || "Bulk Order"}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="relative pt-4 pb-2">
-                              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2 -z-10" />
-
-                              <div className="grid grid-cols-3 text-center text-[10px] font-bold relative">
-                                <div className="flex flex-col items-center">
-                                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
-                                    status === "PENDING"
-                                      ? "bg-yellow-500 border-yellow-600 text-white shadow-md shadow-yellow-500/20"
-                                      : "bg-emerald-500 border-emerald-600 text-white"
-                                  }`}>
-                                    {status === "PENDING" ? "●" : "✓"}
-                                  </div>
-                                  <span className={`mt-2 ${status === "PENDING" ? "text-yellow-600 dark:text-yellow-400" : "text-muted"}`}>Inquiry Sent</span>
-                                </div>
-
-                                <div className="flex flex-col items-center">
-                                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
-                                    status === "PACKED"
-                                      ? "bg-blue-500 border-blue-600 text-white shadow-md shadow-blue-500/20 animate-pulse"
-                                      : ["DISPATCHED", "DELIVERED"].includes(status)
-                                      ? "bg-emerald-500 border-emerald-600 text-white"
-                                      : "bg-surface border-border text-muted"
-                                  }`}>
-                                    {status === "PENDING" ? "2" : status === "PACKED" ? "●" : "✓"}
-                                  </div>
-                                  <span className={`mt-2 ${status === "PACKED" ? "text-blue-600 dark:text-blue-400" : "text-muted"}`}>Workshop Packed</span>
-                                </div>
-
-                                <div className="flex flex-col items-center">
-                                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-colors ${
-                                    status === "DISPATCHED" || status === "DELIVERED"
-                                      ? "bg-orange-500 border-orange-600 text-white shadow-md shadow-orange-500/20"
-                                      : "bg-surface border-border text-muted"
-                                  }`}>
-                                    {["PENDING", "PACKED"].includes(status) ? "3" : "●"}
-                                  </div>
-                                  <span className={`mt-2 ${["DISPATCHED", "DELIVERED"].includes(status) ? "text-orange-600 dark:text-orange-400 font-bold" : "text-muted"}`}>
-                                    Proposal Sent
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
+          {(activeTab === "active" ? activeOrders : archiveOrders).length === 0 ? (
+             <div className="text-center py-16 bg-surface-card border border-border rounded-3xl"><p className="text-sm text-muted">No orders found.</p></div>
           ) : (
-            archiveInquiries.length === 0 && archiveDirectOrders.length === 0 ? (
-              <div className="text-center py-16 bg-surface-card border border-border rounded-3xl">
-                <p className="text-sm text-muted">You have no delivered or archived history.</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Direct Buy Now Orders Archived */}
-                {archiveDirectOrders.map((order) => (
-                  <div key={order.id} className="bg-surface-card/60 border border-border rounded-3xl p-6 shadow-sm opacity-95 space-y-4">
-                    <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
-                      <div>
-                        <span className="font-bold text-muted uppercase">Order ID:</span>
-                        <span className="font-bold text-heading ml-1.5 bg-surface border border-border px-2 py-0.5 rounded-lg">#{order.id}</span>
-                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-500/10 border border-orange-500/20 text-[9px] font-bold text-orange-500 uppercase">
-                          Buy Now
-                        </span>
-                      </div>
-                      <div className="text-muted flex items-center gap-2">
-                        <span>Ordered on: <span className="font-bold text-heading">{new Date(order.createdAt).toLocaleDateString()}</span></span>
-                      </div>
+            (activeTab === "active" ? activeOrders : archiveOrders).map((order) => (
+              <div key={order.id} className="bg-surface-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
+                 {/* Header */}
+                 <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
+                    <div>
+                      <span className="font-bold text-muted uppercase">Order:</span>
+                      <span className="font-bold text-heading ml-1.5">{order.orderNumber}</span>
+                      <span className={`ml-2 px-2 py-0.5 rounded font-bold uppercase text-[9px] ${order.paymentMethod === 'cod' ? 'bg-blue-500/10 text-blue-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
+                         {order.paymentMethod}
+                      </span>
                     </div>
-
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative opacity-75">
-                          <img src={order.productImage || "/logo4.jpg"} alt={order.productName} className="w-full h-full object-cover" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-muted text-xs">{order.productName}</h4>
-                          <div className="flex gap-2 items-center mt-1">
-                            <span className="text-[9px] text-emerald-600 font-semibold">
-                              Delivered on: {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : "Recently"}
-                            </span>
-                            <span className="text-[10px] text-muted">₹{order.totalAmount.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
-                          order.status === "DELIVERED" ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/20" :
-                          order.status === "RETURNED" ? "bg-amber-500/5 text-amber-600 border-amber-500/20" :
-                          "bg-red-500/5 text-red-500 border-red-500/20"
-                        }`}>
-                          {order.status}
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-3">
+                       <span className="text-muted">Date: <span className="font-bold text-heading">{new Date(order.createdAt).toLocaleDateString()}</span></span>
+                       <button onClick={() => handleDownloadInvoice(order.id, order.orderNumber)} className="flex items-center gap-1 text-orange-500 hover:text-orange-600 font-bold">
+                          <Download size={14} /> Invoice
+                       </button>
                     </div>
-                  </div>
-                ))}
+                 </div>
+                 {/* Shipping Status Stepper & Delivery Date */}
+                 {(() => {
+                    const isCancelled = order.status === "CANCELLED";
+                    const isRto = order.status.startsWith("RTO");
+                    const isReturn = order.status.startsWith("RETURN");
+                    
+                    if (isCancelled || isRto) {
+                      return (
+                         <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 flex items-center gap-2 text-xs font-bold text-red-600">
+                            <AlertTriangle size={16} />
+                            <span>Order Cancelled or Returned to Origin</span>
+                         </div>
+                      );
+                    }
+                    
+                    // Stepper configuration
+                    const stages = [
+                      { label: "Ordered", statusKeys: ["PENDING", "CONFIRMED"] },
+                      { label: "Packed", statusKeys: ["PACKED"] },
+                      { label: "Dispatched", statusKeys: ["DISPATCHED"] },
+                      { label: "Delivered", statusKeys: ["DELIVERED", "RETURNED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REJECTED"] }
+                    ];
 
-                {/* Inquiry Quotes Archived */}
-                {archiveInquiries.map((inq) => (
-                  <div key={inq.id} className="bg-surface-card/60 border border-border rounded-3xl p-6 shadow-sm opacity-95 space-y-4">
-                    <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
-                      <div>
-                        <span className="font-bold text-muted uppercase">Inquiry ID:</span>
-                        <span className="font-bold text-heading ml-1.5 bg-surface border border-border px-2 py-0.5 rounded-lg">#{inq.id}</span>
-                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-[9px] font-bold text-purple-600 uppercase">
-                          Quote Request
-                        </span>
-                      </div>
-                      <div className="text-muted">
-                        Requested on: <span className="font-bold text-heading">{new Date(inq.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
+                    // Determine active index
+                    let currentIndex = 0;
+                    const status = order.status.toUpperCase();
+                    if (status === "PACKED") {
+                       currentIndex = 1;
+                    } else if (status === "DISPATCHED") {
+                       currentIndex = 2;
+                    } else if (["DELIVERED", "RETURNED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REJECTED"].includes(status)) {
+                       currentIndex = 3;
+                    }
 
-                    <div className="space-y-4 divide-y divide-border/40">
-                      {inq.items.map((item: any, idx: number) => {
-                        const status = item.status || "PENDING";
-                        const deliveryDate = item.deliveryDate || "";
+                    return (
+                       <div className="space-y-4 my-2">
+                          {/* Delivery info banner */}
+                          {status === "DELIVERED" && order.deliveredAt ? (
+                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10">
+                                <Package size={16} />
+                                <span>Delivered on {new Date(order.deliveredAt).toLocaleDateString([], { dateStyle: "medium" })}</span>
+                             </div>
+                          ) : order.deliveryDate ? (
+                             <div className="flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
+                                <Truck size={16} />
+                                <span>Estimated Delivery: {new Date(order.deliveryDate).toLocaleDateString([], { dateStyle: "medium" })}</span>
+                             </div>
+                          ) : (
+                             <div className="flex items-center gap-2 text-xs font-bold text-muted bg-surface p-3 rounded-2xl border border-border">
+                                <Truck size={16} className="opacity-50" />
+                                <span>Estimated Delivery: Preparing shipment</span>
+                             </div>
+                          )}
 
-                        return (
-                          <div key={idx} className="pt-4 first:pt-0 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative opacity-75">
-                                <img src={item.image || "/logo4.jpg"} alt={item.name} className="w-full h-full object-cover" />
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-muted text-xs">{item.name}</h4>
-                                <div className="flex gap-2 items-center mt-1">
-                                  <span className="text-[9px] font-bold text-muted uppercase bg-surface border border-border px-1.5 py-0.5 rounded">
-                                    {item.orderType || "Bulk Order"}
-                                  </span>
-                                  {status === "DELIVERED" && deliveryDate && (
-                                    <span className="text-[9px] text-emerald-600 font-semibold">Delivered on: {new Date(deliveryDate).toLocaleDateString()}</span>
-                                  )}
+                          {/* Progress Stepper Line */}
+                          {!isReturn && (
+                             <div className="w-full py-4 border border-border/60 bg-surface/30 px-5 rounded-2xl">
+                                <div className="flex items-center">
+                                   {stages.map((stage, idx) => {
+                                      const isCompleted = idx <= currentIndex;
+                                      const isActive = idx === currentIndex;
+                                      
+                                      return (
+                                         <React.Fragment key={stage.label}>
+                                            {/* Step column */}
+                                            <div className="flex flex-col items-center">
+                                               <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] transition-all duration-300 border-2 ${
+                                                  isCompleted 
+                                                     ? "bg-orange-500 border-orange-500 text-white shadow-sm shadow-orange-500/20" 
+                                                     : "bg-surface border-border text-muted"
+                                               }`}>
+                                                  {idx + 1}
+                                               </div>
+                                               <span className={`text-[9px] font-bold mt-1.5 transition-colors duration-300 ${
+                                                  isActive ? "text-orange-500" : isCompleted ? "text-heading" : "text-muted"
+                                               }`}>
+                                                  {stage.label}
+                                               </span>
+                                            </div>
+                                            
+                                            {/* Connector line */}
+                                            {idx < stages.length - 1 && (
+                                               <div className="flex-1 h-[2px] bg-border mx-2 -mt-4">
+                                                  <div className={`h-full transition-all duration-500 ${
+                                                     idx < currentIndex ? "bg-orange-500" : "bg-transparent"
+                                                  }`} />
+                                               </div>
+                                            )}
+                                         </React.Fragment>
+                                      );
+                                   })}
                                 </div>
-                              </div>
-                            </div>
+                             </div>
+                          )}
+                       </div>
+                    );
+                 })()}
 
-                            <div className="flex items-center gap-3">
-                              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
-                                status === "DELIVERED" ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/20" :
-                                status === "RETURNED" ? "bg-amber-500/5 text-amber-600 border-amber-500/20" :
-                                "bg-red-500/5 text-red-500 border-red-500/20"
-                              }`}>
-                                {status}
-                              </span>
-                            </div>
+                 {/* Items */}
+                 <div className="space-y-4">
+                    {order.items.map((item: any) => (
+                       <div key={item.id} className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-lg bg-surface border border-border overflow-hidden shrink-0">
+                             <img src={item.productImage || "/logo4.jpg"} alt={item.productName} className="w-full h-full object-cover" />
                           </div>
-                        );
-                      })}
+                          <div className="flex-1">
+                             <h4 className="font-bold text-heading text-xs">{item.productName}</h4>
+                             <p className="text-[10px] text-muted">Qty: {item.quantity}</p>
+                          </div>
+                          <div className="font-bold text-heading text-sm">
+                             ₹{(item.totalPaise / 100).toLocaleString()}
+                          </div>
+                       </div>
+                    ))}
+                 </div>
+
+                 {/* Status Footer */}
+                 <div className="flex justify-between items-center pt-4 border-t border-border">
+                    <div className="flex items-center gap-2">
+                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border ${
+                          ['DELIVERED', 'RETURNED'].includes(order.status) ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' :
+                          order.status.includes('RETURN') ? 'bg-amber-500/10 border-amber-500/20 text-amber-600' :
+                          'bg-blue-500/10 border-blue-500/20 text-blue-600'
+                       }`}>
+                          {order.status.replace(/_/g, ' ')}
+                       </span>
+                       {order.awbCode && (
+                          <span className="text-[10px] text-muted">Tracking: <strong>{order.awbCode}</strong> ({order.courierName})</span>
+                       )}
                     </div>
-                  </div>
-                ))}
+
+                    {order.status === "DELIVERED" && !order.returnRequest && (
+                       <button onClick={() => openReturnModal(order)} className="text-xs font-bold text-red-500 hover:text-red-600 border border-red-500/20 bg-red-500/5 px-4 py-1.5 rounded-lg transition-colors">
+                          Return Product
+                       </button>
+                    )}
+                 </div>
               </div>
-            )
+            ))
           )}
         </div>
       </div>
+
+      {/* Return Modal */}
+      {showReturnModal && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-surface-card border border-border rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl relative">
+               <h2 className="text-lg font-bold text-heading">Request Return</h2>
+               <p className="text-xs text-muted">Please provide details and photos of the product to initiate a return. Our team will review the request.</p>
+               
+               <select value={returnReason} onChange={e=>setReturnReason(e.target.value)} className="w-full p-2.5 bg-surface border border-border rounded-xl text-xs outline-none focus:border-orange-500">
+                  <option value="DEFECTIVE">Product is defective/damaged</option>
+                  <option value="WRONG_ITEM">Received wrong item</option>
+                  <option value="POOR_QUALITY">Quality is not as expected</option>
+                  <option value="OTHER">Other</option>
+               </select>
+
+               <textarea 
+                  placeholder="Additional notes about the issue..." 
+                  value={returnNotes} onChange={e=>setReturnNotes(e.target.value)}
+                  className="w-full p-2.5 bg-surface border border-border rounded-xl text-xs outline-none focus:border-orange-500 min-h-[80px]" 
+               />
+
+               <div className="border border-dashed border-orange-500/30 bg-orange-500/5 rounded-xl p-4 text-center">
+                  <div className="flex flex-col gap-3">
+                     <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 mt-2">
+                        {Array.from({ length: 8 }).map((_, i) => {
+                          const url = returnImages[i];
+                          if (url) {
+                            return (
+                              <div key={i} className="aspect-square rounded-md overflow-hidden relative group border border-border">
+                                <img src={url} alt="Return" className="w-full h-full object-cover" />
+                                <button 
+                                  onClick={() => setReturnImages(prev => prev.filter((_, idx) => idx !== i))}
+                                  className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            );
+                          }
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => setCameraActive(true)}
+                              className={`aspect-square rounded-md border border-dashed flex flex-col items-center justify-center text-[8px] font-bold text-muted transition-all hover:bg-orange-500/10 hover:border-orange-500/50 hover:text-orange-500 ${i < 6 ? 'border-orange-500/30 bg-orange-500/5' : 'border-border bg-surface'}`}
+                            >
+                              <Camera size={12} className="mb-0.5" />
+                              {i < 6 ? "Req" : "Opt"}
+                            </button>
+                          );
+                        })}
+                     </div>
+                     
+                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-orange-500/10">
+                        <p className={`text-[10px] font-bold ${returnImages.length >= 6 ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {returnImages.length}/8 Photos
+                        </p>
+                        <label className={`flex items-center gap-1.5 text-orange-500 text-[10px] font-bold transition-all ${uploadingImage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}>
+                           {uploadingImage ? "Uploading..." : "Or Upload Files"}
+                           <input 
+                             type="file" 
+                             id="return-file-input"
+                             accept="image/*" 
+                             multiple
+                             disabled={uploadingImage}
+                             onChange={handleUploadReturnImage}
+                             className="hidden" 
+                           />
+                        </label>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="flex justify-end gap-2 pt-2">
+                  <button onClick={() => setShowReturnModal(false)} className="px-4 py-2 text-xs font-bold text-muted hover:text-heading">Cancel</button>
+                  <button onClick={submitReturn} disabled={submittingReturn} className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl flex items-center gap-2">
+                     {submittingReturn && <Loader2 size={14} className="animate-spin"/>} Submit Return
+                  </button>
+               </div>
+            </div>
+         </div>
+      )}
+
+      {/* Live Camera Modal */}
+      {cameraActive && (
+        <div className="fixed inset-0 z-[200] bg-black flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 w-full z-10">
+            <button onClick={() => {
+              const video = document.getElementById("return-camera-video") as HTMLVideoElement;
+              if (video && video.srcObject) {
+                (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+              }
+              setCameraActive(false);
+            }} className="text-white bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
+              <X size={24} />
+            </button>
+            <button 
+              onClick={() => {
+                const video = document.getElementById("return-camera-video") as HTMLVideoElement;
+                if (video && video.srcObject) {
+                  const stream = video.srcObject as MediaStream;
+                  const track = stream.getVideoTracks()[0];
+                  const currentFacing = track.getSettings().facingMode;
+                  stream.getTracks().forEach(t => t.stop());
+                  navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
+                  }).then(newStream => {
+                    video.srcObject = newStream;
+                  }).catch(console.error);
+                }
+              }} 
+              className="text-white bg-white/20 px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-2 hover:bg-white/30 transition-colors"
+            >
+              <Camera size={16} /> Switch Camera
+            </button>
+          </div>
+          <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black">
+            <video 
+              id="return-camera-video"
+              autoPlay 
+              playsInline 
+              className="w-full h-full object-cover" 
+              ref={(node) => {
+                if (node && !node.srcObject && !node.dataset.requesting) {
+                  node.dataset.requesting = "true";
+                  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("Camera access requires HTTPS or localhost");
+                    setCameraActive(false);
+                    return;
+                  }
+                  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+                    .then(stream => { 
+                      node.srcObject = stream; 
+                      delete node.dataset.requesting;
+                    })
+                    .catch(err => {
+                      delete node.dataset.requesting;
+                      console.error("Camera error:", err);
+                      alert(`Camera error: ${err.name} - ${err.message}`);
+                      setCameraActive(false);
+                    });
+                }
+              }}
+            />
+            <canvas id="return-camera-canvas" className="hidden" />
+          </div>
+          <div className="p-8 pb-12 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 w-full flex justify-center z-10">
+            <button 
+              onClick={() => {
+                const video = document.getElementById("return-camera-video") as HTMLVideoElement;
+                const canvas = document.getElementById("return-camera-canvas") as HTMLCanvasElement;
+                if (!video || !canvas || !video.videoWidth) return;
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return;
+                
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                canvas.toBlob((blob) => {
+                  if (!blob) return;
+                  const file = new File([blob], `return-${Date.now()}.jpg`, { type: "image/jpeg" });
+                  
+                  if (video.srcObject) {
+                    (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+                  }
+                  
+                  handleUploadReturnImage({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>);
+                  setCameraActive(false);
+                }, "image/jpeg", 0.7);
+              }} 
+              className="w-20 h-20 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm border-4 border-white/50 hover:bg-white/50 hover:scale-105 active:scale-95 transition-all shadow-2xl"
+            >
+              <div className="w-16 h-16 bg-white rounded-full shadow-inner"></div>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -39,6 +39,7 @@ export default function VendorProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [submittingKyc, setSubmittingKyc] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -219,8 +220,17 @@ export default function VendorProfilePage() {
     }
   };
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleMainSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check mandatory fields if trying to submit for verification
+    if (user?.vendorStatus === "INCOMPLETE" || user?.vendorStatus === "REJECTED") {
+      if (!mobile || !gstin || !aadhaar || !pan || !city || !stateName || !pincode || !workshopAddress || !workshopName) {
+        alert("Please fill all the mandatory fields (*) before submitting for verification.");
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const combinedLocation = `${city} | ${stateName} | ${country} | ${pincode} | ${workshopAddress}`;
@@ -242,17 +252,34 @@ export default function VendorProfilePage() {
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-        setIsEditing(false); // Lock fields back
-        setToastMessage("Vendor profile updated successfully!");
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 4000);
-      } else {
+      if (!res.ok) {
         const data = await res.json();
         alert(data.error || "Failed to update profile details");
+        setSaving(false);
+        return;
       }
+
+      // If INCOMPLETE or REJECTED, also trigger the IN_REVIEW status
+      if (user?.vendorStatus === "INCOMPLETE" || user?.vendorStatus === "REJECTED") {
+        const reviewRes = await fetch("/api/vendor/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile, gstin, aadhaar, pan, docUrl })
+        });
+        
+        if (reviewRes.ok) {
+          const reviewData = await reviewRes.json();
+          setUser(reviewData.vendor);
+        }
+      } else {
+        const data = await res.json();
+        setUser(data.user);
+      }
+
+      setIsEditing(false); // Lock fields back
+      setToastMessage("Profile submitted and saved successfully!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
     } catch (err) {
       console.error("Error saving profile details:", err);
       alert("An unexpected error occurred while saving.");
@@ -265,6 +292,8 @@ export default function VendorProfilePage() {
     await fetch("/api/auth/me", { method: "POST" });
     window.location.href = "/vendor/login";
   };
+
+
 
   if (loading) {
     return (
@@ -359,7 +388,7 @@ export default function VendorProfilePage() {
                 </div>
                 <div className="pt-2 border-t border-zinc-800/60">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 font-bold uppercase tracking-wider text-[9px]">
-                    Verified Artisan Exporter
+                    Status: {user.vendorStatus === "APPROVED" ? "Verified Artisan Exporter" : user.vendorStatus === "IN_REVIEW" ? "Under Review" : user.vendorStatus === "REJECTED" ? "Rejected" : "Incomplete Profile"}
                   </span>
                 </div>
               </div>
@@ -389,22 +418,25 @@ export default function VendorProfilePage() {
                 </h3>
                 <button
                   type="button"
+                  disabled={user?.vendorStatus === "IN_REVIEW"}
                   onClick={() => setIsEditing(!isEditing)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all duration-300 border ${
-                    isEditing
+                    user?.vendorStatus === "IN_REVIEW" 
+                      ? "opacity-50 cursor-not-allowed bg-surface border-border text-muted"
+                      : isEditing
                       ? "bg-orange-500/10 text-orange-500 border-orange-500/30"
                       : "bg-surface-card hover:bg-surface border-border text-muted hover:text-heading"
                   }`}
                 >
                   <Edit3 size={14} />
-                  {isEditing ? "Editing Mode" : "Edit Profile"}
+                  {user?.vendorStatus === "IN_REVIEW" ? "Under Review" : isEditing ? "Editing Mode" : "Edit Profile"}
                 </button>
               </div>
 
-              <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+              <form onSubmit={handleMainSubmit} className="space-y-4 text-xs">
                 {/* Workshop Name */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Workshop / Business Name</label>
+                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Workshop / Business Name <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <Store className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                     <input
@@ -428,7 +460,7 @@ export default function VendorProfilePage() {
                 {/* Mobile Number & Pincode Lookup */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Mobile Number</label>
+                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Mobile Number <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <Phone className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                       <input
@@ -451,7 +483,7 @@ export default function VendorProfilePage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">India Pincode</label>
+                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">India Pincode <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                       <input
@@ -498,7 +530,7 @@ export default function VendorProfilePage() {
                 {/* City, State, Country Fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-border/30 pt-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">City / District</label>
+                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">City / District <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       required
@@ -517,7 +549,7 @@ export default function VendorProfilePage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">State</label>
+                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">State <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       required
@@ -536,7 +568,7 @@ export default function VendorProfilePage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Country</label>
+                    <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Country <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       required
@@ -557,7 +589,7 @@ export default function VendorProfilePage() {
 
                 {/* Specific Workshop Address / Location */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Workshop Address / Landmark</label>
+                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Workshop Address / Landmark <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                     <input
@@ -607,7 +639,7 @@ export default function VendorProfilePage() {
 
                     {/* GSTIN */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">GSTIN (GST Identification Number)</label>
+                      <label className="text-[10px] font-bold text-muted uppercase tracking-wider">GSTIN (GST Identification Number) <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         value={gstin}
@@ -627,7 +659,7 @@ export default function VendorProfilePage() {
                     {/* Aadhaar Number & Upload */}
                     <div className="space-y-2 bg-surface p-4 rounded-2xl border border-border">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Aadhaar Card Number</label>
+                        <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Aadhaar Card Number <span className="text-red-500">*</span></label>
                         <input
                           type="text"
                           required
@@ -682,7 +714,7 @@ export default function VendorProfilePage() {
                     {/* PAN Number & Upload */}
                     <div className="space-y-2 bg-surface p-4 rounded-2xl border border-border">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-muted uppercase tracking-wider">PAN Card Number</label>
+                        <label className="text-[10px] font-bold text-muted uppercase tracking-wider">PAN Card Number <span className="text-red-500">*</span></label>
                         <input
                           type="text"
                           required
@@ -771,17 +803,21 @@ export default function VendorProfilePage() {
                   </div>
                 </div>
 
-                {/* Save Button */}
+                {/* Single Submit/Save Button */}
                 <div className="flex justify-end pt-4">
                   <button
                     type="submit"
-                    disabled={!isEditing || saving}
+                    disabled={!isEditing || saving || user?.vendorStatus === "IN_REVIEW"}
                     className={`px-8 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-xl shadow-md transition-all duration-300 flex items-center gap-1.5 ${
-                      !isEditing ? "opacity-50 cursor-not-allowed scale-[0.98]" : "hover:scale-[1.02]"
+                      (!isEditing || user?.vendorStatus === "IN_REVIEW") ? "opacity-50 cursor-not-allowed scale-[0.98]" : "hover:scale-[1.02]"
                     }`}
                   >
                     {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {saving ? "Saving Details..." : "Save Profile Details"}
+                    {saving 
+                      ? "Submitting..." 
+                      : user?.vendorStatus === "APPROVED" 
+                        ? "Save & Submit for Re-Verification" 
+                        : "Submit Profile for Verification"}
                   </button>
                 </div>
 

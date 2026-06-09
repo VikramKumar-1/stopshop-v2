@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { Plus, Trash2, Store, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, CheckCircle2, XCircle, AlertTriangle, Info, X } from "lucide-react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { Plus, Trash2, Store, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, CheckCircle2, XCircle, AlertTriangle, Info, X, FileText, Clock, Camera, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { currencyDatabase } from "@/context/RegionContext";
 export const VendorDashboard = () => {
   const router = useRouter();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [vendor, setVendor] = useState<any>(null);
 
   // Premium Toast Notification State
@@ -27,24 +28,161 @@ export const VendorDashboard = () => {
     }, 4500);
   };
 
+  const simulateShiprocketWebhook = async (awb: string, status: string) => {
+    try {
+      const res = await fetch("/api/webhooks/shiprocket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ awb, current_status: status })
+      });
+      if (res.ok) {
+        showToast(`Simulated Shiprocket Webhook: ${status}`, "success");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        showToast("Webhook simulation failed", "error");
+      }
+    } catch (err) {
+      showToast("Network error simulating webhook", "error");
+    }
+  };
+
   // Dashboard Data
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [productSearch, setProductSearch] = useState("");
   const [modalProduct, setModalProduct] = useState<any | null>(null);
+  const [modalMainImage, setModalMainImage] = useState<string>("");
   const [modalMessage, setModalMessage] = useState<any | null>(null);
+  const [modalShipping, setModalShipping] = useState<any | null>(null);
+  const [modalTransaction, setModalTransaction] = useState<any | null>(null);
   const [editStockValue, setEditStockValue] = useState("");
   const [updatingStock, setUpdatingStock] = useState(false);
-  const [activeTab, setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders">("inquiries");
+  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements">("inquiries");
+
+  useEffect(() => {
+    const savedTab = localStorage.getItem("vendorActiveTab");
+    if (savedTab) {
+      _setActiveTab(savedTab as any);
+    }
+  }, []);
+
+  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements") => {
+    _setActiveTab(tab);
+    localStorage.setItem("vendorActiveTab", tab);
+  };
+
+  const [returns, setReturns] = useState<any[]>([]);
+  const [settlements, setSettlements] = useState<any[]>([]);
+  const [settlementSummary, setSettlementSummary] = useState<any>(null);
   const [allInquiries, setAllInquiries] = useState<any[]>([]);
   const [editingDelivery, setEditingDelivery] = useState<{ inquiryId: number, productId: number, value: string } | null>(null);
   const [editingDirectDelivery, setEditingDirectDelivery] = useState<{ orderId: string, value: string } | null>(null);
   const [directOrders, setDirectOrders] = useState<any[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [orderPage, setOrderPage] = useState(1);
+  const [orderTotalPages, setOrderTotalPages] = useState(1);
+  const [fetchingOrders, setFetchingOrders] = useState(false);
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
+  // Packing Modal State
+  const [showPackingModal, setShowPackingModal] = useState<any | null>(null);
+  const [packingImages, setPackingImages] = useState<Record<number, string[]>>({}); // orderItemId -> string[]
+  const [uploadingPacking, setUploadingPacking] = useState<{ [itemId: number]: boolean }>({});
+  const [activeCameraItem, setActiveCameraItem] = useState<number | null>(null);
+
+  // Return QC State
+  const [reviewReturnOrder, setReviewReturnOrder] = useState<any | null>(null);
+  const [qcImages, setQcImages] = useState<string[]>([]);
+  const [qcNotes, setQcNotes] = useState("");
+  const [isDisputing, setIsDisputing] = useState(false);
+  const [uploadingQc, setUploadingQc] = useState(false);
+  const [qcCameraActive, setQcCameraActive] = useState(false);
+  const [submittingQc, setSubmittingQc] = useState(false);
+  const [submittingPacking, setSubmittingPacking] = useState(false);
+
+  // SLA Countdown States
+  const [slaHours, setSlaHours] = useState<number>(24);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30000); // Tick every 30 seconds
+    return () => clearInterval(timer);
+  }, []);
+
+
+
   // Edit Product Modal states & handlers
   const [modalEditProduct, setModalEditProduct] = useState<any | null>(null);
+
+  // KYC / Vendor Profile State
+  const [kycForm, setKycForm] = useState({
+    mobile: "",
+    gstin: "",
+    aadhaar: "",
+    pan: "",
+  });
+  const [submittingKyc, setSubmittingKyc] = useState(false);
+
+  // Auto-fill KYC form if data exists
+  useEffect(() => {
+    if (vendor) {
+      setKycForm({
+        mobile: vendor.mobile || "",
+        gstin: vendor.gstin || "",
+        aadhaar: vendor.aadhaar || "",
+        pan: vendor.pan || "",
+      });
+    }
+  }, [vendor]);
+
+  // Handle Order Pagination
+  useEffect(() => {
+    if (vendor && vendor.id) {
+      fetchOrders(vendor.id, orderPage);
+    }
+  }, [orderPage]);
+
+  // Infinite Scroll Observer
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
+    if (fetchingOrders) return;
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && orderPage < orderTotalPages) {
+        setOrderPage(prev => prev + 1);
+      }
+    });
+    if (node) observerRef.current.observe(node);
+  }, [fetchingOrders, orderPage, orderTotalPages]);
+
+  const handleSubmitKyc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingKyc(true);
+    try {
+      const res = await fetch("/api/vendor/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(kycForm)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Profile submitted for review!", "success");
+        if (vendor) fetchData(vendor.id); // Re-fetch to get updated status
+        setActiveTab("inquiries");
+      } else {
+        showToast(data.error || "Submission failed", "error");
+      }
+    } catch (err) {
+      showToast("Error submitting profile", "error");
+    } finally {
+      setSubmittingKyc(false);
+    }
+  };
   const [editForm, setEditForm] = useState<{
     id: number;
     name: string;
@@ -518,6 +656,92 @@ export const VendorDashboard = () => {
     }
   };
 
+  const handleUploadPackingImage = async (files: FileList | File[] | null, itemId: number) => {
+    if (!files || files.length === 0) return;
+
+    setUploadingPacking(prev => ({ ...prev, [itemId]: true }));
+    try {
+      const currentImgs = packingImages[itemId] || [];
+      if (currentImgs.length + files.length > 8) {
+        throw new Error("Maximum 8 photos allowed per item.");
+      }
+
+      const fileArray = Array.from(files);
+      const uploadPromises = fileArray.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        if (!res.ok) throw new Error("Upload failed");
+        const data = await res.json();
+        return data.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setPackingImages(prev => ({
+        ...prev,
+        [itemId]: [...(prev[itemId] || []), ...uploadedUrls]
+      }));
+      showToast("Dispatch photos uploaded successfully!", "success");
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to upload photo", "error");
+    } finally {
+      setUploadingPacking(prev => ({ ...prev, [itemId]: false }));
+    }
+  };
+
+  const handleUploadQcImage = async (files: FileList | File[] | null) => {
+    if (!files || files.length === 0) return;
+    setUploadingQc(true);
+    try {
+      if (qcImages.length + files.length > 8) throw new Error("Max 8 photos");
+      const fileArray = Array.from(files);
+      const uploadPromises = fileArray.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        if (!res.ok) throw new Error("Upload failed");
+        const data = await res.json();
+        return data.url;
+      });
+      const urls = await Promise.all(uploadPromises);
+      setQcImages(prev => [...prev, ...urls]);
+    } catch (err: any) {
+      showToast(err.message, "error");
+    } finally {
+      setUploadingQc(false);
+    }
+  };
+
+  const handleQcSubmit = async (action: "QC_PASS" | "QC_UPLOAD") => {
+    if (!reviewReturnOrder?.returnRequest) return;
+    if (action === "QC_UPLOAD" && qcImages.length < 5) {
+      showToast("Please upload at least 5 photos showing the wrong/damaged product.", "error");
+      return;
+    }
+    
+    setSubmittingQc(true);
+    try {
+      const res = await fetch(`/api/returns/${reviewReturnOrder.returnRequest.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, qcImages, qcNotes })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(action === "QC_PASS" ? "Return Accepted & Refunded!" : "Dispute Raised! Admin will review.", "success");
+        setReviewReturnOrder(null);
+        if (vendor) fetchData(vendor.id);
+      } else {
+        showToast(data.error || "Failed to submit QC", "error");
+      }
+    } catch (err) {
+      showToast("Network error", "error");
+    } finally {
+      setSubmittingQc(false);
+    }
+  };
+
   const removeGalleryImage = (idx: number, isEdit: boolean) => {
     if (isEdit) {
       setEditForm((prev) => ({
@@ -541,7 +765,9 @@ export const VendorDashboard = () => {
           if (data.user.role === "vendor") {
             setAuthorized(true);
             setVendor(data.user);
-            fetchData(data.user.id);
+            fetchData(data.user.id, data.user);
+          } else if (data.user.role === "admin") {
+            window.location.href = "/admin";
           } else {
             window.location.href = "/profile";
           }
@@ -585,7 +811,25 @@ export const VendorDashboard = () => {
     }
   };
 
-  const fetchData = async (vendorId: number) => {
+  const fetchOrders = async (vId: number, page: number) => {
+    setFetchingOrders(true);
+    try {
+      const res = await fetch(`/api/orders?vendorId=${vId}&page=${page}&limit=10`);
+      if (res.ok) {
+        const data = await res.json();
+        setDirectOrders(prev => page === 1 ? (data.orders || []) : [...prev, ...(data.orders || [])]);
+        if (data.pagination) {
+          setOrderTotalPages(data.pagination.totalPages || 1);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setFetchingOrders(false);
+    }
+  };
+
+  const fetchData = async (vendorId: number, vendorData?: any) => {
     try {
       // Fetch categories
       setLoadingCategories(true);
@@ -594,8 +838,14 @@ export const VendorDashboard = () => {
         const dataCat = await resCat.json();
         setDbCategories(dataCat);
         if (dataCat.length > 0) {
-          setProductForm(prev => ({ ...prev, categoryName: dataCat[0].slug }));
-          setEditForm(prev => ({ ...prev, categoryName: dataCat[0].slug }));
+          let firstAllowed = dataCat[0].slug;
+          if (vendorData?.allowedCategories) {
+            const allowedList = vendorData.allowedCategories.split(',').map((c: string) => c.trim());
+            const firstValid = dataCat.find((c: any) => allowedList.includes(c.slug));
+            if (firstValid) firstAllowed = firstValid.slug;
+          }
+          setProductForm(prev => ({ ...prev, categoryName: firstAllowed }));
+          setEditForm(prev => ({ ...prev, categoryName: firstAllowed }));
         }
       }
       setLoadingCategories(false);
@@ -627,16 +877,45 @@ export const VendorDashboard = () => {
           setInquiries(filteredInq);
         }
 
-        // Fetch direct orders
-        const resOrders = await fetch(`/api/orders?vendorId=${vendorId}`);
-        if (resOrders.ok) {
-          const dataOrders = await resOrders.json();
-          setDirectOrders(dataOrders);
+        // Fetch direct orders via separate function
+        await fetchOrders(vendorId, orderPage);
+
+        // Fetch vendor stats
+        const resStats = await fetch(`/api/vendor/stats?vendorId=${vendorId}`);
+        if (resStats.ok) {
+          const statsData = await resStats.json();
+          if (statsData.success) {
+            setDashboardStats(statsData.stats);
+          }
+        }
+
+        // Fetch Settlements
+        const resSettlements = await fetch(`/api/admin/settlements`);
+        if (resSettlements.ok) {
+          const dataSettlements = await resSettlements.json();
+          if (dataSettlements.success) {
+            setSettlements(dataSettlements.settlements);
+            setSettlementSummary(dataSettlements.summary);
+          }
+        }
+
+        // Fetch Returns
+        const resReturns = await fetch(`/api/vendor/returns`);
+        if (resReturns.ok) {
+          const dataReturns = await resReturns.json();
+          if (dataReturns.success) {
+            setReturns(dataReturns.returns);
+            if (dataReturns.slaHours) {
+              setSlaHours(dataReturns.slaHours);
+            }
+          }
         }
       }
     } catch (e) {
       console.error("Failed to load vendor dashboard details:", e);
       setLoadingCategories(false);
+    } finally {
+      setIsLoadingData(false);
     }
   };
 
@@ -815,6 +1094,7 @@ export const VendorDashboard = () => {
 
   const openProductModal = (prod: any) => {
     setModalProduct(prod);
+    setModalMainImage(prod.image || "/logo4.jpg");
     setEditStockValue(prod.stock.toString());
   };
 
@@ -847,12 +1127,8 @@ export const VendorDashboard = () => {
     checkAuth();
   }, []);
 
-  if (authorized === null) {
-    return (
-      <div className="min-h-[60vh] w-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" />
-      </div>
-    );
+  if (authorized === null || (authorized && isLoadingData)) {
+    return <div className="min-h-screen bg-surface flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" /></div>;
   }
 
   // Pre-calculate tab inquiry counts
@@ -985,17 +1261,35 @@ export const VendorDashboard = () => {
                 activeTab === "direct-orders" ? "text-orange-500" : "text-muted hover:text-heading"
               }`}
             >
-              Orders ({directOrders.filter(o => !["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING")).length})
+              Orders ({directOrders.filter(o => !["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REQUESTED"].includes(o.status || "PENDING")).length})
               {activeTab === "direct-orders" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer ${
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap ${
                 activeTab === "history" ? "text-orange-500" : "text-muted hover:text-heading"
               }`}
             >
-              Order History ({historyInquiriesCount + directOrders.filter(o => ["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING")).length})
+              Order History ({historyInquiriesCount + directOrders.filter(o => ["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED"].includes(o.status || "PENDING")).length})
               {activeTab === "history" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+            </button>
+            <button
+              onClick={() => setActiveTab("returns-pending")}
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap ${
+                activeTab === "returns-pending" ? "text-orange-500" : "text-muted hover:text-heading"
+              }`}
+            >
+              Incoming Returns ({directOrders.filter(o => o.status === "RETURN_APPROVED" && !o.returnRequest?.vendorDeliveredAt).length})
+              {activeTab === "returns-pending" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+            </button>
+            <button
+              onClick={() => setActiveTab("returns-action")}
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap ${
+                activeTab === "returns-action" ? "text-red-500" : "text-muted hover:text-heading"
+              }`}
+            >
+              QC Required ({directOrders.filter(o => o.status === "RETURN_RECEIVED" || (o.status === "RETURN_APPROVED" && o.returnRequest?.vendorDeliveredAt)).length})
+              {activeTab === "returns-action" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500" />}
             </button>
             <button
               onClick={() => setActiveTab("products")}
@@ -1016,67 +1310,100 @@ export const VendorDashboard = () => {
               {activeTab === "add-product" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
             <button
-              onClick={() => setActiveTab("admin-panel")}
-              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer ${
-                activeTab === "admin-panel" ? "text-orange-500" : "text-muted hover:text-heading"
+              onClick={() => router.push("/vendor/profile")}
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer text-muted hover:text-heading`}
+            >
+              My Profile
+            </button>
+            {/* Returns Tab */}
+            <button
+              onClick={() => setActiveTab("returns")}
+              className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
+                activeTab === "returns" ? "text-orange-500" : "text-muted hover:text-heading"
               }`}
             >
-              Admin Panel ({generalInquiries.length})
-              {activeTab === "admin-panel" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+              Returns QC
+              {activeTab === "returns" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
+
+            {/* Settlements Tab */}
+            <button
+              onClick={() => setActiveTab("settlements")}
+              className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
+                activeTab === "settlements" ? "text-orange-500" : "text-muted hover:text-heading"
+              }`}
+            >
+              Settlements
+              {activeTab === "settlements" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+            </button>
+
+            {/* Admin Tab (Only if admin role) */}
+            {vendor?.role === "admin" && (
+              <button
+                onClick={() => setActiveTab("admin-panel")}
+                className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
+                  activeTab === "admin-panel" ? "text-orange-500" : "text-muted hover:text-heading"
+                }`}
+              >
+                Admin Panel
+                {activeTab === "admin-panel" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       <div className="max-w-[95%] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">  {/* Tab Contents */}
-        {activeTab === "direct-orders" && (
+        {["direct-orders", "returns-pending", "returns-action"].includes(activeTab) && (
           <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
             <div className="bg-gradient-to-r from-orange-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex items-center justify-between">
               <div>
                 <h3 className="font-display font-bold text-sm text-heading uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
-                  Direct Orders & Transactions
+                  <span className={`w-2 h-2 rounded-full ${activeTab === 'returns-action' ? 'bg-red-500' : 'bg-orange-500'} animate-ping`} />
+                  {activeTab === "direct-orders" ? "Direct Orders & Transactions" : 
+                   activeTab === "returns-pending" ? "Incoming Return Requests" : "Action Required: Delivered Returns"}
                 </h3>
-                <p className="text-[10px] text-muted mt-0.5">Manage automated checkout orders, payments, and dispatch dates</p>
+                <p className="text-[10px] text-muted mt-0.5">
+                  {activeTab === "direct-orders" ? "Manage automated checkout orders, payments, and dispatch dates" : 
+                   "Manage customer returns and disputes"}
+                </p>
               </div>
             </div>
 
-            {/* Stats Overview Grid */}
-            <div className="grid grid-cols-3 gap-4 p-4 bg-surface/50 border-b border-border/80 text-xs">
-              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300">
-                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Today's Orders</span>
-                <div className="flex items-baseline justify-between mt-2">
-                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
-                    {(() => {
-                      const startOfToday = new Date();
-                      startOfToday.setHours(0, 0, 0, 0);
-                      return directOrders.filter(o => new Date(o.createdAt).getTime() >= startOfToday.getTime()).length;
-                    })()}
-                  </span>
-                  <span className="px-2 py-0.5 text-[9px] bg-orange-500/10 text-orange-500 rounded-md font-bold uppercase">Today</span>
+            {/* Stats Overview Grid (Only show for direct-orders) */}
+            {activeTab === "direct-orders" && (
+              <div className="grid grid-cols-3 gap-4 p-4 bg-surface/50 border-b border-border/80 text-xs">
+                <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300">
+                  <span className="text-[10px] text-muted font-bold uppercase tracking-wider">New Orders</span>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                      {dashboardStats ? dashboardStats.pending : "..."}
+                    </span>
+                    <span className="px-2 py-0.5 text-[9px] bg-orange-500/10 text-orange-500 rounded-md font-bold uppercase">Pending</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300">
-                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Today Packed</span>
-                <div className="flex items-baseline justify-between mt-2">
-                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
-                    {directOrders.filter(o => o.status === "PACKED").length}
-                  </span>
-                  <span className="px-2 py-0.5 text-[9px] bg-blue-500/10 text-blue-500 rounded-md font-bold uppercase">Packed</span>
+                <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300">
+                  <span className="text-[10px] text-muted font-bold uppercase tracking-wider">To Be Dispatched</span>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                      {dashboardStats ? dashboardStats.packed : "..."}
+                    </span>
+                    <span className="px-2 py-0.5 text-[9px] bg-blue-500/10 text-blue-500 rounded-md font-bold uppercase">Packed</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
-                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Total Delivered</span>
-                <div className="flex items-baseline justify-between mt-2">
-                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
-                    {directOrders.filter(o => o.status === "DELIVERED").length}
-                  </span>
-                  <span className="px-2 py-0.5 text-[9px] bg-emerald-500/10 text-emerald-600 rounded-md font-bold uppercase">Delivered</span>
+                <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
+                  <span className="text-[10px] text-muted font-bold uppercase tracking-wider">In Transit</span>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                      {dashboardStats ? dashboardStats.dispatched : "..."}
+                    </span>
+                    <span className="px-2 py-0.5 text-[9px] bg-emerald-500/10 text-emerald-600 rounded-md font-bold uppercase">Shipped</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -1092,9 +1419,16 @@ export const VendorDashboard = () => {
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {(() => {
-                    const activeDirects = directOrders.filter((o) => 
-                      !["DELIVERED", "CANCELLED", "RETURNED"].includes(o.status || "PENDING")
-                    );
+                    const activeDirects = directOrders.filter((o) => {
+                      if (activeTab === "returns-pending") {
+                         return o.status === "RETURN_APPROVED" && !o.returnRequest?.vendorDeliveredAt;
+                      }
+                      if (activeTab === "returns-action") {
+                         return o.status === "RETURN_RECEIVED" || (o.status === "RETURN_APPROVED" && o.returnRequest?.vendorDeliveredAt);
+                      }
+                      // Default "direct-orders" tab logic (hide returns and completed)
+                      return !["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REQUESTED"].includes(o.status || "PENDING");
+                    });
 
                     if (activeDirects.length === 0) {
                       return (
@@ -1117,43 +1451,68 @@ export const VendorDashboard = () => {
 
                           {/* Buyer & Transaction */}
                           <td className="p-4">
-                            <div className="flex flex-col gap-0.5 max-w-[260px] min-w-[160px]">
-                              <span className="font-bold text-heading text-xs tracking-tight">{order.shippingName}</span>
-                              <span className="text-[10px] text-muted font-medium flex flex-wrap gap-1">
-                                📍 {order.shippingCity}, {order.shippingState} - {order.shippingPincode}
-                              </span>
-                              <span className="text-[10px] text-muted/80 truncate">✉️ {order.userEmail}</span>
-                              <span className="text-[10px] text-muted/80">📞 {order.shippingPhone}</span>
-                              <span className="mt-1 inline-flex self-start items-center gap-1 bg-surface border border-border px-1.5 py-0.5 rounded text-[8px] font-mono text-muted/95 uppercase">
-                                ID: {order.paymentId}
-                              </span>
+                            <div className="flex flex-col gap-1.5 max-w-[200px] min-w-[150px]">
+                              <div>
+                                <span className="font-bold text-heading text-xs tracking-tight block">{order.shippingName}</span>
+                                <span className="text-[10px] text-muted font-medium">📍 {order.shippingCity}, {order.shippingState}</span>
+                              </div>
+                              <div className="flex flex-col gap-1 mt-1">
+                                <button 
+                                  type="button"
+                                  onClick={() => setModalShipping(order)}
+                                  className="text-[9px] text-orange-500 border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500 hover:text-white px-2 py-1 rounded-md font-bold transition-colors w-fit text-left"
+                                >
+                                  View Shipping Details
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => setModalTransaction(order)}
+                                  className="text-[9px] text-muted hover:text-heading border border-border hover:bg-surface-hover px-2 py-1 rounded-md font-bold transition-colors w-fit text-left"
+                                >
+                                  Transaction Details
+                                </button>
+                              </div>
                             </div>
                           </td>
 
                           {/* Product Details */}
                           <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl overflow-hidden border border-border/60 bg-white flex-shrink-0 relative shadow-sm">
-                                <img src={order.productImage || "/logo4.jpg"} alt={order.productName} className="w-full h-full object-cover" />
-                              </div>
-                              <div className="flex flex-col max-w-[240px] overflow-hidden min-w-[150px]">
-                                <span className="font-bold text-heading text-xs truncate" title={order.productName}>
-                                  {order.productName}
-                                </span>
-                                <div className="flex gap-1.5 items-center mt-0.5">
-                                  <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono font-bold px-1.5 py-0.5 rounded text-[9px]">
-                                    Qty: {order.quantity}
-                                  </span>
-                                  <span className="text-[10px] text-muted font-medium">{order.productMaterial || "Bronze"}</span>
+                            <div className="flex flex-col gap-3">
+                              {order.items && order.items.map((item: any) => (
+                                <div key={item.id} className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-border/60 bg-white flex-shrink-0 relative shadow-sm">
+                                    <img src={item.productImage || "/logo4.jpg"} alt={item.productName} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div className="flex flex-col max-w-[240px] overflow-hidden min-w-[150px]">
+                                    <span className="font-bold text-heading text-xs truncate" title={item.productName}>
+                                      {item.productName}
+                                    </span>
+                                    <div className="flex gap-1.5 items-center mt-0.5">
+                                      <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono font-bold px-1.5 py-0.5 rounded text-[9px]">
+                                        Qty: {item.quantity}
+                                      </span>
+                                      <span className="text-[10px] text-muted font-medium">{item.productMaterial || "Bronze"}</span>
+                                    </div>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        const prod = products.find(p => p.id === item.productId);
+                                        if (prod) openProductModal(prod);
+                                      }}
+                                      className="text-[9px] text-blue-500 hover:text-blue-600 font-bold self-start mt-0.5 underline"
+                                    >
+                                      View Product
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
+                              ))}
                             </div>
                           </td>
 
                           {/* Amount Paid */}
                           <td className="p-4 text-center whitespace-nowrap">
                             <div className="flex flex-col items-center">
-                              <span className="font-bold text-heading text-xs">₹{order.totalAmount.toLocaleString()}</span>
+                              <span className="font-bold text-heading text-xs">₹{((order.totalPaise || 0) / 100).toLocaleString()}</span>
                               <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold px-1.5 py-0.5 rounded text-[8px] uppercase mt-0.5">
                                 {order.paymentStatus || "PAID"}
                               </span>
@@ -1164,14 +1523,38 @@ export const VendorDashboard = () => {
                           <td className="p-4 text-center min-w-[210px]">
                             <div className="flex flex-col items-center gap-2">
                               <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
-                                currentStatus === "PENDING" ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/25" :
+                                ["PENDING", "CONFIRMED"].includes(currentStatus) ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/25" :
                                 currentStatus === "PACKED" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25" :
+                                currentStatus.includes("RETURN") ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/25" :
                                 "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/25"
                               }`}>
-                                {currentStatus === "PENDING" ? "Ordered / Paid" : currentStatus}
+                                {currentStatus === "PENDING" ? "Ordered / Paid" : 
+                                 currentStatus === "RETURN_APPROVED" ? "Incoming Return" : 
+                                 currentStatus === "RETURN_RECEIVED" ? "QC Disputed" : currentStatus}
                               </span>
 
-                              {["PACKED", "DISPATCHED"].includes(currentStatus) && (
+                              {/* Progress Stepper for Vendor */}
+                              {!currentStatus.includes("RETURN") && currentStatus !== "CANCELLED" && (
+                                <div className="flex items-center gap-1 my-1 justify-center">
+                                  <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold ${
+                                    ["PENDING", "CONFIRMED", "PACKED", "DISPATCHED", "DELIVERED"].includes(currentStatus) ? "bg-orange-500 text-white" : "bg-border text-muted"
+                                  }`} title="Ordered">O</div>
+                                  <div className={`w-3 h-[2px] ${["PACKED", "DISPATCHED", "DELIVERED"].includes(currentStatus) ? "bg-orange-500" : "bg-border"}`} />
+                                  <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold ${
+                                    ["PACKED", "DISPATCHED", "DELIVERED"].includes(currentStatus) ? "bg-orange-500 text-white" : "bg-border text-muted"
+                                  }`} title="Packed">P</div>
+                                  <div className={`w-3 h-[2px] ${["DISPATCHED", "DELIVERED"].includes(currentStatus) ? "bg-orange-500" : "bg-border"}`} />
+                                  <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold ${
+                                    ["DISPATCHED", "DELIVERED"].includes(currentStatus) ? "bg-orange-500 text-white" : "bg-border text-muted"
+                                  }`} title="Dispatched">S</div>
+                                  <div className={`w-3 h-[2px] ${["DELIVERED"].includes(currentStatus) ? "bg-orange-500" : "bg-border"}`} />
+                                  <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold ${
+                                    currentStatus === "DELIVERED" ? "bg-orange-500 text-white" : "bg-border text-muted"
+                                  }`} title="Delivered">D</div>
+                                </div>
+                              )}
+
+                              {["PENDING", "CONFIRMED", "PACKED", "DISPATCHED"].includes(currentStatus) && (
                                 <div className="w-full max-w-[190px] flex flex-col items-center gap-1.5">
                                   {editingDirectDelivery && editingDirectDelivery.orderId === order.id ? (
                                     <div className="flex flex-col gap-1.5 w-full bg-surface-card border border-border p-2.5 rounded-2xl shadow-xl z-15 relative">
@@ -1219,7 +1602,10 @@ export const VendorDashboard = () => {
                                           </span>
                                           <button
                                             type="button"
-                                            onClick={() => setEditingDirectDelivery({ orderId: order.id, value: order.deliveryDate || "" })}
+                                            onClick={() => setEditingDirectDelivery({ 
+                                              orderId: order.id, 
+                                              value: order.deliveryDate ? new Date(order.deliveryDate).toISOString().slice(0, 16) : "" 
+                                            })}
                                             className="mt-1 text-[9px] text-orange-500 hover:text-orange-600 font-bold transition-colors underline"
                                           >
                                             Change Date
@@ -1243,40 +1629,92 @@ export const VendorDashboard = () => {
 
                           {/* Actions */}
                           <td className="p-4 text-right whitespace-nowrap space-x-2">
-                            {currentStatus === "PENDING" && (
+                            {["PENDING", "CONFIRMED"].includes(currentStatus) && (
                               <button
                                 type="button"
-                                onClick={() => handleUpdateDirectOrderStatus(order.id, "PACKED")}
+                                onClick={() => setShowPackingModal(order)}
                                 className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold shadow-sm shadow-blue-500/10 transition-all duration-200"
                               >
-                                Start Packing
+                                Start Packing (Upload Photos)
                               </button>
                             )}
                             {currentStatus === "PACKED" && (
+                              <div className="flex items-center gap-2 justify-end">
+                                {order.awbCode && (
+                                  <button
+                                    type="button"
+                                    onClick={() => simulateShiprocketWebhook(order.awbCode, "PICKED UP")}
+                                    className="px-2 py-1.5 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-xl font-bold transition-colors border border-purple-500/20"
+                                  >
+                                    Simulate Pickup (Test Webhook)
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateDirectOrderStatus(order.id, "DISPATCHED")}
+                                  className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 rounded-xl font-bold shadow-sm shadow-orange-500/10 transition-all duration-200"
+                                >
+                                  Dispatch Order (Manual)
+                                </button>
+                              </div>
+                            )}
+                            {currentStatus === "RETURN_APPROVED" && !order.returnRequest?.vendorDeliveredAt && (
+                              <div className="flex items-center gap-2 justify-end">
+                                <span className="text-[10px] text-muted font-medium italic">Awaiting Return Delivery...</span>
+                                {order.returnAwbCode && (
+                                  <button
+                                    type="button"
+                                    onClick={() => simulateShiprocketWebhook(order.returnAwbCode, "DELIVERED")}
+                                    className="px-2 py-1 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-md font-bold transition-colors border border-purple-500/20"
+                                  >
+                                    Test Webhook
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                            {(currentStatus === "RETURN_RECEIVED" || (currentStatus === "RETURN_APPROVED" && order.returnRequest?.vendorDeliveredAt)) && (
                               <button
                                 type="button"
-                                onClick={() => handleUpdateDirectOrderStatus(order.id, "DISPATCHED")}
-                                className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 rounded-xl font-bold shadow-sm shadow-orange-500/10 transition-all duration-200"
+                                onClick={() => {
+                                  setIsDisputing(false);
+                                  setQcImages([]);
+                                  setQcNotes("");
+                                  setReviewReturnOrder(order);
+                                }}
+                                className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl font-bold shadow-sm shadow-red-500/10 transition-all duration-200"
                               >
-                                Dispatch Order
+                                Review Delivered Return (QC)
                               </button>
                             )}
                             {currentStatus === "DISPATCHED" && (
+                              <div className="flex items-center gap-2 justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateDirectOrderStatus(order.id, "DELIVERED")}
+                                  className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 rounded-xl font-bold shadow-sm shadow-emerald-500/10 transition-all duration-200"
+                                >
+                                  Mark Delivered (Manual)
+                                </button>
+                                {order.awbCode && (
+                                  <button
+                                    type="button"
+                                    onClick={() => simulateShiprocketWebhook(order.awbCode, "DELIVERED")}
+                                    className="px-2 py-1.5 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-xl font-bold transition-colors border border-purple-500/20"
+                                  >
+                                    Simulate Delivery (Test Webhook)
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                            {["PENDING", "CONFIRMED"].includes(currentStatus) && (
                               <button
                                 type="button"
-                                onClick={() => handleUpdateDirectOrderStatus(order.id, "DELIVERED")}
-                                className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 rounded-xl font-bold shadow-sm shadow-emerald-500/10 transition-all duration-200"
+                                onClick={() => handleUpdateDirectOrderStatus(order.id, "CANCELLED")}
+                                className="px-3 py-1.5 text-[10px] text-red-500 hover:text-white border border-red-500/20 hover:bg-red-500 rounded-xl font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-red-500/10"
                               >
-                                Mark Delivered
+                                Cancel Order
                               </button>
                             )}
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateDirectOrderStatus(order.id, "CANCELLED")}
-                              className="px-3 py-1.5 text-[10px] text-red-500 hover:text-white border border-red-500/20 hover:bg-red-500 rounded-xl font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-red-500/10"
-                            >
-                              Cancel Order
-                            </button>
                           </td>
                         </tr>
                       );
@@ -1284,6 +1722,16 @@ export const VendorDashboard = () => {
                   })()}
                 </tbody>
               </table>
+              
+              {/* Infinite Scroll Trigger */}
+              {orderPage < orderTotalPages && (
+                <div ref={loadMoreRef} className="py-8 flex justify-center items-center w-full bg-surface/30 border-t border-border/50">
+                  <div className="flex items-center gap-2 text-muted font-bold text-xs">
+                    <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                    Loading more orders...
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1478,7 +1926,11 @@ export const VendorDashboard = () => {
                                             </span>
                                             <button
                                               type="button"
-                                              onClick={() => setEditingDelivery({ inquiryId: inq.id, productId: item.id, value: item.deliveryDate || "" })}
+                                              onClick={() => setEditingDelivery({ 
+                                                inquiryId: inq.id, 
+                                                productId: item.id, 
+                                                value: item.deliveryDate ? new Date(item.deliveryDate).toISOString().slice(0, 16) : "" 
+                                              })}
                                               className="mt-1 text-[9px] text-orange-500 hover:text-orange-600 font-bold transition-colors underline"
                                             >
                                               Change Date
@@ -1561,6 +2013,35 @@ export const VendorDashboard = () => {
               <h3 className="font-display font-bold text-sm text-heading uppercase tracking-wider">Order History</h3>
               <p className="text-[10px] text-muted mt-0.5">Completed, returned, and cancelled order records</p>
             </div>
+            <div className="grid grid-cols-3 gap-4 p-4 bg-surface/50 border-b border-border/80 text-xs">
+              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
+                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Total Delivered</span>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                    {dashboardStats ? dashboardStats.delivered : "..."}
+                  </span>
+                  <span className="px-2 py-0.5 text-[9px] bg-emerald-500/10 text-emerald-600 rounded-md font-bold uppercase">Success</span>
+                </div>
+              </div>
+              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-amber-500/30 transition-all duration-300">
+                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Returned</span>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                    {dashboardStats ? dashboardStats.returned : "..."}
+                  </span>
+                  <span className="px-2 py-0.5 text-[9px] bg-amber-500/10 text-amber-600 rounded-md font-bold uppercase">Returns</span>
+                </div>
+              </div>
+              <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-red-500/30 transition-all duration-300">
+                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Cancelled / Rejected</span>
+                <div className="flex items-baseline justify-between mt-2">
+                  <span className="text-2xl font-bold font-display text-heading tracking-tight">
+                    {dashboardStats ? dashboardStats.cancelled : "..."}
+                  </span>
+                  <span className="px-2 py-0.5 text-[9px] bg-red-500/10 text-red-500 rounded-md font-bold uppercase">Lost</span>
+                </div>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -1588,7 +2069,7 @@ export const VendorDashboard = () => {
                         const currentStatus = item.status || "PENDING";
                         
                         // Show only history states
-                        if (!["DELIVERED", "CANCELLED", "RETURNED"].includes(currentStatus)) {
+                        if (!["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED"].includes(currentStatus)) {
                           return null;
                         }
                         
@@ -1662,11 +2143,7 @@ export const VendorDashboard = () => {
                                   <button type="button" onClick={() => openProductModal(originalProduct)} className="px-2 py-1 text-[10px] text-muted hover:text-heading border border-border hover:bg-surface rounded-lg font-bold">
                                     View Product
                                   </button>
-                                  {currentStatus === "DELIVERED" && (
-                                    <button type="button" onClick={() => handleUpdateItemStatus(inq.id, item.id, "RETURNED")} className="px-2 py-1 text-[10px] text-amber-600 hover:text-white border border-amber-500/20 hover:bg-amber-600 rounded-lg font-bold">
-                                      Mark Returned
-                                    </button>
-                                  )}
+                                  {/* Return flow is handled via the Returns/Disputes tab */}
                                 </>
                               )}
                             </td>
@@ -1677,7 +2154,7 @@ export const VendorDashboard = () => {
                     
                     const directRows = directOrders.map((order) => {
                       const currentStatus = order.status || "PENDING";
-                      if (!["DELIVERED", "CANCELLED", "RETURNED"].includes(currentStatus)) {
+                      if (!["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED"].includes(currentStatus)) {
                         return null;
                       }
                       
@@ -1688,23 +2165,54 @@ export const VendorDashboard = () => {
                             {new Date(order.createdAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
                           </td>
                           <td className="p-4">
-                            <div className="flex flex-col gap-0.5 max-w-[260px] min-w-[160px] text-muted/80">
-                              <span className="font-bold text-muted text-xs">{order.shippingName}</span>
-                              <span className="text-[10px] flex items-center gap-1">📍 {order.shippingCity}, {order.shippingState}</span>
-                              <span className="text-[10px] truncate">✉️ {order.userEmail}</span>
+                            <div className="flex flex-col gap-1.5 max-w-[200px] min-w-[150px] opacity-80">
+                              <div>
+                                <span className="font-bold text-heading text-xs tracking-tight block">{order.shippingName}</span>
+                                <span className="text-[10px] text-muted font-medium">📍 {order.shippingCity}, {order.shippingState}</span>
+                              </div>
+                              <div className="flex flex-col gap-1 mt-1">
+                                <button 
+                                  type="button"
+                                  onClick={() => setModalShipping(order)}
+                                  className="text-[9px] text-orange-500 border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500 hover:text-white px-2 py-1 rounded-md font-bold transition-colors w-fit text-left"
+                                >
+                                  View Shipping Details
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => setModalTransaction(order)}
+                                  className="text-[9px] text-muted hover:text-heading border border-border hover:bg-surface-hover px-2 py-1 rounded-md font-bold transition-colors w-fit text-left"
+                                >
+                                  Transaction Details
+                                </button>
+                              </div>
                             </div>
                           </td>
                           <td className="p-4">
-                            <div className="flex items-center gap-3 opacity-70">
-                              <div className="w-8 h-8 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative">
-                                <img src={order.productImage || "/logo4.jpg"} alt={order.productName} className="w-full h-full object-cover" />
-                              </div>
-                              <div className="flex flex-col max-w-[240px] overflow-hidden min-w-[150px]">
-                                <span className="font-bold text-muted text-xs truncate" title={order.productName}>
-                                  {order.productName}
-                                </span>
-                                <span className="text-[9px] font-mono">Qty: {order.quantity}</span>
-                              </div>
+                            <div className="flex flex-col gap-3 opacity-70">
+                              {order.items && order.items.map((item: any) => (
+                                <div key={item.id} className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0 relative">
+                                    <img src={item.productImage || "/logo4.jpg"} alt={item.productName} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div className="flex flex-col max-w-[240px] overflow-hidden min-w-[150px]">
+                                    <span className="font-bold text-muted text-xs truncate" title={item.productName}>
+                                      {item.productName}
+                                    </span>
+                                    <span className="text-[9px] font-mono">Qty: {item.quantity}</span>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => {
+                                        const prod = products.find(p => p.id === item.productId);
+                                        if (prod) openProductModal(prod);
+                                      }}
+                                      className="text-[9px] text-blue-500 hover:text-blue-600 font-bold self-start mt-0.5 underline"
+                                    >
+                                      View Product
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </td>
                           <td className="p-4 text-center opacity-70 whitespace-nowrap">
@@ -1712,7 +2220,7 @@ export const VendorDashboard = () => {
                               Buy Now
                             </span>
                           </td>
-                          <td className="p-4 text-center">
+                           <td className="p-4 text-center">
                             <div className="flex flex-col items-center gap-0.5">
                               <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
                                 currentStatus === "DELIVERED" ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/20" :
@@ -1721,22 +2229,29 @@ export const VendorDashboard = () => {
                               }`}>
                                 {currentStatus}
                               </span>
-                              {currentStatus === "DELIVERED" && order.deliveryDate && (
+                              {currentStatus === "DELIVERED" && (
+                                <div className="flex items-center gap-1 my-1 justify-center">
+                                  <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold bg-orange-500 text-white" title="Ordered">O</div>
+                                  <div className="w-3 h-[2px] bg-orange-500" />
+                                  <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold bg-orange-500 text-white" title="Packed">P</div>
+                                  <div className="w-3 h-[2px] bg-orange-500" />
+                                  <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold bg-orange-500 text-white" title="Dispatched">S</div>
+                                  <div className="w-3 h-[2px] bg-orange-500" />
+                                  <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold bg-orange-500 text-white" title="Delivered">D</div>
+                                </div>
+                              )}
+                              {currentStatus === "DELIVERED" && (order.deliveredAt || order.deliveryDate) && (
                                 <span className="text-[8px] text-muted font-semibold mt-0.5">
-                                  Delivered: {new Date(order.deliveryDate).toLocaleDateString()}
+                                  Delivered: {new Date(order.deliveredAt || order.deliveryDate).toLocaleDateString()}
                                 </span>
                               )}
                             </div>
                           </td>
                           <td className="p-4 text-center font-bold text-heading">
-                            ₹{order.totalAmount.toLocaleString()}
+                            ₹{((order.totalPaise || 0) / 100).toLocaleString()}
                           </td>
                           <td className="p-4 text-right whitespace-nowrap space-x-1.5">
-                            {currentStatus === "DELIVERED" && (
-                              <button type="button" onClick={() => handleUpdateDirectOrderStatus(order.id, "RETURNED")} className="px-2 py-1 text-[10px] text-amber-600 hover:text-white border border-amber-500/20 hover:bg-amber-600 rounded-lg font-bold">
-                                Mark Returned
-                              </button>
-                            )}
+                            {/* Return flow is handled via the Returns/Disputes tab */}
                           </td>
                         </tr>
                       );
@@ -1755,6 +2270,16 @@ export const VendorDashboard = () => {
                   })()}
                 </tbody>
               </table>
+              
+              {/* Infinite Scroll Trigger */}
+              {orderPage < orderTotalPages && (
+                <div ref={loadMoreRef} className="py-8 flex justify-center items-center w-full bg-surface/30 border-t border-border/50">
+                  <div className="flex items-center gap-2 text-muted font-bold text-xs">
+                    <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                    Loading more orders...
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1877,6 +2402,38 @@ export const VendorDashboard = () => {
         )}
 
         {activeTab === "add-product" && (
+          <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
+            {vendor?.vendorStatus !== "APPROVED" ? (
+              <div className="p-12 max-w-2xl mx-auto text-center">
+                <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${
+                  vendor?.vendorStatus === "IN_REVIEW" ? "bg-blue-500/10 text-blue-500" :
+                  vendor?.vendorStatus === "REJECTED" ? "bg-red-500/10 text-red-500" :
+                  "bg-orange-500/10 text-orange-500"
+                }`}>
+                  {vendor?.vendorStatus === "IN_REVIEW" ? <Clock size={40} /> : 
+                   vendor?.vendorStatus === "REJECTED" ? <XCircle size={40} /> : 
+                   <FileText size={40} />}
+                </div>
+                <h2 className="text-2xl font-bold text-heading mb-3">
+                  {vendor?.vendorStatus === "IN_REVIEW" ? "Profile Under Review" : 
+                   vendor?.vendorStatus === "REJECTED" ? "Profile Rejected" : 
+                   "Profile Completion Required"}
+                </h2>
+                <p className="text-muted mb-8">
+                  {vendor?.vendorStatus === "IN_REVIEW" 
+                    ? "Your KYC documents are currently being reviewed by the admin team. You will be able to add products once approved." 
+                    : "You must complete your vendor KYC verification and get approved by the admin before you can add products to the marketplace."}
+                </p>
+                <button 
+                  onClick={() => router.push("/vendor/profile")} 
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-orange-500/20"
+                >
+                  Go to Vendor Profile
+                </button>
+              </div>
+            ) : (
+              // Original Add Product Form below
+              <>
           <div className="w-full bg-surface-card border border-border/80 rounded-3xl p-8 md:p-10 shadow-md animate-in fade-in duration-300">
             <div className="mb-8">
               <h2 className="text-xl font-bold font-display text-heading tracking-tight">Add New Product</h2>
@@ -2326,7 +2883,7 @@ export const VendorDashboard = () => {
                       onChange={(e) => setProductForm({ ...productForm, categoryName: e.target.value })}
                       className="w-full bg-surface border border-border hover:border-orange-500/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 rounded-xl px-4 py-2.5 text-heading font-semibold focus:outline-none cursor-pointer shadow-sm transition-all appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ea580c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
                     >
-                      {dbCategories.map((cat) => (
+                      {dbCategories.filter(cat => !vendor?.allowedCategories || vendor.allowedCategories.split(',').map((c:string)=>c.trim()).includes(cat.slug)).map((cat) => (
                         <option key={cat.slug} value={cat.slug}>
                           {cat.name}
                         </option>
@@ -2371,9 +2928,203 @@ export const VendorDashboard = () => {
               </button>
             </form>
           </div>
+              </>
+            )}
+          </div>
         )}
 
-        {activeTab === "admin-panel" && (
+        {/* SETTLEMENTS TAB */}
+        {activeTab === "settlements" && (
+          <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
+            <h2 className="text-2xl font-black text-heading flex items-center gap-2">
+              < Award className="text-orange-500" size={28} />
+              My Settlements & Ledger
+            </h2>
+            {settlementSummary && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-surface-card border border-border rounded-2xl p-4">
+                  <p className="text-[10px] uppercase font-bold text-muted">Total on Hold</p>
+                  <p className="text-lg font-bold text-orange-500 mt-1">₹{(settlementSummary.hold / 100).toLocaleString()}</p>
+                </div>
+                <div className="bg-surface-card border border-border rounded-2xl p-4">
+                  <p className="text-[10px] uppercase font-bold text-muted">Eligible for Payout</p>
+                  <p className="text-lg font-bold text-emerald-500 mt-1">₹{(settlementSummary.eligible / 100).toLocaleString()}</p>
+                </div>
+                <div className="bg-surface-card border border-border rounded-2xl p-4">
+                  <p className="text-[10px] uppercase font-bold text-muted">Total Settled</p>
+                  <p className="text-lg font-bold text-blue-500 mt-1">₹{(settlementSummary.settled / 100).toLocaleString()}</p>
+                </div>
+                <div className="bg-surface-card border border-border rounded-2xl p-4">
+                  <p className="text-[10px] uppercase font-bold text-muted">Disputed</p>
+                  <p className="text-lg font-bold text-red-500 mt-1">₹{(settlementSummary.disputed / 100).toLocaleString()}</p>
+                </div>
+              </div>
+            )}
+            <div className="bg-surface-card border border-border rounded-3xl overflow-hidden shadow-sm">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-surface text-muted">
+                  <tr>
+                    <th className="p-4 font-bold uppercase tracking-wider">Order</th>
+                    <th className="p-4 font-bold uppercase tracking-wider">Status</th>
+                    <th className="p-4 font-bold uppercase tracking-wider">Total Value</th>
+                    <th className="p-4 font-bold uppercase tracking-wider">My Payout</th>
+                    <th className="p-4 font-bold uppercase tracking-wider">Hold Until</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {settlements.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-muted">No settlements found.</td>
+                    </tr>
+                  )}
+                  {settlements.map(s => (
+                    <tr key={s.id} className="hover:bg-surface-hover">
+                      <td className="p-4 font-bold text-orange-500">{s.order.orderNumber}</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase ${
+                          s.status === 'HOLD' ? 'bg-amber-500/10 text-amber-600' :
+                          s.status === 'ELIGIBLE' ? 'bg-emerald-500/10 text-emerald-600' :
+                          s.status === 'SETTLED' ? 'bg-blue-500/10 text-blue-600' :
+                          'bg-red-500/10 text-red-600'
+                        }`}>{s.status}</span>
+                      </td>
+                      <td className="p-4">₹{(s.orderAmountPaise/100).toLocaleString()}</td>
+                      <td className="p-4 font-bold text-emerald-500">₹{(s.vendorPayoutPaise/100).toLocaleString()}</td>
+                      <td className="p-4 text-muted">{new Date(s.holdUntil).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* RETURNS QC TAB */}
+        {activeTab === "returns" && (
+          <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
+            <h2 className="text-2xl font-black text-heading flex items-center gap-2">
+              <AlertTriangle className="text-red-500" size={28} />
+              Return Quality Check (QC)
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {returns.length === 0 ? (
+                <div className="col-span-full text-center p-12 bg-surface-card border border-border rounded-3xl">
+                  <CheckCircle2 size={48} className="mx-auto text-emerald-500 mb-4 opacity-50" />
+                  <p className="text-lg font-bold text-heading">No pending returns</p>
+                  <p className="text-muted text-sm mt-1">Awesome! Your products are loved by customers.</p>
+                </div>
+              ) : (
+                returns.map(ret => (
+                  <div key={ret.id} className="bg-surface-card border border-border rounded-3xl p-6 relative overflow-hidden group">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <p className="text-xs font-bold text-red-500 mb-1 flex items-center gap-1">
+                          <AlertTriangle size={12} /> Return Request
+                        </p>
+                        <h3 className="text-lg font-black text-heading">{ret.order.orderNumber}</h3>
+                      </div>
+                      <span className="px-3 py-1 bg-surface border border-border rounded-full text-xs font-bold capitalize text-muted">
+                        {ret.status.replace(/_/g, " ")}
+                      </span>
+                    </div>
+
+                    {ret.vendorDeliveredAt && (
+                      <div className="mb-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-pulse">
+                        <div className="flex items-center gap-2">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                          </span>
+                          <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">QC SLA Timer:</span>
+                        </div>
+                        <span className="text-xs font-black text-orange-700 font-mono bg-orange-500/5 px-2.5 py-1 rounded-lg border border-orange-500/10">
+                          {(() => {
+                            const deliveredAt = new Date(ret.vendorDeliveredAt);
+                            const deadline = new Date(deliveredAt.getTime() + (slaHours || 24) * 60 * 60 * 1000);
+                            const diffMs = deadline.getTime() - currentTime.getTime();
+                            if (diffMs <= 0) {
+                              return "SLA EXPIRED (Auto-refund)";
+                            }
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                            return `${diffHours}h ${diffMins}m remaining`;
+                          })()}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="bg-surface p-4 rounded-2xl mb-4 border border-border">
+                      <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">Customer Reason</p>
+                      <p className="text-sm font-medium text-heading">{ret.reasonDetail || ret.reason.replace(/_/g, " ")}</p>
+                    </div>
+
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-3">Returned Items to Inspect:</p>
+                    <div className="space-y-3 mb-6">
+                      {ret.returnItems.map((item: any, idx: number) => {
+                        const product = ret.order.items.find((i: any) => i.id === item.orderItemId);
+                        return (
+                          <div key={idx} className="flex gap-4 items-center bg-surface-hover p-3 rounded-xl border border-border">
+                            {product?.productImage && (
+                              <img src={product.productImage} alt="" className="w-12 h-12 rounded-lg object-cover bg-surface" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-heading truncate">{product?.productName}</p>
+                              <p className="text-[10px] text-muted font-mono">Qty: {item.quantity}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {ret.status === "PICKED_UP" || ret.status === "RECEIVED_AT_VENDOR" || (ret.status === "APPROVED" && ret.vendorDeliveredAt) ? (
+                      <div className="flex gap-3 mt-4">
+                        <button 
+                          onClick={() => {
+                            setIsDisputing(true);
+                            setQcImages([]);
+                            setQcNotes("");
+                            setReviewReturnOrder({ ...ret.order, returnRequest: ret });
+                          }}
+                          className="flex-1 py-2.5 bg-surface border border-border hover:border-red-500/50 hover:bg-red-500/10 text-red-500 rounded-xl text-xs font-bold transition-colors"
+                        >
+                          Reject (Fraud)
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            if (confirm("Are you sure the item is intact and you want to pass QC?")) {
+                              const res = await fetch("/api/vendor/returns/qc", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ returnId: ret.id, action: "QC_PASSED" })
+                              });
+                              if (res.ok) {
+                                showToast("QC Passed successfully!", "success");
+                                if (vendor) fetchData(vendor.id);
+                              } else {
+                                const data = await res.json();
+                                showToast(data.error || "Failed", "error");
+                              }
+                            }
+                          }}
+                          className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-colors shadow-sm shadow-emerald-500/20"
+                        >
+                          Pass QC (Item OK)
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-4 p-3 bg-surface border border-border rounded-xl text-center">
+                        <p className="text-xs font-bold text-muted">QC Decision Submitted</p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Admin Panel Tab */}
+        {activeTab === "admin-panel" && vendor?.role === "admin" && (
           <div className="space-y-6 animate-in fade-in duration-300 text-xs">
             <div className="bg-surface-card border border-border rounded-2xl p-6 shadow-sm">
               <h3 className="font-bold text-sm text-heading uppercase tracking-wider">Global B2B & Contact Inquiries</h3>
@@ -2478,13 +3229,40 @@ export const VendorDashboard = () => {
               ✕
             </button>
             <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Product Image */}
-              <div className="rounded-2xl overflow-hidden border border-border bg-white flex items-center justify-center h-64 sm:h-auto">
-                <img
-                  src={modalProduct.image || "/logo4.jpg"}
-                  alt={modalProduct.name}
-                  className="w-full h-full object-contain max-h-64 sm:max-h-full"
-                />
+              {/* Product Image & Gallery */}
+              <div className="flex flex-col gap-4">
+                <div className="rounded-2xl overflow-hidden border border-border bg-white flex items-center justify-center h-64 sm:h-auto">
+                  <img
+                    src={modalMainImage}
+                    alt={modalProduct.name}
+                    className="w-full h-full object-contain max-h-64 sm:max-h-full transition-all duration-300"
+                  />
+                </div>
+                {modalProduct.images && modalProduct.images.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                    {/* Thumbnail of Main Image */}
+                    {modalProduct.image && (
+                      <button 
+                        type="button"
+                        onClick={() => setModalMainImage(modalProduct.image)}
+                        className={`w-16 h-16 rounded-lg overflow-hidden border flex-shrink-0 bg-white cursor-pointer transition-all ${modalMainImage === modalProduct.image ? "border-orange-500 ring-2 ring-orange-500/50" : "border-border hover:border-orange-500/50"}`}
+                      >
+                        <img src={modalProduct.image} alt={modalProduct.name} className="w-full h-full object-cover" />
+                      </button>
+                    )}
+                    {/* Gallery Images */}
+                    {modalProduct.images.map((img: string, idx: number) => (
+                      <button 
+                        key={idx} 
+                        type="button"
+                        onClick={() => setModalMainImage(img)}
+                        className={`w-16 h-16 rounded-lg overflow-hidden border flex-shrink-0 bg-white cursor-pointer transition-all ${modalMainImage === img ? "border-orange-500 ring-2 ring-orange-500/50" : "border-border hover:border-orange-500/50"}`}
+                      >
+                        <img src={img} alt={`${modalProduct.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               {/* Product Info */}
               <div className="space-y-4">
@@ -2632,6 +3410,169 @@ export const VendorDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Product Image Modal */}
+      {modalProduct && !modalEditProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setModalProduct(null)}>
+          <div className="bg-surface-card border border-border p-2 rounded-2xl max-w-3xl w-full relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setModalProduct(null)}
+              className="absolute -top-3 -right-3 w-8 h-8 bg-surface-card border border-border rounded-full flex items-center justify-center text-muted hover:text-heading hover:bg-surface-hover shadow-lg transition-all"
+            >
+              ×
+            </button>
+            <div className="w-full h-auto max-h-[80vh] overflow-hidden rounded-xl bg-surface">
+              <img src={modalProduct.image || "/logo4.jpg"} alt={modalProduct.name} className="w-full h-full object-contain" />
+            </div>
+            
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-surface-card/90 backdrop-blur border border-border p-2 rounded-2xl shadow-xl">
+              <span className="text-[10px] font-bold text-muted uppercase tracking-wider pl-2">Quick Stock Update</span>
+              <input 
+                type="number" 
+                value={editStockValue}
+                onChange={(e) => setEditStockValue(e.target.value)}
+                className="w-16 bg-surface border border-border rounded-lg px-2 py-1.5 text-xs text-center font-bold outline-none focus:border-orange-500"
+              />
+              <button 
+                onClick={handleUpdateStock}
+                disabled={updatingStock}
+                className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-[10px] uppercase rounded-xl transition-all disabled:opacity-50"
+              >
+                {updatingStock ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Packing Modal (Dispatch Photos) */}
+      {showPackingModal && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-surface-card border border-border rounded-3xl w-full max-w-2xl p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+               <h2 className="text-lg font-bold text-heading">Pack Order {showPackingModal.orderNumber}</h2>
+               <p className="text-xs text-muted">You must upload 5 to 8 photos for each item in the order to prove it was packed correctly.</p>
+               
+               <div className="space-y-6">
+                  {showPackingModal.items?.map((item: any) => (
+                     <div key={item.id} className="border border-border rounded-2xl p-4 bg-surface/50">
+                        <div className="flex items-center gap-3 mb-3">
+                           <img src={item.productImage} className="w-10 h-10 rounded-lg object-cover" />
+                           <div>
+                              <p className="text-xs font-bold text-heading">{item.productName}</p>
+                              <p className="text-[10px] text-muted">Qty: {item.quantity}</p>
+                           </div>
+                        </div>
+                        
+                        <div className="border border-dashed border-orange-500/30 bg-orange-500/5 rounded-xl p-4 text-center">
+                           <div className="flex flex-col gap-3">
+                             <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 mt-2">
+                                {Array.from({ length: 8 }).map((_, i) => {
+                                  const url = packingImages[item.id]?.[i];
+                                  if (url) {
+                                    return (
+                                      <div key={i} className="aspect-square rounded-md overflow-hidden relative group border border-border">
+                                        <img src={url} alt="Packing" className="w-full h-full object-cover" />
+                                        <button 
+                                          onClick={() => {
+                                            setPackingImages(prev => ({
+                                              ...prev,
+                                              [item.id]: prev[item.id].filter((_, idx) => idx !== i)
+                                            }));
+                                          }}
+                                          className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          <X size={14} />
+                                        </button>
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <button
+                                      key={i}
+                                      onClick={() => setActiveCameraItem(item.id)}
+                                      className={`aspect-square rounded-md border border-dashed flex flex-col items-center justify-center text-[8px] font-bold text-muted transition-all hover:bg-orange-500/10 hover:border-orange-500/50 hover:text-orange-500 ${i < 5 ? 'border-orange-500/30 bg-orange-500/5' : 'border-border bg-surface'}`}
+                                    >
+                                      <Camera size={12} className="mb-0.5" />
+                                      {i < 5 ? "Req" : "Opt"}
+                                    </button>
+                                  );
+                                })}
+                             </div>
+                             
+                             <div className="flex items-center justify-between mt-2 pt-2 border-t border-orange-500/10">
+                                <p className={`text-[10px] font-bold ${(packingImages[item.id]?.length || 0) >= 5 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                  {packingImages[item.id]?.length || 0}/8 Photos
+                                </p>
+                                <label className={`flex items-center gap-1.5 text-orange-500 text-[10px] font-bold transition-all ${uploadingPacking[item.id] ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}>
+                                   {uploadingPacking[item.id] ? "Uploading..." : "Or Upload Files"}
+                                   <input 
+                                     type="file" 
+                                     id={`file-input-${item.id}`}
+                                     accept="image/*" 
+                                     multiple
+                                     disabled={uploadingPacking[item.id]}
+                                     onChange={(e) => {
+                                       handleUploadPackingImage(e.target.files, item.id);
+                                       e.target.value = "";
+                                     }}
+                                     className="hidden" 
+                                   />
+                                </label>
+                             </div>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+
+               <div className="flex justify-end gap-2 pt-4">
+                  <button onClick={() => setShowPackingModal(null)} className="px-4 py-2 text-xs font-bold text-muted hover:text-heading">Cancel</button>
+                  <button 
+                     onClick={async () => {
+                        // Check if all items have 5-8 photos
+                        const items = showPackingModal.items || [];
+                        let valid = true;
+                        for (const item of items) {
+                           const imgs = packingImages[item.id] || [];
+                           if (imgs.length < 5 || imgs.length > 8) {
+                              valid = false;
+                              break;
+                           }
+                        }
+                        if (!valid) {
+                           alert("Every item must have exactly 5 to 8 photos.");
+                           return;
+                        }
+                        
+                        setSubmittingPacking(true);
+                        try {
+                           // Upload for each item
+                           for (const item of items) {
+                              await fetch("/api/vendor/dispatch", {
+                                 method: "POST",
+                                 headers: { "Content-Type": "application/json" },
+                                 body: JSON.stringify({ orderItemId: item.id, dispatchImages: packingImages[item.id] })
+                              });
+                           }
+                           showToast("Order packed successfully!", "success");
+                           setShowPackingModal(null);
+                           if (vendor) fetchData(vendor.id);
+                        } catch (err) {
+                           showToast("Failed to pack order", "error");
+                        } finally {
+                           setSubmittingPacking(false);
+                        }
+                     }} 
+                     disabled={submittingPacking} 
+                     className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl flex items-center gap-2"
+                  >
+                     {submittingPacking && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />} 
+                     Confirm Packing
+                  </button>
+               </div>
+            </div>
+         </div>
       )}
 
       {/* Product Edit Modal */}
@@ -3085,7 +4026,7 @@ export const VendorDashboard = () => {
                         onChange={(e) => setEditForm({ ...editForm, categoryName: e.target.value })}
                         className="w-full bg-surface border border-border rounded-xl px-4 py-2 text-heading font-semibold focus:outline-none cursor-pointer appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ea580c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
                       >
-                        {dbCategories.map((cat) => (
+                        {dbCategories.filter(cat => !vendor?.allowedCategories || vendor.allowedCategories.split(',').map((c:string)=>c.trim()).includes(cat.slug)).map((cat) => (
                           <option key={cat.slug} value={cat.slug}>
                             {cat.name}
                           </option>
@@ -3153,6 +4094,546 @@ export const VendorDashboard = () => {
                 </div>
               </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Details Modal */}
+      {modalTransaction && (
+        <div className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-card border border-border rounded-3xl max-w-md w-full overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <div className="bg-gradient-to-r from-blue-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4">
+              <h3 className="font-display font-bold text-sm text-heading uppercase tracking-wider">Transaction Details</h3>
+            </div>
+            <button
+              onClick={() => setModalTransaction(null)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface hover:bg-surface-hover border border-border flex items-center justify-center text-muted hover:text-heading transition-colors z-10 font-bold"
+            >
+              ✕
+            </button>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Payment ID</span>
+                <p className="font-mono text-sm bg-surface p-2 rounded-lg border border-border break-all">{modalTransaction.paymentId}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Payment Method</span>
+                  <p className="font-bold text-heading text-sm uppercase">{modalTransaction.paymentMethod}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Payment Status</span>
+                  <p className={`font-bold text-sm uppercase ${modalTransaction.paymentStatus === 'failed' ? 'text-red-500' : 'text-emerald-500'}`}>
+                    {modalTransaction.paymentStatus || 'PAID'}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Total Amount Paid</span>
+                <p className="font-bold text-heading text-lg">₹{((modalTransaction.totalPaise || 0) / 100).toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Shipping Details Modal */}
+      {modalShipping && (
+        <div className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-card border border-border rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <div className="bg-gradient-to-r from-orange-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex justify-between items-center">
+              <h3 className="font-display font-bold text-sm text-heading uppercase tracking-wider">Shipping Details</h3>
+            </div>
+            <button
+              onClick={() => setModalShipping(null)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface hover:bg-surface-hover border border-border flex items-center justify-center text-muted hover:text-heading transition-colors z-10 font-bold"
+            >
+              ✕
+            </button>
+            <div className="p-6 space-y-6">
+              <div className="flex gap-4 items-center">
+                <div className="w-16 h-16 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden flex-shrink-0 p-1">
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ORDER-${modalShipping.id}`} alt="QR" className="w-full h-full object-contain mix-blend-multiply opacity-90" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-heading text-lg">{modalShipping.shippingName}</h4>
+                  <p className="text-xs text-muted">Order ID: {modalShipping.id}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3 bg-surface p-4 rounded-2xl border border-border">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Delivery Address</span>
+                  <p className="text-sm font-semibold text-heading leading-relaxed">{modalShipping.shippingAddress}</p>
+                  <p className="text-sm font-semibold text-heading">{modalShipping.shippingCity}, {modalShipping.shippingState} - {modalShipping.shippingPincode}</p>
+                  <p className="text-sm font-semibold text-heading">{modalShipping.shippingCountry}</p>
+                </div>
+                <div className="w-full h-px bg-border my-2" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Phone</span>
+                    <p className="text-sm font-semibold text-heading">{modalShipping.shippingPhone}</p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Email</span>
+                    <p className="text-sm font-semibold text-heading truncate" title={modalShipping.userEmail}>{modalShipping.userEmail}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const printWindow = window.open("", "_blank", "width=800,height=600");
+                    if (!printWindow) {
+                      showToast("Please allow popups to print labels.", "error");
+                      return;
+                    }
+
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ORDER-${modalShipping.id}`;
+
+                    const htmlContent = `
+                      <!DOCTYPE html>
+                      <html>
+                      <head>
+                        <title>Shipping Label - ${modalShipping.id}</title>
+                        <style>
+                          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; margin: 0; color: #000; }
+                          .label-container { border: 2px solid #000; padding: 20px; max-width: 600px; margin: 0 auto; }
+                          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 15px; }
+                          .qr-code { width: 100px; height: 100px; }
+                          .title { font-size: 24px; font-weight: bold; margin: 0; }
+                          .order-id { font-size: 14px; color: #444; margin-top: 5px; }
+                          .section { margin-bottom: 20px; }
+                          .section-title { font-size: 12px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; }
+                          .address { font-size: 16px; line-height: 1.5; font-weight: bold; text-transform: uppercase; }
+                          .address-details { font-size: 14px; line-height: 1.4; margin-top: 5px; }
+                          .footer { font-size: 10px; text-align: center; margin-top: 30px; border-top: 1px dashed #ccc; padding-top: 10px; }
+                        </style>
+                      </head>
+                      <body>
+                        <div class="label-container">
+                          <div class="header">
+                            <div>
+                              <h1 class="title">SHIPPING LABEL</h1>
+                              <div class="order-id">Order ID: ${modalShipping.id}</div>
+                              <div class="order-id">Date: ${new Date(modalShipping.createdAt).toLocaleDateString()}</div>
+                            </div>
+                            <img src="${qrUrl}" class="qr-code" alt="QR Code" />
+                          </div>
+                          
+                          <div class="section">
+                            <div class="section-title">SHIP TO</div>
+                            <div class="address">${modalShipping.shippingName}</div>
+                            <div class="address-details">
+                              ${modalShipping.shippingAddress}<br/>
+                              ${modalShipping.shippingCity}, ${modalShipping.shippingState} - ${modalShipping.shippingPincode}<br/>
+                              ${modalShipping.shippingCountry}<br/><br/>
+                              Phone: ${modalShipping.shippingPhone}<br/>
+                              Email: ${modalShipping.userEmail}
+                            </div>
+                          </div>
+
+                          <div class="section">
+                            <div class="section-title">ITEMS</div>
+                            <div class="address-details">
+                              ${modalShipping.items && modalShipping.items.length > 0 ? modalShipping.items.map((i:any) => `<div>${i.quantity}x ${i.productName}</div>`).join("") : "Order Items"}
+                            </div>
+                          </div>
+
+                          <div class="footer">
+                            Generated via StopShop Vendor Portal
+                          </div>
+                        </div>
+                        <script>
+                          window.onload = function() { window.print(); }
+                        </script>
+                      </body>
+                      </html>
+                    `;
+
+                    printWindow.document.open();
+                    printWindow.document.write(htmlContent);
+                    printWindow.document.close();
+                  }}
+                  className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-xl shadow-md transition-all duration-300 flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                  Generate PDF & Print Label
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Return Modal */}
+      {reviewReturnOrder && reviewReturnOrder.returnRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto py-10">
+          <div className="bg-surface-card border border-border rounded-3xl w-full max-w-2xl p-6 space-y-6 shadow-2xl relative my-auto">
+            <div className="flex justify-between items-start">
+               <div>
+                  <h2 className="text-lg font-bold text-heading">Incoming Return Request</h2>
+                  <p className="text-xs text-muted">Order #{reviewReturnOrder.orderNumber} • AWB: {reviewReturnOrder.awbCode}</p>
+               </div>
+               <button onClick={() => setReviewReturnOrder(null)} className="text-muted hover:text-heading bg-surface p-1.5 rounded-full border border-border">
+                 <X size={16} />
+               </button>
+            </div>
+
+            <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-2xl space-y-2">
+               <div><span className="text-[10px] text-muted font-bold uppercase tracking-wider">Reason for Return</span></div>
+               <div className="text-sm font-bold text-orange-500">{reviewReturnOrder.returnRequest.reason.replace(/_/g, " ")}</div>
+               {reviewReturnOrder.returnRequest.reasonDetail && (
+                  <div className="text-xs text-muted mt-2 p-3 bg-surface rounded-xl border border-border font-medium italic">"{reviewReturnOrder.returnRequest.reasonDetail}"</div>
+               )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {/* Original Dispatch Photos */}
+               <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <span className="text-xs font-bold text-heading">Your Original Dispatch Photos</span>
+                    <span className="text-[10px] text-muted">What you packed</span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {(() => {
+                      const dispatchImgs = (() => {
+                        const images: string[] = [];
+                        const retItems = reviewReturnOrder.returnRequest?.returnItems || [];
+                        const orderItems = reviewReturnOrder.items || [];
+                        
+                        retItems.forEach((retItem: any) => {
+                          const orderItem = orderItems.find((oi: any) => oi.id === retItem.orderItemId);
+                          if (orderItem && orderItem.dispatchImages) {
+                            let itemImgs: string[] = [];
+                            if (typeof orderItem.dispatchImages === "string") {
+                              try { itemImgs = JSON.parse(orderItem.dispatchImages); } catch(e) {}
+                            } else if (Array.isArray(orderItem.dispatchImages)) {
+                              itemImgs = orderItem.dispatchImages;
+                            }
+                            images.push(...itemImgs);
+                          }
+                        });
+                        
+                        // Fallback to checking the first order item directly if returnItems is empty
+                        if (images.length === 0 && orderItems.length > 0) {
+                          const firstItem = orderItems[0];
+                          if (firstItem && firstItem.dispatchImages) {
+                            if (typeof firstItem.dispatchImages === "string") {
+                              try { return JSON.parse(firstItem.dispatchImages); } catch(e) {}
+                            } else if (Array.isArray(firstItem.dispatchImages)) {
+                              return firstItem.dispatchImages;
+                            }
+                          }
+                        }
+                        return images;
+                      })();
+
+                      if (dispatchImgs.length > 0) {
+                        return dispatchImgs.map((url: string, i: number) => (
+                          <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-xl overflow-hidden border border-border hover:border-orange-500 transition-colors block relative group">
+                             <img src={url} alt="Dispatch Proof" className="w-full h-full object-cover" />
+                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                                <span className="text-white opacity-0 group-hover:opacity-100 text-[10px] font-bold">VIEW</span>
+                             </div>
+                          </a>
+                        ));
+                      }
+                      return <span className="text-xs text-muted col-span-3">No dispatch photos recorded.</span>;
+                    })()}
+                  </div>
+               </div>
+
+               {/* User's Return Photos */}
+               <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <span className="text-xs font-bold text-heading">User's Return Photos</span>
+                    <span className="text-[10px] text-muted">What the user claims</span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {(reviewReturnOrder.returnRequest.returnImages as string[]).map((url, i) => (
+                       <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-xl overflow-hidden border border-border hover:border-orange-500 transition-colors block relative group">
+                          <img src={url} alt="Return Proof" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                             <span className="text-white opacity-0 group-hover:opacity-100 text-[10px] font-bold">VIEW</span>
+                          </div>
+                       </a>
+                    ))}
+                  </div>
+               </div>
+            </div>
+
+            {!isDisputing ? (
+               <div className="pt-4 border-t border-border flex flex-col items-center gap-3">
+                  <button onClick={() => setIsDisputing(true)} className="w-full py-3 bg-surface border border-red-500/30 text-red-500 hover:bg-red-500/10 font-bold rounded-xl transition-colors text-sm">
+                     Report Issue to Admin (Fake / Damaged)
+                  </button>
+                  <p className="text-[10px] text-muted text-center max-w-xs">
+                     If the returned product is perfectly fine, you do not need to do anything! The system will automatically refund the user after your SLA window expires.
+                  </p>
+               </div>
+            ) : (
+               <div className="pt-4 border-t border-border space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                  <div className="flex justify-between items-center">
+                     <h3 className="text-sm font-bold text-red-500">Raise Dispute</h3>
+                     <button onClick={() => setIsDisputing(false)} className="text-[10px] text-muted hover:text-heading hover:underline font-bold">Cancel Dispute</button>
+                  </div>
+                  <p className="text-xs text-muted">Upload photos showing the fake, wrong, or damaged item you received. Our admin will review both your dispatch photos and these QC photos to make a final decision.</p>
+                  
+                  <textarea 
+                     placeholder="Describe what is wrong with the returned product..."
+                     value={qcNotes} onChange={e=>setQcNotes(e.target.value)}
+                     className="w-full p-3 text-xs bg-surface border border-border rounded-xl focus:border-red-500 outline-none transition-colors min-h-[80px]"
+                  />
+
+                  <div className="border border-dashed border-red-500/30 bg-red-500/5 rounded-xl p-4">
+                     <div className="flex flex-col gap-3">
+                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                           {Array.from({ length: 8 }).map((_, i) => {
+                             const url = qcImages[i];
+                             if (url) {
+                               return (
+                                 <div key={i} className="aspect-square rounded-md overflow-hidden relative group border border-border">
+                                   <img src={url} alt="QC" className="w-full h-full object-cover" />
+                                   <button 
+                                     onClick={() => setQcImages(prev => prev.filter((_, idx) => idx !== i))}
+                                     className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                   >
+                                     <X size={14} />
+                                   </button>
+                                 </div>
+                               );
+                             }
+                             return (
+                               <button
+                                 key={i}
+                                 onClick={() => setQcCameraActive(true)}
+                                 className={`aspect-square rounded-md border border-dashed flex flex-col items-center justify-center text-[8px] font-bold text-muted transition-all hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 ${i < 5 ? 'border-red-500/30 bg-red-500/5 text-red-400' : 'border-border bg-surface'}`}
+                               >
+                                 <Camera size={12} className="mb-0.5" />
+                                 {i < 5 ? "Req" : "Opt"}
+                               </button>
+                             );
+                           })}
+                        </div>
+                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-red-500/10">
+                           <span className={`text-[10px] font-bold ${qcImages.length >= 5 ? 'text-emerald-500' : 'text-red-500'}`}>{qcImages.length}/8 Photos</span>
+                           <label className={`text-[10px] font-bold text-red-500 cursor-pointer hover:underline flex items-center gap-1 ${uploadingQc ? 'opacity-50' : ''}`}>
+                              {uploadingQc ? 'Uploading...' : 'Or Upload Files'}
+                              <input type="file" multiple accept="image/*" onChange={(e) => { handleUploadQcImage(e.target.files); e.target.value = ""; }} className="hidden" disabled={uploadingQc} />
+                           </label>
+                        </div>
+                     </div>
+                  </div>
+
+                  <button 
+                     onClick={() => handleQcSubmit("QC_UPLOAD")}
+                     disabled={submittingQc || qcImages.length < 5}
+                     className="w-full py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
+                  >
+                     {submittingQc && <Loader2 size={16} className="animate-spin" />} Submit Dispute to Admin
+                  </button>
+               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* QC Camera Modal */}
+      {qcCameraActive && (
+        <div className="fixed inset-0 z-[250] bg-black flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 w-full z-10">
+            <button onClick={() => {
+              const video = document.getElementById("qc-camera-video") as HTMLVideoElement;
+              if (video && video.srcObject) {
+                (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+              }
+              setQcCameraActive(false);
+            }} className="text-white bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
+              <X size={24} />
+            </button>
+            <button 
+              onClick={() => {
+                const video = document.getElementById("qc-camera-video") as HTMLVideoElement;
+                if (video && video.srcObject) {
+                  const stream = video.srcObject as MediaStream;
+                  const track = stream.getVideoTracks()[0];
+                  const currentFacing = track.getSettings().facingMode;
+                  stream.getTracks().forEach(t => t.stop());
+                  navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
+                  }).then(newStream => {
+                    video.srcObject = newStream;
+                  }).catch(console.error);
+                }
+              }} 
+              className="text-white bg-white/20 px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-2 hover:bg-white/30 transition-colors"
+            >
+              <Camera size={16} /> Switch Camera
+            </button>
+          </div>
+          <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black">
+            <video 
+              id="qc-camera-video"
+              autoPlay 
+              playsInline 
+              className="w-full h-full object-cover" 
+              ref={(node) => {
+                if (node && !node.srcObject && !node.dataset.requesting) {
+                  node.dataset.requesting = "true";
+                  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                    .then(stream => { 
+                      node.srcObject = stream; 
+                      delete node.dataset.requesting;
+                    })
+                    .catch(err => {
+                      delete node.dataset.requesting;
+                      console.error("Camera error:", err);
+                      showToast("Camera access denied", "error");
+                      setQcCameraActive(false);
+                    });
+                }
+              }}
+            />
+            <canvas id="qc-camera-canvas" className="hidden" />
+          </div>
+          <div className="p-8 pb-12 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 w-full flex justify-center z-10">
+            <button 
+              onClick={() => {
+                const video = document.getElementById("qc-camera-video") as HTMLVideoElement;
+                const canvas = document.getElementById("qc-camera-canvas") as HTMLCanvasElement;
+                if (!video || !canvas || !video.videoWidth) return;
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return;
+                
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                canvas.toBlob((blob) => {
+                  if (!blob) return;
+                  const file = new File([blob], `qc-${Date.now()}.jpg`, { type: "image/jpeg" });
+                  
+                  if (video.srcObject) {
+                    (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+                  }
+                  
+                  handleUploadQcImage([file]);
+                  setQcCameraActive(false);
+                }, "image/jpeg", 0.7);
+              }} 
+              className="w-20 h-20 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm border-4 border-white/50 hover:bg-white/50 hover:scale-105 active:scale-95 transition-all shadow-2xl"
+            >
+              <div className="w-16 h-16 bg-white rounded-full shadow-inner"></div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Live Camera Modal */}
+      {activeCameraItem !== null && (
+        <div className="fixed inset-0 z-[200] bg-black flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 w-full z-10">
+            <button onClick={() => {
+              const video = document.getElementById("live-camera-video") as HTMLVideoElement;
+              if (video && video.srcObject) {
+                (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+              }
+              setActiveCameraItem(null);
+            }} className="text-white bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
+              <X size={24} />
+            </button>
+            <button 
+              onClick={() => {
+                // To switch camera, we just toggle a state which re-triggers the useEffect.
+                // We'll manage this inline.
+                const video = document.getElementById("live-camera-video") as HTMLVideoElement;
+                if (video && video.srcObject) {
+                  const stream = video.srcObject as MediaStream;
+                  const track = stream.getVideoTracks()[0];
+                  const currentFacing = track.getSettings().facingMode;
+                  // Stop current stream
+                  stream.getTracks().forEach(t => t.stop());
+                  // Request new stream
+                  navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
+                  }).then(newStream => {
+                    video.srcObject = newStream;
+                  }).catch(console.error);
+                }
+              }} 
+              className="text-white bg-white/20 px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-2 hover:bg-white/30 transition-colors"
+            >
+              <Camera size={16} /> Switch Camera
+            </button>
+          </div>
+          <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black">
+            <video 
+              id="live-camera-video"
+              autoPlay 
+              playsInline 
+              className="w-full h-full object-cover" 
+              ref={(node) => {
+                if (node && !node.srcObject && !node.dataset.requesting) {
+                  node.dataset.requesting = "true";
+                  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showToast("Camera access requires HTTPS or localhost", "error");
+                    setActiveCameraItem(null);
+                    return;
+                  }
+                  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+                    .then(stream => { 
+                      node.srcObject = stream; 
+                      delete node.dataset.requesting;
+                    })
+                    .catch(err => {
+                      delete node.dataset.requesting;
+                      console.error("Camera error:", err);
+                      showToast(`Camera error: ${err.name} - ${err.message}`, "error");
+                      setActiveCameraItem(null);
+                    });
+                }
+              }}
+            />
+            <canvas id="live-camera-canvas" className="hidden" />
+          </div>
+          <div className="p-8 pb-12 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 w-full flex justify-center z-10">
+            <button 
+              onClick={() => {
+                const video = document.getElementById("live-camera-video") as HTMLVideoElement;
+                const canvas = document.getElementById("live-camera-canvas") as HTMLCanvasElement;
+                if (!video || !canvas || !video.videoWidth) return;
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return;
+                
+                // Draw current frame
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Convert to compressed JPEG (0.7 quality)
+                canvas.toBlob((blob) => {
+                  if (!blob) return;
+                  const file = new File([blob], `dispatch-${Date.now()}.jpg`, { type: "image/jpeg" });
+                  
+                  // Stop camera
+                  if (video.srcObject) {
+                    (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+                  }
+                  
+                  // Upload
+                  handleUploadPackingImage([file], activeCameraItem);
+                  setActiveCameraItem(null);
+                }, "image/jpeg", 0.7);
+              }} 
+              className="w-20 h-20 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm border-4 border-white/50 hover:bg-white/50 hover:scale-105 active:scale-95 transition-all shadow-2xl"
+            >
+              <div className="w-16 h-16 bg-white rounded-full shadow-inner"></div>
+            </button>
           </div>
         </div>
       )}

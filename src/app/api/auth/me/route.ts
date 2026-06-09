@@ -27,6 +27,8 @@ export async function GET(req: NextRequest) {
         aadhaarUrl: true,
         panUrl: true,
         docUrl: true,
+        vendorStatus: true,
+        allowedCategories: true,
       },
     });
 
@@ -58,6 +60,17 @@ export async function PATCH(req: NextRequest) {
     const { name, mobile, location, artisanId, gstin, aadhaar, pan, aadhaarUrl, panUrl, docUrl } = body;
 
     const { prisma } = await import("@/lib/db");
+    
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { role: true, vendorStatus: true }
+    });
+
+    let newVendorStatus = undefined;
+    if (currentUser?.role === "vendor" && (currentUser.vendorStatus === "APPROVED" || currentUser.vendorStatus === "REJECTED")) {
+      newVendorStatus = "IN_REVIEW";
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: session.userId },
       data: {
@@ -71,6 +84,7 @@ export async function PATCH(req: NextRequest) {
         aadhaarUrl: aadhaarUrl !== undefined ? aadhaarUrl : undefined,
         panUrl: panUrl !== undefined ? panUrl : undefined,
         docUrl: docUrl !== undefined ? docUrl : undefined,
+        ...(newVendorStatus ? { vendorStatus: newVendorStatus } : {})
       },
       select: {
         id: true,
@@ -86,6 +100,7 @@ export async function PATCH(req: NextRequest) {
         aadhaarUrl: true,
         panUrl: true,
         docUrl: true,
+        vendorStatus: true,
       },
     });
 

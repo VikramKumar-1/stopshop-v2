@@ -1,102 +1,65 @@
-import { NextResponse } from "next/server";
-import { getOrders, createOrder } from "@/lib/ordersDb";
-import { getProductById } from "@/features/products/services/product";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireAuth } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { 
-      productId, 
-      quantity, 
-      totalAmount, 
-      paymentId, 
-      paymentStatus, 
-      shippingName,
-      shippingPhone,
-      shippingAddress,
-      shippingCity,
-      shippingState,
-      shippingPincode,
-      shippingCountry,
-      userEmail 
-    } = body;
+    const user = requireAuth(req);
+    if (user instanceof NextResponse) return user;
 
-    if (!productId || !quantity || !totalAmount || !shippingName || !shippingAddress) {
-      return NextResponse.json({ error: "Missing required order details" }, { status: 400 });
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status");
+
+    let whereClause: any = {};
+
+    const asVendor = searchParams.get("vendorId");
+
+    if (user.role === "admin") {
+       if (asVendor) {
+           whereClause.items = { some: { vendorId: parseInt(asVendor) } };
+       }
+    } else if (user.role === "vendor" && asVendor && parseInt(asVendor) === user.userId) {
+       whereClause.items = {
+          some: { vendorId: user.userId }
+       };
+    } else {
+       whereClause.userId = user.userId;
     }
 
-    // Retrieve product info to find corresponding vendorId and additional info
-    const product = await getProductById(productId);
-    if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    if (status) {
+       whereClause.status = status;
     }
 
-    const created = createOrder({
-      productId,
-      productName: product.name,
-      productImage: product.image,
-      productMaterial: product.material,
-      vendorId: product.vendorId || 0,
-      quantity,
-      totalAmount,
-      paymentId: paymentId || `pay_mock_${Date.now()}`,
-      paymentStatus: paymentStatus || "PAID",
-      shippingName,
-      shippingPhone,
-      shippingAddress,
-      shippingCity,
-      shippingState,
-      shippingPincode,
-      shippingCountry,
-      userEmail: userEmail || "guest@stopshop.com"
+    const total = await prisma.order.count({ where: whereClause });
+    const orders = await prisma.order.findMany({
+      where: whereClause,
+      include: {
+         items: true,
+         returnRequest: true
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit
     });
 
-    // Deduct stock
-    try {
-      if (product.stock !== undefined && product.stock !== null && product.stock >= quantity) {
-        await prisma.product.update({
-          where: { id: productId },
-          data: {
-            stock: {
-              decrement: quantity
-            }
-          }
-        });
+    return NextResponse.json({
+      success: true,
+      orders,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
       }
-    } catch (stockErr) {
-      console.error("Failed to deduct stock:", stockErr);
-      // We still return success since the order was placed and paid for
-    }
-
-    return NextResponse.json({ success: true, order: created });
-  } catch (e: any) {
-    console.error("Error creating order:", e);
-    return NextResponse.json({ error: e.message || "Internal Server Error" }, { status: 500 });
-  }
-}
-
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const vendorId = searchParams.get("vendorId");
-    const userEmail = searchParams.get("email");
-
-    let orders = getOrders();
-
-    if (vendorId) {
-      const vId = parseInt(vendorId);
-      orders = orders.filter((o) => o.vendorId === vId);
-    }
-
-    if (userEmail) {
-      orders = orders.filter((o) => o.userEmail.toLowerCase() === userEmail.toLowerCase());
-    }
-
-    return NextResponse.json(orders);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || "Internal Server Error" }, { status: 500 });
+    });
+  } catch (error: any) {
+    console.error("Fetch orders error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }
