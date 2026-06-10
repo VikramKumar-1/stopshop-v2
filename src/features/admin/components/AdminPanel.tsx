@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store, Loader2 } from "lucide-react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store, Loader2, Globe } from "lucide-react";
 import { currencyDatabase } from "@/context/RegionContext";
 import { jsPDF } from "jspdf";
 import { AnimatePresence, motion } from "framer-motion";
@@ -47,7 +47,16 @@ export const AdminPanel = () => {
   useEffect(() => {
     localStorage.setItem("adminActiveTab", activeTab);
   }, [activeTab]);
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
 
+  useEffect(() => {
+    fetch("https://open.er-api.com/v6/latest/INR")
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.rates) setExchangeRates(d.rates);
+      })
+      .catch(console.error);
+  }, []);
   useEffect(() => {
     checkAuth();
   }, []);
@@ -57,8 +66,46 @@ export const AdminPanel = () => {
   const [fetchingOrders, setFetchingOrders] = useState(false);
   const [returns, setReturns] = useState<any[]>([]);
   const [settlements, setSettlements] = useState<any[]>([]);
-  const [groupedSettlements, setGroupedSettlements] = useState<any[]>([]);
-  const [settlementSummary, setSettlementSummary] = useState<any>(null);
+  const [apiGroupedSettlements, setApiGroupedSettlements] = useState<any[]>([]);
+  const [apiSettlementSummary, setApiSettlementSummary] = useState<any>(null);
+
+  const { groupedSettlements, settlementSummary } = useMemo(() => {
+     if (!apiGroupedSettlements || apiGroupedSettlements.length === 0) return { groupedSettlements: [], settlementSummary: null };
+     
+     const newGrouped = JSON.parse(JSON.stringify(apiGroupedSettlements));
+     let globalSummary = { hold: 0, eligible: 0, settled: 0, disputed: 0 };
+
+     newGrouped.forEach((g: any) => {
+        let vSummary = { hold: 0, eligible: 0, settled: 0, disputed: 0 };
+        g.settlements.forEach((s: any) => {
+           let amount = s.vendorPayoutPaise || 0;
+           const currency = s.order?.currency || "INR";
+           
+           if (currency !== "INR") {
+              if (exchangeRates && exchangeRates[currency]) {
+                 amount = amount / exchangeRates[currency];
+              } else {
+                 amount = amount / (currency === "USD" ? 0.012 : 1);
+              }
+           }
+           
+           if (s.status === "HOLD") vSummary.hold += amount;
+           if (s.status === "ELIGIBLE") vSummary.eligible += amount;
+           if (s.status === "SETTLED") vSummary.settled += amount;
+           if (s.status === "DISPUTED") vSummary.disputed += amount;
+        });
+        g.summary = vSummary;
+        globalSummary.hold += vSummary.hold;
+        globalSummary.eligible += vSummary.eligible;
+        globalSummary.settled += vSummary.settled;
+        globalSummary.disputed += vSummary.disputed;
+     });
+
+     newGrouped.sort((a: any, b: any) => b.summary.eligible - a.summary.eligible);
+
+     return { groupedSettlements: newGrouped, settlementSummary: globalSummary };
+  }, [apiGroupedSettlements, exchangeRates]);
+
   const [selectedVendorSettlement, setSelectedVendorSettlement] = useState<any>(null);
   const [settlementSearchQuery, setSettlementSearchQuery] = useState("");
   const [excludedVendorIds, setExcludedVendorIds] = useState<number[]>([]);
@@ -183,7 +230,7 @@ export const AdminPanel = () => {
   const fetchOrders = async (page: number) => {
     setFetchingOrders(true);
     try {
-      const res = await fetch(`/api/orders?page=${page}&limit=10`);
+      const res = await fetch(`/api/orders?page=${page}&limit=10&t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         setOrders(prev => page === 1 ? (data.orders || []) : [...prev, ...(data.orders || [])]);
@@ -218,33 +265,33 @@ export const AdminPanel = () => {
   // Targeted refresh functions — only reload what changed
   const fetchVendors = async () => {
     try {
-      const res = await fetch("/api/admin/vendors");
+      const res = await fetch(`/api/admin/vendors?t=${Date.now()}`);
       if (res.ok) setVendors((await res.json()).vendors || []);
     } catch (e) { console.error("Failed to load vendors", e); }
   };
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("/api/products");
+      const res = await fetch(`/api/products?t=${Date.now()}`);
       if (res.ok) setProducts(await res.json());
     } catch (e) { console.error("Failed to load products", e); }
   };
 
   const fetchSettlements = async () => {
     try {
-      const res = await fetch("/api/admin/settlements");
+      const res = await fetch(`/api/admin/settlements?t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         setSettlements(data.settlements || []);
-        setGroupedSettlements(data.groupedSettlements || []);
-        setSettlementSummary(data.summary);
+        setApiGroupedSettlements(data.groupedSettlements || []);
+        setApiSettlementSummary(data.summary);
       }
     } catch (e) { console.error("Failed to load settlements", e); }
   };
 
   const fetchReturns = async () => {
     try {
-      const res = await fetch("/api/returns");
+      const res = await fetch(`/api/returns?t=${Date.now()}`);
       if (res.ok) setReturns((await res.json()).returns || []);
     } catch (e) { console.error("Failed to load returns", e); }
   };
@@ -256,7 +303,10 @@ export const AdminPanel = () => {
     try {
       const controller = new AbortController();
       const signal = controller.signal;
-      const fetchWithSignal = (url: string) => fetch(url, { signal });
+      const fetchWithSignal = (url: string) => {
+         const symbol = url.includes('?') ? '&' : '?';
+         return fetch(`${url}${symbol}t=${Date.now()}`, { signal });
+      };
 
       const [rRes, sRes, setRes, inqRes, prodRes, catRes, vRes] = await Promise.all([
          fetchWithSignal("/api/returns"),
@@ -272,8 +322,8 @@ export const AdminPanel = () => {
       if (sRes.ok) {
          const data = await sRes.json();
          setSettlements(data.settlements || []);
-         setGroupedSettlements(data.groupedSettlements || []);
-         setSettlementSummary(data.summary);
+         setApiGroupedSettlements(data.groupedSettlements || []);
+         setApiSettlementSummary(data.summary);
       }
       if (setRes.ok) {
          const settingsData = (await setRes.json()).settings;
@@ -691,11 +741,11 @@ export const AdminPanel = () => {
           <button
             onClick={handleTabRefresh}
             disabled={isLoadingData}
-            className="flex items-center justify-center gap-2 px-5 py-3 bg-surface border border-border hover:border-orange-500 rounded-2xl text-xs font-bold transition-all shadow-sm shrink-0 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 border border-gray-700 hover:bg-gray-800 hover:border-gray-500 rounded-2xl text-xs font-bold text-white transition-all shadow-md shrink-0 disabled:opacity-50"
             title="Refresh current tab data"
           >
-            <RefreshCcw size={16} className={isLoadingData ? "animate-spin text-orange-500" : "text-muted"} />
-            <span className="hidden sm:inline text-heading">Refresh</span>
+            <RefreshCcw size={16} className={isLoadingData ? "animate-spin text-orange-400" : "text-gray-300"} />
+            <span className="hidden sm:inline">Refresh Data</span>
           </button>
         </div>
 
@@ -708,6 +758,7 @@ export const AdminPanel = () => {
              let totalCommissionUSD = 0;
              let nonCancelledCountINR = 0;
              let nonCancelledCountUSD = 0;
+             let globalConvertedRevenueINR = 0;
              const statusCounts: Record<string, number> = {};
              const paymentCounts: Record<string, number> = {};
 
@@ -719,14 +770,30 @@ export const AdminPanel = () => {
                 paymentCounts[method] = (paymentCounts[method] || 0) + 1;
 
                 if (status !== "CANCELLED") {
-                   if (o.currency === "USD") {
-                      totalSalesUSD += o.totalPaise;
+                   const currency = o.currency || "INR";
+                   const rawPaise = o.totalPaise || 0;
+                   
+                   // specific breakdowns
+                   if (currency === "USD") {
+                      totalSalesUSD += rawPaise;
                       totalCommissionUSD += o.commissionPaise || 0;
                       nonCancelledCountUSD += 1;
                    } else {
-                      totalSalesINR += o.totalPaise;
+                      totalSalesINR += rawPaise;
                       totalCommissionINR += o.commissionPaise || 0;
                       nonCancelledCountINR += 1;
+                   }
+
+                   // global revenue auto-converted
+                   if (currency === "INR") {
+                      globalConvertedRevenueINR += rawPaise;
+                   } else {
+                      if (exchangeRates && exchangeRates[currency]) {
+                         globalConvertedRevenueINR += rawPaise / exchangeRates[currency];
+                      } else {
+                         // fallback to standard if unknown or no rates
+                         globalConvertedRevenueINR += rawPaise / (currency === "USD" ? 0.012 : 1);
+                      }
                    }
                 }
              });
@@ -737,85 +804,95 @@ export const AdminPanel = () => {
 
              return (
                 <div className="space-y-6">
+                   <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-6 shadow-xl text-white flex justify-between items-center border border-blue-400/30">
+                      <div>
+                         <h3 className="text-xs font-bold uppercase tracking-wider text-blue-50 mb-1 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                            Estimated Global Revenue (Auto-Converted to INR)
+                         </h3>
+                         <div className="text-4xl font-black tracking-tight drop-shadow-sm mt-2">
+                            ₹{(globalConvertedRevenueINR / 100).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                         </div>
+                         <p className="text-[10px] text-blue-100 mt-2 opacity-80">Live exchange rates used to auto-convert all international sales.</p>
+                      </div>
+                      <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
+                         <Globe size={32} className="text-white" />
+                      </div>
+                   </div>
+
                    {/* Stats Cards Row */}
                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="bg-surface-card border border-border rounded-2xl p-5 shadow-sm hover:border-orange-500/30 transition-all">
-                         <div className="flex justify-between items-start">
-                            <div>
-                               <p className="text-[10px] uppercase font-bold text-muted tracking-wider">Gross Sales</p>
-                               <div className="mt-2 space-y-0.5">
-                                 <h3 className="text-xl font-black text-heading">
-                                   ₹{(totalSalesINR / 100).toLocaleString()} <span className="text-[10px] text-muted ml-1 tracking-widest">INR</span>
-                                 </h3>
-                                 {(totalSalesUSD > 0 || nonCancelledCountUSD > 0) && (
-                                   <h3 className="text-lg font-black text-heading/80">
-                                     ${(totalSalesUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-muted ml-1 tracking-widest">USD</span>
-                                   </h3>
-                                 )}
-                               </div>
-                            </div>
-                            <span className="p-2.5 bg-orange-500/10 text-orange-500 rounded-xl">
-                               <DollarSign size={18} />
+                      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-lg hover:border-gray-700 transition-all flex flex-col justify-between">
+                         <div className="flex justify-between items-center mb-4">
+                            <p className="text-xs uppercase font-bold text-gray-400 tracking-wider">Gross Sales</p>
+                            <span className="p-2 bg-gray-800 text-orange-400 rounded-lg">
+                               <DollarSign size={16} />
                             </span>
                          </div>
-                         <p className="text-[10px] text-muted mt-2 leading-relaxed">Total revenue generated from all valid purchases (excludes cancelled orders & refunds).</p>
+                         <div className="space-y-1">
+                           <h3 className="text-2xl font-black text-white flex items-baseline gap-1.5">
+                             ₹{(totalSalesINR / 100).toLocaleString()} <span className="text-xs font-semibold text-gray-500">INR</span>
+                           </h3>
+                           {(totalSalesUSD > 0 || nonCancelledCountUSD > 0) && (
+                             <h3 className="text-lg font-bold text-gray-400 flex items-baseline gap-1.5">
+                               ${(totalSalesUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] font-semibold text-gray-500">USD</span>
+                             </h3>
+                           )}
+                         </div>
+                         <p className="text-[10px] text-gray-500 mt-4 leading-relaxed font-medium">Total revenue generated from all valid purchases (excludes cancelled orders & refunds).</p>
                       </div>
 
-                      <div className="bg-surface-card border border-border rounded-2xl p-5 shadow-sm hover:border-emerald-500/30 transition-all">
-                         <div className="flex justify-between items-start">
-                            <div>
-                               <p className="text-[10px] uppercase font-bold text-muted tracking-wider">Platform Earnings</p>
-                               <div className="mt-2 space-y-0.5">
-                                 <h3 className="text-xl font-black text-emerald-500">
-                                   ₹{(totalCommissionINR / 100).toLocaleString()} <span className="text-[10px] text-emerald-500/70 ml-1 tracking-widest">INR</span>
-                                 </h3>
-                                 {(totalCommissionUSD > 0 || nonCancelledCountUSD > 0) && (
-                                   <h3 className="text-lg font-black text-emerald-500/80">
-                                     ${(totalCommissionUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-emerald-500/50 ml-1 tracking-widest">USD</span>
-                                   </h3>
-                                 )}
-                               </div>
-                            </div>
-                            <span className="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-xl">
-                               <Award size={18} />
+                      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-lg hover:border-gray-700 transition-all flex flex-col justify-between">
+                         <div className="flex justify-between items-center mb-4">
+                            <p className="text-xs uppercase font-bold text-gray-400 tracking-wider">Platform Earnings</p>
+                            <span className="p-2 bg-gray-800 text-emerald-400 rounded-lg">
+                               <Award size={16} />
                             </span>
                          </div>
-                         <p className="text-[10px] text-muted mt-2 leading-relaxed">Total commission earned by StopShop from successful vendor sales.</p>
+                         <div className="space-y-1">
+                           <h3 className="text-2xl font-black text-white flex items-baseline gap-1.5">
+                             ₹{(totalCommissionINR / 100).toLocaleString()} <span className="text-xs font-semibold text-gray-500">INR</span>
+                           </h3>
+                           {(totalCommissionUSD > 0 || nonCancelledCountUSD > 0) && (
+                             <h3 className="text-lg font-bold text-gray-400 flex items-baseline gap-1.5">
+                               ${(totalCommissionUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] font-semibold text-gray-500">USD</span>
+                             </h3>
+                           )}
+                         </div>
+                         <p className="text-[10px] text-gray-500 mt-4 leading-relaxed font-medium">Total commission earned by StopShop from successful vendor sales.</p>
                       </div>
 
-                      <div className="bg-surface-card border border-border rounded-2xl p-5 shadow-sm hover:border-blue-500/30 transition-all">
-                         <div className="flex justify-between items-start">
-                            <div>
-                               <p className="text-[10px] uppercase font-bold text-muted tracking-wider">Total Orders</p>
-                               <h3 className="text-xl font-black text-blue-500 mt-2">{totalOrders}</h3>
-                            </div>
-                            <span className="p-2.5 bg-blue-500/10 text-blue-500 rounded-xl">
-                               <Package size={18} />
+                      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-lg hover:border-gray-700 transition-all flex flex-col justify-between">
+                         <div className="flex justify-between items-center mb-4">
+                            <p className="text-xs uppercase font-bold text-gray-400 tracking-wider">Total Orders</p>
+                            <span className="p-2 bg-gray-800 text-blue-400 rounded-lg">
+                               <Package size={16} />
                             </span>
                          </div>
-                         <p className="text-[10px] text-muted mt-2 leading-relaxed">Total count of all orders placed by users across all vendors.</p>
+                         <div className="space-y-1">
+                           <h3 className="text-2xl font-black text-white">{totalOrders}</h3>
+                         </div>
+                         <p className="text-[10px] text-gray-500 mt-4 leading-relaxed font-medium">Total count of all orders placed by users across all vendors.</p>
                       </div>
 
-                      <div className="bg-surface-card border border-border rounded-2xl p-5 shadow-sm hover:border-purple-500/30 transition-all">
-                         <div className="flex justify-between items-start">
-                            <div>
-                               <p className="text-[10px] uppercase font-bold text-muted tracking-wider">Avg Order Value</p>
-                               <div className="mt-2 space-y-0.5">
-                                 <h3 className="text-xl font-black text-purple-500">
-                                   ₹{(aovINR / 100).toLocaleString()} <span className="text-[10px] text-purple-500/70 ml-1 tracking-widest">INR</span>
-                                 </h3>
-                                 {(aovUSD > 0 || nonCancelledCountUSD > 0) && (
-                                   <h3 className="text-lg font-black text-purple-500/80">
-                                     ${(aovUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-purple-500/50 ml-1 tracking-widest">USD</span>
-                                   </h3>
-                                 )}
-                               </div>
-                            </div>
-                            <span className="p-2.5 bg-purple-500/10 text-purple-500 rounded-xl">
-                               <FileText size={18} />
+                      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-lg hover:border-gray-700 transition-all flex flex-col justify-between">
+                         <div className="flex justify-between items-center mb-4">
+                            <p className="text-xs uppercase font-bold text-gray-400 tracking-wider">Avg Order Value</p>
+                            <span className="p-2 bg-gray-800 text-purple-400 rounded-lg">
+                               <FileText size={16} />
                             </span>
                          </div>
-                         <p className="text-[10px] text-muted mt-2 leading-relaxed">Average amount spent per valid order on the platform, providing insight into customer purchasing power.</p>
+                         <div className="space-y-1">
+                           <h3 className="text-2xl font-black text-white flex items-baseline gap-1.5">
+                             ₹{(aovINR / 100).toLocaleString()} <span className="text-xs font-semibold text-gray-500">INR</span>
+                           </h3>
+                           {(aovUSD > 0 || nonCancelledCountUSD > 0) && (
+                             <h3 className="text-lg font-bold text-gray-400 flex items-baseline gap-1.5">
+                               ${(aovUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] font-semibold text-gray-500">USD</span>
+                             </h3>
+                           )}
+                         </div>
+                         <p className="text-[10px] text-gray-500 mt-4 leading-relaxed font-medium">Average amount spent per valid order on the platform, providing insight into customer purchasing power.</p>
                       </div>
                    </div>
 
@@ -2820,10 +2897,10 @@ export const AdminPanel = () => {
                   <button
                     onClick={() => {
                       if (rejectPromptModal.type === "VENDOR_KYC" || rejectPromptModal.type === "VENDOR_PROFILE") {
-                        handleReviewVendor(rejectPromptModal.id, "REJECT", promptText || "Rejected by Admin");
+                        handleReviewVendor(Number(rejectPromptModal.id), "REJECT", promptText || "Rejected by Admin");
                         if (rejectPromptModal.type === "VENDOR_PROFILE") setVendorProfileModal(null);
                       } else if (rejectPromptModal.type === "RETURN") {
-                        handleReturnAction(rejectPromptModal.id, "REJECTED", promptText || "Rejected by Admin");
+                        handleUpdateReturn(rejectPromptModal.id, "REJECTED", promptText || "Rejected by Admin");
                       }
                       setRejectPromptModal(null);
                     }}

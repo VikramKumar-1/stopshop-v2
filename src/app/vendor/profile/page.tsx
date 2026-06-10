@@ -4,7 +4,11 @@ import Link from "next/link";
 import { User as UserIcon, Mail, Store, Loader2, Award, ShieldCheck, MapPin, Phone, FileText, CheckCircle, Upload, Eye, Edit3 } from "lucide-react";
 import { resolvePincodeOffline, parseLocation } from "@/lib/pincodeResolver";
 
-export default function VendorProfilePage({ isEmbedded = false }: { isEmbedded?: boolean }) {
+import { usePathname } from "next/navigation";
+
+export default function VendorProfilePage() {
+  const pathname = usePathname();
+  const isEmbedded = pathname !== "/vendor/profile";
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);

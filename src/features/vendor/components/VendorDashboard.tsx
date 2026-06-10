@@ -71,7 +71,7 @@ export const VendorDashboard = () => {
   const [updatingStock, setUpdatingStock] = useState(false);
   const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
   const [approveReturnModal, setApproveReturnModal] = useState<any | null>(null);
-  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action">("inquiries");
+  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action" | "profile" | "settings">("inquiries");
 
   useEffect(() => {
     const savedTab = localStorage.getItem("vendorActiveTab");
@@ -80,7 +80,7 @@ export const VendorDashboard = () => {
     }
   }, []);
 
-  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action") => {
+  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action" | "profile" | "settings") => {
     _setActiveTab(tab);
     localStorage.setItem("vendorActiveTab", tab);
   };
@@ -767,6 +767,26 @@ export const VendorDashboard = () => {
     }
   };
 
+  const handleReturnAction = async (returnId: string, action: string) => {
+    try {
+      const mappedAction = action === "RETURN_APPROVED" ? "QC_PASS" : action;
+      const res = await fetch(`/api/returns/${returnId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: mappedAction })
+      });
+      if (res.ok) {
+        showToast("QC Approved successfully!", "success");
+        if (vendor) fetchData(vendor.id);
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Failed to update return", "error");
+      }
+    } catch (err) {
+      showToast("Network error", "error");
+    }
+  };
+
   const removeGalleryImage = (idx: number, isEdit: boolean) => {
     if (isEdit) {
       setEditForm((prev) => ({
@@ -1394,7 +1414,7 @@ export const VendorDashboard = () => {
       <div className="max-w-[95%] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20">  {/* Tab Contents */}
         {activeTab === "profile" && (
           <div className="animate-in fade-in duration-300">
-            <VendorProfilePage isEmbedded={true} />
+            <VendorProfilePage />
           </div>
         )}
 

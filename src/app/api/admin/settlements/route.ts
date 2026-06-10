@@ -33,7 +33,8 @@ export async function GET(req: NextRequest) {
             orderNumber: true,
             status: true,
             deliveredAt: true,
-            paymentMethod: true
+            paymentMethod: true,
+            currency: true
           }
         }
       },
