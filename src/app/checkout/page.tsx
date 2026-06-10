@@ -73,6 +73,7 @@ function CheckoutPageInner() {
   useEffect(() => {
     // If cart is empty and not doing a Buy Now, redirect back
     if (loaded && cart.length === 0 && !buyNowProductId) {
+      // Do not redirect if we are attempting to fetch a Buy Now item
       const timer = setTimeout(() => router.push("/cart"), 2000);
       return () => clearTimeout(timer);
     }

@@ -679,17 +679,14 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                                 if (res.ok) {
                                   const data = await res.json();
                                   if (data.authenticated) {
-                                    addToCart(product, 1);
                                     window.location.href = `/checkout?productId=${product.id}`;
                                   } else {
                                     window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}&reason=inquiry`;
                                   }
                                 } else {
-                                  addToCart(product, 1);
                                   window.location.href = `/checkout?productId=${product.id}`;
                                 }
                               } catch (err) {
-                                addToCart(product, 1);
                                 window.location.href = `/checkout?productId=${product.id}`;
                               }
                             }}
