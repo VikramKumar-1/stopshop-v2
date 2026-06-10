@@ -71,7 +71,7 @@ export const VendorDashboard = () => {
   const [updatingStock, setUpdatingStock] = useState(false);
   const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
   const [approveReturnModal, setApproveReturnModal] = useState<any | null>(null);
-  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action" | "profile" | "settings">("inquiries");
+  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile">("inquiries");
 
   useEffect(() => {
     const savedTab = localStorage.getItem("vendorActiveTab");
@@ -80,7 +80,7 @@ export const VendorDashboard = () => {
     }
   }, []);
 
-  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action" | "profile" | "settings") => {
+  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile") => {
     _setActiveTab(tab);
     localStorage.setItem("vendorActiveTab", tab);
   };
@@ -1352,17 +1352,6 @@ export const VendorDashboard = () => {
               My Profile
               {activeTab === "profile" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
-            {/* Returns Tab */}
-            <button
-              onClick={() => setActiveTab("returns")}
-              className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
-                activeTab === "returns" ? "text-orange-500" : "text-muted hover:text-heading"
-              }`}
-            >
-              Returns QC
-              {activeTab === "returns" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
-            </button>
-
             {/* Settlements Tab */}
             <button
               onClick={() => setActiveTab("settlements")}
@@ -1372,17 +1361,6 @@ export const VendorDashboard = () => {
             >
               Settlements
               {activeTab === "settlements" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
-            </button>
-
-            {/* Settings Tab */}
-            <button
-              onClick={() => setActiveTab("settings")}
-              className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
-                activeTab === "settings" ? "text-orange-500" : "text-muted hover:text-heading"
-              }`}
-            >
-              Settings
-              {activeTab === "settings" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
 
             {/* Admin Tab (Only if admin role) */}
@@ -3130,127 +3108,6 @@ export const VendorDashboard = () => {
                             </span>
                           ) : (
                             new Date(s.holdUntil).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* RETURNS QC TAB */}
-        {activeTab === "returns" && (
-          <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
-            <h2 className="text-2xl font-black text-heading flex items-center gap-2">
-              <AlertTriangle className="text-red-500" size={28} />
-              Return Quality Check (QC)
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {returns.length === 0 ? (
-                <div className="col-span-full text-center p-12 bg-surface-card border border-border rounded-3xl">
-                  <CheckCircle2 size={48} className="mx-auto text-emerald-500 mb-4 opacity-50" />
-                  <p className="text-lg font-bold text-heading">No pending returns</p>
-                  <p className="text-muted text-sm mt-1">Awesome! Your products are loved by customers.</p>
-                </div>
-              ) : (
-                returns.map(ret => (
-                  <div key={ret.id} className="bg-surface-card border border-border rounded-3xl p-6 relative overflow-hidden group">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-xs font-bold text-red-500 mb-1 flex items-center gap-1">
-                          <AlertTriangle size={12} /> Return Request
-                        </p>
-                        <h3 className="text-lg font-black text-heading">{ret.order.orderNumber}</h3>
-                      </div>
-                      <span className="px-3 py-1 bg-surface border border-border rounded-full text-xs font-bold capitalize text-muted">
-                        {ret.status.replace(/_/g, " ")}
-                      </span>
-                    </div>
-
-                    {ret.vendorDeliveredAt && (
-                      <div className="mb-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-pulse">
-                        <div className="flex items-center gap-2">
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-                          </span>
-                          <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">QC SLA Timer:</span>
-                        </div>
-                        <span className="text-xs font-black text-orange-700 font-mono bg-orange-500/5 px-2.5 py-1 rounded-lg border border-orange-500/10">
-                          {(() => {
-                            const deliveredAt = new Date(ret.vendorDeliveredAt);
-                            const deadline = new Date(deliveredAt.getTime() + (slaHours || 24) * 60 * 60 * 1000);
-                            const diffMs = deadline.getTime() - currentTime.getTime();
-                            if (diffMs <= 0) {
-                              return "SLA EXPIRED (Auto-refund)";
-                            }
-                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                            return `${diffHours}h ${diffMins}m remaining`;
-                          })()}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="bg-surface p-4 rounded-2xl mb-4 border border-border">
-                      <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">Customer Reason</p>
-                      <p className="text-sm font-medium text-heading">{ret.reasonDetail || ret.reason.replace(/_/g, " ")}</p>
-                    </div>
-
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-3">Returned Items to Inspect:</p>
-                    <div className="space-y-3 mb-6">
-                      {ret.returnItems.map((item: any, idx: number) => {
-                        const product = ret.order.items.find((i: any) => i.id === item.orderItemId);
-                        return (
-                          <div key={idx} className="flex gap-4 items-center bg-surface-hover p-3 rounded-xl border border-border">
-                            {product?.productImage && (
-                              <img src={product.productImage} alt="" className="w-12 h-12 rounded-lg object-cover bg-surface" />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-heading truncate">{product?.productName}</p>
-                              <p className="text-[10px] text-muted font-mono">Qty: {item.quantity}</p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {ret.status === "PICKED_UP" || ret.status === "RECEIVED_AT_VENDOR" || (ret.status === "APPROVED" && ret.vendorDeliveredAt) ? (
-                      <div className="flex gap-3 mt-4">
-                        <button 
-                          onClick={() => {
-                            setIsDisputing(true);
-                            setQcImages([]);
-                            setQcNotes("");
-                            setReviewReturnOrder({ ...ret.order, returnRequest: ret });
-                          }}
-                          className="flex-1 py-2.5 bg-surface border border-border hover:border-red-500/50 hover:bg-red-500/10 text-red-500 rounded-xl text-xs font-bold transition-colors"
-                        >
-                          Reject (Fraud)
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setApproveReturnModal(ret);
-                          }}
-                          className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-colors shadow-sm shadow-emerald-500/20"
-                        >
-                          Pass QC (Item OK)
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="mt-4 p-3 bg-surface border border-border rounded-xl text-center">
-                        <p className="text-xs font-bold text-muted">QC Decision Submitted</p>
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Admin Panel Tab */}
         {activeTab === "admin-panel" && vendor?.role === "admin" && (
           <div className="space-y-6 animate-in fade-in duration-300 text-xs">

@@ -59,6 +59,17 @@ export const AdminPanel = () => {
   }, []);
   useEffect(() => {
     checkAuth();
+    // Safety fallback: if auth check is stuck, stop the skeleton loader
+    const safetyTimer = setTimeout(() => {
+      setAuthorized(prev => {
+        if (prev === null) {
+          console.error("Admin auth check stuck — forcing login screen after 12s timeout");
+          return false;
+        }
+        return prev;
+      });
+    }, 12000);
+    return () => clearTimeout(safetyTimer);
   }, []);
   const [orders, setOrders] = useState<any[]>([]);
   const [orderPage, setOrderPage] = useState(1);
@@ -181,9 +192,16 @@ export const AdminPanel = () => {
   
   const checkAuth = async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      console.log("[AdminPanel] Checking auth...");
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      // Added cache-buster to prevent network tab from stalling on cached requests
+      const res = await fetch(`/api/auth/me?t=${Date.now()}`, { signal: controller.signal });
+      clearTimeout(timeout);
+      console.log("[AdminPanel] Auth response status:", res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log("[AdminPanel] Auth data:", data.authenticated, data.user?.role);
         if (data.authenticated && data.user.role === "admin") {
           setAuthorized(true);
           fetchData();
@@ -191,9 +209,11 @@ export const AdminPanel = () => {
           setAuthorized(false);
         }
       } else {
+        console.error("[AdminPanel] Auth response not OK:", res.status);
         setAuthorized(false);
       }
     } catch (e) {
+      console.error("[AdminPanel] Auth check failed:", e);
       setAuthorized(false);
     }
   };
@@ -298,17 +318,18 @@ export const AdminPanel = () => {
 
   const fetchData = async () => {
     setIsLoadingData(true);
-    // Safety timeout — if data doesn't load in 15s, stop showing spinner
-    const safetyTimer = setTimeout(() => setIsLoadingData(false), 15000);
+    const controller = new AbortController();
+    const signal = controller.signal;
+    // Abort all pending requests after 20s to prevent infinite hang
+    const abortTimer = setTimeout(() => controller.abort(), 20000);
     try {
-      const controller = new AbortController();
-      const signal = controller.signal;
       const fetchWithSignal = (url: string) => {
          const symbol = url.includes('?') ? '&' : '?';
          return fetch(`${url}${symbol}t=${Date.now()}`, { signal });
       };
 
-      const [rRes, sRes, setRes, inqRes, prodRes, catRes, vRes] = await Promise.all([
+      // Use allSettled so one failing/hanging API doesn't block the rest
+      const results = await Promise.allSettled([
          fetchWithSignal("/api/returns"),
          fetchWithSignal("/api/admin/settlements"),
          fetchWithSignal("/api/admin/settings"),
@@ -318,33 +339,42 @@ export const AdminPanel = () => {
          fetchWithSignal("/api/admin/vendors")
       ]);
 
-      if (rRes.ok) setReturns((await rRes.json()).returns || []);
-      if (sRes.ok) {
+      const getRes = (i: number) => results[i].status === "fulfilled" ? (results[i] as PromiseFulfilledResult<Response>).value : null;
+      const rRes = getRes(0);
+      const sRes = getRes(1);
+      const setRes = getRes(2);
+      const inqRes = getRes(3);
+      const prodRes = getRes(4);
+      const catRes = getRes(5);
+      const vRes = getRes(6);
+
+      if (rRes?.ok) setReturns((await rRes.json()).returns || []);
+      if (sRes?.ok) {
          const data = await sRes.json();
          setSettlements(data.settlements || []);
          setApiGroupedSettlements(data.groupedSettlements || []);
          setApiSettlementSummary(data.summary);
       }
-      if (setRes.ok) {
+      if (setRes?.ok) {
          const settingsData = (await setRes.json()).settings;
          setSettings(settingsData);
          if (settingsData?.homepageSections) {
            setHomepageSections(settingsData.homepageSections);
          }
       }
-      if (inqRes.ok) setInquiries(await inqRes.json());
-      if (prodRes.ok) setProducts(await prodRes.json());
-      if (catRes.ok) {
+      if (inqRes?.ok) setInquiries(await inqRes.json());
+      if (prodRes?.ok) setProducts(await prodRes.json());
+      if (catRes?.ok) {
          const data = await catRes.json();
          setDbCategories(data);
          if (data.length > 0) setSelectedCategorySlug(data[0].slug);
          setLoadingCategories(false);
       }
-      if (vRes.ok) setVendors((await vRes.json()).vendors || []);
+      if (vRes?.ok) setVendors((await vRes.json()).vendors || []);
     } catch (e) {
       console.error("Failed to load admin data", e);
     } finally {
-      clearTimeout(safetyTimer);
+      clearTimeout(abortTimer);
       setIsLoadingData(false);
     }
   };
@@ -666,9 +696,45 @@ export const AdminPanel = () => {
     }
   };
 
-  // Only block render during initial auth check — data loads silently
+  // Only block render during initial auth check
   if (authorized === null) {
-    return <div className="min-h-screen bg-surface flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" /></div>;
+    return (
+      <div className="min-h-screen bg-surface pb-16">
+        {/* Skeleton Header */}
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-8 w-48 bg-white/20 rounded-xl animate-pulse" />
+              <div className="h-4 w-32 bg-white/10 rounded-lg animate-pulse" />
+            </div>
+            <div className="h-10 w-24 bg-white/20 rounded-xl animate-pulse" />
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+          {/* Skeleton Tabs */}
+          <div className="flex items-center justify-between mb-8 gap-4">
+            <div className="flex gap-2 bg-gray-100 dark:bg-gray-900/50 p-2 rounded-2xl border border-gray-200 dark:border-gray-800 w-full h-[60px] animate-pulse">
+              <div className="w-24 h-full bg-gray-300 dark:bg-gray-700 rounded-xl" />
+              <div className="w-24 h-full bg-gray-300 dark:bg-gray-700 rounded-xl" />
+              <div className="w-32 h-full bg-gray-300 dark:bg-gray-700 rounded-xl hidden sm:block" />
+              <div className="w-32 h-full bg-gray-300 dark:bg-gray-700 rounded-xl hidden md:block" />
+              <div className="w-28 h-full bg-gray-300 dark:bg-gray-700 rounded-xl hidden lg:block" />
+            </div>
+            <div className="w-32 h-[60px] bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl animate-pulse shrink-0" />
+          </div>
+
+          {/* Skeleton Content */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="h-32 bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-3xl animate-pulse" />
+            <div className="h-32 bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-3xl animate-pulse" />
+            <div className="h-32 bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-3xl animate-pulse" />
+            <div className="h-32 bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-3xl animate-pulse" />
+          </div>
+          <div className="h-96 bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-3xl animate-pulse" />
+        </div>
+      </div>
+    );
   }
 
   if (!authorized) {
@@ -682,7 +748,7 @@ export const AdminPanel = () => {
             {loginError && <div className="p-3 bg-red-500/5 text-red-500 text-xs border border-red-500/20 rounded-xl">{loginError}</div>}
             <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-xs outline-none" />
             <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-xs outline-none" />
-            <button type="submit" disabled={loading} className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all">
+            <button type="submit" disabled={loading} className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all disabled:opacity-50">
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
@@ -690,6 +756,7 @@ export const AdminPanel = () => {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-surface pb-16">
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-8 px-4 sm:px-6 lg:px-8">
