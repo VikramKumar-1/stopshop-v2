@@ -37,8 +37,7 @@ export async function POST(req: NextRequest) {
     const eligibleSettlements = await prisma.settlement.findMany({
        where: whereClause,
        include: {
-          order: true,
-          vendor: true // User model representing vendor
+          order: true
        }
     });
 
@@ -46,20 +45,34 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: true, message: "No eligible settlements to process" });
     }
 
+    // Fetch vendor users manually
+    const settlementVendorIds = Array.from(new Set(eligibleSettlements.map(s => s.vendorId)));
+    const vendors = await prisma.user.findMany({
+       where: { id: { in: settlementVendorIds } }
+    });
+    const vendorMap = new Map(vendors.map(v => [v.id, v]));
+
     const processedIds: number[] = [];
     const failedIds: number[] = [];
 
     // 2. Process each settlement
     for (const settlement of eligibleSettlements) {
-       if (!settlement.vendor.razorpayAccountId) {
-          console.warn(`Vendor ${settlement.vendor.id} has no Razorpay Linked Account`);
+       const vendor = vendorMap.get(settlement.vendorId);
+       if (!vendor) {
+          console.warn(`Vendor not found for settlement ${settlement.id}`);
+          failedIds.push(settlement.id);
+          continue;
+       }
+
+       if (!vendor.razorpayAccountId) {
+          console.warn(`Vendor ${vendor.id} has no Razorpay Linked Account`);
           failedIds.push(settlement.id);
           continue;
        }
 
        // Skip vendors whose payouts are paused
-       if (settlement.vendor.payoutsPaused) {
-          console.log(`Skipping payout for vendor ${settlement.vendor.id} because payouts are PAUSED.`);
+       if (vendor.payoutsPaused) {
+          console.log(`Skipping payout for vendor ${vendor.id} because payouts are PAUSED.`);
           failedIds.push(settlement.id);
           continue;
        }
@@ -67,7 +80,7 @@ export async function POST(req: NextRequest) {
        try {
           // Razorpay Route Transfer API
           const transferPayload = {
-             account: settlement.vendor.razorpayAccountId,
+             account: vendor.razorpayAccountId,
              amount: settlement.vendorPayoutPaise, // Amount to vendor
              currency: "INR",
              notes: {

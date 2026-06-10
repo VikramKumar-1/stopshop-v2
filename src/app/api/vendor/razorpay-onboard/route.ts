@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const user = requireRole(req, ["vendor"]);
     if (user instanceof NextResponse) return user; // auth failed
 
-    const vendorId = user.id;
+    const vendorId = user.userId;
     const body = await req.json();
     const { name, email, account_number, ifsc } = body;
 

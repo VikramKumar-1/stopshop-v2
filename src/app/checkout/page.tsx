@@ -28,7 +28,7 @@ function CheckoutPageInner() {
   const buyNowProductId = searchParams.get("productId");
   const buyNowQty = parseInt(searchParams.get("qty") || "1");
 
-  const { convertPrice, formatPrice, getRawPrice, countryCode } = useRegion();
+  const { convertPrice, formatPrice, getRawPrice, region } = useRegion();
   const { cart, cartTotal, cartCount, clearCart, loaded, updateQuantity, removeFromCart } = useCart();
 
   const [buyNowCart, setBuyNowCart] = useState<any[]>([]);
@@ -402,7 +402,7 @@ function CheckoutPageInner() {
     if (buyNowCart.length > 0) {
        setBuyNowCart([{ ...buyNowCart[0], quantity: newQty }]);
     } else {
-       updateQuantity(id, newQty);
+       updateQuantity(Number(id), newQty);
     }
   };
 

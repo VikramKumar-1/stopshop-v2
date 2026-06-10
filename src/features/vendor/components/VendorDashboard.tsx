@@ -59,7 +59,7 @@ export const VendorDashboard = () => {
   const [modalTransaction, setModalTransaction] = useState<any | null>(null);
   const [editStockValue, setEditStockValue] = useState("");
   const [updatingStock, setUpdatingStock] = useState(false);
-  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements">("inquiries");
+  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action">("inquiries");
 
   useEffect(() => {
     const savedTab = localStorage.getItem("vendorActiveTab");
@@ -68,7 +68,7 @@ export const VendorDashboard = () => {
     }
   }, []);
 
-  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements") => {
+  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action") => {
     _setActiveTab(tab);
     localStorage.setItem("vendorActiveTab", tab);
   };

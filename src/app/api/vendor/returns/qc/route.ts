@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@/generated/client";
 import { requireRole } from "@/lib/auth";
 import Razorpay from "razorpay";
 
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
              data: { 
                 status: "REFUND_INITIATED",
                 vendorQcNotes: "QC PASSED: Vendor approved return.",
-                vendorQcImages: null
+                vendorQcImages: Prisma.JsonNull
              }
           });
 

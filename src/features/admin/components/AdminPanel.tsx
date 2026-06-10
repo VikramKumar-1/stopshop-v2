@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store } from "lucide-react";
+import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store, Loader2 } from "lucide-react";
 import { currencyDatabase } from "@/context/RegionContext";
 import { jsPDF } from "jspdf";
 import { AnimatePresence, motion } from "framer-motion";
@@ -1692,7 +1692,7 @@ export const AdminPanel = () => {
 
               <div className="grid grid-cols-1 gap-6">
                 {dbCategories.map((cat) => {
-                  const section = homepageSections.find(s => s.slug === cat.slug) || { slug: cat.slug, productIds: [] };
+                  const section = homepageSections.find(s => s.slug === cat.slug) || { slug: cat.slug, productIds: [] as number[] };
                   return (
                   <div key={cat.slug} className="bg-surface-card border border-border rounded-2xl p-6 shadow-sm">
                     <div className="flex justify-between items-center mb-6">
@@ -2115,7 +2115,7 @@ export const AdminPanel = () => {
                             onChange={async (e) => {
                               const checked = e.target.checked;
                               
-                              let currentList = v.allowedCategories ? v.allowedCategories.split(',').map((c:string) => c.trim()).filter(Boolean) : [];
+                              let currentList: string[] = v.allowedCategories ? v.allowedCategories.split(',').map((c:string) => c.trim()).filter(Boolean) : [];
                               if (v.allowedCategories === null) {
                                 currentList = dbCategories.map(c => c.slug);
                               }

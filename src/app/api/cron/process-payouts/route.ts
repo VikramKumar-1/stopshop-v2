@@ -85,7 +85,6 @@ export async function GET(req: NextRequest) {
     const eligibleSettlements = await prisma.settlement.findMany({
        where: { status: "ELIGIBLE" },
        include: {
-          vendor: true,
           order: true
        }
     });
@@ -94,17 +93,30 @@ export async function GET(req: NextRequest) {
        return NextResponse.json({ success: true, message: "No eligible settlements to process.", executed: true });
     }
 
+    // Fetch vendor users manually
+    const vendorIds = Array.from(new Set(eligibleSettlements.map(s => s.vendorId)));
+    const vendors = await prisma.user.findMany({
+       where: { id: { in: vendorIds } }
+    });
+    const vendorMap = new Map(vendors.map(v => [v.id, v]));
+
     // 4. Process Payouts
     let processedCount = 0;
     let failedIds = [];
 
     for (const settlement of eligibleSettlements) {
-       if (!settlement.vendor.razorpayAccountId) {
+       const vendor = vendorMap.get(settlement.vendorId);
+       if (!vendor) {
           failedIds.push(settlement.id);
           continue;
        }
 
-       if (settlement.vendor.payoutsPaused) {
+       if (!vendor.razorpayAccountId) {
+          failedIds.push(settlement.id);
+          continue;
+       }
+
+       if (vendor.payoutsPaused) {
           failedIds.push(settlement.id);
           continue;
        }
@@ -115,7 +127,7 @@ export async function GET(req: NextRequest) {
           if (razorpay) {
              // Trigger Razorpay Route Transfer API
              const transferPayload = {
-                account: settlement.vendor.razorpayAccountId,
+                account: vendor.razorpayAccountId,
                 amount: settlement.vendorPayoutPaise, // Amount to vendor (paise)
                 currency: "INR",
                 notes: {
