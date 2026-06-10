@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Cart is empty" }, { status: 400 });
     }
 
-    if (shippingInfo.country !== "IN") {
+    const countryNormalized = (shippingInfo.country || "IN").trim().toUpperCase();
+    if (countryNormalized !== "IN" && countryNormalized !== "INDIA") {
       return NextResponse.json({ success: false, error: "COD is only available in India" }, { status: 400 });
     }
 

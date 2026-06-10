@@ -9,23 +9,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { mobile, gstin, aadhaar, pan, docUrl } = body;
-
-    if (!mobile || !gstin || !aadhaar || !pan) {
-      return NextResponse.json({ error: "All fields are required to submit profile for review." }, { status: 400 });
-    }
-
-    // Update user profile and set status to IN_REVIEW
+    // Set vendor status to IN_REVIEW so they appear in admin KYC queue.
+    // Profile data has already been saved by /api/auth/me PATCH before this call.
     const updatedVendor = await prisma.user.update({
       where: { id: session.userId },
       data: {
-        mobile,
-        gstin,
-        aadhaar,
-        pan,
-        docUrl,
         vendorStatus: "IN_REVIEW",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        mobile: true,
+        location: true,
+        artisanId: true,
+        gstin: true,
+        aadhaar: true,
+        pan: true,
+        aadhaarUrl: true,
+        panUrl: true,
+        docUrl: true,
+        vendorStatus: true,
+        allowedCategories: true,
       },
     });
 

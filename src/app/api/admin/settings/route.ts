@@ -54,7 +54,9 @@ export async function PATCH(req: NextRequest) {
        "codShippingChargePaise", "internationalShippingPaise", "codEnabled", 
        "codMaxAmountPaise", "codSurchargePaise", "returnWindowDays", 
        "returnEnabled", "vendorReturnSlaHours", "shiprocketPickupLocation", "shiprocketAutoAssign", 
-       "shiprocketCourierPriority", "payoutSchedule", "payoutCustomDays"
+       "shiprocketCourierPriority", "payoutSchedule", "payoutCustomDays",
+        "companyName", "companyAddress", "companyGstin", "companyPan",
+        "companyCity", "companyState", "companyCountry", "companyPincode"
     ];
 
     for (const field of allowedFields) {

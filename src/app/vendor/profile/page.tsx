@@ -4,7 +4,7 @@ import Link from "next/link";
 import { User as UserIcon, Mail, Store, Loader2, Award, ShieldCheck, MapPin, Phone, FileText, CheckCircle, Upload, Eye, Edit3 } from "lucide-react";
 import { resolvePincodeOffline, parseLocation } from "@/lib/pincodeResolver";
 
-export default function VendorProfilePage() {
+export default function VendorProfilePage({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -39,7 +39,15 @@ export default function VendorProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [isErrorToast, setIsErrorToast] = useState(false);
   const [submittingKyc, setSubmittingKyc] = useState(false);
+
+  const displayToast = (msg: string, isError: boolean = false) => {
+    setToastMessage(msg);
+    setIsErrorToast(isError);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 4000);
+  };
 
   const fetchProfile = async () => {
     try {
@@ -208,11 +216,11 @@ export default function VendorProfilePage() {
           setDocUrl(data.url);
         }
       } else {
-        alert("Failed to upload document image");
+        displayToast("Failed to upload document image", true);
       }
     } catch (err) {
       console.error(err);
-      alert("Error uploading document");
+      displayToast("Error uploading document", true);
     } finally {
       if (type === "aadhaar") setUploadingAadhaar(false);
       if (type === "pan") setUploadingPan(false);
@@ -223,18 +231,16 @@ export default function VendorProfilePage() {
   const handleMainSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check mandatory fields if trying to submit for verification
-    if (user?.vendorStatus === "INCOMPLETE" || user?.vendorStatus === "REJECTED") {
-      if (!mobile || !gstin || !aadhaar || !pan || !city || !stateName || !pincode || !workshopAddress || !workshopName) {
-        alert("Please fill all the mandatory fields (*) before submitting for verification.");
-        return;
-      }
+    // All vendors must fill mandatory fields before submitting
+    if (!mobile || !gstin || !aadhaar || !pan || !city || !stateName || !pincode || !workshopAddress || !workshopName) {
+      displayToast("Please fill all the mandatory fields (*) before submitting for verification.", true);
+      return;
     }
 
     setSaving(true);
     try {
       const combinedLocation = `${city} | ${stateName} | ${country} | ${pincode} | ${workshopAddress}`;
-      // Update details in Database
+      // Step 1: Save all profile data
       const res = await fetch("/api/auth/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -254,39 +260,42 @@ export default function VendorProfilePage() {
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Failed to update profile details");
+        displayToast(data.error || "Failed to update profile details", true);
         setSaving(false);
         return;
       }
 
-      // If INCOMPLETE or REJECTED, also trigger the IN_REVIEW status
-      if (user?.vendorStatus === "INCOMPLETE" || user?.vendorStatus === "REJECTED") {
-        const reviewRes = await fetch("/api/vendor/profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile, gstin, aadhaar, pan, docUrl })
-        });
-        
-        if (reviewRes.ok) {
-          const reviewData = await reviewRes.json();
-          setUser(reviewData.vendor);
-        }
+      // Step 2: Always set status to IN_REVIEW (for all vendors — new, rejected, or re-submitting approved)
+      const reviewRes = await fetch("/api/vendor/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      
+      if (reviewRes.ok) {
+        const reviewData = await reviewRes.json();
+        setUser(reviewData.vendor);
       } else {
+        // Fallback: use updated user from PATCH response
         const data = await res.json();
         setUser(data.user);
       }
 
-      setIsEditing(false); // Lock fields back
-      setToastMessage("Profile submitted and saved successfully!");
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 4000);
+      setIsEditing(false);
+      displayToast(
+        user?.vendorStatus === "APPROVED"
+          ? "Profile updated! Re-approval request sent to admin."
+          : "Profile submitted for verification!",
+        false
+      );
     } catch (err) {
       console.error("Error saving profile details:", err);
-      alert("An unexpected error occurred while saving.");
+      displayToast("An unexpected error occurred while saving.", true);
     } finally {
       setSaving(false);
     }
   };
+
 
   const handleLogout = async () => {
     await fetch("/api/auth/me", { method: "POST" });
@@ -306,8 +315,8 @@ export default function VendorProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-surface pt-6 pb-16 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <div className={isEmbedded ? "bg-surface relative" : "min-h-screen bg-surface pt-6 pb-16 relative"}>
+      <div className={isEmbedded ? "w-full" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4"}>
         {/* Form & Detailed Hub Info Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
@@ -390,6 +399,12 @@ export default function VendorProfilePage() {
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 font-bold uppercase tracking-wider text-[9px]">
                     Status: {user.vendorStatus === "APPROVED" ? "Verified Artisan Exporter" : user.vendorStatus === "IN_REVIEW" ? "Under Review" : user.vendorStatus === "REJECTED" ? "Rejected" : "Incomplete Profile"}
                   </span>
+                  {user.vendorStatus === "REJECTED" && user.rejectionReason && (
+                    <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                      <p className="text-[10px] font-bold text-red-500 uppercase mb-1">Reason for Rejection:</p>
+                      <p className="text-xs text-red-400 leading-relaxed">{user.rejectionReason}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -831,12 +846,12 @@ export default function VendorProfilePage() {
 
       {/* Premium Toast Notification */}
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-zinc-900 border border-emerald-500/30 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300">
-          <div className="bg-emerald-500/20 text-emerald-400 p-1.5 rounded-lg">
-            <CheckCircle size={18} />
+        <div className={`fixed bottom-6 right-6 z-50 bg-zinc-900 border ${isErrorToast ? "border-red-500/30" : "border-emerald-500/30"} text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300`}>
+          <div className={`${isErrorToast ? "bg-red-500/20 text-red-400" : "bg-emerald-500/20 text-emerald-400"} p-1.5 rounded-lg`}>
+            {isErrorToast ? <ShieldCheck size={18} className="rotate-180" /> : <CheckCircle size={18} />}
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-xs text-white">Success</span>
+            <span className="font-bold text-xs text-white">{isErrorToast ? "Error" : "Success"}</span>
             <span className="text-[10px] text-zinc-400">{toastMessage}</span>
           </div>
         </div>

@@ -27,6 +27,7 @@ model User {
   panUrl     String?
   docUrl     String?
   vendorStatus String @default("PENDING") // PENDING, IN_REVIEW, APPROVED, REJECTED
+  rejectionReason String? // Note from admin explaining why vendor was rejected
   allowedCategories String? // Comma-separated list of category slugs allowed for vendor
   razorpayAccountId String? // For Razorpay Route Linked Accounts (Vendor Payouts)
   payoutsPaused Boolean @default(false) // Admin override to hold vendor money
@@ -167,9 +168,8 @@ model Order {
   items           OrderItem[]
   returnRequest   ReturnRequest?
   settlements     Settlement[]
-  
+
   @@index([userId])
-  @@index([paymentOrderId])
   @@index([status])
   @@index([settlementStatus])
   @@index([awbCode])
@@ -319,6 +319,16 @@ model AdminSettings {
   // Commission & Tax
   defaultCommissionRate Float    @default(10)     // 10% default
   taxRate               Float    @default(0)      // Global tax rate (e.g. 18 for 18% GST)
+
+  // Company Billing Details for Commission Invoices
+  companyName           String   @default("StopShops Private Limited")
+  companyAddress        String   @default("Sector 62, Noida, Uttar Pradesh, India - 201301")
+  companyGstin          String   @default("09AAECS8721M1Z5")
+  companyPan            String   @default("AAECS8721M")
+  companyCity           String   @default("Noida")
+  companyState          String   @default("Uttar Pradesh")
+  companyCountry        String   @default("India")
+  companyPincode        String   @default("201301")
   
   // Shipping (admin manipulates these)
   shippingFreeAbove     Int      @default(99900)  // Free shipping above ₹999 (in paise)

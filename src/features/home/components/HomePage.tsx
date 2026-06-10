@@ -18,8 +18,6 @@ const ExportProgram = dynamic(() => import("./ExportProgram").then(mod => mod.Ex
 const TestimonialsSection = dynamic(() => import("./TestimonialsSection").then(mod => mod.TestimonialsSection), { ssr: false });
 const WhyChooseUs = dynamic(() => import("./WhyChooseUs").then(mod => mod.WhyChooseUs), { ssr: false });
 const FAQSection = dynamic(() => import("./FAQSection").then(mod => mod.FAQSection), { ssr: false });
-const ShopByVideos = dynamic(() => import("./ShopByVideos").then(mod => mod.ShopByVideos), { ssr: false });
-const GiftCollections = dynamic(() => import("./GiftCollections").then(mod => mod.GiftCollections), { ssr: false });
 
 // Mock Fallbacks in case database has no products yet
 const generateMock = (base: any[]) => {
@@ -276,12 +274,6 @@ export const HomePage = () => {
 
       {/* Vendor Section - Artisan Clusters */}
       <VendorSection />
-
-      {/* Shop By Videos Section */}
-      <ShopByVideos />
-
-      {/* Gift Collections Section */}
-      <GiftCollections />
 
       {/* 11. Export Program */}
       <ExportProgram />

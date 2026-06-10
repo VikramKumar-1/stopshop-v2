@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { vendorId, action } = body; // action is 'APPROVE' or 'REJECT'
+    const { vendorId, action, rejectionReason } = body; // action is 'APPROVE' or 'REJECT'
 
     if (!vendorId || !action) {
       return NextResponse.json({ error: "Vendor ID and action required" }, { status: 400 });
@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
 
     const updatedVendor = await prisma.user.update({
       where: { id: vendorId, role: "vendor" },
-      data: { vendorStatus: newStatus },
+      data: { 
+        vendorStatus: newStatus,
+        rejectionReason: action === "REJECT" ? (rejectionReason || "No specific reason provided.") : null
+      },
     });
 
     return NextResponse.json({ success: true, status: newStatus });

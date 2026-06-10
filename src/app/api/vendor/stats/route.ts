@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
       totalCancelled,
       todayOrders
     ] = await Promise.all([
-      prisma.orderItem.count({ where: { vendorId, order: { status: { in: ["PENDING", "CONFIRMED"] } } } }),
+      prisma.orderItem.count({ where: { vendorId, order: { status: "CONFIRMED" } } }),
       prisma.orderItem.count({ where: { vendorId, order: { status: "PACKED" } } }),
       prisma.orderItem.count({ where: { vendorId, order: { status: "DISPATCHED" } } }),
       prisma.orderItem.count({ where: { vendorId, order: { status: "DELIVERED" } } }),

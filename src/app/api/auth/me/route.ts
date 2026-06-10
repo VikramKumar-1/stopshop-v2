@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
         docUrl: true,
         vendorStatus: true,
         allowedCategories: true,
+        rejectionReason: true,
       },
     });
 
@@ -66,8 +67,9 @@ export async function PATCH(req: NextRequest) {
       select: { role: true, vendorStatus: true }
     });
 
+    const statusesThatTriggerReview = ["PENDING", "INCOMPLETE", "REJECTED"];
     let newVendorStatus = undefined;
-    if (currentUser?.role === "vendor" && (currentUser.vendorStatus === "APPROVED" || currentUser.vendorStatus === "REJECTED")) {
+    if (currentUser?.role === "vendor" && statusesThatTriggerReview.includes(currentUser.vendorStatus ?? "")) {
       newVendorStatus = "IN_REVIEW";
     }
 

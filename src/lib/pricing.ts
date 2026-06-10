@@ -23,6 +23,10 @@ export async function calculateOrderPricing(
   paymentMethod: "razorpay" | "payu" | "cod",
   country: string = "IN"
 ): Promise<PricingResult> {
+  // Normalize country to handle "India", "INDIA", "in", "IN" as domestic
+  const normCountry = (country || "IN").trim().toUpperCase();
+  const finalCountry = (normCountry === "IN" || normCountry === "INDIA") ? "IN" : normCountry;
+
   // 1. Fetch settings
   const settings = await prisma.adminSettings.findFirst() || {
     shippingFreeAbove: 99900,
@@ -53,10 +57,10 @@ export async function calculateOrderPricing(
 
     // Determine price based on country (fallback to default price)
     let unitPrice = product.price; // Default price in INR
-    if (country !== "IN" && product.prices) {
+    if (finalCountry !== "IN" && product.prices) {
       const pricesConfig = product.prices as Record<string, any>;
-      if (pricesConfig[country] && pricesConfig[country].price) {
-         unitPrice = pricesConfig[country].price;
+      if (pricesConfig[finalCountry] && pricesConfig[finalCountry].price) {
+         unitPrice = pricesConfig[finalCountry].price;
       }
     }
 
@@ -80,7 +84,7 @@ export async function calculateOrderPricing(
 
   // 3. Calculate Shipping
   let shippingPaise = 0;
-  if (country !== "IN") {
+  if (finalCountry !== "IN") {
     shippingPaise = settings.internationalShippingPaise;
   } else {
     if (subtotalPaise < settings.shippingFreeAbove) {

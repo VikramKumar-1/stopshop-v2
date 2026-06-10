@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
         docUrl: true,
         vendorStatus: true,
         allowedCategories: true,
+        rejectionReason: true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },

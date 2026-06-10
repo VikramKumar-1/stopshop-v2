@@ -1,10 +1,13 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Plus, Trash2, Store, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, CheckCircle2, XCircle, AlertTriangle, Info, X, FileText, Clock, Camera, Loader2 } from "lucide-react";
+import { Plus, Trash2, Store, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, CheckCircle2, XCircle, AlertTriangle, Info, X, FileText, Clock, Camera, Loader2, RefreshCcw } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import QRCode from "qrcode";
+
 
 import { useRouter } from "next/navigation";
 import { currencyDatabase } from "@/context/RegionContext";
+import VendorProfilePage from "@/app/vendor/profile/page";
 
 export const VendorDashboard = () => {
   const router = useRouter();
@@ -37,14 +40,21 @@ export const VendorDashboard = () => {
       });
       if (res.ok) {
         showToast(`Simulated Shiprocket Webhook: ${status}`, "success");
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        if (vendor) fetchData(vendor.id);
       } else {
         showToast("Webhook simulation failed", "error");
       }
     } catch (err) {
       showToast("Network error simulating webhook", "error");
+    }
+  };
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const handleTabRefresh = async () => {
+    if (vendor && vendor.id) {
+      setIsRefreshing(true);
+      await fetchData(vendor.id, vendor);
+      setIsRefreshing(false);
     }
   };
 
@@ -59,6 +69,8 @@ export const VendorDashboard = () => {
   const [modalTransaction, setModalTransaction] = useState<any | null>(null);
   const [editStockValue, setEditStockValue] = useState("");
   const [updatingStock, setUpdatingStock] = useState(false);
+  const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
+  const [approveReturnModal, setApproveReturnModal] = useState<any | null>(null);
   const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "returns" | "settlements" | "returns-pending" | "returns-action">("inquiries");
 
   useEffect(() => {
@@ -76,6 +88,8 @@ export const VendorDashboard = () => {
   const [returns, setReturns] = useState<any[]>([]);
   const [settlements, setSettlements] = useState<any[]>([]);
   const [settlementSummary, setSettlementSummary] = useState<any>(null);
+  const [settlementSettings, setSettlementSettings] = useState<any>(null);
+  const [settlementTab, setSettlementTab] = useState<"ALL" | "HOLD" | "ELIGIBLE" | "SETTLED" | "DISPUTED">("ALL");
   const [allInquiries, setAllInquiries] = useState<any[]>([]);
   const [editingDelivery, setEditingDelivery] = useState<{ inquiryId: number, productId: number, value: string } | null>(null);
   const [editingDirectDelivery, setEditingDirectDelivery] = useState<{ orderId: string, value: string } | null>(null);
@@ -102,6 +116,17 @@ export const VendorDashboard = () => {
   const [qcCameraActive, setQcCameraActive] = useState(false);
   const [submittingQc, setSubmittingQc] = useState(false);
   const [submittingPacking, setSubmittingPacking] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (modalShipping) {
+      QRCode.toDataURL(`ORDER-${modalShipping.id}`, { width: 150, margin: 1 })
+        .then((url) => setQrDataUrl(url))
+        .catch((err) => console.error("Error generating QR code", err));
+    } else {
+      setQrDataUrl("");
+    }
+  }, [modalShipping]);
 
   // SLA Countdown States
   const [slaHours, setSlaHours] = useState<number>(24);
@@ -896,6 +921,7 @@ export const VendorDashboard = () => {
           if (dataSettlements.success) {
             setSettlements(dataSettlements.settlements);
             setSettlementSummary(dataSettlements.summary);
+            setSettlementSettings(dataSettlements.settings);
           }
         }
 
@@ -1022,7 +1048,6 @@ export const VendorDashboard = () => {
   };
 
   const handleDeleteProduct = async (id: number) => {
-    if (!confirm("Remove this product listing from StopShop?")) return;
     try {
       const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -1219,17 +1244,6 @@ export const VendorDashboard = () => {
               <div>
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold font-display text-zinc-50 tracking-tight">{vendor.name}</h2>
-                  <button 
-                    onClick={() => {
-                      const newName = prompt("Enter your Workshop / Business Name:", vendor.name);
-                      if (newName && newName.trim() !== "" && newName !== vendor.name) {
-                        handleUpdateVendorName(newName);
-                      }
-                    }}
-                    className="text-[10px] text-orange-400 hover:text-orange-300 font-bold border border-orange-500/25 hover:border-orange-500/50 px-2.5 py-1 rounded-lg transition-all duration-200 hover:bg-orange-500/10"
-                  >
-                    Edit Name
-                  </button>
                 </div>
                 <div className="flex items-center gap-3 mt-1.5">
                   <span className="text-xs text-zinc-400">{vendor.email}</span>
@@ -1244,8 +1258,8 @@ export const VendorDashboard = () => {
       {/* Sticky Navigation Tabs Wrapper */}
       <div className="sticky top-[56px] lg:top-[80px] z-30 bg-surface/95 supports-[backdrop-filter]:bg-surface/80 supports-[backdrop-filter]:backdrop-blur-xl shadow-sm border-b border-border/60 mt-4">
         {/* Navigation Tabs */}
-        <div className="max-w-[95%] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-6 py-3 overflow-x-auto whitespace-nowrap scrollbar-none">
+        <div className="max-w-[95%] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <div className="flex gap-6 py-3 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
             <button
               onClick={() => setActiveTab("inquiries")}
               className={`pb-2 text-sm font-bold transition-all relative cursor-pointer ${
@@ -1310,10 +1324,13 @@ export const VendorDashboard = () => {
               {activeTab === "add-product" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
             <button
-              onClick={() => router.push("/vendor/profile")}
-              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer text-muted hover:text-heading`}
+              onClick={() => setActiveTab("profile")}
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer ${
+                activeTab === "profile" ? "text-orange-500" : "text-muted hover:text-heading"
+              }`}
             >
               My Profile
+              {activeTab === "profile" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
             {/* Returns Tab */}
             <button
@@ -1337,6 +1354,17 @@ export const VendorDashboard = () => {
               {activeTab === "settlements" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
 
+            {/* Settings Tab */}
+            <button
+              onClick={() => setActiveTab("settings")}
+              className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
+                activeTab === "settings" ? "text-orange-500" : "text-muted hover:text-heading"
+              }`}
+            >
+              Settings
+              {activeTab === "settings" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+            </button>
+
             {/* Admin Tab (Only if admin role) */}
             {vendor?.role === "admin" && (
               <button
@@ -1350,10 +1378,26 @@ export const VendorDashboard = () => {
               </button>
             )}
           </div>
+
+          <button
+            onClick={handleTabRefresh}
+            disabled={isRefreshing}
+            className="hidden lg:flex items-center justify-center gap-2 px-5 py-3 ml-4 bg-surface border border-border hover:border-orange-500 rounded-2xl text-xs font-bold transition-all shadow-sm shrink-0 disabled:opacity-50"
+            title="Refresh current tab data"
+          >
+            <RefreshCcw size={16} className={isRefreshing ? "animate-spin text-orange-500" : "text-muted"} />
+            <span className="text-heading">Refresh</span>
+          </button>
         </div>
       </div>
 
-      <div className="max-w-[95%] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">  {/* Tab Contents */}
+      <div className="max-w-[95%] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20">  {/* Tab Contents */}
+        {activeTab === "profile" && (
+          <div className="animate-in fade-in duration-300">
+            <VendorProfilePage isEmbedded={true} />
+          </div>
+        )}
+
         {["direct-orders", "returns-pending", "returns-action"].includes(activeTab) && (
           <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
             <div className="bg-gradient-to-r from-orange-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex items-center justify-between">
@@ -1672,20 +1716,7 @@ export const VendorDashboard = () => {
                                 )}
                               </div>
                             )}
-                            {(currentStatus === "RETURN_RECEIVED" || (currentStatus === "RETURN_APPROVED" && order.returnRequest?.vendorDeliveredAt)) && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setIsDisputing(false);
-                                  setQcImages([]);
-                                  setQcNotes("");
-                                  setReviewReturnOrder(order);
-                                }}
-                                className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl font-bold shadow-sm shadow-red-500/10 transition-all duration-200"
-                              >
-                                Review Delivered Return (QC)
-                              </button>
-                            )}
+
                             {currentStatus === "DISPATCHED" && (
                               <div className="flex items-center gap-2 justify-end">
                                 <button
@@ -1706,6 +1737,31 @@ export const VendorDashboard = () => {
                                 )}
                               </div>
                             )}
+                            {(currentStatus === "RETURN_RECEIVED" || (currentStatus === "RETURN_APPROVED" && order.returnRequest?.vendorDeliveredAt)) && (
+                              order.returnRequest?.status === "RECEIVED_AT_WAREHOUSE" ? (
+                                <button
+                                  type="button"
+                                  disabled
+                                  className="px-3 py-1.5 text-[10px] text-muted bg-border rounded-xl font-bold cursor-not-allowed"
+                                >
+                                  Dispute Under Admin Review
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsDisputing(false);
+                                    setQcImages([]);
+                                    setQcNotes("");
+                                    setReviewReturnOrder(order);
+                                  }}
+                                  className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl font-bold shadow-sm shadow-red-500/10 transition-all duration-200"
+                                >
+                                  Review Delivered Return (QC)
+                                </button>
+                              )
+                            )}
+
                             {["PENDING", "CONFIRMED"].includes(currentStatus) && (
                               <button
                                 type="button"
@@ -2242,7 +2298,7 @@ export const VendorDashboard = () => {
                               )}
                               {currentStatus === "DELIVERED" && (order.deliveredAt || order.deliveryDate) && (
                                 <span className="text-[8px] text-muted font-semibold mt-0.5">
-                                  Delivered: {new Date(order.deliveredAt || order.deliveryDate).toLocaleDateString()}
+                                  Delivered: {new Date(order.deliveredAt || order.deliveryDate).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
                                 </span>
                               )}
                             </div>
@@ -2424,6 +2480,12 @@ export const VendorDashboard = () => {
                     ? "Your KYC documents are currently being reviewed by the admin team. You will be able to add products once approved." 
                     : "You must complete your vendor KYC verification and get approved by the admin before you can add products to the marketplace."}
                 </p>
+                {vendor?.vendorStatus === "REJECTED" && vendor?.rejectionReason && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-8 text-left inline-block">
+                    <p className="text-xs font-bold text-red-500 uppercase tracking-wider mb-1">Reason for Rejection</p>
+                    <p className="text-sm text-red-400">{vendor.rejectionReason}</p>
+                  </div>
+                )}
                 <button 
                   onClick={() => router.push("/vendor/profile")} 
                   className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-orange-500/20"
@@ -2936,30 +2998,79 @@ export const VendorDashboard = () => {
         {/* SETTLEMENTS TAB */}
         {activeTab === "settlements" && (
           <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
-            <h2 className="text-2xl font-black text-heading flex items-center gap-2">
-              < Award className="text-orange-500" size={28} />
-              My Settlements & Ledger
-            </h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-2xl font-black text-heading flex items-center gap-2">
+                < Award className="text-orange-500" size={28} />
+                My Settlements & Ledger
+              </h2>
+            </div>
+
+            {/* Payout Policy Info Banner */}
+            {settlementSettings && (
+              <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs shadow-sm">
+                <div className="flex-1">
+                  <span className="font-bold text-orange-500 block uppercase tracking-wider text-[9px] mb-1">Payout Window & Rules</span>
+                  <span className="text-muted block leading-relaxed">
+                    Payout amount is held in <strong>Hold</strong> status during the <strong>{settlementSettings.returnWindowDays || 7}-day customer return window</strong>. 
+                    If no return/dispute is raised, funds move automatically to <strong>Eligible for Payout</strong>.
+                  </span>
+                  {settlementSummary && settlementSummary.eligible > 0 && (
+                    <div className="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                      💰 Upcoming Payout for this cycle: <span className="font-black text-xs">₹{(settlementSummary.eligible / 100).toLocaleString()}</span> (All eligible funds will be settled in the next run).
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 px-3.5 py-2 bg-orange-500/10 text-orange-500 rounded-xl font-bold border border-orange-500/20 shrink-0 select-none">
+                  <Clock size={13} />
+                  Cycle: {settlementSettings.payoutSchedule || "MANUAL"}
+                </div>
+              </div>
+            )}
+
+            {/* Summary Cards */}
             {settlementSummary && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-surface-card border border-border rounded-2xl p-4">
+                <div className="bg-surface-card border border-border rounded-2xl p-4 cursor-pointer hover:border-orange-500/40 transition-colors shadow-sm" onClick={() => setSettlementTab("HOLD")}>
                   <p className="text-[10px] uppercase font-bold text-muted">Total on Hold</p>
                   <p className="text-lg font-bold text-orange-500 mt-1">₹{(settlementSummary.hold / 100).toLocaleString()}</p>
                 </div>
-                <div className="bg-surface-card border border-border rounded-2xl p-4">
+                <div className="bg-surface-card border border-border rounded-2xl p-4 cursor-pointer hover:border-emerald-500/40 transition-colors shadow-sm" onClick={() => setSettlementTab("ELIGIBLE")}>
                   <p className="text-[10px] uppercase font-bold text-muted">Eligible for Payout</p>
                   <p className="text-lg font-bold text-emerald-500 mt-1">₹{(settlementSummary.eligible / 100).toLocaleString()}</p>
                 </div>
-                <div className="bg-surface-card border border-border rounded-2xl p-4">
+                <div className="bg-surface-card border border-border rounded-2xl p-4 cursor-pointer hover:border-blue-500/40 transition-colors shadow-sm" onClick={() => setSettlementTab("SETTLED")}>
                   <p className="text-[10px] uppercase font-bold text-muted">Total Settled</p>
                   <p className="text-lg font-bold text-blue-500 mt-1">₹{(settlementSummary.settled / 100).toLocaleString()}</p>
                 </div>
-                <div className="bg-surface-card border border-border rounded-2xl p-4">
+                <div className="bg-surface-card border border-border rounded-2xl p-4 cursor-pointer hover:border-red-500/40 transition-colors shadow-sm" onClick={() => setSettlementTab("DISPUTED")}>
                   <p className="text-[10px] uppercase font-bold text-muted">Disputed</p>
                   <p className="text-lg font-bold text-red-500 mt-1">₹{(settlementSummary.disputed / 100).toLocaleString()}</p>
                 </div>
               </div>
             )}
+
+            {/* Filter Pills */}
+            <div className="flex flex-wrap gap-1.5 border-b border-border pb-3">
+              {(["ALL", "HOLD", "ELIGIBLE", "SETTLED", "DISPUTED"] as const).map((tab) => {
+                const count = tab === "ALL" ? settlements.length : settlements.filter(s => s.status === tab).length;
+                const isActive = settlementTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setSettlementTab(tab)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                      isActive 
+                        ? "bg-heading text-surface shadow-sm" 
+                        : "bg-surface-card hover:bg-surface-hover text-muted hover:text-heading border border-border"
+                    }`}
+                  >
+                    {tab === "ALL" ? "All Entries" : tab.replace(/_/g, " ")} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* List Table */}
             <div className="bg-surface-card border border-border rounded-3xl overflow-hidden shadow-sm">
               <table className="w-full text-left text-xs">
                 <thead className="bg-surface text-muted">
@@ -2972,27 +3083,37 @@ export const VendorDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {settlements.length === 0 && (
+                  {settlements.filter(s => settlementTab === "ALL" || s.status === settlementTab).length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-muted">No settlements found.</td>
+                      <td colSpan={5} className="p-8 text-center text-muted">No settlement records found in this status.</td>
                     </tr>
                   )}
-                  {settlements.map(s => (
-                    <tr key={s.id} className="hover:bg-surface-hover">
-                      <td className="p-4 font-bold text-orange-500">{s.order.orderNumber}</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase ${
-                          s.status === 'HOLD' ? 'bg-amber-500/10 text-amber-600' :
-                          s.status === 'ELIGIBLE' ? 'bg-emerald-500/10 text-emerald-600' :
-                          s.status === 'SETTLED' ? 'bg-blue-500/10 text-blue-600' :
-                          'bg-red-500/10 text-red-600'
-                        }`}>{s.status}</span>
-                      </td>
-                      <td className="p-4">₹{(s.orderAmountPaise/100).toLocaleString()}</td>
-                      <td className="p-4 font-bold text-emerald-500">₹{(s.vendorPayoutPaise/100).toLocaleString()}</td>
-                      <td className="p-4 text-muted">{new Date(s.holdUntil).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
+                  {settlements
+                    .filter(s => settlementTab === "ALL" || s.status === settlementTab)
+                    .map(s => (
+                      <tr key={s.id} className="hover:bg-surface-hover">
+                        <td className="p-4 font-bold text-orange-500">{s.order.orderNumber}</td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase ${
+                            s.status === 'HOLD' ? 'bg-amber-500/10 text-amber-600' :
+                            s.status === 'ELIGIBLE' ? 'bg-emerald-500/10 text-emerald-600' :
+                            s.status === 'SETTLED' ? 'bg-blue-500/10 text-blue-600' :
+                            'bg-red-500/10 text-red-600'
+                          }`}>{s.status}</span>
+                        </td>
+                        <td className="p-4">₹{(s.orderAmountPaise/100).toLocaleString()}</td>
+                        <td className="p-4 font-bold text-emerald-500">₹{(s.vendorPayoutPaise/100).toLocaleString()}</td>
+                        <td className="p-4 text-muted">
+                          {s.status === "SETTLED" && s.settledAt ? (
+                            <span className="text-[10px] text-blue-600 font-bold block">
+                              Settled on {new Date(s.settledAt).toLocaleDateString()}
+                            </span>
+                          ) : (
+                            new Date(s.holdUntil).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -3090,21 +3211,8 @@ export const VendorDashboard = () => {
                           Reject (Fraud)
                         </button>
                         <button 
-                          onClick={async () => {
-                            if (confirm("Are you sure the item is intact and you want to pass QC?")) {
-                              const res = await fetch("/api/vendor/returns/qc", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ returnId: ret.id, action: "QC_PASSED" })
-                              });
-                              if (res.ok) {
-                                showToast("QC Passed successfully!", "success");
-                                if (vendor) fetchData(vendor.id);
-                              } else {
-                                const data = await res.json();
-                                showToast(data.error || "Failed", "error");
-                              }
-                            }
+                          onClick={() => {
+                            setApproveReturnModal(ret);
                           }}
                           className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-colors shadow-sm shadow-emerald-500/20"
                         >
@@ -3390,7 +3498,7 @@ export const VendorDashboard = () => {
                 <span className="text-[9px] font-bold text-muted uppercase tracking-wider">Inquiry Notes From</span>
                 <h3 className="text-lg font-bold text-heading font-display mt-0.5">{modalMessage.name}</h3>
                 <p className="text-[10px] text-muted mt-0.5">
-                  Received on {new Date(modalMessage.createdAt).toLocaleDateString()} | {modalMessage.country || "Domestic"}
+                  Received on {new Date(modalMessage.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })} | {modalMessage.country || "Domestic"}
                 </p>
               </div>
               <div className="border-t border-border pt-4">
@@ -3541,7 +3649,7 @@ export const VendorDashboard = () => {
                            }
                         }
                         if (!valid) {
-                           alert("Every item must have exactly 5 to 8 photos.");
+                           showToast("Every item must have exactly 5 to 8 photos.", "error");
                            return;
                         }
                         
@@ -4153,7 +4261,11 @@ export const VendorDashboard = () => {
             <div className="p-6 space-y-6">
               <div className="flex gap-4 items-center">
                 <div className="w-16 h-16 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden flex-shrink-0 p-1">
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ORDER-${modalShipping.id}`} alt="QR" className="w-full h-full object-contain mix-blend-multiply opacity-90" />
+                  {qrDataUrl ? (
+                    <img src={qrDataUrl} alt="QR" className="w-full h-full object-contain mix-blend-multiply opacity-90" />
+                  ) : (
+                    <div className="w-full h-full bg-surface animate-pulse" />
+                  )}
                 </div>
                 <div>
                   <h4 className="font-bold text-heading text-lg">{modalShipping.shippingName}</h4>
@@ -4191,7 +4303,7 @@ export const VendorDashboard = () => {
                       return;
                     }
 
-                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ORDER-${modalShipping.id}`;
+                    const qrUrl = qrDataUrl;
 
                     const htmlContent = `
                       <!DOCTYPE html>
@@ -4218,7 +4330,7 @@ export const VendorDashboard = () => {
                             <div>
                               <h1 class="title">SHIPPING LABEL</h1>
                               <div class="order-id">Order ID: ${modalShipping.id}</div>
-                              <div class="order-id">Date: ${new Date(modalShipping.createdAt).toLocaleDateString()}</div>
+                              <div class="order-id">Date: ${new Date(modalShipping.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}</div>
                             </div>
                             <img src="${qrUrl}" class="qr-code" alt="QR Code" />
                           </div>
@@ -4365,16 +4477,21 @@ export const VendorDashboard = () => {
                </div>
             </div>
 
-            {!isDisputing ? (
-               <div className="pt-4 border-t border-border flex flex-col items-center gap-3">
-                  <button onClick={() => setIsDisputing(true)} className="w-full py-3 bg-surface border border-red-500/30 text-red-500 hover:bg-red-500/10 font-bold rounded-xl transition-colors text-sm">
-                     Report Issue to Admin (Fake / Damaged)
-                  </button>
-                  <p className="text-[10px] text-muted text-center max-w-xs">
-                     If the returned product is perfectly fine, you do not need to do anything! The system will automatically refund the user after your SLA window expires.
-                  </p>
-               </div>
-            ) : (
+            {reviewReturnOrder.returnRequest.status === "RECEIVED_AT_WAREHOUSE" ? (
+                <div className="pt-4 border-t border-border p-4 bg-red-500/5 border border-red-500/10 rounded-xl text-center">
+                   <p className="text-xs font-bold text-red-600 uppercase tracking-wider">Dispute Raised Successfully</p>
+                   <p className="text-[10px] text-muted mt-1 leading-relaxed">Our admin team is currently reviewing your dispute. No further action is required from your end.</p>
+                </div>
+             ) : !isDisputing ? (
+                <div className="pt-4 border-t border-border flex flex-col items-center gap-3">
+                   <button onClick={() => setIsDisputing(true)} className="w-full py-3 bg-surface border border-red-500/30 text-red-500 hover:bg-red-500/10 font-bold rounded-xl transition-colors text-sm">
+                      Report Issue to Admin (Fake / Damaged)
+                   </button>
+                   <p className="text-[10px] text-muted text-center max-w-xs">
+                      If the returned product is perfectly fine, you do not need to do anything! The system will automatically refund the user after your SLA window expires.
+                   </p>
+                </div>
+             ) : (
                <div className="pt-4 border-t border-border space-y-4 animate-in fade-in slide-in-from-bottom-4">
                   <div className="flex justify-between items-center">
                      <h3 className="text-sm font-bold text-red-500">Raise Dispute</h3>
@@ -4707,6 +4824,44 @@ export const VendorDashboard = () => {
           })}
         </AnimatePresence>
       </div>
+
+      {/* Delete Product Modal */}
+      <AnimatePresence>
+        {deleteProductModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-surface-card border border-border w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                <Trash2 size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-heading mb-2">Delete Product</h3>
+              <p className="text-sm text-muted mb-6">Are you sure you want to remove this product listing from StopShop? This action cannot be undone.</p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={() => setDeleteProductModal(null)} className="px-5 py-2.5 bg-surface border border-border hover:border-muted text-heading text-sm font-bold rounded-xl transition-all">Cancel</button>
+                <button onClick={() => { handleDeleteProduct(deleteProductModal); setDeleteProductModal(null); }} className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-xl shadow-lg transition-all">Delete</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Approve Return QC Modal */}
+      <AnimatePresence>
+        {approveReturnModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-surface-card border border-border w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
+                <CheckCircle size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-heading mb-2">Pass Return QC</h3>
+              <p className="text-sm text-muted mb-6">Are you sure the item is intact and you want to pass Quality Check for Order #{approveReturnModal.orderNumber}?</p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={() => setApproveReturnModal(null)} className="px-5 py-2.5 bg-surface border border-border hover:border-muted text-heading text-sm font-bold rounded-xl transition-all">Cancel</button>
+                <button onClick={() => { handleReturnAction(approveReturnModal.id, "RETURN_APPROVED"); setApproveReturnModal(null); }} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl shadow-lg transition-all">Approve QC</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

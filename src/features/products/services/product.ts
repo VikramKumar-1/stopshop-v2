@@ -189,6 +189,7 @@ export async function createProduct(body: any, session: TokenPayload) {
       stock: parsedStock,
       featured: !!featured,
       newLaunch: !!newLaunch,
+      // Products are active by default. Admin can hide inappropriate products manually.
       active: active !== undefined ? !!active : true,
       vendorId: session.role === "vendor" ? session.userId : (body.vendorId ? parseInt(body.vendorId) : null)
     },
@@ -251,7 +252,9 @@ export async function updateProduct(id: number, body: any, session: TokenPayload
   if (body.mrp !== undefined) body.mrp = parseFloat(body.mrp) || 0;
   if (body.discount !== undefined) body.discount = parseFloat(body.discount) || 0;
   if (body.stock !== undefined) body.stock = parseInt(body.stock) || 0;
-  if (body.active !== undefined) body.active = !!body.active;
+  if (body.active !== undefined) {
+    body.active = !!body.active;
+  }
   if (body.featured !== undefined) body.featured = !!body.featured;
   if (body.newLaunch !== undefined) body.newLaunch = !!body.newLaunch;
 

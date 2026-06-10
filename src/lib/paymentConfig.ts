@@ -8,7 +8,7 @@ export const RAZORPAY_CONFIG = {
 
 export const PAYU_CONFIG = {
   merchantKey: process.env.PAYU_MERCHANT_KEY || "gtKFFx", // Universal test key
-  merchantSalt: process.env.PAYU_MERCHANT_SALT || "eCwWELxi", // Universal test salt
+  merchantSalt: process.env.PAYU_MERCHANT_SALT || "4R38IvwiV57FwVpsgOvTXBdLE4tHUXFW", // Universal test salt
   baseUrl: process.env.PAYU_BASE_URL || "https://test.payu.in",
 };
 

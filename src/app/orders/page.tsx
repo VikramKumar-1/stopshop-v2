@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Loader2, ArrowRight, User as UserIcon, Lock, Package, Truck, Download, RefreshCcw, Camera, X, AlertTriangle } from "lucide-react";
+import { Mail, Loader2, ArrowRight, User as UserIcon, Lock, Package, Truck, Download, RefreshCcw, Camera, X, AlertTriangle, ShieldCheck, CheckCircle } from "lucide-react";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -19,6 +19,18 @@ export default function OrdersPage() {
 
   // Tab State
   const [activeTab, setActiveTab] = useState("active");
+
+  // Premium Toast Notification State
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [isErrorToast, setIsErrorToast] = useState(false);
+
+  const displayToast = (msg: string, isError: boolean = false) => {
+    setToastMessage(msg);
+    setIsErrorToast(isError);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 4000);
+  };
 
   // Return Modal State
   const [showReturnModal, setShowReturnModal] = useState(false);
@@ -56,7 +68,7 @@ export default function OrdersPage() {
       setReturnImages(prev => [...prev, ...uploadedUrls]);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Failed to upload photo");
+      displayToast(err.message || "Failed to upload photo", true);
     } finally {
       setUploadingImage(false);
       e.target.value = "";
@@ -138,7 +150,7 @@ export default function OrdersPage() {
 
   const submitReturn = async () => {
      if (returnImages.length < 6 || returnImages.length > 8) {
-        alert(`You must upload between 6 and 8 photos. You currently have ${returnImages.length}.`);
+        displayToast(`You must upload between 6 and 8 photos. You currently have ${returnImages.length}.`, true);
         return;
      }
 
@@ -158,14 +170,14 @@ export default function OrdersPage() {
 
         const data = await res.json();
         if (res.ok) {
-           alert("Return request submitted successfully. We will review it shortly.");
+           displayToast("Return request submitted successfully. We will review it shortly.", false);
            setShowReturnModal(false);
            fetchProfileAndOrders();
         } else {
-           alert(data.error || "Failed to submit return request");
+           displayToast(data.error || "Failed to submit return request", true);
         }
      } catch (err) {
-        alert("Network error");
+        displayToast("Network error", true);
      } finally {
         setSubmittingReturn(false);
      }
@@ -236,7 +248,7 @@ export default function OrdersPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                       <span className="text-muted">Date: <span className="font-bold text-heading">{new Date(order.createdAt).toLocaleDateString()}</span></span>
+                       <span className="text-muted">Date: <span className="font-bold text-heading">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span></span>
                        <button onClick={() => handleDownloadInvoice(order.id, order.orderNumber)} className="flex items-center gap-1 text-orange-500 hover:text-orange-600 font-bold">
                           <Download size={14} /> Invoice
                        </button>
@@ -282,12 +294,12 @@ export default function OrdersPage() {
                           {status === "DELIVERED" && order.deliveredAt ? (
                              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10">
                                 <Package size={16} />
-                                <span>Delivered on {new Date(order.deliveredAt).toLocaleDateString([], { dateStyle: "medium" })}</span>
+                                <span>Delivered on {new Date(order.deliveredAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
                              </div>
                           ) : order.deliveryDate ? (
                              <div className="flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
                                 <Truck size={16} />
-                                <span>Estimated Delivery: {new Date(order.deliveryDate).toLocaleDateString([], { dateStyle: "medium" })}</span>
+                                <span>Estimated Delivery: {new Date(order.deliveryDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
                              </div>
                           ) : (
                              <div className="flex items-center gap-2 text-xs font-bold text-muted bg-surface p-3 rounded-2xl border border-border">
@@ -388,7 +400,7 @@ export default function OrdersPage() {
       {/* Return Modal */}
       {showReturnModal && (
          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-surface-card border border-border rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl relative">
+            <div className="bg-surface-card border border-border rounded-3xl w-full max-w-md p-5 sm:p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
                <h2 className="text-lg font-bold text-heading">Request Return</h2>
                <p className="text-xs text-muted">Please provide details and photos of the product to initiate a return. Our team will review the request.</p>
                
@@ -509,7 +521,7 @@ export default function OrdersPage() {
                 if (node && !node.srcObject && !node.dataset.requesting) {
                   node.dataset.requesting = "true";
                   if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert("Camera access requires HTTPS or localhost");
+                    displayToast("Camera access requires HTTPS or localhost", true);
                     setCameraActive(false);
                     return;
                   }
@@ -521,7 +533,7 @@ export default function OrdersPage() {
                     .catch(err => {
                       delete node.dataset.requesting;
                       console.error("Camera error:", err);
-                      alert(`Camera error: ${err.name} - ${err.message}`);
+                      displayToast(`Camera error: ${err.name} - ${err.message}`, true);
                       setCameraActive(false);
                     });
                 }
@@ -559,6 +571,19 @@ export default function OrdersPage() {
             >
               <div className="w-16 h-16 bg-white rounded-full shadow-inner"></div>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Toast Notification */}
+      {showToast && (
+        <div className={`fixed bottom-6 right-6 z-50 bg-zinc-900 border ${isErrorToast ? "border-red-500/30" : "border-emerald-500/30"} text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300 max-w-[90vw] sm:max-w-md`}>
+          <div className={`${isErrorToast ? "bg-red-500/20 text-red-400" : "bg-emerald-500/20 text-emerald-400"} p-1.5 rounded-lg shrink-0`}>
+            {isErrorToast ? <ShieldCheck size={18} className="rotate-180" /> : <CheckCircle size={18} />}
+          </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-xs text-white">{isErrorToast ? "Error" : "Success"}</span>
+            <span className="text-[10px] text-zinc-400 leading-tight">{toastMessage}</span>
           </div>
         </div>
       )}

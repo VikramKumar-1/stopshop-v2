@@ -9,6 +9,7 @@ import {
   CreditCard, ShieldCheck, ArrowLeft, Loader2, Coins, Building2, CheckCircle,
   AlertCircle, Lock, Tag, Truck, MapPin, Plus, Trash2, Check, Edit2, Smartphone, Globe
 } from "lucide-react";
+import { countries } from "@/lib/countries";
 
 interface Address {
   id: number | string;
@@ -85,8 +86,8 @@ function CheckoutPageInner() {
            const pRes = await fetch(`/api/products/${buyNowProductId}`);
            if (pRes.ok) {
               const pData = await pRes.json();
-              if (pData.product) {
-                 setBuyNowCart([{ ...pData.product, quantity: buyNowQty }]);
+              if (pData && pData.id) {
+                 setBuyNowCart([{ ...pData, quantity: buyNowQty }]);
               }
            }
         }
@@ -517,7 +518,18 @@ function CheckoutPageInner() {
                   <input type="text" required value={addrCity} onChange={e=>setAddrCity(e.target.value)} placeholder="City" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
                   <input type="text" required value={addrState} onChange={e=>setAddrState(e.target.value)} placeholder="State" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
                   <input type="text" required value={addrPincode} onChange={e=>setAddrPincode(e.target.value)} placeholder="Pincode" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
-                  <input type="text" required value={addrCountry} onChange={e=>setAddrCountry(e.target.value)} placeholder="Country" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
+                   <select 
+                     required 
+                     value={addrCountry} 
+                     onChange={e=>setAddrCountry(e.target.value)} 
+                     className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none"
+                   >
+                     {countries.map((c) => (
+                       <option key={c.code} value={c.name}>
+                         {c.flag} {c.name}
+                       </option>
+                     ))}
+                   </select>
                   <div className="sm:col-span-2 flex justify-end gap-2 pt-2 border-t border-border">
                     <button type="button" onClick={resetAddressForm} className="px-4 py-2 text-xs font-bold text-muted hover:text-heading">Cancel</button>
                     <button type="submit" className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl">Save Address</button>

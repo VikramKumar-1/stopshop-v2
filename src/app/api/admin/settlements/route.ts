@@ -97,7 +97,8 @@ export async function GET(req: NextRequest) {
     // Sort groups by eligible amount descending
     groupedSettlements.sort((a, b) => b.summary.eligible - a.summary.eligible);
 
-    return NextResponse.json({ success: true, settlements, groupedSettlements, summary });
+    const settings = await prisma.adminSettings.findFirst();
+    return NextResponse.json({ success: true, settlements, groupedSettlements, summary, settings });
   } catch (error: any) {
     console.error("Fetch settlements error:", error);
     return NextResponse.json(

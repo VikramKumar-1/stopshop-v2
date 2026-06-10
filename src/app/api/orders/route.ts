@@ -27,11 +27,16 @@ export async function GET(req: NextRequest) {
        whereClause.items = {
           some: { vendorId: user.userId }
        };
+       if (status) {
+          whereClause.status = status === "PENDING" ? { not: "PENDING" } : status;
+       } else {
+          whereClause.status = { not: "PENDING" };
+       }
     } else {
        whereClause.userId = user.userId;
     }
 
-    if (status) {
+    if (status && user.role !== "vendor") {
        whereClause.status = status;
     }
 

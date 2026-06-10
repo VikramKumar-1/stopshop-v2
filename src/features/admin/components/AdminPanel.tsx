@@ -23,7 +23,7 @@ export const AdminPanel = () => {
   };
 
   const [authorized, setAuthorized] = useState<boolean | null>(null);
-  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -43,14 +43,14 @@ export const AdminPanel = () => {
     _setActiveTab(tab);
     localStorage.setItem("adminActiveTab", tab);
   };
-  
-  useEffect(() => {
-    checkAuth();
-  }, []);
 
   useEffect(() => {
     localStorage.setItem("adminActiveTab", activeTab);
   }, [activeTab]);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
   const [orders, setOrders] = useState<any[]>([]);
   const [orderPage, setOrderPage] = useState(1);
   const [orderTotalPages, setOrderTotalPages] = useState(1);
@@ -89,6 +89,17 @@ export const AdminPanel = () => {
   const [vendorProfileModal, setVendorProfileModal] = useState<any | null>(null);
   const [vendorProducts, setVendorProducts] = useState<any[]>([]);
   const [loadingVendorProducts, setLoadingVendorProducts] = useState(false);
+  
+  // Custom Prompts State
+  const [rejectPromptModal, setRejectPromptModal] = useState<{ id: string, name: string, type: "VENDOR_KYC" | "VENDOR_PROFILE" | "RETURN" | "PAYMENT" } | null>(null);
+  const [promptText, setPromptText] = useState("");
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message: string;
+    confirmText: string;
+    action: () => void;
+  } | null>(null);
+  const [processingReturns, setProcessingReturns] = useState<Record<string, boolean>>({});
 
   const handleOpenVendorModal = async (v: any) => {
     setVendorProfileModal(v);
@@ -204,16 +215,57 @@ export const AdminPanel = () => {
     if (node) observerRef.current.observe(node);
   }, [fetchingOrders, orderPage, orderTotalPages]);
 
-  const fetchData = async () => {
+  // Targeted refresh functions — only reload what changed
+  const fetchVendors = async () => {
     try {
+      const res = await fetch("/api/admin/vendors");
+      if (res.ok) setVendors((await res.json()).vendors || []);
+    } catch (e) { console.error("Failed to load vendors", e); }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("/api/products");
+      if (res.ok) setProducts(await res.json());
+    } catch (e) { console.error("Failed to load products", e); }
+  };
+
+  const fetchSettlements = async () => {
+    try {
+      const res = await fetch("/api/admin/settlements");
+      if (res.ok) {
+        const data = await res.json();
+        setSettlements(data.settlements || []);
+        setGroupedSettlements(data.groupedSettlements || []);
+        setSettlementSummary(data.summary);
+      }
+    } catch (e) { console.error("Failed to load settlements", e); }
+  };
+
+  const fetchReturns = async () => {
+    try {
+      const res = await fetch("/api/returns");
+      if (res.ok) setReturns((await res.json()).returns || []);
+    } catch (e) { console.error("Failed to load returns", e); }
+  };
+
+  const fetchData = async () => {
+    setIsLoadingData(true);
+    // Safety timeout — if data doesn't load in 15s, stop showing spinner
+    const safetyTimer = setTimeout(() => setIsLoadingData(false), 15000);
+    try {
+      const controller = new AbortController();
+      const signal = controller.signal;
+      const fetchWithSignal = (url: string) => fetch(url, { signal });
+
       const [rRes, sRes, setRes, inqRes, prodRes, catRes, vRes] = await Promise.all([
-         fetch("/api/returns"),
-         fetch("/api/admin/settlements"),
-         fetch("/api/admin/settings"),
-         fetch("/api/inquiries"),
-         fetch("/api/products"),
-         fetch("/api/categories"),
-         fetch("/api/admin/vendors")
+         fetchWithSignal("/api/returns"),
+         fetchWithSignal("/api/admin/settlements"),
+         fetchWithSignal("/api/admin/settings"),
+         fetchWithSignal("/api/inquiries"),
+         fetchWithSignal("/api/products"),
+         fetchWithSignal("/api/categories"),
+         fetchWithSignal("/api/admin/vendors")
       ]);
 
       if (rRes.ok) setReturns((await rRes.json()).returns || []);
@@ -242,19 +294,24 @@ export const AdminPanel = () => {
     } catch (e) {
       console.error("Failed to load admin data", e);
     } finally {
+      clearTimeout(safetyTimer);
       setIsLoadingData(false);
     }
   };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+
+
 
   const handleUpdateReturn = async (id: string, action: string, rejectionReason?: string, banUser?: boolean, banVendor?: boolean, adminNotes?: string) => {
+     if (processingReturns[id]) return;
+     
      if (action === "REJECTED_PRE_PICKUP" && !rejectionReason) {
-        rejectionReason = prompt("Enter a reason for rejecting this return:") || "Rejected by Admin";
+        setRejectPromptModal({ id, name: "", type: "RETURN" });
+        setPromptText("");
+        return;
      }
      
+     setProcessingReturns(prev => ({ ...prev, [id]: true }));
      try {
         const res = await fetch(`/api/returns/admin/review`, {
            method: "POST",
@@ -264,26 +321,28 @@ export const AdminPanel = () => {
          if (res.ok) {
            const actionText = action === "QC_PASS" ? "User Refunded" : action === "QC_FAIL" ? "Vendor Payment Approved" : action === "APPROVED" ? "Approved" : "Rejected";
            showToast(`Return dispute resolved: ${actionText}`, "success");
-           fetchData();
+           fetchReturns();
         } else {
            const data = await res.json();
            showToast(data.error || "Failed to update return", "error");
-        }
+         }
      } catch (err) {
-        showToast("Error updating return", "error");
+         showToast("Network error", "error");
+     } finally {
+         setProcessingReturns(prev => ({ ...prev, [id]: false }));
      }
   };
 
-  const handleReviewVendor = async (vendorId: number, action: "APPROVE" | "REJECT") => {
+  const handleReviewVendor = async (vendorId: number, action: "APPROVE" | "REJECT", rejectionReason?: string) => {
     try {
       const res = await fetch(`/api/admin/vendors/review`, {
          method: "POST",
          headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ vendorId, action })
+         body: JSON.stringify({ vendorId, action, rejectionReason })
       });
       if (res.ok) {
-         showToast(`Vendor profile ${action === 'APPROVE' ? 'APPROVED' : 'REJECTED'}`, "success");
-         fetchData();
+         showToast(`Vendor profile ${action === 'APPROVE' ? 'APPROVED ✓' : 'REJECTED'}`, "success");
+         fetchVendors();
       } else {
          const data = await res.json();
          showToast(data.error || "Failed to review vendor", "error");
@@ -294,53 +353,177 @@ export const AdminPanel = () => {
   };
 
   const generateInvoice = (s: any) => {
+    const vendorObj = vendors.find(v => v.id === s.vendorId);
     const doc = new jsPDF();
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("COMMISSION INVOICE", 105, 20, { align: "center" });
     
+    // Header Style - Brand Banner
+    doc.setFillColor(249, 115, 22); // Orange Accent
+    doc.rect(15, 15, 180, 8, "F");
+    
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Invoice ID: INV-SET-${s.id}`, 20, 40);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 45);
-    doc.text(`Order Number: ${s.order.orderNumber}`, 20, 50);
+    doc.setTextColor(255, 255, 255);
+    doc.text("STOPSHOPS B2B MARKETPLACE", 20, 20);
     
-    doc.line(20, 55, 190, 55);
+    // Title & Invoice Info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(20);
+    doc.text("TAX INVOICE - COMMISSION", 15, 38);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Invoice Number: INV-SEC-${s.id}`, 130, 32);
+    doc.text(`Invoice Date: ${new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "long", year: "numeric" })}`, 130, 37);
+    doc.text(`Order Reference: ${s.order.orderNumber}`, 130, 42);
+    
+    doc.line(15, 46, 195, 46);
+    
+    // B2B Details Grid
+    // Column 1: Provider (StopShops)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Service Provider Details (StopShops):", 15, 54);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    const cName = settings?.companyName || "StopShops Private Limited";
+    const cAddress = settings?.companyAddress || "Sector 62, Noida, Uttar Pradesh, India - 201301";
+    const cGstin = settings?.companyGstin || "09AAECS8721M1Z5";
+    const cPan = settings?.companyPan || "AAECS8721M";
+
+    doc.text(cName, 15, 60);
+    const splitProviderAddress = doc.splitTextToSize(cAddress, 85);
+    doc.text(splitProviderAddress, 15, 65);
+    const providerNextY = 65 + (splitProviderAddress.length * 5);
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`GSTIN: ${cGstin} (Marketplace)`, 15, providerNextY);
+    doc.text(`PAN: ${cPan}`, 15, providerNextY + 5);
+    doc.text("SAC Code: 996111 (E-commerce Operator)", 15, providerNextY + 10);
+    const providerFinalY = providerNextY + 15;
+    
+    // Column 2: Recipient (Vendor)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Service Recipient Details (Vendor):", 110, 54);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    
+    const vName = vendorObj ? (vendorObj.name || `Vendor ID: ${s.vendorId}`) : `Vendor ID: ${s.vendorId}`;
+    const vAddress = vendorObj?.location || "Moradabad, Uttar Pradesh, India";
+    const splitVendorAddress = doc.splitTextToSize(vAddress, 85);
+    
+    doc.text(vName, 110, 60);
+    doc.text(splitVendorAddress, 110, 65);
+    const vendorNextY = 65 + (splitVendorAddress.length * 5);
+
+    doc.setFont("helvetica", "bold");
+    if (vendorObj) {
+      doc.text(`GSTIN: ${vendorObj.gstin || "Unregistered"}`, 110, vendorNextY);
+      doc.text(`PAN: ${vendorObj.pan || "N/A"}`, 110, vendorNextY + 5);
+      doc.text(`Artisan ID: ${vendorObj.artisanId || "N/A"}`, 110, vendorNextY + 10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Email: ${vendorObj.email || "N/A"}`, 110, vendorNextY + 15);
+    } else {
+      doc.text("GSTIN: Unregistered", 110, vendorNextY);
+    }
+    const vendorFinalY = vendorObj ? (vendorNextY + 20) : (vendorNextY + 5);
+    
+    // Draw dynamic divider line based on the taller column
+    const dividerY = Math.max(providerFinalY, vendorFinalY, 92) + 4;
+    doc.line(15, dividerY, 195, dividerY);
+    
+    // Invoice Summary Table relative to dividerY
+    const contentStartY = dividerY + 6;
+    
+    doc.setFillColor(244, 244, 245); // Light Gray Background for Table Header
+    doc.rect(15, contentStartY, 180, 8, "F");
     
     doc.setFont("helvetica", "bold");
-    doc.text("Vendor Details", 20, 65);
-    doc.setFont("helvetica", "normal");
-    // Since we don't have full vendor details populated in the settlement object here easily,
-    // we use the vendorId. In a real app we'd populate it.
-    doc.text(`Vendor ID: ${s.vendorId}`, 20, 72);
+    doc.setFontSize(9);
+    doc.text("Description of Service", 18, contentStartY + 5);
+    doc.text("Taxable Value", 110, contentStartY + 5, { align: "right" });
+    doc.text("GST Rate", 140, contentStartY + 5, { align: "right" });
+    doc.text("Total Amount (INR)", 190, contentStartY + 5, { align: "right" });
     
-    doc.setFont("helvetica", "bold");
-    doc.text("Settlement Summary", 20, 90);
     doc.setFont("helvetica", "normal");
-    doc.text(`Total Order Amount: Rs. ${(s.orderAmountPaise / 100).toFixed(2)}`, 20, 97);
-    doc.text(`Platform Commission: Rs. ${(s.commissionPaise / 100).toFixed(2)}`, 20, 104);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Net Payout to Vendor: Rs. ${(s.vendorPayoutPaise / 100).toFixed(2)}`, 20, 111);
+    const commissionVal = s.commissionPaise / 100;
+    const gstRate = 18; // 18% GST (inclusive of base)
+    const baseValue = commissionVal / (1 + gstRate / 100);
+    const gstAmount = commissionVal - baseValue;
     
-    doc.line(20, 120, 190, 120);
+    doc.text("Marketplace Platform Commission Fee (GST Incl.)", 18, contentStartY + 16);
+    doc.text(`Rs. ${baseValue.toFixed(2)}`, 110, contentStartY + 16, { align: "right" });
+    doc.text(`${gstRate}%`, 140, contentStartY + 16, { align: "right" });
+    doc.text(`Rs. ${commissionVal.toFixed(2)}`, 190, contentStartY + 16, { align: "right" });
+    
+    doc.line(15, contentStartY + 22, 195, contentStartY + 22);
+    
+    // Tax Breakup details
+    doc.setFontSize(8.5);
+    doc.text("GST Tax Breakup Detail:", 18, contentStartY + 29);
+    doc.text(`CGST (9%): Rs. ${(gstAmount / 2).toFixed(2)}`, 22, contentStartY + 35);
+    doc.text(`SGST (9%): Rs. ${(gstAmount / 2).toFixed(2)}`, 22, contentStartY + 40);
+    
+    // Calculation Summary Card on the right
+    doc.setFillColor(250, 250, 250);
+    doc.rect(115, contentStartY + 27, 80, 35);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Gross Order Value:`, 118, contentStartY + 33);
+    doc.text(`Rs. ${(s.orderAmountPaise / 100).toFixed(2)}`, 190, contentStartY + 33, { align: "right" });
+    
+    doc.text(`(-) Commission & GST:`, 118, contentStartY + 39);
+    doc.text(`Rs. ${commissionVal.toFixed(2)}`, 190, contentStartY + 39, { align: "right" });
+    
+    doc.line(115, contentStartY + 44, 195, contentStartY + 44);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Net Vendor Payout:`, 118, contentStartY + 51);
+    doc.setTextColor(22, 163, 74); // Emerald color
+    doc.text(`Rs. ${(s.vendorPayoutPaise / 100).toFixed(2)}`, 190, contentStartY + 51, { align: "right" });
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Note: Under Section 52 of CGST Act, e-commerce operator has deducted TCS of 1% (if applicable).", 15, contentStartY + 77);
+    doc.text("This is a digitally generated Tax Invoice and does not require a physical signature.", 15, contentStartY + 82);
+    
+    // Footer line
+    doc.line(15, contentStartY + 92, 195, contentStartY + 92);
     doc.setFont("helvetica", "italic");
-    doc.text("This is an automatically generated document by StopShops Marketplace.", 105, 130, { align: "center" });
+    doc.setFontSize(8);
+    doc.text("Thank you for partnering with StopShops Marketplace.", 105, contentStartY + 98, { align: "center" });
     
-    doc.save(`Invoice_Settlement_${s.id}.pdf`);
+    doc.save(`Commission_Invoice_${s.order.orderNumber}.pdf`);
   };
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
+  const handleSavePlatformSettings = async (e: React.FormEvent) => {
      e.preventDefault();
      try {
+        const { defaultCommissionRate, taxRate, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign } = settings;
         const res = await fetch("/api/admin/settings", {
            method: "PATCH",
            headers: { "Content-Type": "application/json" },
-           body: JSON.stringify(settings)
+           body: JSON.stringify({ defaultCommissionRate, taxRate, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign })
         });
-        if (res.ok) showToast("Settings saved successfully!", "success");
+        if (res.ok) showToast("Platform Settings saved successfully!", "success");
         else showToast("Failed to save settings", "error");
      } catch (e) {
         showToast("Error saving settings", "error");
+     }
+  };
+
+  const handleSaveCompanyProfile = async (e: React.FormEvent) => {
+     e.preventDefault();
+     try {
+        const { companyName, companyAddress, companyGstin, companyPan, companyCity, companyState, companyCountry, companyPincode } = settings;
+        const res = await fetch("/api/admin/settings", {
+           method: "PATCH",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ companyName, companyAddress, companyGstin, companyPan, companyCity, companyState, companyCountry, companyPincode })
+        });
+        if (res.ok) showToast("Company Profile saved successfully!", "success");
+        else showToast("Failed to save profile", "error");
+     } catch (e) {
+        showToast("Error saving profile", "error");
      }
   };
 
@@ -349,13 +532,14 @@ export const AdminPanel = () => {
     if (!confirm(`Are you sure you want to ${action} "${name}" from the marketplace?`)) return;
     try {
       const res = await fetch(`/api/products/${id}`, { 
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ active: !currentActive })
       });
       if (res.ok) {
+        // Optimistic update locally first, then sync from server
+        setProducts(prev => prev.map(p => p.id === id ? { ...p, active: !currentActive } : p));
         showToast(`Product ${action}d successfully.`, "success");
-        fetchData();
       } else {
         showToast(`Failed to ${action} product.`, "error");
       }
@@ -417,7 +601,23 @@ export const AdminPanel = () => {
     }
   };
 
-  if (authorized === null || (authorized && isLoadingData)) {
+  const handleTabRefresh = async () => {
+    setIsLoadingData(true);
+    showToast(`Refreshing ${activeTab}...`, "success");
+    try {
+      if (activeTab === "orders") await fetchOrders(1);
+      else if (activeTab === "returns") await fetchReturns();
+      else if (activeTab === "settlements") await fetchSettlements();
+      else if (activeTab === "vendors") await fetchVendors();
+      else if (activeTab === "products") await fetchProducts();
+      else await fetchData(); // Fallback for settings, homepage, inquiries
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // Only block render during initial auth check — data loads silently
+  if (authorized === null) {
     return <div className="min-h-screen bg-surface flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" /></div>;
   }
 
@@ -440,7 +640,6 @@ export const AdminPanel = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-surface pb-16">
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-8 px-4 sm:px-6 lg:px-8">
@@ -454,41 +653,61 @@ export const AdminPanel = () => {
           </button>
         </div>
       </div>
+      {/* Thin orange progress bar — shows while background data is loading */}
+      {isLoadingData && (
+        <div className="h-0.5 w-full bg-slate-800 overflow-hidden">
+          <div className="h-full bg-orange-500 w-1/2" style={{ marginLeft: isLoadingData ? "0%" : "100%", transition: "margin-left 1.5s ease-in-out" }} />
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         {/* Navigation */}
-        <div className="flex flex-wrap gap-2 mb-8 bg-surface-card p-2 rounded-2xl border border-border overflow-x-auto shadow-sm">
-          {[
-             { id: "orders", label: "Orders", icon: Package },
-             { id: "returns", label: "Returns", icon: RefreshCcw },
-             { id: "settlements", label: "Settlements", icon: DollarSign },
-             { id: "vendors", label: "Vendors KYC", icon: Users },
-             { id: "products", label: "Products", icon: Award },
-             { id: "homepage", label: "Homepage Control", icon: LayoutDashboard },
-             { id: "inquiries", label: "Inquiries", icon: Mail },
-             { id: "settings", label: "Settings", icon: Settings },
-          ].map((tab) => {
-             const Icon = tab.icon;
-             return (
-               <button
-                 key={tab.id}
-                 onClick={() => setActiveTab(tab.id as any)}
-                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                   activeTab === tab.id ? "bg-orange-500 text-white shadow-md" : "text-muted hover:bg-surface hover:text-heading"
-                 }`}
-               >
-                 <Icon size={14} /> {tab.label}
-               </button>
-             );
-          })}
+        <div className="flex items-center justify-between mb-8 gap-4">
+          <div className="flex flex-wrap gap-2 bg-surface-card p-2 rounded-2xl border border-border overflow-x-auto shadow-sm flex-1">
+            {[
+               { id: "orders", label: "Orders", icon: Package },
+               { id: "returns", label: "Returns", icon: RefreshCcw },
+               { id: "settlements", label: "Settlements", icon: DollarSign },
+               { id: "vendors", label: "Vendors KYC", icon: Users },
+               { id: "products", label: "Products", icon: Award },
+               { id: "homepage", label: "Homepage Control", icon: LayoutDashboard },
+               { id: "inquiries", label: "Inquiries", icon: Mail },
+               { id: "settings", label: "Settings", icon: Settings },
+            ].map((tab) => {
+               const Icon = tab.icon;
+               return (
+                 <button
+                   key={tab.id}
+                   onClick={() => setActiveTab(tab.id as any)}
+                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                     activeTab === tab.id ? "bg-orange-500 text-white shadow-md" : "text-muted hover:bg-surface hover:text-heading"
+                   }`}
+                 >
+                   <Icon size={14} /> {tab.label}
+                 </button>
+               );
+            })}
+          </div>
+          <button
+            onClick={handleTabRefresh}
+            disabled={isLoadingData}
+            className="flex items-center justify-center gap-2 px-5 py-3 bg-surface border border-border hover:border-orange-500 rounded-2xl text-xs font-bold transition-all shadow-sm shrink-0 disabled:opacity-50"
+            title="Refresh current tab data"
+          >
+            <RefreshCcw size={16} className={isLoadingData ? "animate-spin text-orange-500" : "text-muted"} />
+            <span className="hidden sm:inline text-heading">Refresh</span>
+          </button>
         </div>
 
         <div className="space-y-6">
           {/* ORDERS TAB */}
           {activeTab === "orders" && (() => {
-             let totalSales = 0;
-             let totalCommission = 0;
-             let nonCancelledCount = 0;
+             let totalSalesINR = 0;
+             let totalSalesUSD = 0;
+             let totalCommissionINR = 0;
+             let totalCommissionUSD = 0;
+             let nonCancelledCountINR = 0;
+             let nonCancelledCountUSD = 0;
              const statusCounts: Record<string, number> = {};
              const paymentCounts: Record<string, number> = {};
 
@@ -500,13 +719,20 @@ export const AdminPanel = () => {
                 paymentCounts[method] = (paymentCounts[method] || 0) + 1;
 
                 if (status !== "CANCELLED") {
-                   totalSales += o.totalPaise;
-                   totalCommission += o.commissionPaise || 0;
-                   nonCancelledCount += 1;
+                   if (o.currency === "USD") {
+                      totalSalesUSD += o.totalPaise;
+                      totalCommissionUSD += o.commissionPaise || 0;
+                      nonCancelledCountUSD += 1;
+                   } else {
+                      totalSalesINR += o.totalPaise;
+                      totalCommissionINR += o.commissionPaise || 0;
+                      nonCancelledCountINR += 1;
+                   }
                 }
              });
 
-             const aov = nonCancelledCount > 0 ? totalSales / nonCancelledCount : 0;
+             const aovINR = nonCancelledCountINR > 0 ? totalSalesINR / nonCancelledCountINR : 0;
+             const aovUSD = nonCancelledCountUSD > 0 ? totalSalesUSD / nonCancelledCountUSD : 0;
              const totalOrders = orders.length;
 
              return (
@@ -517,26 +743,44 @@ export const AdminPanel = () => {
                          <div className="flex justify-between items-start">
                             <div>
                                <p className="text-[10px] uppercase font-bold text-muted tracking-wider">Gross Sales</p>
-                               <h3 className="text-xl font-black text-heading mt-2">₹{(totalSales / 100).toLocaleString()}</h3>
+                               <div className="mt-2 space-y-0.5">
+                                 <h3 className="text-xl font-black text-heading">
+                                   ₹{(totalSalesINR / 100).toLocaleString()} <span className="text-[10px] text-muted ml-1 tracking-widest">INR</span>
+                                 </h3>
+                                 {(totalSalesUSD > 0 || nonCancelledCountUSD > 0) && (
+                                   <h3 className="text-lg font-black text-heading/80">
+                                     ${(totalSalesUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-muted ml-1 tracking-widest">USD</span>
+                                   </h3>
+                                 )}
+                               </div>
                             </div>
                             <span className="p-2.5 bg-orange-500/10 text-orange-500 rounded-xl">
                                <DollarSign size={18} />
                             </span>
                          </div>
-                         <p className="text-[10px] text-muted mt-2">Excludes cancelled orders</p>
+                         <p className="text-[10px] text-muted mt-2 leading-relaxed">Total revenue generated from all valid purchases (excludes cancelled orders & refunds).</p>
                       </div>
 
                       <div className="bg-surface-card border border-border rounded-2xl p-5 shadow-sm hover:border-emerald-500/30 transition-all">
                          <div className="flex justify-between items-start">
                             <div>
                                <p className="text-[10px] uppercase font-bold text-muted tracking-wider">Platform Earnings</p>
-                               <h3 className="text-xl font-black text-emerald-500 mt-2">₹{(totalCommission / 100).toLocaleString()}</h3>
+                               <div className="mt-2 space-y-0.5">
+                                 <h3 className="text-xl font-black text-emerald-500">
+                                   ₹{(totalCommissionINR / 100).toLocaleString()} <span className="text-[10px] text-emerald-500/70 ml-1 tracking-widest">INR</span>
+                                 </h3>
+                                 {(totalCommissionUSD > 0 || nonCancelledCountUSD > 0) && (
+                                   <h3 className="text-lg font-black text-emerald-500/80">
+                                     ${(totalCommissionUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-emerald-500/50 ml-1 tracking-widest">USD</span>
+                                   </h3>
+                                 )}
+                               </div>
                             </div>
                             <span className="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-xl">
                                <Award size={18} />
                             </span>
                          </div>
-                         <p className="text-[10px] text-muted mt-2">Marketplace commission share</p>
+                         <p className="text-[10px] text-muted mt-2 leading-relaxed">Total commission earned by StopShop from successful vendor sales.</p>
                       </div>
 
                       <div className="bg-surface-card border border-border rounded-2xl p-5 shadow-sm hover:border-blue-500/30 transition-all">
@@ -549,20 +793,29 @@ export const AdminPanel = () => {
                                <Package size={18} />
                             </span>
                          </div>
-                         <p className="text-[10px] text-muted mt-2">Placed across all sellers</p>
+                         <p className="text-[10px] text-muted mt-2 leading-relaxed">Total count of all orders placed by users across all vendors.</p>
                       </div>
 
                       <div className="bg-surface-card border border-border rounded-2xl p-5 shadow-sm hover:border-purple-500/30 transition-all">
                          <div className="flex justify-between items-start">
                             <div>
                                <p className="text-[10px] uppercase font-bold text-muted tracking-wider">Avg Order Value</p>
-                               <h3 className="text-xl font-black text-purple-500 mt-2">₹{(aov / 100).toLocaleString()}</h3>
+                               <div className="mt-2 space-y-0.5">
+                                 <h3 className="text-xl font-black text-purple-500">
+                                   ₹{(aovINR / 100).toLocaleString()} <span className="text-[10px] text-purple-500/70 ml-1 tracking-widest">INR</span>
+                                 </h3>
+                                 {(aovUSD > 0 || nonCancelledCountUSD > 0) && (
+                                   <h3 className="text-lg font-black text-purple-500/80">
+                                     ${(aovUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-purple-500/50 ml-1 tracking-widest">USD</span>
+                                   </h3>
+                                 )}
+                               </div>
                             </div>
                             <span className="p-2.5 bg-purple-500/10 text-purple-500 rounded-xl">
                                <FileText size={18} />
                             </span>
                          </div>
-                         <p className="text-[10px] text-muted mt-2">Mean spend per valid order</p>
+                         <p className="text-[10px] text-muted mt-2 leading-relaxed">Average amount spent per valid order on the platform, providing insight into customer purchasing power.</p>
                       </div>
                    </div>
 
@@ -642,7 +895,7 @@ export const AdminPanel = () => {
                             {orders.map(o => (
                                <tr key={o.id} className="hover:bg-surface-hover">
                                   <td className="p-4 font-bold text-heading">{o.orderNumber}</td>
-                                  <td className="p-4">{new Date(o.createdAt).toLocaleDateString()}</td>
+                                  <td className="p-4">{new Date(o.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}</td>
                                   <td className="p-4">
                                      <span className="px-2 py-1 rounded bg-surface border border-border text-[9px] font-bold uppercase">
                                         {o.status.replace(/_/g, ' ')}
@@ -653,7 +906,9 @@ export const AdminPanel = () => {
                                         {o.paymentMethod}
                                      </span>
                                   </td>
-                                  <td className="p-4 font-bold">₹{(o.totalPaise/100).toLocaleString()}</td>
+                                  <td className="p-4 font-bold text-xs">
+                                     {o.currency === "USD" ? "$" : "₹"}{(o.totalPaise/100).toLocaleString(undefined, o.currency === "USD" ? {minimumFractionDigits: 2, maximumFractionDigits: 2} : {})}
+                                  </td>
                                </tr>
                             ))}
                          </tbody>
@@ -676,92 +931,149 @@ export const AdminPanel = () => {
            {/* VENDORS TAB */}
            {activeTab === "vendors" && (
              <div className="space-y-8">
-               {vendors.length === 0 ? <p className="text-center p-8 bg-surface-card rounded-2xl text-muted text-sm">No vendors registered yet.</p> : null}
-               
-               {/* Pending KYC Requests Box */}
-               {vendors.filter(v => v.vendorStatus === "IN_REVIEW").length > 0 && (
-                 <div>
-                   <h3 className="text-lg font-black text-heading mb-4 flex items-center gap-2">
-                     <span className="w-2 h-8 bg-blue-500 rounded-full inline-block"></span> KYC Requested
-                   </h3>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+               {/* ===== SECTION 1: NEW APPROVAL REQUESTS ===== */}
+               <div className="rounded-3xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 overflow-hidden shadow-lg">
+                 {/* Header */}
+                 <div className="flex items-center justify-between px-6 py-4 border-b border-blue-500/20 bg-blue-500/5">
+                   <div className="flex items-center gap-3">
+                     <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+                     <h3 className="text-base font-black text-heading tracking-tight">New Approval Requests</h3>
+                     <span className="ml-1 px-2.5 py-0.5 bg-blue-500 text-white text-[11px] font-black rounded-full shadow">
+                       {vendors.filter(v => v.vendorStatus === "IN_REVIEW").length}
+                     </span>
+                   </div>
+                   <span className="text-[10px] text-blue-500 font-semibold uppercase tracking-widest">Waiting for Review</span>
+                 </div>
+
+                 {/* Content */}
+                 {vendors.filter(v => v.vendorStatus === "IN_REVIEW").length === 0 ? (
+                   <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+                     <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center">
+                       <CheckCircle2 size={26} className="text-blue-400" />
+                     </div>
+                     <p className="text-sm font-bold text-heading">All caught up!</p>
+                     <p className="text-xs text-muted">No pending KYC approval requests right now.</p>
+                   </div>
+                 ) : (
+                   <div className="divide-y divide-blue-500/10 max-h-[400px] overflow-y-auto custom-scrollbar">
                      {vendors.filter(v => v.vendorStatus === "IN_REVIEW").map(v => (
-                       <div key={v.id} className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-6 shadow-sm flex justify-between items-center">
-                         <div>
-                           <p className="font-bold text-heading text-lg">{v.name}</p>
-                           <p className="text-xs text-muted font-mono">{v.email} | {v.mobile}</p>
-                           <span className="mt-2 inline-block bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase shadow-sm">IN REVIEW</span>
+                       <div key={v.id} className="flex items-center justify-between px-6 py-4 hover:bg-blue-500/5 transition-colors">
+                         {/* Vendor Info */}
+                         <div className="flex items-center gap-4">
+                           <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-lg uppercase shadow-md shadow-blue-500/20 shrink-0">
+                             {v.name?.charAt(0) || "V"}
+                           </div>
+                           <div>
+                             <p className="font-bold text-heading text-sm">{v.name}</p>
+                               <p className="text-[11px] text-muted">{v.email}</p>
+                             <p className="text-[10px] text-blue-500 font-semibold mt-0.5">{v.mobile || "No mobile"} • Joined {new Date(v.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+                           </div>
                          </div>
-                         <button onClick={() => handleOpenVendorModal(v)} className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors">
-                           Review Profile
-                         </button>
+                         {/* Actions */}
+                         <div className="flex items-center gap-2 shrink-0">
+                           <button
+                             onClick={() => { 
+                                setPromptText("");
+                                setRejectPromptModal({ id: v.id, name: v.name, type: "VENDOR_KYC" });
+                             }}
+                             className="px-4 py-2 border-2 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-xs font-bold transition-all"
+                           >
+                             Reject
+                           </button>
+                           <button
+                             onClick={() => handleOpenVendorModal(v)}
+                             className="px-4 py-2 bg-surface border border-border hover:border-blue-500 text-xs font-bold rounded-xl transition-colors"
+                           >
+                             View Profile
+                           </button>
+                           <button
+                             onClick={() => { if(confirm(`Approve ${v.name} as a verified vendor?`)) { handleReviewVendor(v.id, "APPROVE"); } }}
+                             className="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
+                           >
+                             ✓ Approve
+                           </button>
+                         </div>
                        </div>
                      ))}
                    </div>
-                 </div>
-               )}
+                 )}
+               </div>
 
-               {/* All Registered Vendors */}
+               {/* ===== SECTION 2: ALL REGISTERED VENDORS ===== */}
                <div>
-                 <h3 className="text-lg font-black text-heading mb-4 flex items-center gap-2 mt-8 border-t border-border pt-8">
-                   <span className="w-2 h-8 bg-emerald-500 rounded-full inline-block"></span> All Registered Vendors
+                 <h3 className="text-base font-black text-heading mb-4 flex items-center gap-2">
+                   <span className="w-2 h-7 bg-emerald-500 rounded-full inline-block" /> All Registered Vendors
+                   <span className="ml-1 text-xs font-semibold text-muted">({vendors.length} total)</span>
                  </h3>
-                 <div className="bg-surface-card border border-border rounded-2xl overflow-hidden shadow-sm">
-                    <table className="w-full text-left text-xs border-collapse">
-                       <thead>
-                          <tr className="bg-surface text-muted">
+                 {vendors.length === 0 ? (
+                   <p className="text-center p-8 bg-surface-card rounded-2xl text-muted text-sm">No vendors registered yet.</p>
+                 ) : (
+                   <div className="bg-surface-card border border-border rounded-2xl shadow-sm">
+                     <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+                       <table className="w-full text-left text-xs border-collapse">
+                         <thead className="sticky top-0 z-10">
+                           <tr className="bg-surface text-muted border-b border-border shadow-sm">
                              <th className="p-4 font-bold uppercase tracking-wider">Vendor Name</th>
                              <th className="p-4 font-bold uppercase tracking-wider">Contact</th>
-                             <th className="p-4 font-bold uppercase tracking-wider">Joined Date</th>
+                             <th className="p-4 font-bold uppercase tracking-wider">Joined</th>
                              <th className="p-4 font-bold uppercase tracking-wider">Status</th>
-                             <th className="p-4 font-bold uppercase tracking-wider">Action</th>
-                          </tr>
-                       </thead>
-                       <tbody className="divide-y divide-border">
-                          {vendors.filter(v => v.vendorStatus !== "IN_REVIEW").map(v => (
-                             <tr key={v.id} className="hover:bg-surface-hover transition-colors">
-                                <td className="p-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-muted font-black text-lg uppercase">
-                                      {v.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                      <p className="font-bold text-heading text-sm flex items-center gap-1.5">
-                                        {v.name}
-                                        {v.vendorStatus === "APPROVED" && <CheckCircle size={14} className="text-emerald-500" />}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="p-4">
-                                  <p className="text-muted">{v.email}</p>
-                                  <p className="font-mono text-[10px]">{v.mobile || "N/A"}</p>
-                                </td>
-                                <td className="p-4 text-muted">{new Date(v.createdAt).toLocaleDateString()}</td>
-                                <td className="p-4">
-                                  <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase ${
-                                    v.vendorStatus === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' :
-                                    v.vendorStatus === 'REJECTED' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
-                                    'bg-orange-500/10 text-orange-500 border border-orange-500/20'
-                                  }`}>
-                                    {v.vendorStatus}
-                                  </span>
-                                </td>
-                                <td className="p-4">
-                                  <div className="flex gap-2">
-                                    <button onClick={() => handleOpenVendorModal(v)} className="px-4 py-1.5 bg-surface border border-border hover:border-orange-500 text-xs font-bold rounded-lg transition-colors">
-                                      View Profile
-                                    </button>
-                                    <a href={`/admin/vendor-shop/${v.id}`} className="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
-                                      Catalog
-                                    </a>
-                                  </div>
-                                </td>
+                             <th className="p-4 font-bold uppercase tracking-wider">Actions</th>
+                           </tr>
+                         </thead>
+                         <tbody className="divide-y divide-border">
+                           {vendors.map(v => (
+                             <tr key={v.id} className={`hover:bg-surface-hover transition-colors ${v.vendorStatus === "IN_REVIEW" ? "bg-blue-500/[0.03]" : ""}`}>
+                               <td className="p-4">
+                                 <div className="flex items-center gap-3">
+                                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black uppercase shrink-0
+                                     ${v.vendorStatus === "APPROVED" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
+                                       v.vendorStatus === "IN_REVIEW" ? "bg-blue-500/10 text-blue-600 border border-blue-500/20" :
+                                       v.vendorStatus === "REJECTED" ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                                       "bg-surface border border-border text-muted"}`}>
+                                     {v.name?.charAt(0) || "V"}
+                                   </div>
+                                   <div>
+                                     <p className="font-bold text-heading flex items-center gap-1.5">
+                                       {v.name}
+                                       {v.vendorStatus === "APPROVED" && <CheckCircle size={12} className="text-emerald-500" />}
+                                       {v.vendorStatus === "IN_REVIEW" && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse inline-block" />}
+                                     </p>
+                                   </div>
+                                 </div>
+                               </td>
+                               <td className="p-4">
+                                 <p className="text-muted">{v.email}</p>
+                                 <p className="font-mono text-[10px] text-muted">{v.mobile || "N/A"}</p>
+                               </td>
+                               <td className="p-4 text-muted">{new Date(v.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</td>
+                               <td className="p-4">
+                                 <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                   v.vendorStatus === "APPROVED" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
+                                   v.vendorStatus === "REJECTED" ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                                   v.vendorStatus === "IN_REVIEW" ? "bg-blue-500/10 text-blue-600 border border-blue-500/20" :
+                                   "bg-orange-500/10 text-orange-500 border border-orange-500/20"
+                                 }`}>
+                                   {v.vendorStatus}
+                                 </span>
+                               </td>
+                               <td className="p-4">
+                                 <div className="flex gap-2">
+                                   <button onClick={() => handleOpenVendorModal(v)} className="px-3 py-1.5 bg-surface border border-border hover:border-orange-500 text-xs font-bold rounded-lg transition-colors">
+                                     View
+                                   </button>
+                                   <a href={`/admin/vendor-shop/${v.id}`} className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-colors">
+                                     Catalog
+                                   </a>
+                                 </div>
+                               </td>
                              </tr>
-                          ))}
-                       </tbody>
-                    </table>
-                 </div>
+                           ))}
+                         </tbody>
+                       </table>
+                     </div>
+                  </div>
+                 )}
                </div>
             </div>
          )}
@@ -973,17 +1285,31 @@ export const AdminPanel = () => {
                                   const banUser = (document.getElementById(`ban_user_${r.id}`) as HTMLInputElement)?.checked;
                                   const banVendor = (document.getElementById(`ban_vendor_${r.id}`) as HTMLInputElement)?.checked;
                                   const adminNotes = (document.getElementById(`admin_notes_${r.id}`) as HTMLTextAreaElement)?.value;
-                                  if (!adminNotes) return alert("Please add resolution notes before proceeding.");
-                                  if(confirm("Refund User? The vendor will NOT be paid.")) handleUpdateReturn(r.id, "QC_PASS", undefined, banUser, banVendor, adminNotes);
-                               }} className="px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-emerald-500 rounded-xl text-xs font-bold transition-all duration-200 shadow-sm">Side with User (Refund)</button>
+                                  if (!adminNotes) return showToast("Please add resolution notes before proceeding.", "error");
+                                  setConfirmModal({
+                                     title: "Refund User",
+                                     message: "Are you sure you want to refund the user? The vendor will NOT be paid.",
+                                     confirmText: "Refund User",
+                                     action: () => handleUpdateReturn(r.id, "QC_PASS", undefined, banUser, banVendor, adminNotes)
+                                  });
+                               }} disabled={processingReturns[r.id]} className={`px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-emerald-500 rounded-xl text-xs font-bold transition-all duration-200 shadow-sm ${processingReturns[r.id] ? "opacity-50 cursor-not-allowed" : ""}`}>
+                                  {processingReturns[r.id] ? "Processing..." : "Side with User (Refund)"}
+                               </button>
                                
                                <button onClick={() => {
                                   const banUser = (document.getElementById(`ban_user_${r.id}`) as HTMLInputElement)?.checked;
                                   const banVendor = (document.getElementById(`ban_vendor_${r.id}`) as HTMLInputElement)?.checked;
                                   const adminNotes = (document.getElementById(`admin_notes_${r.id}`) as HTMLTextAreaElement)?.value;
-                                  if (!adminNotes) return alert("Please add resolution notes before proceeding.");
-                                  if(confirm("Pay Vendor? The user will NOT be refunded.")) handleUpdateReturn(r.id, "QC_FAIL", undefined, banUser, banVendor, adminNotes);
-                               }} className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-all duration-200 shadow-sm shadow-red-500/20">Side with Vendor (Reject Refund)</button>
+                                  if (!adminNotes) return showToast("Please add resolution notes before proceeding.", "error");
+                                  setConfirmModal({
+                                     title: "Pay Vendor",
+                                     message: "Are you sure you want to pay the vendor? The user will NOT be refunded.",
+                                     confirmText: "Pay Vendor",
+                                     action: () => handleUpdateReturn(r.id, "QC_FAIL", undefined, banUser, banVendor, adminNotes)
+                                  });
+                               }} disabled={processingReturns[r.id]} className={`px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-all duration-200 shadow-sm shadow-red-500/20 ${processingReturns[r.id] ? "opacity-50 cursor-not-allowed" : ""}`}>
+                                  {processingReturns[r.id] ? "Processing..." : "Side with Vendor (Reject Refund)"}
+                               </button>
                             </div>
                          </div>
                       </div>
@@ -1016,24 +1342,40 @@ export const AdminPanel = () => {
              return (
                 <div className="space-y-6">
                    {settlementSummary && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                         <div className="bg-surface-card border border-border rounded-2xl p-4">
-                            <p className="text-[10px] uppercase font-bold text-muted">Total on Hold</p>
-                            <p className="text-lg font-bold text-orange-500 mt-1">₹{(settlementSummary.hold / 100).toLocaleString()}</p>
+                      <>
+                         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl p-6 shadow-xl text-white mb-6 flex justify-between items-center border border-emerald-400/30">
+                            <div>
+                               <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-50 mb-1 flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                  This Cycle Payout Total to Pay
+                               </h3>
+                               <div className="text-4xl font-black tracking-tight drop-shadow-sm">
+                                  ₹{(groupedSettlements.reduce((sum: number, g: any) => sum + (g.summary.eligible || 0), 0) / 100).toLocaleString()}
+                               </div>
+                            </div>
+                            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
+                               <DollarSign size={32} className="text-white" />
+                            </div>
                          </div>
-                         <div className="bg-surface-card border border-border rounded-2xl p-4">
-                            <p className="text-[10px] uppercase font-bold text-muted">Eligible for Payout</p>
-                            <p className="text-lg font-bold text-emerald-500 mt-1">₹{(settlementSummary.eligible / 100).toLocaleString()}</p>
+                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-surface-card border border-border rounded-2xl p-4">
+                               <p className="text-[10px] uppercase font-bold text-muted">Total on Hold</p>
+                               <p className="text-lg font-bold text-orange-500 mt-1">₹{(settlementSummary.hold / 100).toLocaleString()}</p>
+                            </div>
+                            <div className="bg-surface-card border border-border rounded-2xl p-4">
+                               <p className="text-[10px] uppercase font-bold text-muted">Eligible for Payout</p>
+                               <p className="text-lg font-bold text-emerald-500 mt-1">₹{(settlementSummary.eligible / 100).toLocaleString()}</p>
+                            </div>
+                            <div className="bg-surface-card border border-border rounded-2xl p-4">
+                               <p className="text-[10px] uppercase font-bold text-muted">Total Settled</p>
+                               <p className="text-lg font-bold text-blue-500 mt-1">₹{(settlementSummary.settled / 100).toLocaleString()}</p>
+                            </div>
+                            <div className="bg-surface-card border border-border rounded-2xl p-4">
+                               <p className="text-[10px] uppercase font-bold text-muted">Disputed</p>
+                               <p className="text-lg font-bold text-red-500 mt-1">₹{(settlementSummary.disputed / 100).toLocaleString()}</p>
+                            </div>
                          </div>
-                         <div className="bg-surface-card border border-border rounded-2xl p-4">
-                            <p className="text-[10px] uppercase font-bold text-muted">Total Settled</p>
-                            <p className="text-lg font-bold text-blue-500 mt-1">₹{(settlementSummary.settled / 100).toLocaleString()}</p>
-                         </div>
-                         <div className="bg-surface-card border border-border rounded-2xl p-4">
-                            <p className="text-[10px] uppercase font-bold text-muted">Disputed</p>
-                            <p className="text-lg font-bold text-red-500 mt-1">₹{(settlementSummary.disputed / 100).toLocaleString()}</p>
-                         </div>
-                      </div>
+                      </>
                    )}
 
                    {/* Settlements Analytics Section */}
@@ -1362,107 +1704,210 @@ export const AdminPanel = () => {
                             </div>
                          </motion.div>
                       </div>
-                   )}
-                </AnimatePresence>
+                    )}
+                 </AnimatePresence>
 
           {/* SETTINGS TAB */}
           {activeTab === "settings" && (
              <>
                {!settings ? (
-                 <div className="bg-surface-card border border-border rounded-3xl p-8 text-center text-muted">
-                    <p>Loading settings or database migration pending.</p>
-                    <p className="text-xs mt-2">If this persists, run <code>npx prisma db push</code>.</p>
-                 </div>
+                  <div className="bg-surface-card border border-border rounded-3xl p-8 text-center text-muted">
+                     <p>Loading settings or database migration pending.</p>
+                     <p className="text-xs mt-2">If this persists, run <code>npx prisma db push</code>.</p>
+                  </div>
                ) : (
-                 <form onSubmit={handleSaveSettings} className="bg-surface-card border border-border rounded-3xl p-6 md:p-8 max-w-2xl space-y-6">
-                <h2 className="text-lg font-bold text-heading">Platform Settings</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Default Commission Rate (%)</label>
-                      <input type="number" step="0.1" value={settings.defaultCommissionRate} onChange={e => setSettings({...settings, defaultCommissionRate: parseFloat(e.target.value)})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Global Tax Rate (%)</label>
-                      <input type="number" step="0.1" value={settings.taxRate || 0} onChange={e => setSettings({...settings, taxRate: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Free Shipping Above (₹)</label>
-                      <input type="number" value={settings.shippingFreeAbove / 100} onChange={e => setSettings({...settings, shippingFreeAbove: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Standard Shipping Charge (₹)</label>
-                      <input type="number" value={settings.shippingChargePaise / 100} onChange={e => setSettings({...settings, shippingChargePaise: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted">COD Shipping Charge (₹)</label>
-                      <input type="number" value={settings.codShippingChargePaise / 100} onChange={e => setSettings({...settings, codShippingChargePaise: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Max COD Amount (₹)</label>
-                      <input type="number" value={settings.codMaxAmountPaise / 100} onChange={e => setSettings({...settings, codMaxAmountPaise: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Return Window (Days)</label>
-                      <input type="number" value={settings.returnWindowDays} onChange={e => setSettings({...settings, returnWindowDays: parseInt(e.target.value)})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-emerald-500">Auto-Refund SLA (Hours)</label>
-                      <input type="number" value={settings.vendorReturnSlaHours || 24} onChange={e => setSettings({...settings, vendorReturnSlaHours: parseInt(e.target.value)})} className="w-full px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-blue-500">Vendor Payout Schedule</label>
-                      <select 
-                         value={settings.payoutSchedule || "MANUAL"} 
-                         onChange={e => setSettings({...settings, payoutSchedule: e.target.value})}
-                         className="w-full px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-bold appearance-none cursor-pointer"
-                      >
-                         <option value="MANUAL">Manual (Button Click Only)</option>
-                         <option value="DAILY">Daily Automation</option>
-                         <option value="WEEKLY_WED">Weekly (Every Wednesday)</option>
-                         <option value="WEEKLY_THU">Weekly (Every Thursday)</option>
-                         <option value="BIWEEKLY">Bi-Weekly (Every 15 Days)</option>
-                         <option value="MONTHLY">Monthly (1st of the Month)</option>
-                         <option value="CUSTOM_DAYS">Custom Interval (Every X Days)</option>
-                      </select>
-                   </div>
-                   
-                   {settings.payoutSchedule === "CUSTOM_DAYS" && (
-                     <div className="space-y-1 animate-in fade-in slide-in-from-top-2">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-blue-500">Custom Payout Interval (Days)</label>
-                        <input 
-                          type="number" 
-                          min="1"
-                          max="365"
-                          value={settings.payoutCustomDays || 10} 
-                          onChange={e => setSettings({...settings, payoutCustomDays: parseInt(e.target.value) || 1})} 
-                          className="w-full px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-bold" 
-                        />
-                        <p className="text-[9px] text-muted">Payouts will trigger automatically every {settings.payoutCustomDays || 10} days.</p>
-                     </div>
-                   )}
-                </div>
+                  <div className="space-y-8 max-w-4xl">
+                     {/* Section 1: Platform Settings */}
+                     <form onSubmit={handleSavePlatformSettings} className="bg-surface-card border border-border rounded-3xl p-6 md:p-8 space-y-6">
+                        <div className="flex items-center gap-2 border-b border-border pb-4">
+                           <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                           <h2 className="text-lg font-bold text-heading">Platform Settings</h2>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Default Commission Rate (%)</label>
+                              <input type="number" step="0.1" value={settings.defaultCommissionRate} onChange={e => setSettings({...settings, defaultCommissionRate: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Global Tax Rate (%)</label>
+                              <input type="number" step="0.1" value={settings.taxRate || 0} onChange={e => setSettings({...settings, taxRate: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Free Shipping Above (₹)</label>
+                              <input type="number" value={settings.shippingFreeAbove / 100} onChange={e => setSettings({...settings, shippingFreeAbove: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Standard Shipping Charge (₹)</label>
+                              <input type="number" value={settings.shippingChargePaise / 100} onChange={e => setSettings({...settings, shippingChargePaise: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">COD Shipping Charge (₹)</label>
+                              <input type="number" value={settings.codShippingChargePaise / 100} onChange={e => setSettings({...settings, codShippingChargePaise: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Max COD Amount (₹)</label>
+                              <input type="number" value={settings.codMaxAmountPaise / 100} onChange={e => setSettings({...settings, codMaxAmountPaise: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Return Window (Days)</label>
+                              <input type="number" value={settings.returnWindowDays} onChange={e => setSettings({...settings, returnWindowDays: parseInt(e.target.value)})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-emerald-500">Auto-Refund SLA (Hours)</label>
+                              <input type="number" value={settings.vendorReturnSlaHours || 24} onChange={e => setSettings({...settings, vendorReturnSlaHours: parseInt(e.target.value)})} className="w-full px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-blue-500">Vendor Payout Schedule</label>
+                              <select 
+                                 value={settings.payoutSchedule || "MANUAL"} 
+                                 onChange={e => setSettings({...settings, payoutSchedule: e.target.value})}
+                                 className="w-full px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-bold appearance-none cursor-pointer"
+                              >
+                                 <option value="MANUAL">Manual (Button Click Only)</option>
+                                 <option value="DAILY">Daily Automation</option>
+                                 <option value="WEEKLY_WED">Weekly (Every Wednesday)</option>
+                                 <option value="WEEKLY_THU">Weekly (Every Thursday)</option>
+                                 <option value="BIWEEKLY">Bi-Weekly (Every 15 Days)</option>
+                                 <option value="MONTHLY">Monthly (1st of the Month)</option>
+                                 <option value="CUSTOM_DAYS">Custom Interval (Every X Days)</option>
+                              </select>
+                           </div>
+                           
+                           {settings.payoutSchedule === "CUSTOM_DAYS" ? (
+                             <div className="space-y-1 animate-in fade-in slide-in-from-top-2">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-blue-500">Custom Payout Interval (Days)</label>
+                                <input 
+                                  type="number" 
+                                  min="1"
+                                  max="365"
+                                  value={settings.payoutCustomDays || 10} 
+                                  onChange={e => setSettings({...settings, payoutCustomDays: parseInt(e.target.value) || 1})}
+                                  className="w-full px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-bold"
+                                />
+                             </div>
+                           ) : <div></div>}
+                        </div>
 
-                <div className="pt-4 space-y-4">
-                   <label className="flex items-center gap-2 text-xs font-bold text-heading cursor-pointer">
-                      <input type="checkbox" checked={settings.codEnabled} onChange={e => setSettings({...settings, codEnabled: e.target.checked})} className="rounded text-orange-500 focus:ring-orange-500" />
-                      Enable Cash on Delivery (COD)
-                   </label>
-                   <label className="flex items-center gap-2 text-xs font-bold text-heading cursor-pointer">
-                      <input type="checkbox" checked={settings.returnEnabled} onChange={e => setSettings({...settings, returnEnabled: e.target.checked})} className="rounded text-orange-500 focus:ring-orange-500" />
-                      Enable Returns
-                   </label>
-                   <label className="flex items-center gap-2 text-xs font-bold text-heading cursor-pointer">
-                      <input type="checkbox" checked={settings.shiprocketAutoAssign} onChange={e => setSettings({...settings, shiprocketAutoAssign: e.target.checked})} className="rounded text-orange-500 focus:ring-orange-500" />
-                      Auto-Assign Courier via Shiprocket
-                   </label>
-                </div>
+                        <div className="flex flex-wrap gap-6 pt-4 border-t border-border/60">
+                           <label className="flex items-center gap-2 text-xs font-bold text-heading cursor-pointer">
+                              <input type="checkbox" checked={settings.codEnabled} onChange={e => setSettings({...settings, codEnabled: e.target.checked})} className="rounded text-orange-500 focus:ring-orange-500" />
+                              Enable COD (Cash on Delivery)
+                           </label>
+                           <label className="flex items-center gap-2 text-xs font-bold text-heading cursor-pointer">
+                              <input type="checkbox" checked={settings.returnEnabled} onChange={e => setSettings({...settings, returnEnabled: e.target.checked})} className="rounded text-orange-500 focus:ring-orange-500" />
+                              Enable Returns
+                           </label>
+                           <label className="flex items-center gap-2 text-xs font-bold text-heading cursor-pointer">
+                              <input type="checkbox" checked={settings.shiprocketAutoAssign} onChange={e => setSettings({...settings, shiprocketAutoAssign: e.target.checked})} className="rounded text-orange-500 focus:ring-orange-500" />
+                              Auto-Assign Courier via Shiprocket
+                           </label>
+                        </div>
 
-                <button type="submit" className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all">
-                   Save Settings
-                </button>
-             </form>
-               )}
+                        <div className="pt-2">
+                           <button type="submit" className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg">
+                              Save Platform Settings
+                           </button>
+                        </div>
+                     </form>
+
+                     {/* Section 2: Company Profile / Billing Details */}
+                     <form onSubmit={handleSaveCompanyProfile} className="bg-surface-card border border-border rounded-3xl p-6 md:p-8 space-y-6">
+                        <div className="flex items-center gap-2 border-b border-border pb-4">
+                           <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                           <h2 className="text-lg font-bold text-heading">Company Profile & Billing Details (for Commission Invoices)</h2>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Registered Company Name</label>
+                              <input 
+                                 type="text" 
+                                 value={settings.companyName || ""} 
+                                 onChange={e => setSettings({...settings, companyName: e.target.value})} 
+                                 placeholder="e.g. StopShops Private Limited"
+                                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading"
+                              />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Company GSTIN</label>
+                              <input 
+                                 type="text" 
+                                 value={settings.companyGstin || ""} 
+                                 onChange={e => setSettings({...settings, companyGstin: e.target.value})} 
+                                 placeholder="e.g. 09AAECS8721M1Z5"
+                                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading uppercase font-mono"
+                              />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Company PAN</label>
+                              <input 
+                                 type="text" 
+                                 value={settings.companyPan || ""} 
+                                 onChange={e => setSettings({...settings, companyPan: e.target.value})} 
+                                 placeholder="e.g. AAECS8721M"
+                                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading uppercase font-mono"
+                              />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Pincode</label>
+                              <input 
+                                 type="text" 
+                                 value={settings.companyPincode || ""} 
+                                 onChange={e => setSettings({...settings, companyPincode: e.target.value})} 
+                                 placeholder="e.g. 201301"
+                                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading font-mono"
+                              />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">City</label>
+                              <input 
+                                 type="text" 
+                                 value={settings.companyCity || ""} 
+                                 onChange={e => setSettings({...settings, companyCity: e.target.value})} 
+                                 placeholder="e.g. Noida"
+                                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading"
+                              />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">State</label>
+                              <input 
+                                 type="text" 
+                                 value={settings.companyState || ""} 
+                                 onChange={e => setSettings({...settings, companyState: e.target.value})} 
+                                 placeholder="e.g. Uttar Pradesh"
+                                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading"
+                              />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Country</label>
+                              <input 
+                                 type="text" 
+                                 value={settings.companyCountry || ""} 
+                                 onChange={e => setSettings({...settings, companyCountry: e.target.value})} 
+                                 placeholder="e.g. India"
+                                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading"
+                              />
+                           </div>
+                           <div className="space-y-1 md:col-span-2">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Registered / Corporate Office Address</label>
+                              <textarea 
+                                 value={settings.companyAddress || ""} 
+                                 onChange={e => setSettings({...settings, companyAddress: e.target.value})} 
+                                 placeholder="Enter complete office address..."
+                                 rows={3}
+                                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading"
+                              />
+                           </div>
+                        </div>
+
+                        <div className="pt-2">
+                           <button type="submit" className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg">
+                              Save Company Profile
+                           </button>
+                        </div>
+                     </form>
+                  </div>            )}
              </>
           )}
 
@@ -1994,22 +2439,22 @@ export const AdminPanel = () => {
               {/* Redbox KYC Profile */}
               <div className="bg-red-500/5 border-2 border-red-500/20 rounded-2xl p-6 relative overflow-hidden">
                 <h3 className="text-sm font-black text-red-500 uppercase tracking-widest mb-4">Official KYC Profile</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  <div className="bg-surface/50 p-3 rounded-xl border border-red-500/10">
                     <p className="text-[10px] text-muted font-bold uppercase mb-1">GSTIN</p>
-                    <p className="font-mono text-sm font-bold text-heading">{v.gstin || "Not Provided"}</p>
+                    <p className="font-mono text-sm font-bold text-heading break-all">{v.gstin || "Not Provided"}</p>
                   </div>
-                  <div>
+                  <div className="bg-surface/50 p-3 rounded-xl border border-red-500/10">
                     <p className="text-[10px] text-muted font-bold uppercase mb-1">PAN Number</p>
-                    <p className="font-mono text-sm font-bold text-heading">{v.pan || "Not Provided"}</p>
+                    <p className="font-mono text-sm font-bold text-heading break-all">{v.pan || "Not Provided"}</p>
                   </div>
-                  <div>
+                  <div className="bg-surface/50 p-3 rounded-xl border border-red-500/10">
                     <p className="text-[10px] text-muted font-bold uppercase mb-1">Aadhaar</p>
-                    <p className="font-mono text-sm font-bold text-heading">{v.aadhaar || "Not Provided"}</p>
+                    <p className="font-mono text-sm font-bold text-heading break-all">{v.aadhaar || "Not Provided"}</p>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-muted font-bold uppercase mb-1">Registered Location</p>
-                    <p className="text-sm font-bold text-heading">{v.location || "Not Provided"}</p>
+                  <div className="col-span-1 sm:col-span-3 bg-surface/50 p-3 rounded-xl border border-red-500/10">
+                    <p className="text-[10px] text-muted font-bold uppercase mb-1">Registered Location / Address</p>
+                    <p className="text-sm font-bold text-heading break-words">{v.location || "Not Provided"}</p>
                   </div>
                 </div>
 
@@ -2230,13 +2675,11 @@ export const AdminPanel = () => {
               </div>
 
               {/* Approval Buttons */}
-              {v.vendorStatus === "IN_REVIEW" && (
+              {v.vendorStatus !== "APPROVED" && (
                 <div className="flex gap-3 w-full justify-end border-t border-border pt-6 mt-6">
                   <button onClick={() => {
-                    if(confirm(`Reject ${v.name}'s profile?`)) {
-                      handleReviewVendor(v.id, "REJECT");
-                      setVendorProfileModal(null);
-                    }
+                    setPromptText("");
+                    setRejectPromptModal({ id: v.id, name: v.name, type: "VENDOR_PROFILE" });
                   }} className="px-6 py-2.5 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-sm font-bold transition-colors">
                     Reject Profile
                   </button>
@@ -2295,7 +2738,7 @@ export const AdminPanel = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 15, scale: 0.95 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className={`pointer-events-auto w-full bg-surface/90 backdrop-blur-md border ${borderColor} rounded-2xl p-4 shadow-2xl ${bgGlow} relative overflow-hidden flex gap-3.5 items-start`}
+                className={`pointer-events-auto w-full bg-surface-card border ${borderColor} rounded-2xl p-4 shadow-2xl ${bgGlow} relative overflow-hidden flex gap-3.5 items-start`}
               >
                 {/* Accent line */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${accentBar}`} />
@@ -2327,6 +2770,73 @@ export const AdminPanel = () => {
           })}
         </AnimatePresence>
       </div>
+
+      {/* Reject / Action Prompt Modal */}
+      <AnimatePresence>
+        {confirmModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-surface-card border border-border w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto mb-4 border border-orange-500/20">
+                <AlertTriangle size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-heading mb-2">{confirmModal.title}</h3>
+              <p className="text-sm text-muted mb-6">{confirmModal.message}</p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={() => setConfirmModal(null)} className="px-5 py-2.5 bg-surface border border-border hover:border-muted text-heading text-sm font-bold rounded-xl transition-all">Cancel</button>
+                <button onClick={() => { confirmModal.action(); setConfirmModal(null); }} className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl shadow-lg transition-all">{confirmModal.confirmText}</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {rejectPromptModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-surface-card border border-border w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-heading mb-2">
+                  {rejectPromptModal.type === "VENDOR_KYC" && `Reject KYC for ${rejectPromptModal.name}`}
+                  {rejectPromptModal.type === "VENDOR_PROFILE" && `Reject Profile for ${rejectPromptModal.name}`}
+                  {rejectPromptModal.type === "RETURN" && `Reject Return`}
+                  {rejectPromptModal.type === "PAYMENT" && `Enter Payment Details`}
+                </h3>
+                <p className="text-sm text-muted mb-4">
+                  {(rejectPromptModal.type === "VENDOR_KYC" || rejectPromptModal.type === "VENDOR_PROFILE" || rejectPromptModal.type === "RETURN") 
+                    ? "Please provide a reason for rejection. This will be visible to the user." 
+                    : "Enter Bank UTR or Payment Reference."}
+                </p>
+                <textarea
+                  value={promptText}
+                  onChange={(e) => setPromptText(e.target.value)}
+                  placeholder={rejectPromptModal.type === "PAYMENT" ? "UTR / Ref No..." : "Enter reason..."}
+                  className="w-full bg-surface border border-border rounded-xl p-3 text-sm focus:outline-none focus:border-orange-500 min-h-[100px] resize-none"
+                  autoFocus
+                />
+                <div className="flex gap-3 justify-end mt-6">
+                  <button onClick={() => setRejectPromptModal(null)} className="px-4 py-2 hover:bg-surface-hover text-muted hover:text-heading font-bold text-sm rounded-xl transition-colors">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (rejectPromptModal.type === "VENDOR_KYC" || rejectPromptModal.type === "VENDOR_PROFILE") {
+                        handleReviewVendor(rejectPromptModal.id, "REJECT", promptText || "Rejected by Admin");
+                        if (rejectPromptModal.type === "VENDOR_PROFILE") setVendorProfileModal(null);
+                      } else if (rejectPromptModal.type === "RETURN") {
+                        handleReturnAction(rejectPromptModal.id, "REJECTED", promptText || "Rejected by Admin");
+                      }
+                      setRejectPromptModal(null);
+                    }}
+                    className={`px-6 py-2 ${rejectPromptModal.type === "PAYMENT" ? "bg-emerald-500 hover:bg-emerald-600" : "bg-red-500 hover:bg-red-600"} text-white font-bold text-sm rounded-xl transition-colors shadow-lg`}
+                  >
+                    Confirm {rejectPromptModal.type === "PAYMENT" ? "Payment" : "Rejection"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

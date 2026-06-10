@@ -1764,6 +1764,7 @@ export namespace Prisma {
     panUrl: string | null
     docUrl: string | null
     vendorStatus: string | null
+    rejectionReason: string | null
     allowedCategories: string | null
     razorpayAccountId: string | null
     payoutsPaused: boolean | null
@@ -1786,6 +1787,7 @@ export namespace Prisma {
     panUrl: string | null
     docUrl: string | null
     vendorStatus: string | null
+    rejectionReason: string | null
     allowedCategories: string | null
     razorpayAccountId: string | null
     payoutsPaused: boolean | null
@@ -1808,6 +1810,7 @@ export namespace Prisma {
     panUrl: number
     docUrl: number
     vendorStatus: number
+    rejectionReason: number
     allowedCategories: number
     razorpayAccountId: number
     payoutsPaused: number
@@ -1840,6 +1843,7 @@ export namespace Prisma {
     panUrl?: true
     docUrl?: true
     vendorStatus?: true
+    rejectionReason?: true
     allowedCategories?: true
     razorpayAccountId?: true
     payoutsPaused?: true
@@ -1862,6 +1866,7 @@ export namespace Prisma {
     panUrl?: true
     docUrl?: true
     vendorStatus?: true
+    rejectionReason?: true
     allowedCategories?: true
     razorpayAccountId?: true
     payoutsPaused?: true
@@ -1884,6 +1889,7 @@ export namespace Prisma {
     panUrl?: true
     docUrl?: true
     vendorStatus?: true
+    rejectionReason?: true
     allowedCategories?: true
     razorpayAccountId?: true
     payoutsPaused?: true
@@ -1993,6 +1999,7 @@ export namespace Prisma {
     panUrl: string | null
     docUrl: string | null
     vendorStatus: string
+    rejectionReason: string | null
     allowedCategories: string | null
     razorpayAccountId: string | null
     payoutsPaused: boolean
@@ -2034,6 +2041,7 @@ export namespace Prisma {
     panUrl?: boolean
     docUrl?: boolean
     vendorStatus?: boolean
+    rejectionReason?: boolean
     allowedCategories?: boolean
     razorpayAccountId?: boolean
     payoutsPaused?: boolean
@@ -2061,6 +2069,7 @@ export namespace Prisma {
     panUrl?: boolean
     docUrl?: boolean
     vendorStatus?: boolean
+    rejectionReason?: boolean
     allowedCategories?: boolean
     razorpayAccountId?: boolean
     payoutsPaused?: boolean
@@ -2097,6 +2106,7 @@ export namespace Prisma {
       panUrl: string | null
       docUrl: string | null
       vendorStatus: string
+      rejectionReason: string | null
       allowedCategories: string | null
       razorpayAccountId: string | null
       payoutsPaused: boolean
@@ -2488,6 +2498,7 @@ export namespace Prisma {
     readonly panUrl: FieldRef<"User", 'String'>
     readonly docUrl: FieldRef<"User", 'String'>
     readonly vendorStatus: FieldRef<"User", 'String'>
+    readonly rejectionReason: FieldRef<"User", 'String'>
     readonly allowedCategories: FieldRef<"User", 'String'>
     readonly razorpayAccountId: FieldRef<"User", 'String'>
     readonly payoutsPaused: FieldRef<"User", 'Boolean'>
@@ -11558,6 +11569,14 @@ export namespace Prisma {
     id: number | null
     defaultCommissionRate: number | null
     taxRate: number | null
+    companyName: string | null
+    companyAddress: string | null
+    companyGstin: string | null
+    companyPan: string | null
+    companyCity: string | null
+    companyState: string | null
+    companyCountry: string | null
+    companyPincode: string | null
     shippingFreeAbove: number | null
     shippingChargePaise: number | null
     codShippingChargePaise: number | null
@@ -11581,6 +11600,14 @@ export namespace Prisma {
     id: number | null
     defaultCommissionRate: number | null
     taxRate: number | null
+    companyName: string | null
+    companyAddress: string | null
+    companyGstin: string | null
+    companyPan: string | null
+    companyCity: string | null
+    companyState: string | null
+    companyCountry: string | null
+    companyPincode: string | null
     shippingFreeAbove: number | null
     shippingChargePaise: number | null
     codShippingChargePaise: number | null
@@ -11604,6 +11631,14 @@ export namespace Prisma {
     id: number
     defaultCommissionRate: number
     taxRate: number
+    companyName: number
+    companyAddress: number
+    companyGstin: number
+    companyPan: number
+    companyCity: number
+    companyState: number
+    companyCountry: number
+    companyPincode: number
     shippingFreeAbove: number
     shippingChargePaise: number
     codShippingChargePaise: number
@@ -11660,6 +11695,14 @@ export namespace Prisma {
     id?: true
     defaultCommissionRate?: true
     taxRate?: true
+    companyName?: true
+    companyAddress?: true
+    companyGstin?: true
+    companyPan?: true
+    companyCity?: true
+    companyState?: true
+    companyCountry?: true
+    companyPincode?: true
     shippingFreeAbove?: true
     shippingChargePaise?: true
     codShippingChargePaise?: true
@@ -11683,6 +11726,14 @@ export namespace Prisma {
     id?: true
     defaultCommissionRate?: true
     taxRate?: true
+    companyName?: true
+    companyAddress?: true
+    companyGstin?: true
+    companyPan?: true
+    companyCity?: true
+    companyState?: true
+    companyCountry?: true
+    companyPincode?: true
     shippingFreeAbove?: true
     shippingChargePaise?: true
     codShippingChargePaise?: true
@@ -11706,6 +11757,14 @@ export namespace Prisma {
     id?: true
     defaultCommissionRate?: true
     taxRate?: true
+    companyName?: true
+    companyAddress?: true
+    companyGstin?: true
+    companyPan?: true
+    companyCity?: true
+    companyState?: true
+    companyCountry?: true
+    companyPincode?: true
     shippingFreeAbove?: true
     shippingChargePaise?: true
     codShippingChargePaise?: true
@@ -11817,6 +11876,14 @@ export namespace Prisma {
     id: number
     defaultCommissionRate: number
     taxRate: number
+    companyName: string
+    companyAddress: string
+    companyGstin: string
+    companyPan: string
+    companyCity: string
+    companyState: string
+    companyCountry: string
+    companyPincode: string
     shippingFreeAbove: number
     shippingChargePaise: number
     codShippingChargePaise: number
@@ -11860,6 +11927,14 @@ export namespace Prisma {
     id?: boolean
     defaultCommissionRate?: boolean
     taxRate?: boolean
+    companyName?: boolean
+    companyAddress?: boolean
+    companyGstin?: boolean
+    companyPan?: boolean
+    companyCity?: boolean
+    companyState?: boolean
+    companyCountry?: boolean
+    companyPincode?: boolean
     shippingFreeAbove?: boolean
     shippingChargePaise?: boolean
     codShippingChargePaise?: boolean
@@ -11885,6 +11960,14 @@ export namespace Prisma {
     id?: boolean
     defaultCommissionRate?: boolean
     taxRate?: boolean
+    companyName?: boolean
+    companyAddress?: boolean
+    companyGstin?: boolean
+    companyPan?: boolean
+    companyCity?: boolean
+    companyState?: boolean
+    companyCountry?: boolean
+    companyPincode?: boolean
     shippingFreeAbove?: boolean
     shippingChargePaise?: boolean
     codShippingChargePaise?: boolean
@@ -11913,6 +11996,14 @@ export namespace Prisma {
       id: number
       defaultCommissionRate: number
       taxRate: number
+      companyName: string
+      companyAddress: string
+      companyGstin: string
+      companyPan: string
+      companyCity: string
+      companyState: string
+      companyCountry: string
+      companyPincode: string
       shippingFreeAbove: number
       shippingChargePaise: number
       codShippingChargePaise: number
@@ -12303,6 +12394,14 @@ export namespace Prisma {
     readonly id: FieldRef<"AdminSettings", 'Int'>
     readonly defaultCommissionRate: FieldRef<"AdminSettings", 'Float'>
     readonly taxRate: FieldRef<"AdminSettings", 'Float'>
+    readonly companyName: FieldRef<"AdminSettings", 'String'>
+    readonly companyAddress: FieldRef<"AdminSettings", 'String'>
+    readonly companyGstin: FieldRef<"AdminSettings", 'String'>
+    readonly companyPan: FieldRef<"AdminSettings", 'String'>
+    readonly companyCity: FieldRef<"AdminSettings", 'String'>
+    readonly companyState: FieldRef<"AdminSettings", 'String'>
+    readonly companyCountry: FieldRef<"AdminSettings", 'String'>
+    readonly companyPincode: FieldRef<"AdminSettings", 'String'>
     readonly shippingFreeAbove: FieldRef<"AdminSettings", 'Int'>
     readonly shippingChargePaise: FieldRef<"AdminSettings", 'Int'>
     readonly codShippingChargePaise: FieldRef<"AdminSettings", 'Int'>
@@ -12625,6 +12724,7 @@ export namespace Prisma {
     panUrl: 'panUrl',
     docUrl: 'docUrl',
     vendorStatus: 'vendorStatus',
+    rejectionReason: 'rejectionReason',
     allowedCategories: 'allowedCategories',
     razorpayAccountId: 'razorpayAccountId',
     payoutsPaused: 'payoutsPaused'
@@ -12830,6 +12930,14 @@ export namespace Prisma {
     id: 'id',
     defaultCommissionRate: 'defaultCommissionRate',
     taxRate: 'taxRate',
+    companyName: 'companyName',
+    companyAddress: 'companyAddress',
+    companyGstin: 'companyGstin',
+    companyPan: 'companyPan',
+    companyCity: 'companyCity',
+    companyState: 'companyState',
+    companyCountry: 'companyCountry',
+    companyPincode: 'companyPincode',
     shippingFreeAbove: 'shippingFreeAbove',
     shippingChargePaise: 'shippingChargePaise',
     codShippingChargePaise: 'codShippingChargePaise',
@@ -12963,6 +13071,7 @@ export namespace Prisma {
     panUrl?: StringNullableFilter<"User"> | string | null
     docUrl?: StringNullableFilter<"User"> | string | null
     vendorStatus?: StringFilter<"User"> | string
+    rejectionReason?: StringNullableFilter<"User"> | string | null
     allowedCategories?: StringNullableFilter<"User"> | string | null
     razorpayAccountId?: StringNullableFilter<"User"> | string | null
     payoutsPaused?: BoolFilter<"User"> | boolean
@@ -12988,6 +13097,7 @@ export namespace Prisma {
     panUrl?: SortOrderInput | SortOrder
     docUrl?: SortOrderInput | SortOrder
     vendorStatus?: SortOrder
+    rejectionReason?: SortOrderInput | SortOrder
     allowedCategories?: SortOrderInput | SortOrder
     razorpayAccountId?: SortOrderInput | SortOrder
     payoutsPaused?: SortOrder
@@ -13016,6 +13126,7 @@ export namespace Prisma {
     panUrl?: StringNullableFilter<"User"> | string | null
     docUrl?: StringNullableFilter<"User"> | string | null
     vendorStatus?: StringFilter<"User"> | string
+    rejectionReason?: StringNullableFilter<"User"> | string | null
     allowedCategories?: StringNullableFilter<"User"> | string | null
     razorpayAccountId?: StringNullableFilter<"User"> | string | null
     payoutsPaused?: BoolFilter<"User"> | boolean
@@ -13041,6 +13152,7 @@ export namespace Prisma {
     panUrl?: SortOrderInput | SortOrder
     docUrl?: SortOrderInput | SortOrder
     vendorStatus?: SortOrder
+    rejectionReason?: SortOrderInput | SortOrder
     allowedCategories?: SortOrderInput | SortOrder
     razorpayAccountId?: SortOrderInput | SortOrder
     payoutsPaused?: SortOrder
@@ -13071,6 +13183,7 @@ export namespace Prisma {
     panUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
     docUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
     vendorStatus?: StringWithAggregatesFilter<"User"> | string
+    rejectionReason?: StringNullableWithAggregatesFilter<"User"> | string | null
     allowedCategories?: StringNullableWithAggregatesFilter<"User"> | string | null
     razorpayAccountId?: StringNullableWithAggregatesFilter<"User"> | string | null
     payoutsPaused?: BoolWithAggregatesFilter<"User"> | boolean
@@ -14079,6 +14192,14 @@ export namespace Prisma {
     id?: IntFilter<"AdminSettings"> | number
     defaultCommissionRate?: FloatFilter<"AdminSettings"> | number
     taxRate?: FloatFilter<"AdminSettings"> | number
+    companyName?: StringFilter<"AdminSettings"> | string
+    companyAddress?: StringFilter<"AdminSettings"> | string
+    companyGstin?: StringFilter<"AdminSettings"> | string
+    companyPan?: StringFilter<"AdminSettings"> | string
+    companyCity?: StringFilter<"AdminSettings"> | string
+    companyState?: StringFilter<"AdminSettings"> | string
+    companyCountry?: StringFilter<"AdminSettings"> | string
+    companyPincode?: StringFilter<"AdminSettings"> | string
     shippingFreeAbove?: IntFilter<"AdminSettings"> | number
     shippingChargePaise?: IntFilter<"AdminSettings"> | number
     codShippingChargePaise?: IntFilter<"AdminSettings"> | number
@@ -14103,6 +14224,14 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    companyName?: SortOrder
+    companyAddress?: SortOrder
+    companyGstin?: SortOrder
+    companyPan?: SortOrder
+    companyCity?: SortOrder
+    companyState?: SortOrder
+    companyCountry?: SortOrder
+    companyPincode?: SortOrder
     shippingFreeAbove?: SortOrder
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
@@ -14130,6 +14259,14 @@ export namespace Prisma {
     NOT?: AdminSettingsWhereInput | AdminSettingsWhereInput[]
     defaultCommissionRate?: FloatFilter<"AdminSettings"> | number
     taxRate?: FloatFilter<"AdminSettings"> | number
+    companyName?: StringFilter<"AdminSettings"> | string
+    companyAddress?: StringFilter<"AdminSettings"> | string
+    companyGstin?: StringFilter<"AdminSettings"> | string
+    companyPan?: StringFilter<"AdminSettings"> | string
+    companyCity?: StringFilter<"AdminSettings"> | string
+    companyState?: StringFilter<"AdminSettings"> | string
+    companyCountry?: StringFilter<"AdminSettings"> | string
+    companyPincode?: StringFilter<"AdminSettings"> | string
     shippingFreeAbove?: IntFilter<"AdminSettings"> | number
     shippingChargePaise?: IntFilter<"AdminSettings"> | number
     codShippingChargePaise?: IntFilter<"AdminSettings"> | number
@@ -14154,6 +14291,14 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    companyName?: SortOrder
+    companyAddress?: SortOrder
+    companyGstin?: SortOrder
+    companyPan?: SortOrder
+    companyCity?: SortOrder
+    companyState?: SortOrder
+    companyCountry?: SortOrder
+    companyPincode?: SortOrder
     shippingFreeAbove?: SortOrder
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
@@ -14186,6 +14331,14 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"AdminSettings"> | number
     defaultCommissionRate?: FloatWithAggregatesFilter<"AdminSettings"> | number
     taxRate?: FloatWithAggregatesFilter<"AdminSettings"> | number
+    companyName?: StringWithAggregatesFilter<"AdminSettings"> | string
+    companyAddress?: StringWithAggregatesFilter<"AdminSettings"> | string
+    companyGstin?: StringWithAggregatesFilter<"AdminSettings"> | string
+    companyPan?: StringWithAggregatesFilter<"AdminSettings"> | string
+    companyCity?: StringWithAggregatesFilter<"AdminSettings"> | string
+    companyState?: StringWithAggregatesFilter<"AdminSettings"> | string
+    companyCountry?: StringWithAggregatesFilter<"AdminSettings"> | string
+    companyPincode?: StringWithAggregatesFilter<"AdminSettings"> | string
     shippingFreeAbove?: IntWithAggregatesFilter<"AdminSettings"> | number
     shippingChargePaise?: IntWithAggregatesFilter<"AdminSettings"> | number
     codShippingChargePaise?: IntWithAggregatesFilter<"AdminSettings"> | number
@@ -14222,6 +14375,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -14247,6 +14401,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -14271,6 +14426,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -14296,6 +14452,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -14321,6 +14478,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -14342,6 +14500,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -14364,6 +14523,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -15547,6 +15707,14 @@ export namespace Prisma {
     id?: number
     defaultCommissionRate?: number
     taxRate?: number
+    companyName?: string
+    companyAddress?: string
+    companyGstin?: string
+    companyPan?: string
+    companyCity?: string
+    companyState?: string
+    companyCountry?: string
+    companyPincode?: string
     shippingFreeAbove?: number
     shippingChargePaise?: number
     codShippingChargePaise?: number
@@ -15571,6 +15739,14 @@ export namespace Prisma {
     id?: number
     defaultCommissionRate?: number
     taxRate?: number
+    companyName?: string
+    companyAddress?: string
+    companyGstin?: string
+    companyPan?: string
+    companyCity?: string
+    companyState?: string
+    companyCountry?: string
+    companyPincode?: string
     shippingFreeAbove?: number
     shippingChargePaise?: number
     codShippingChargePaise?: number
@@ -15595,6 +15771,14 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     defaultCommissionRate?: FloatFieldUpdateOperationsInput | number
     taxRate?: FloatFieldUpdateOperationsInput | number
+    companyName?: StringFieldUpdateOperationsInput | string
+    companyAddress?: StringFieldUpdateOperationsInput | string
+    companyGstin?: StringFieldUpdateOperationsInput | string
+    companyPan?: StringFieldUpdateOperationsInput | string
+    companyCity?: StringFieldUpdateOperationsInput | string
+    companyState?: StringFieldUpdateOperationsInput | string
+    companyCountry?: StringFieldUpdateOperationsInput | string
+    companyPincode?: StringFieldUpdateOperationsInput | string
     shippingFreeAbove?: IntFieldUpdateOperationsInput | number
     shippingChargePaise?: IntFieldUpdateOperationsInput | number
     codShippingChargePaise?: IntFieldUpdateOperationsInput | number
@@ -15619,6 +15803,14 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     defaultCommissionRate?: FloatFieldUpdateOperationsInput | number
     taxRate?: FloatFieldUpdateOperationsInput | number
+    companyName?: StringFieldUpdateOperationsInput | string
+    companyAddress?: StringFieldUpdateOperationsInput | string
+    companyGstin?: StringFieldUpdateOperationsInput | string
+    companyPan?: StringFieldUpdateOperationsInput | string
+    companyCity?: StringFieldUpdateOperationsInput | string
+    companyState?: StringFieldUpdateOperationsInput | string
+    companyCountry?: StringFieldUpdateOperationsInput | string
+    companyPincode?: StringFieldUpdateOperationsInput | string
     shippingFreeAbove?: IntFieldUpdateOperationsInput | number
     shippingChargePaise?: IntFieldUpdateOperationsInput | number
     codShippingChargePaise?: IntFieldUpdateOperationsInput | number
@@ -15643,6 +15835,14 @@ export namespace Prisma {
     id?: number
     defaultCommissionRate?: number
     taxRate?: number
+    companyName?: string
+    companyAddress?: string
+    companyGstin?: string
+    companyPan?: string
+    companyCity?: string
+    companyState?: string
+    companyCountry?: string
+    companyPincode?: string
     shippingFreeAbove?: number
     shippingChargePaise?: number
     codShippingChargePaise?: number
@@ -15667,6 +15867,14 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     defaultCommissionRate?: FloatFieldUpdateOperationsInput | number
     taxRate?: FloatFieldUpdateOperationsInput | number
+    companyName?: StringFieldUpdateOperationsInput | string
+    companyAddress?: StringFieldUpdateOperationsInput | string
+    companyGstin?: StringFieldUpdateOperationsInput | string
+    companyPan?: StringFieldUpdateOperationsInput | string
+    companyCity?: StringFieldUpdateOperationsInput | string
+    companyState?: StringFieldUpdateOperationsInput | string
+    companyCountry?: StringFieldUpdateOperationsInput | string
+    companyPincode?: StringFieldUpdateOperationsInput | string
     shippingFreeAbove?: IntFieldUpdateOperationsInput | number
     shippingChargePaise?: IntFieldUpdateOperationsInput | number
     codShippingChargePaise?: IntFieldUpdateOperationsInput | number
@@ -15691,6 +15899,14 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     defaultCommissionRate?: FloatFieldUpdateOperationsInput | number
     taxRate?: FloatFieldUpdateOperationsInput | number
+    companyName?: StringFieldUpdateOperationsInput | string
+    companyAddress?: StringFieldUpdateOperationsInput | string
+    companyGstin?: StringFieldUpdateOperationsInput | string
+    companyPan?: StringFieldUpdateOperationsInput | string
+    companyCity?: StringFieldUpdateOperationsInput | string
+    companyState?: StringFieldUpdateOperationsInput | string
+    companyCountry?: StringFieldUpdateOperationsInput | string
+    companyPincode?: StringFieldUpdateOperationsInput | string
     shippingFreeAbove?: IntFieldUpdateOperationsInput | number
     shippingChargePaise?: IntFieldUpdateOperationsInput | number
     codShippingChargePaise?: IntFieldUpdateOperationsInput | number
@@ -15818,6 +16034,7 @@ export namespace Prisma {
     panUrl?: SortOrder
     docUrl?: SortOrder
     vendorStatus?: SortOrder
+    rejectionReason?: SortOrder
     allowedCategories?: SortOrder
     razorpayAccountId?: SortOrder
     payoutsPaused?: SortOrder
@@ -15844,6 +16061,7 @@ export namespace Prisma {
     panUrl?: SortOrder
     docUrl?: SortOrder
     vendorStatus?: SortOrder
+    rejectionReason?: SortOrder
     allowedCategories?: SortOrder
     razorpayAccountId?: SortOrder
     payoutsPaused?: SortOrder
@@ -15866,6 +16084,7 @@ export namespace Prisma {
     panUrl?: SortOrder
     docUrl?: SortOrder
     vendorStatus?: SortOrder
+    rejectionReason?: SortOrder
     allowedCategories?: SortOrder
     razorpayAccountId?: SortOrder
     payoutsPaused?: SortOrder
@@ -16793,6 +17012,14 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    companyName?: SortOrder
+    companyAddress?: SortOrder
+    companyGstin?: SortOrder
+    companyPan?: SortOrder
+    companyCity?: SortOrder
+    companyState?: SortOrder
+    companyCountry?: SortOrder
+    companyPincode?: SortOrder
     shippingFreeAbove?: SortOrder
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
@@ -16832,6 +17059,14 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    companyName?: SortOrder
+    companyAddress?: SortOrder
+    companyGstin?: SortOrder
+    companyPan?: SortOrder
+    companyCity?: SortOrder
+    companyState?: SortOrder
+    companyCountry?: SortOrder
+    companyPincode?: SortOrder
     shippingFreeAbove?: SortOrder
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
@@ -16855,6 +17090,14 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    companyName?: SortOrder
+    companyAddress?: SortOrder
+    companyGstin?: SortOrder
+    companyPan?: SortOrder
+    companyCity?: SortOrder
+    companyState?: SortOrder
+    companyCountry?: SortOrder
+    companyPincode?: SortOrder
     shippingFreeAbove?: SortOrder
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
@@ -18095,6 +18338,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -18119,6 +18363,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -18223,6 +18468,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -18247,6 +18493,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -18306,6 +18553,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -18330,6 +18578,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -18505,6 +18754,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -18529,6 +18779,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -19446,6 +19697,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -19470,6 +19722,7 @@ export namespace Prisma {
     panUrl?: string | null
     docUrl?: string | null
     vendorStatus?: string
+    rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
     payoutsPaused?: boolean
@@ -19509,6 +19762,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
@@ -19533,6 +19787,7 @@ export namespace Prisma {
     panUrl?: NullableStringFieldUpdateOperationsInput | string | null
     docUrl?: NullableStringFieldUpdateOperationsInput | string | null
     vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
