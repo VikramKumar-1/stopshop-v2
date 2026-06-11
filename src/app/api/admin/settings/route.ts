@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
        settings = await prisma.adminSettings.create({
           data: {
              defaultCommissionRate: 10,
+             commissionGstRate: 18,
+             commissionSacCode: "996111",
              shippingFreeAbove: 99900,
              shippingChargePaise: 4900,
              codShippingChargePaise: 4900,
@@ -56,7 +58,8 @@ export async function PATCH(req: NextRequest) {
        "returnEnabled", "vendorReturnSlaHours", "shiprocketPickupLocation", "shiprocketAutoAssign", 
        "shiprocketCourierPriority", "payoutSchedule", "payoutCustomDays",
         "companyName", "companyAddress", "companyGstin", "companyPan",
-        "companyCity", "companyState", "companyCountry", "companyPincode"
+        "companyCity", "companyState", "companyCountry", "companyPincode",
+        "commissionGstRate", "commissionSacCode"
     ];
 
     for (const field of allowedFields) {

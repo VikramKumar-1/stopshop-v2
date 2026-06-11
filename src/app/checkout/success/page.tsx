@@ -73,7 +73,7 @@ function CheckoutSuccessContent() {
   }, [orderId]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-surface flex items-center justify-center p-4">
+    <div className="min-h-screen relative bg-surface flex items-center justify-center p-4 pt-24 pb-16">
       {/* Background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-emerald-500/10 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
       

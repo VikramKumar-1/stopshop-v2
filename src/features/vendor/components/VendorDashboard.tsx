@@ -1081,7 +1081,11 @@ export const VendorDashboard = () => {
     }
   };
 
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
   const handleUpdateItemStatus = async (inquiryId: number, productId: number, status: string, deliveryDate?: string) => {
+    if (updatingStatus) return;
+    setUpdatingStatus(true);
     try {
       const res = await fetch("/api/inquiries", {
         method: "PATCH",
@@ -1097,10 +1101,14 @@ export const VendorDashboard = () => {
       }
     } catch (err) {
       showToast("Error updating status", "error");
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
   const handleUpdateDirectOrderStatus = async (orderId: string, status: string, deliveryDate?: string) => {
+    if (updatingStatus) return;
+    setUpdatingStatus(true);
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
@@ -1117,6 +1125,8 @@ export const VendorDashboard = () => {
       }
     } catch (err) {
       showToast("Error updating order status", "error");
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -1555,9 +1565,16 @@ export const VendorDashboard = () => {
                           <td className="p-4 text-center whitespace-nowrap">
                             <div className="flex flex-col items-center">
                               <span className="font-bold text-heading text-xs">₹{((order.totalPaise || 0) / 100).toLocaleString()}</span>
-                              <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold px-1.5 py-0.5 rounded text-[8px] uppercase mt-0.5">
-                                {order.paymentStatus || "PAID"}
-                              </span>
+                              <div className="flex gap-1 items-center mt-1 justify-center">
+                                <span className={`border font-bold px-1.5 py-0.5 rounded text-[8px] uppercase ${order.paymentStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
+                                  {order.paymentStatus || "PAID"}
+                                </span>
+                                {order.paymentMethod === 'cod' && (
+                                   <span className="bg-purple-500/10 text-purple-600 border-purple-500/20 font-bold px-1.5 py-0.5 rounded text-[8px] uppercase border">
+                                     COD
+                                   </span>
+                                )}
+                              </div>
                             </div>
                           </td>
 
@@ -3105,6 +3122,11 @@ export const VendorDashboard = () => {
                           {s.status === "SETTLED" && s.settledAt ? (
                             <span className="text-[10px] text-blue-600 font-bold block">
                               Settled on {new Date(s.settledAt).toLocaleDateString()}
+                              {s.vendorPaymentRef && (
+                                <span className="block mt-1 font-mono text-muted/80 break-all font-normal">
+                                  Ref: {s.vendorPaymentRef}
+                                </span>
+                              )}
                             </span>
                           ) : (
                             new Date(s.holdUntil).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })
@@ -3524,7 +3546,10 @@ export const VendorDashboard = () => {
                <div className="flex justify-end gap-2 pt-4">
                   <button onClick={() => setShowPackingModal(null)} className="px-4 py-2 text-xs font-bold text-muted hover:text-heading">Cancel</button>
                   <button 
-                     onClick={async () => {
+                     onClick={async (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        if (submittingPacking) return;
                         // Check if all items have 5-8 photos
                         const items = showPackingModal.items || [];
                         let valid = true;
@@ -3560,10 +3585,10 @@ export const VendorDashboard = () => {
                         }
                      }} 
                      disabled={submittingPacking} 
-                     className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl flex items-center gap-2"
+                     className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                      {submittingPacking && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />} 
-                     Confirm Packing
+                     {submittingPacking ? "Packing..." : "Confirm Packing"}
                   </button>
                </div>
             </div>
@@ -4289,6 +4314,28 @@ export const VendorDashboard = () => {
                )}
             </div>
 
+            {/* Returned Items */}
+            <div className="space-y-3">
+              <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Items Being Returned</span>
+              <div className="space-y-2">
+                {(reviewReturnOrder.returnRequest?.returnItems || []).map((retItem: any, idx: number) => {
+                  const orderItem = (reviewReturnOrder.items || []).find((i: any) => i.id === retItem.orderItemId);
+                  if (!orderItem) return null;
+                  return (
+                    <div key={idx} className="flex items-center gap-3 p-3 bg-surface rounded-xl border border-border">
+                      <div className="w-12 h-12 rounded-lg bg-white border border-border overflow-hidden shrink-0">
+                        <img src={orderItem.productImage || "/logo4.jpg"} alt={orderItem.productName} className="w-full h-full object-contain" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-heading text-xs truncate">{orderItem.productName}</h4>
+                        <p className="text-[10px] text-muted mt-0.5">Returning: <span className="font-bold text-orange-500">{retItem.quantity} unit(s)</span></p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                {/* Original Dispatch Photos */}
                <div>
@@ -4606,21 +4653,41 @@ export const VendorDashboard = () => {
           </div>
           <div className="p-8 pb-12 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 w-full flex justify-center z-10">
             <button 
-              onClick={() => {
+              onClick={(e) => {
+                const btn = e.currentTarget;
+                if (btn.disabled) return;
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
+                btn.style.transform = "scale(0.95)";
+
                 const video = document.getElementById("live-camera-video") as HTMLVideoElement;
                 const canvas = document.getElementById("live-camera-canvas") as HTMLCanvasElement;
-                if (!video || !canvas || !video.videoWidth) return;
+                if (!video || !canvas || !video.videoWidth) {
+                  btn.disabled = false;
+                  btn.style.opacity = "1";
+                  btn.style.transform = "";
+                  return;
+                }
                 
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext("2d");
-                if (!ctx) return;
+                if (!ctx) {
+                  btn.disabled = false;
+                  btn.style.opacity = "1";
+                  btn.style.transform = "";
+                  return;
+                }
                 
                 // Draw current frame
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
                 // Convert to compressed JPEG (0.7 quality)
                 canvas.toBlob((blob) => {
+                  btn.disabled = false;
+                  btn.style.opacity = "1";
+                  btn.style.transform = "";
+                  
                   if (!blob) return;
                   const file = new File([blob], `dispatch-${Date.now()}.jpg`, { type: "image/jpeg" });
                   
@@ -4634,7 +4701,7 @@ export const VendorDashboard = () => {
                   setActiveCameraItem(null);
                 }, "image/jpeg", 0.7);
               }} 
-              className="w-20 h-20 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm border-4 border-white/50 hover:bg-white/50 hover:scale-105 active:scale-95 transition-all shadow-2xl"
+              className="w-20 h-20 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm border-4 border-white/50 hover:bg-white/50 hover:scale-105 transition-all shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="w-16 h-16 bg-white rounded-full shadow-inner"></div>
             </button>

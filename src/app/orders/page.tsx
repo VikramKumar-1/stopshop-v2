@@ -291,10 +291,20 @@ export default function OrdersPage() {
                     return (
                        <div className="space-y-4 my-2">
                           {/* Delivery info banner */}
-                          {status === "DELIVERED" && order.deliveredAt ? (
+                          {isReturn ? (
+                             <div className="flex items-center gap-2 text-xs font-bold text-amber-600 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
+                                <RefreshCcw size={16} />
+                                <span>Return Status: {order.status.replace(/_/g, ' ')}</span>
+                             </div>
+                          ) : status === "DELIVERED" && order.deliveredAt ? (
                              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10">
                                 <Package size={16} />
                                 <span>Delivered on {new Date(order.deliveredAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
+                             </div>
+                          ) : status === "DELIVERED" && !order.deliveredAt ? (
+                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10">
+                                <Package size={16} />
+                                <span>Delivered successfully</span>
                              </div>
                           ) : order.deliveryDate ? (
                              <div className="flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
@@ -391,6 +401,22 @@ export default function OrdersPage() {
                        </button>
                     )}
                  </div>
+
+                 {/* Return Notes/Dispute Details */}
+                 {order.returnRequest && (order.returnRequest.rejectionReason || order.returnRequest.adminNotes) && (
+                    <div className="mt-4 p-3 bg-red-500/5 border border-red-500/20 rounded-xl">
+                       <h5 className="text-[10px] font-bold text-red-600 mb-1 flex items-center gap-1">
+                          <AlertTriangle size={12} />
+                          Support Notes
+                       </h5>
+                       {order.returnRequest.rejectionReason && (
+                          <p className="text-[10px] text-muted mt-1"><span className="font-semibold text-heading">Update:</span> {order.returnRequest.rejectionReason}</p>
+                       )}
+                       {order.returnRequest.adminNotes && (
+                          <p className="text-[10px] text-muted mt-1"><span className="font-semibold text-heading">Notes:</span> {order.returnRequest.adminNotes}</p>
+                       )}
+                    </div>
+                 )}
               </div>
             ))
           )}

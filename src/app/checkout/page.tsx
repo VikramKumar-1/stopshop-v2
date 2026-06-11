@@ -341,7 +341,6 @@ function CheckoutPageInner() {
 
          const rzp = new (window as any).Razorpay(options);
          rzp.on("payment.failed", function (response: any) {
-           alert(`Payment Failed: ${response.error.description}`);
            setPaying(false);
          });
          rzp.open();

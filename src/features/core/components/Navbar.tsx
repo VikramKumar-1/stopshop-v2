@@ -355,7 +355,7 @@ export const Navbar = () => {
         }
       } else {
         // Standard page behavior: hide when scrolling down, show when scrolling up (except on product pages)
-        const isStickyPage = window.location.pathname.startsWith("/product") || (window.location.pathname.startsWith("/profile") && !user) || window.location.pathname === "/cart";
+        const isStickyPage = window.location.pathname.startsWith("/product") || (window.location.pathname.startsWith("/profile") && !user) || window.location.pathname === "/cart" || window.location.pathname.startsWith("/checkout");
         if (isStickyPage) {
           setVisible(true);
         } else if (currentScrollY > 120 && currentScrollY > lastScrollY) {
@@ -666,147 +666,149 @@ export const Navbar = () => {
                   <ThemeToggle />
                   
                   {/* Amazon-style User profile link & Dropdown */}
-                  <div className="relative group/profile text-left py-2">
-                    <button className="flex items-center gap-1.5 text-muted hover:text-heading transition-colors cursor-pointer focus:outline-none">
-                      <div className="w-8 h-8 rounded-full bg-bronze-500/10 dark:bg-bronze-500/25 flex items-center justify-center text-bronze-600 dark:text-bronze-400">
-                        <User size={16} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-muted leading-tight">
-                          {user ? `Hello, ${user.name.split(" ")[0]}` : "Hello, Sign in"}
-                        </span>
-                        <span className="text-xs font-bold text-heading leading-tight flex items-center gap-0.5">
-                          Account & Lists
-                          <ChevronDown size={10} className="text-muted" />
-                        </span>
-                      </div>
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    <div className="absolute top-full right-0 mt-0 w-60 bg-[var(--surface)] border border-border dark:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_45px_rgba(0,0,0,0.4)] rounded-2xl py-2 hidden group-hover/profile:block z-[9999] text-xs">
-                      {/* Header: Sign In / Welcome */}
-                      {!user ? (
-                        <div className="px-4 py-3 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
-                          <span className="text-muted text-xs font-semibold">New customer?</span>
-                          <Link
-                            href="/profile?mode=login"
-                            className="px-3.5 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-lg text-[11px] shadow-sm transition-all duration-200"
-                          >
-                            Login
-                          </Link>
+                  {!pathname.startsWith("/admin") && (
+                    <div className="relative group/profile text-left py-2">
+                      <button className="flex items-center gap-1.5 text-muted hover:text-heading transition-colors cursor-pointer focus:outline-none">
+                        <div className="w-8 h-8 rounded-full bg-bronze-500/10 dark:bg-bronze-500/25 flex items-center justify-center text-bronze-600 dark:text-bronze-400">
+                          <User size={16} />
                         </div>
-                      ) : (
-                        <div className="px-4 py-3 border-b border-border dark:border-white/10 flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted font-medium">Welcome back,</span>
-                          <span className="font-bold text-heading text-xs truncate">{user.name}</span>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-muted leading-tight">
+                            {user ? `Hello, ${user.name.split(" ")[0]}` : "Hello, Sign in"}
+                          </span>
+                          <span className="text-xs font-bold text-heading leading-tight flex items-center gap-0.5">
+                            Account & Lists
+                            <ChevronDown size={10} className="text-muted" />
+                          </span>
                         </div>
-                      )}
+                      </button>
 
-                      {/* Menu List Options */}
-                      <div className="p-1 space-y-0.5">
-                        {!isDashboard && (
-                          <Link
-                            href="/profile"
-                            className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
-                          >
-                            <User size={15} className="text-muted" />
-                            <span>My Profile</span>
-                          </Link>
-                        )}
-                        
-                        {user?.role === "vendor" && (
-                          <Link
-                            href="/vendor/profile"
-                            className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
-                          >
-                            <Store size={15} className="text-muted" />
-                            <span>Vendor Profile</span>
-                          </Link>
-                        )}
-
-
-
-                        {!isDashboard && (
-                          <>
+                      {/* Dropdown Menu */}
+                      <div className="absolute top-full right-0 mt-0 w-60 bg-[var(--surface)] border border-border dark:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_45px_rgba(0,0,0,0.4)] rounded-2xl py-2 hidden group-hover/profile:block z-[9999] text-xs">
+                        {/* Header: Sign In / Welcome */}
+                        {!user ? (
+                          <div className="px-4 py-3 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
+                            <span className="text-muted text-xs font-semibold">New customer?</span>
                             <Link
-                              href="/orders"
+                              href="/profile?mode=login"
+                              className="px-3.5 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-lg text-[11px] shadow-sm transition-all duration-200"
+                            >
+                              Login
+                            </Link>
+                          </div>
+                        ) : (
+                          <div className="px-4 py-3 border-b border-border dark:border-white/10 flex flex-col gap-0.5">
+                            <span className="text-[10px] text-muted font-medium">Welcome back,</span>
+                            <span className="font-bold text-heading text-xs truncate">{user.name}</span>
+                          </div>
+                        )}
+
+                        {/* Menu List Options */}
+                        <div className="p-1 space-y-0.5">
+                          {!isDashboard && (
+                            <Link
+                              href="/profile"
                               className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
                             >
-                              <Package size={15} className="text-muted" />
-                              <span>Orders & Quotes</span>
+                              <User size={15} className="text-muted" />
+                              <span>My Profile</span>
                             </Link>
-
+                          )}
+                          
+                          {user?.role === "vendor" && (
                             <Link
-                              href="/wishlist"
+                              href="/vendor/profile"
                               className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
                             >
-                              <Heart size={15} className="text-muted" />
-                              <span>My Wishlist</span>
+                              <Store size={15} className="text-muted" />
+                              <span>Vendor Profile</span>
                             </Link>
-                          </>
-                        )}
+                          )}
 
-                        {/* Role Based Portals */}
-                        {user && user.role === "admin" && (
+
+
+                          {!isDashboard && (
+                            <>
+                              <Link
+                                href="/orders"
+                                className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                              >
+                                <Package size={15} className="text-muted" />
+                                <span>Orders & Quotes</span>
+                              </Link>
+
+                              <Link
+                                href="/wishlist"
+                                className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                              >
+                                <Heart size={15} className="text-muted" />
+                                <span>My Wishlist</span>
+                              </Link>
+                            </>
+                          )}
+
+                          {/* Role Based Portals */}
+                          {user && user.role === "admin" && (
+                            <Link
+                              href="/admin"
+                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                            >
+                              <LayoutDashboard size={15} className="text-muted" />
+                              <span>Admin Panel</span>
+                            </Link>
+                          )}
+
+                          {user && user.role === "vendor" && !isDashboard && (
+                            <Link
+                              href="/vendor/dashboard"
+                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                            >
+                              <LayoutDashboard size={15} className="text-muted" />
+                              <span>Vendor Dashboard</span>
+                            </Link>
+                          )}
+                          {(!user || user.role !== "vendor") && (
+                            <Link
+                              href="/vendor/login"
+                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                            >
+                              <Store size={15} className="text-muted" />
+                              <span>Become a Seller</span>
+                            </Link>
+                          )}
+
                           <Link
-                            href="/admin"
+                            href="/contact"
                             className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
                           >
-                            <LayoutDashboard size={15} className="text-muted" />
-                            <span>Admin Panel</span>
+                            <PhoneCall size={15} className="text-muted" />
+                            <span>Help & Support</span>
                           </Link>
-                        )}
 
-                        {user && user.role === "vendor" && !isDashboard && (
-                          <Link
-                            href="/vendor/dashboard"
-                            className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
-                          >
-                            <LayoutDashboard size={15} className="text-muted" />
-                            <span>Vendor Dashboard</span>
-                          </Link>
-                        )}
-                        {(!user || user.role !== "vendor") && (
-                          <Link
-                            href="/vendor/login"
-                            className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
-                          >
-                            <Store size={15} className="text-muted" />
-                            <span>Become a Seller</span>
-                          </Link>
-                        )}
+                          {isDashboard && user && (
+                            <Link
+                              href="/"
+                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                            >
+                              <LayoutDashboard size={15} className="text-muted" />
+                              <span>User Dashboard</span>
+                            </Link>
+                          )}
 
-                        <Link
-                          href="/contact"
-                          className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
-                        >
-                          <PhoneCall size={15} className="text-muted" />
-                          <span>Help & Support</span>
-                        </Link>
-
-                        {isDashboard && user && (
-                          <Link
-                            href="/"
-                            className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
-                          >
-                            <LayoutDashboard size={15} className="text-muted" />
-                            <span>User Dashboard</span>
-                          </Link>
-                        )}
-
-                        {/* Log Out */}
-                        {user && (
-                          <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-500/5 rounded-xl transition-all text-left"
-                          >
-                            <LogOut size={15} />
-                            <span>Sign Out</span>
-                          </button>
-                        )}
+                          {/* Log Out */}
+                          {user && (
+                            <button
+                              onClick={handleLogout}
+                              className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-500/5 rounded-xl transition-all text-left"
+                            >
+                              <LogOut size={15} />
+                              <span>Sign Out</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Wishlist, Cart & Contact Us (Hidden on dashboards) */}
                   {!isDashboard && (

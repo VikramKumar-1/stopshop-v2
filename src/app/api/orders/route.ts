@@ -52,9 +52,24 @@ export async function GET(req: NextRequest) {
       take: limit
     });
 
+    let stats: any[] | undefined = undefined;
+    if (searchParams.get("getStats") === "true") {
+       stats = await prisma.order.findMany({
+          where: whereClause,
+          select: {
+             status: true,
+             paymentMethod: true,
+             currency: true,
+             totalPaise: true,
+             commissionPaise: true
+          }
+       });
+    }
+
     return NextResponse.json({
       success: true,
       orders,
+      stats,
       pagination: {
         total,
         page,

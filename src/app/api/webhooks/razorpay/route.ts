@@ -89,6 +89,46 @@ export async function POST(req: NextRequest) {
            }
         }
       });
+    } else if (event.event === "transfer.processed") {
+       const transferEntity = event.payload.transfer.entity;
+       const transferId = transferEntity.id;
+       
+       const settlement = await prisma.settlement.findFirst({
+          where: { vendorPaymentRef: transferId }
+       });
+
+       if (settlement) {
+          await prisma.settlement.update({
+             where: { id: settlement.id },
+             data: { status: "SETTLED" }
+          });
+
+          // Check if we need to update the Order
+          const otherSettlements = await prisma.settlement.findMany({
+             where: { orderId: settlement.orderId, id: { not: settlement.id } }
+          });
+          
+          if (otherSettlements.every(os => ["SETTLED", "CANCELLED"].includes(os.status))) {
+             await prisma.order.update({
+                where: { id: settlement.orderId },
+                data: { settlementStatus: "SETTLED" }
+             });
+          }
+       }
+    } else if (event.event === "transfer.failed") {
+       const transferEntity = event.payload.transfer.entity;
+       const transferId = transferEntity.id;
+       
+       const settlement = await prisma.settlement.findFirst({
+          where: { vendorPaymentRef: transferId }
+       });
+
+       if (settlement) {
+          await prisma.settlement.update({
+             where: { id: settlement.id },
+             data: { status: "FAILED", notes: transferEntity.error_description || "Razorpay transfer failed" }
+          });
+       }
     }
 
     return NextResponse.json({ success: true });

@@ -11539,6 +11539,7 @@ export namespace Prisma {
     id: number | null
     defaultCommissionRate: number | null
     taxRate: number | null
+    commissionGstRate: number | null
     shippingFreeAbove: number | null
     shippingChargePaise: number | null
     codShippingChargePaise: number | null
@@ -11554,6 +11555,7 @@ export namespace Prisma {
     id: number | null
     defaultCommissionRate: number | null
     taxRate: number | null
+    commissionGstRate: number | null
     shippingFreeAbove: number | null
     shippingChargePaise: number | null
     codShippingChargePaise: number | null
@@ -11569,6 +11571,8 @@ export namespace Prisma {
     id: number | null
     defaultCommissionRate: number | null
     taxRate: number | null
+    commissionGstRate: number | null
+    commissionSacCode: string | null
     companyName: string | null
     companyAddress: string | null
     companyGstin: string | null
@@ -11600,6 +11604,8 @@ export namespace Prisma {
     id: number | null
     defaultCommissionRate: number | null
     taxRate: number | null
+    commissionGstRate: number | null
+    commissionSacCode: string | null
     companyName: string | null
     companyAddress: string | null
     companyGstin: string | null
@@ -11631,6 +11637,8 @@ export namespace Prisma {
     id: number
     defaultCommissionRate: number
     taxRate: number
+    commissionGstRate: number
+    commissionSacCode: number
     companyName: number
     companyAddress: number
     companyGstin: number
@@ -11665,6 +11673,7 @@ export namespace Prisma {
     id?: true
     defaultCommissionRate?: true
     taxRate?: true
+    commissionGstRate?: true
     shippingFreeAbove?: true
     shippingChargePaise?: true
     codShippingChargePaise?: true
@@ -11680,6 +11689,7 @@ export namespace Prisma {
     id?: true
     defaultCommissionRate?: true
     taxRate?: true
+    commissionGstRate?: true
     shippingFreeAbove?: true
     shippingChargePaise?: true
     codShippingChargePaise?: true
@@ -11695,6 +11705,8 @@ export namespace Prisma {
     id?: true
     defaultCommissionRate?: true
     taxRate?: true
+    commissionGstRate?: true
+    commissionSacCode?: true
     companyName?: true
     companyAddress?: true
     companyGstin?: true
@@ -11726,6 +11738,8 @@ export namespace Prisma {
     id?: true
     defaultCommissionRate?: true
     taxRate?: true
+    commissionGstRate?: true
+    commissionSacCode?: true
     companyName?: true
     companyAddress?: true
     companyGstin?: true
@@ -11757,6 +11771,8 @@ export namespace Prisma {
     id?: true
     defaultCommissionRate?: true
     taxRate?: true
+    commissionGstRate?: true
+    commissionSacCode?: true
     companyName?: true
     companyAddress?: true
     companyGstin?: true
@@ -11876,6 +11892,8 @@ export namespace Prisma {
     id: number
     defaultCommissionRate: number
     taxRate: number
+    commissionGstRate: number
+    commissionSacCode: string
     companyName: string
     companyAddress: string
     companyGstin: string
@@ -11927,6 +11945,8 @@ export namespace Prisma {
     id?: boolean
     defaultCommissionRate?: boolean
     taxRate?: boolean
+    commissionGstRate?: boolean
+    commissionSacCode?: boolean
     companyName?: boolean
     companyAddress?: boolean
     companyGstin?: boolean
@@ -11960,6 +11980,8 @@ export namespace Prisma {
     id?: boolean
     defaultCommissionRate?: boolean
     taxRate?: boolean
+    commissionGstRate?: boolean
+    commissionSacCode?: boolean
     companyName?: boolean
     companyAddress?: boolean
     companyGstin?: boolean
@@ -11996,6 +12018,8 @@ export namespace Prisma {
       id: number
       defaultCommissionRate: number
       taxRate: number
+      commissionGstRate: number
+      commissionSacCode: string
       companyName: string
       companyAddress: string
       companyGstin: string
@@ -12394,6 +12418,8 @@ export namespace Prisma {
     readonly id: FieldRef<"AdminSettings", 'Int'>
     readonly defaultCommissionRate: FieldRef<"AdminSettings", 'Float'>
     readonly taxRate: FieldRef<"AdminSettings", 'Float'>
+    readonly commissionGstRate: FieldRef<"AdminSettings", 'Float'>
+    readonly commissionSacCode: FieldRef<"AdminSettings", 'String'>
     readonly companyName: FieldRef<"AdminSettings", 'String'>
     readonly companyAddress: FieldRef<"AdminSettings", 'String'>
     readonly companyGstin: FieldRef<"AdminSettings", 'String'>
@@ -12930,6 +12956,8 @@ export namespace Prisma {
     id: 'id',
     defaultCommissionRate: 'defaultCommissionRate',
     taxRate: 'taxRate',
+    commissionGstRate: 'commissionGstRate',
+    commissionSacCode: 'commissionSacCode',
     companyName: 'companyName',
     companyAddress: 'companyAddress',
     companyGstin: 'companyGstin',
@@ -14192,6 +14220,8 @@ export namespace Prisma {
     id?: IntFilter<"AdminSettings"> | number
     defaultCommissionRate?: FloatFilter<"AdminSettings"> | number
     taxRate?: FloatFilter<"AdminSettings"> | number
+    commissionGstRate?: FloatFilter<"AdminSettings"> | number
+    commissionSacCode?: StringFilter<"AdminSettings"> | string
     companyName?: StringFilter<"AdminSettings"> | string
     companyAddress?: StringFilter<"AdminSettings"> | string
     companyGstin?: StringFilter<"AdminSettings"> | string
@@ -14224,6 +14254,8 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    commissionGstRate?: SortOrder
+    commissionSacCode?: SortOrder
     companyName?: SortOrder
     companyAddress?: SortOrder
     companyGstin?: SortOrder
@@ -14259,6 +14291,8 @@ export namespace Prisma {
     NOT?: AdminSettingsWhereInput | AdminSettingsWhereInput[]
     defaultCommissionRate?: FloatFilter<"AdminSettings"> | number
     taxRate?: FloatFilter<"AdminSettings"> | number
+    commissionGstRate?: FloatFilter<"AdminSettings"> | number
+    commissionSacCode?: StringFilter<"AdminSettings"> | string
     companyName?: StringFilter<"AdminSettings"> | string
     companyAddress?: StringFilter<"AdminSettings"> | string
     companyGstin?: StringFilter<"AdminSettings"> | string
@@ -14291,6 +14325,8 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    commissionGstRate?: SortOrder
+    commissionSacCode?: SortOrder
     companyName?: SortOrder
     companyAddress?: SortOrder
     companyGstin?: SortOrder
@@ -14331,6 +14367,8 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"AdminSettings"> | number
     defaultCommissionRate?: FloatWithAggregatesFilter<"AdminSettings"> | number
     taxRate?: FloatWithAggregatesFilter<"AdminSettings"> | number
+    commissionGstRate?: FloatWithAggregatesFilter<"AdminSettings"> | number
+    commissionSacCode?: StringWithAggregatesFilter<"AdminSettings"> | string
     companyName?: StringWithAggregatesFilter<"AdminSettings"> | string
     companyAddress?: StringWithAggregatesFilter<"AdminSettings"> | string
     companyGstin?: StringWithAggregatesFilter<"AdminSettings"> | string
@@ -15707,6 +15745,8 @@ export namespace Prisma {
     id?: number
     defaultCommissionRate?: number
     taxRate?: number
+    commissionGstRate?: number
+    commissionSacCode?: string
     companyName?: string
     companyAddress?: string
     companyGstin?: string
@@ -15739,6 +15779,8 @@ export namespace Prisma {
     id?: number
     defaultCommissionRate?: number
     taxRate?: number
+    commissionGstRate?: number
+    commissionSacCode?: string
     companyName?: string
     companyAddress?: string
     companyGstin?: string
@@ -15771,6 +15813,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     defaultCommissionRate?: FloatFieldUpdateOperationsInput | number
     taxRate?: FloatFieldUpdateOperationsInput | number
+    commissionGstRate?: FloatFieldUpdateOperationsInput | number
+    commissionSacCode?: StringFieldUpdateOperationsInput | string
     companyName?: StringFieldUpdateOperationsInput | string
     companyAddress?: StringFieldUpdateOperationsInput | string
     companyGstin?: StringFieldUpdateOperationsInput | string
@@ -15803,6 +15847,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     defaultCommissionRate?: FloatFieldUpdateOperationsInput | number
     taxRate?: FloatFieldUpdateOperationsInput | number
+    commissionGstRate?: FloatFieldUpdateOperationsInput | number
+    commissionSacCode?: StringFieldUpdateOperationsInput | string
     companyName?: StringFieldUpdateOperationsInput | string
     companyAddress?: StringFieldUpdateOperationsInput | string
     companyGstin?: StringFieldUpdateOperationsInput | string
@@ -15835,6 +15881,8 @@ export namespace Prisma {
     id?: number
     defaultCommissionRate?: number
     taxRate?: number
+    commissionGstRate?: number
+    commissionSacCode?: string
     companyName?: string
     companyAddress?: string
     companyGstin?: string
@@ -15867,6 +15915,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     defaultCommissionRate?: FloatFieldUpdateOperationsInput | number
     taxRate?: FloatFieldUpdateOperationsInput | number
+    commissionGstRate?: FloatFieldUpdateOperationsInput | number
+    commissionSacCode?: StringFieldUpdateOperationsInput | string
     companyName?: StringFieldUpdateOperationsInput | string
     companyAddress?: StringFieldUpdateOperationsInput | string
     companyGstin?: StringFieldUpdateOperationsInput | string
@@ -15899,6 +15949,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     defaultCommissionRate?: FloatFieldUpdateOperationsInput | number
     taxRate?: FloatFieldUpdateOperationsInput | number
+    commissionGstRate?: FloatFieldUpdateOperationsInput | number
+    commissionSacCode?: StringFieldUpdateOperationsInput | string
     companyName?: StringFieldUpdateOperationsInput | string
     companyAddress?: StringFieldUpdateOperationsInput | string
     companyGstin?: StringFieldUpdateOperationsInput | string
@@ -17012,6 +17064,8 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    commissionGstRate?: SortOrder
+    commissionSacCode?: SortOrder
     companyName?: SortOrder
     companyAddress?: SortOrder
     companyGstin?: SortOrder
@@ -17044,6 +17098,7 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    commissionGstRate?: SortOrder
     shippingFreeAbove?: SortOrder
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
@@ -17059,6 +17114,8 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    commissionGstRate?: SortOrder
+    commissionSacCode?: SortOrder
     companyName?: SortOrder
     companyAddress?: SortOrder
     companyGstin?: SortOrder
@@ -17090,6 +17147,8 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    commissionGstRate?: SortOrder
+    commissionSacCode?: SortOrder
     companyName?: SortOrder
     companyAddress?: SortOrder
     companyGstin?: SortOrder
@@ -17121,6 +17180,7 @@ export namespace Prisma {
     id?: SortOrder
     defaultCommissionRate?: SortOrder
     taxRate?: SortOrder
+    commissionGstRate?: SortOrder
     shippingFreeAbove?: SortOrder
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder

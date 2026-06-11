@@ -318,6 +318,8 @@ exports.Prisma.AdminSettingsScalarFieldEnum = {
   id: 'id',
   defaultCommissionRate: 'defaultCommissionRate',
   taxRate: 'taxRate',
+  commissionGstRate: 'commissionGstRate',
+  commissionSacCode: 'commissionSacCode',
   companyName: 'companyName',
   companyAddress: 'companyAddress',
   companyGstin: 'companyGstin',

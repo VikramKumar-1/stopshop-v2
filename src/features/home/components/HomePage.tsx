@@ -8,7 +8,6 @@ import {
   CategoryProductGrid,
   ShopByMaterial,
   HeritageStory,
-  CategoryCards,
   VendorSection,
 } from "../index";
 import { BlinkitMobileSection } from "./BlinkitMobileSection";
@@ -265,9 +264,6 @@ export const HomePage = () => {
           </>
         );
       })()}
-
-      {/* 6. Amazon-style Category Cards */}
-      <CategoryCards />
 
       {/* 10. Heritage + Artisan Story */}
       <HeritageStory />

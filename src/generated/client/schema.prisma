@@ -317,8 +317,10 @@ model AdminSettings {
   id Int @id @default(1) // Singleton row
 
   // Commission & Tax
-  defaultCommissionRate Float @default(10) // 10% default
-  taxRate               Float @default(0) // Global tax rate (e.g. 18 for 18% GST)
+  defaultCommissionRate Float  @default(10) // 10% default
+  taxRate               Float  @default(0) // Global tax rate (e.g. 18 for 18% GST)
+  commissionGstRate     Float  @default(18) // Commission GST (18%)
+  commissionSacCode     String @default("996111") // E-commerce operator SAC
 
   // Company Billing Details for Commission Invoices
   companyName    String @default("StopShops Private Limited")

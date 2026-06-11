@@ -24,6 +24,11 @@ export const AdminPanel = () => {
 
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
+  const [retryCountdown, setRetryCountdown] = useState(0);
+  const [autoRetryCount, setAutoRetryCount] = useState(0);
+  const autoRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const MAX_AUTO_RETRIES = 5;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -59,19 +64,49 @@ export const AdminPanel = () => {
   }, []);
   useEffect(() => {
     checkAuth();
-    // Safety fallback: if auth check is stuck, stop the skeleton loader
+    // Safety: if checkAuth is stuck (server very slow), force login screen after 10s
     const safetyTimer = setTimeout(() => {
       setAuthorized(prev => {
-        if (prev === null) {
-          console.error("Admin auth check stuck — forcing login screen after 12s timeout");
-          return false;
-        }
+        if (prev === null) return false;
         return prev;
       });
-    }, 12000);
+    }, 10000);
     return () => clearTimeout(safetyTimer);
   }, []);
+
+  // Auto-retry when server fails — counts down 5s then retries automatically (up to 5 times)
+  useEffect(() => {
+    if (!fetchError || isLoadingData) return;
+    if (autoRetryCount >= MAX_AUTO_RETRIES) return;
+
+    let secondsLeft = 3; // faster retry — 3s instead of 5s
+    setRetryCountdown(secondsLeft);
+
+    const tick = setInterval(() => {
+      secondsLeft -= 1;
+      setRetryCountdown(secondsLeft);
+      if (secondsLeft <= 0) clearInterval(tick);
+    }, 1000);
+
+    autoRetryRef.current = setTimeout(async () => {
+      clearInterval(tick);
+      setAutoRetryCount(prev => prev + 1);
+      setFetchError(false);
+      setIsLoadingData(true);
+      try {
+        await Promise.all([fetchData(true), fetchOrders(1)]);
+      } finally {
+        setIsLoadingData(false);
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(tick);
+      if (autoRetryRef.current) clearTimeout(autoRetryRef.current);
+    };
+  }, [fetchError, isLoadingData, autoRetryCount]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [orderStats, setOrderStats] = useState<any[]>([]);
   const [orderPage, setOrderPage] = useState(1);
   const [orderTotalPages, setOrderTotalPages] = useState(1);
   const [fetchingOrders, setFetchingOrders] = useState(false);
@@ -120,8 +155,9 @@ export const AdminPanel = () => {
   const [selectedVendorSettlement, setSelectedVendorSettlement] = useState<any>(null);
   const [settlementSearchQuery, setSettlementSearchQuery] = useState("");
   const [excludedVendorIds, setExcludedVendorIds] = useState<number[]>([]);
-  const [isProcessingPayout, setIsProcessingPayout] = useState(false);
+  const [isProcessingPayout, setIsProcessingPayout] = useState<string | null>(null);
   const [settings, setSettings] = useState<any>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [dbCategories, setDbCategories] = useState<any[]>([]);
@@ -132,6 +168,7 @@ export const AdminPanel = () => {
   const [homepageSections, setHomepageSections] = useState<{ slug: string, title?: string, productIds: number[] }[]>([]);
   const [editingSectionSlug, setEditingSectionSlug] = useState<string | null>(null);
   const [cmsProductSearch, setCmsProductSearch] = useState("");
+  const [savingHomepage, setSavingHomepage] = useState(false);
   
   // Product Tab State
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
@@ -192,24 +229,19 @@ export const AdminPanel = () => {
   
   const checkAuth = async () => {
     try {
-      console.log("[AdminPanel] Checking auth...");
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
-      // Added cache-buster to prevent network tab from stalling on cached requests
+      const timeout = setTimeout(() => controller.abort(), 9000);
       const res = await fetch(`/api/auth/me?t=${Date.now()}`, { signal: controller.signal });
       clearTimeout(timeout);
-      console.log("[AdminPanel] Auth response status:", res.status);
       if (res.ok) {
         const data = await res.json();
-        console.log("[AdminPanel] Auth data:", data.authenticated, data.user?.role);
         if (data.authenticated && data.user.role === "admin") {
           setAuthorized(true);
-          fetchData();
+          fetchData(); // always fetch data after confirming auth
         } else {
           setAuthorized(false);
         }
       } else {
-        console.error("[AdminPanel] Auth response not OK:", res.status);
         setAuthorized(false);
       }
     } catch (e) {
@@ -249,16 +281,29 @@ export const AdminPanel = () => {
 
   const fetchOrders = async (page: number) => {
     setFetchingOrders(true);
+    const controller = new AbortController();
+    // 15s timeout — prevents infinite skeleton when server just restarted
+    const abortTimer = setTimeout(() => controller.abort(), 15000);
     try {
-      const res = await fetch(`/api/orders?page=${page}&limit=10&t=${Date.now()}`);
+      const getStatsQuery = page === 1 ? "&getStats=true" : "";
+      const res = await fetch(`/api/orders?page=${page}&limit=10&t=${Date.now()}${getStatsQuery}`, { signal: controller.signal });
       if (res.ok) {
         const data = await res.json();
         setOrders(prev => page === 1 ? (data.orders || []) : [...prev, ...(data.orders || [])]);
+        if (page === 1 && data.stats) {
+          setOrderStats(data.stats);
+        }
         if (data.pagination) setOrderTotalPages(data.pagination.totalPages || 1);
+        setFetchError(false); // clear error on success
+        setAutoRetryCount(0); // reset retry counter
+      } else {
+        setFetchError(true);
       }
     } catch (err) {
-      console.error(err);
+      console.error("[fetchOrders] Failed or timed out:", err);
+      setFetchError(true);
     } finally {
+      clearTimeout(abortTimer);
       setFetchingOrders(false);
     }
   };
@@ -316,19 +361,20 @@ export const AdminPanel = () => {
     } catch (e) { console.error("Failed to load returns", e); }
   };
 
-  const fetchData = async () => {
-    setIsLoadingData(true);
+  const fetchData = async (silent = false) => {
+    if (!silent) setIsLoadingData(true);
     const controller = new AbortController();
     const signal = controller.signal;
-    // Abort all pending requests after 20s to prevent infinite hang
-    const abortTimer = setTimeout(() => controller.abort(), 20000);
+    // Long timeout — dev server needs time to compile routes on cold start.
+    // Don't abort too early or we'll miss a successful compile finishing.
+    const abortTimer = setTimeout(() => controller.abort(), 60000);
     try {
       const fetchWithSignal = (url: string) => {
          const symbol = url.includes('?') ? '&' : '?';
          return fetch(`${url}${symbol}t=${Date.now()}`, { signal });
       };
 
-      // Use allSettled so one failing/hanging API doesn't block the rest
+      // allSettled — one slow/failing API never blocks the rest
       const results = await Promise.allSettled([
          fetchWithSignal("/api/returns"),
          fetchWithSignal("/api/admin/settlements"),
@@ -347,6 +393,8 @@ export const AdminPanel = () => {
       const prodRes = getRes(4);
       const catRes = getRes(5);
       const vRes = getRes(6);
+
+      const anySuccess = results.some(r => r.status === "fulfilled" && (r as PromiseFulfilledResult<Response>).value?.ok);
 
       if (rRes?.ok) setReturns((await rRes.json()).returns || []);
       if (sRes?.ok) {
@@ -371,11 +419,25 @@ export const AdminPanel = () => {
          setLoadingCategories(false);
       }
       if (vRes?.ok) setVendors((await vRes.json()).vendors || []);
-    } catch (e) {
-      console.error("Failed to load admin data", e);
+
+      if (anySuccess) {
+        setFetchError(false);
+        setAutoRetryCount(0);
+      } else {
+        // All APIs failed — server may be down or still compiling past 60s
+        setFetchError(true);
+      }
+    } catch (e: any) {
+      // AbortError = timeout (60s safety net hit) — treat as retryable
+      if (e?.name === 'AbortError') {
+        setFetchError(true);
+      } else {
+        console.error("Failed to load admin data", e);
+        setFetchError(true);
+      }
     } finally {
       clearTimeout(abortTimer);
-      setIsLoadingData(false);
+      if (!silent) setIsLoadingData(false);
     }
   };
 
@@ -477,7 +539,7 @@ export const AdminPanel = () => {
     doc.setFont("helvetica", "bold");
     doc.text(`GSTIN: ${cGstin} (Marketplace)`, 15, providerNextY);
     doc.text(`PAN: ${cPan}`, 15, providerNextY + 5);
-    doc.text("SAC Code: 996111 (E-commerce Operator)", 15, providerNextY + 10);
+    doc.text(`SAC Code: ${settings?.commissionSacCode || "996111"} (E-commerce Operator)`, 15, providerNextY + 10);
     const providerFinalY = providerNextY + 15;
     
     // Column 2: Recipient (Vendor)
@@ -526,11 +588,11 @@ export const AdminPanel = () => {
     
     doc.setFont("helvetica", "normal");
     const commissionVal = s.commissionPaise / 100;
-    const gstRate = 18; // 18% GST (inclusive of base)
+    const gstRate = settings?.commissionGstRate || 18; // Dynamic Commission GST
     const baseValue = commissionVal / (1 + gstRate / 100);
     const gstAmount = commissionVal - baseValue;
     
-    doc.text("Marketplace Platform Commission Fee (GST Incl.)", 18, contentStartY + 16);
+    doc.text("Marketplace Platform Commission Fee", 18, contentStartY + 16);
     doc.text(`Rs. ${baseValue.toFixed(2)}`, 110, contentStartY + 16, { align: "right" });
     doc.text(`${gstRate}%`, 140, contentStartY + 16, { align: "right" });
     doc.text(`Rs. ${commissionVal.toFixed(2)}`, 190, contentStartY + 16, { align: "right" });
@@ -577,22 +639,26 @@ export const AdminPanel = () => {
 
   const handleSavePlatformSettings = async (e: React.FormEvent) => {
      e.preventDefault();
+     setSavingSettings(true);
      try {
-        const { defaultCommissionRate, taxRate, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign } = settings;
+        const { defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign } = settings;
         const res = await fetch("/api/admin/settings", {
            method: "PATCH",
            headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ defaultCommissionRate, taxRate, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign })
+           body: JSON.stringify({ defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign })
         });
         if (res.ok) showToast("Platform Settings saved successfully!", "success");
         else showToast("Failed to save settings", "error");
      } catch (e) {
         showToast("Error saving settings", "error");
+     } finally {
+        setSavingSettings(false);
      }
   };
 
   const handleSaveCompanyProfile = async (e: React.FormEvent) => {
      e.preventDefault();
+     setSavingSettings(true);
      try {
         const { companyName, companyAddress, companyGstin, companyPan, companyCity, companyState, companyCountry, companyPincode } = settings;
         const res = await fetch("/api/admin/settings", {
@@ -604,6 +670,8 @@ export const AdminPanel = () => {
         else showToast("Failed to save profile", "error");
      } catch (e) {
         showToast("Error saving profile", "error");
+     } finally {
+        setSavingSettings(false);
      }
   };
 
@@ -683,6 +751,8 @@ export const AdminPanel = () => {
 
   const handleTabRefresh = async () => {
     setIsLoadingData(true);
+    setFetchError(false); // clear error banner immediately when retrying
+    setAutoRetryCount(0); // reset auto-retry counter so it can retry again if this also fails
     showToast(`Refreshing ${activeTab}...`, "success");
     try {
       if (activeTab === "orders") await fetchOrders(1);
@@ -757,6 +827,15 @@ export const AdminPanel = () => {
     );
   }
 
+  const getReturnThumb = (r: any) => {
+    try {
+      const imgs = r.order?.items?.[0]?.product?.images;
+      if (!imgs) return "/placeholder.png";
+      const parsed = typeof imgs === 'string' ? JSON.parse(imgs) : imgs;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : "/placeholder.png";
+    } catch { return "/placeholder.png"; }
+  };
+
   return (
     <div className="min-h-screen bg-surface pb-16">
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-8 px-4 sm:px-6 lg:px-8">
@@ -816,6 +895,33 @@ export const AdminPanel = () => {
           </button>
         </div>
 
+        {/* Server warming up banner — shown during dev cold start, not an actual error */}
+        {fetchError && !isLoadingData && (
+          <div className={`mb-6 flex items-center gap-4 rounded-2xl px-5 py-4 border ${autoRetryCount >= MAX_AUTO_RETRIES ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
+            <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${autoRetryCount >= MAX_AUTO_RETRIES ? 'bg-red-500/20' : 'bg-amber-500/20'}`}>
+              {autoRetryCount < MAX_AUTO_RETRIES
+                ? <Loader2 size={20} className="text-amber-400 animate-spin" />
+                : <AlertTriangle size={20} className="text-red-400" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-bold ${autoRetryCount >= MAX_AUTO_RETRIES ? 'text-red-400' : 'text-amber-400'}`}>
+                {autoRetryCount < MAX_AUTO_RETRIES ? 'Server warming up…' : 'Could not load data'}
+              </p>
+              <p className={`text-xs mt-0.5 ${autoRetryCount >= MAX_AUTO_RETRIES ? 'text-red-400/70' : 'text-amber-400/70'}`}>
+                {autoRetryCount < MAX_AUTO_RETRIES
+                  ? `API routes are compiling after server restart. Auto-retrying in ${retryCountdown}s… (${autoRetryCount + 1}/${MAX_AUTO_RETRIES})`
+                  : 'Server failed to respond after multiple attempts. Check if the server is running.'}
+              </p>
+            </div>
+            <button
+              onClick={handleTabRefresh}
+              className={`shrink-0 flex items-center gap-2 px-4 py-2 text-white text-xs font-bold rounded-xl transition-all ${autoRetryCount >= MAX_AUTO_RETRIES ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-500 hover:bg-amber-600'}`}
+            >
+              <RefreshCcw size={13} /> Retry Now
+            </button>
+          </div>
+        )}
+
         <div className="space-y-6">
           {/* ORDERS TAB */}
           {activeTab === "orders" && (() => {
@@ -829,14 +935,16 @@ export const AdminPanel = () => {
              const statusCounts: Record<string, number> = {};
              const paymentCounts: Record<string, number> = {};
 
-             orders.forEach(o => {
+             const statsSource = orderStats && orderStats.length > 0 ? orderStats : orders;
+             statsSource.forEach(o => {
                 const status = (o.status || "").toUpperCase();
                 statusCounts[status] = (statusCounts[status] || 0) + 1;
 
                 const method = (o.paymentMethod || "").toLowerCase();
                 paymentCounts[method] = (paymentCounts[method] || 0) + 1;
 
-                if (status !== "CANCELLED") {
+                const excludedStatuses = ["CANCELLED", "RETURN_APPROVED", "RETURN_PICKED", "RETURN_RECEIVED", "RETURNED", "REFUNDED", "FAILED"];
+                if (!excludedStatuses.includes(status)) {
                    const currency = o.currency || "INR";
                    const rawPaise = o.totalPaise || 0;
                    
@@ -867,7 +975,7 @@ export const AdminPanel = () => {
 
              const aovINR = nonCancelledCountINR > 0 ? totalSalesINR / nonCancelledCountINR : 0;
              const aovUSD = nonCancelledCountUSD > 0 ? totalSalesUSD / nonCancelledCountUSD : 0;
-             const totalOrders = orders.length;
+             const totalOrders = orderStats && orderStats.length > 0 ? orderStats.length : orders.length;
 
              return (
                 <div className="space-y-6">
@@ -1232,6 +1340,7 @@ export const AdminPanel = () => {
                 {returns.filter(r => r.status === "PENDING").map(r => (
                    <div key={r.id} className="bg-surface-card border border-border rounded-2xl p-6 shadow-sm">
                       <div className="flex gap-3 items-center mb-4">
+                         <img src={getReturnThumb(r)} alt="Product" className="w-10 h-10 object-cover rounded-lg border border-border bg-surface shadow-sm" />
                          <span className="font-bold text-heading text-sm">Return #{r.id}</span>
                          <span className="bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-amber-500/20">{r.status}</span>
                          <span className="text-xs text-muted ml-auto">Order: <strong className="text-heading">{r.order.orderNumber}</strong></span>
@@ -1342,7 +1451,7 @@ export const AdminPanel = () => {
                             {r.order?.items?.slice(0, 1).map((item: any, idx: number) => (
                                <div key={idx} className="flex flex-col gap-2">
                                   <a href={`/product/${item.product?.id}`} target="_blank" rel="noreferrer" className="block w-full aspect-square rounded-lg overflow-hidden border border-border/50 hover:border-primary transition-colors">
-                                     <img src={item.product?.images?.[0] || "/placeholder.jpg"} alt="Original Product" className="w-full h-full object-cover" />
+                                     <img src={item.productImage || item.product?.image || "/placeholder.jpg"} alt="Original Product" className="w-full h-full object-cover" />
                                   </a>
                                   <div>
                                      <p className="text-xs font-bold text-heading line-clamp-2 leading-tight">{item.product?.name || item.productName}</p>
@@ -1603,38 +1712,130 @@ export const AdminPanel = () => {
                                const vendorsToPay = eligibleVendors.filter((g:any) => !excludedVendorIds.includes(g.vendor.id)).map((g:any) => g.vendor.id);
                                
                                if (vendorsToPay.length === 0) {
-                                  alert("No eligible vendors selected for payout.");
+                                  showToast("No eligible vendors selected for payout.", "error");
                                   return;
                                }
 
-                               if (confirm(`Are you sure you want to process Razorpay payouts for ${vendorsToPay.length} vendors?`)) {
-                                  setIsProcessingPayout(true);
-                                  try {
-                                     const res = await fetch("/api/admin/settlements/payout", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ vendorIds: vendorsToPay })
-                                     });
-                                     const data = await res.json();
-                                     if (res.ok) {
-                                        showToast(data.message || "Bulk payout processed successfully", "success");
-                                        fetchData();
-                                     } else {
-                                        alert(data.error || "Failed to process bulk payout");
-                                     }
-                                  } catch (e) {
-                                     alert("Error processing bulk payout");
-                                  } finally {
-                                     setIsProcessingPayout(false);
+                               setIsProcessingPayout("global");
+                               try {
+                                  const res = await fetch("/api/admin/settlements/payout", {
+                                     method: "POST",
+                                     headers: { "Content-Type": "application/json" },
+                                     body: JSON.stringify({ vendorIds: vendorsToPay, payoutType: "prepaid" })
+                                  });
+                                  const data = await res.json();
+                                  if (res.ok) {
+                                     showToast(data.message || "Bulk payout processed successfully", "success");
+                                     fetchData();
+                                  } else {
+                                     showToast(data.error || "Failed to process bulk payout", "error");
                                   }
+                               } catch (e) {
+                                  showToast("Error processing bulk payout", "error");
+                               } finally {
+                                  setIsProcessingPayout(null);
                                }
                             }}
-                            disabled={isProcessingPayout}
+                            disabled={!!isProcessingPayout}
                             className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-50 whitespace-nowrap"
                          >
-                            {isProcessingPayout ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
-                            Payout All (Global)
+                            {isProcessingPayout === "global" ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                            Global Prepaid Payout (Razorpay)
                          </button>
+                         <button
+                             onClick={async () => {
+                                setIsProcessingPayout("global_cod");
+                                try {
+                                   const res = await fetch("/api/admin/settlements/payout", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ payoutType: "cod" })
+                                   });
+                                   const data = await res.json();
+                                   if (res.ok) {
+                                      showToast(data.message || "Bulk COD payout processed successfully", "success");
+                                      fetchData();
+                                   } else {
+                                      showToast(data.error || "Failed to process bulk COD payout", "error");
+                                   }
+                                } catch (e) {
+                                   showToast("Error processing bulk COD payout", "error");
+                                } finally {
+                                   setIsProcessingPayout(null);
+                                }
+                             }}
+                             disabled={!!isProcessingPayout}
+                             className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-50 whitespace-nowrap"
+                          >
+                             {isProcessingPayout === "global_cod" ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                             Global COD Payout (Razorpay)
+                          </button>
+
+                          <button
+                             onClick={async () => {
+                                const eligibleVendors = groupedSettlements.filter((g:any) => g.summary.eligible > 0);
+                                const vendorsToPay = eligibleVendors.filter((g:any) => !excludedVendorIds.includes(g.vendor.id)).map((g:any) => g.vendor.id);
+                                
+                                if (vendorsToPay.length === 0) {
+                                   showToast("No eligible vendors selected for payout.", "error");
+                                   return;
+                                }
+
+                                setIsProcessingPayout("test_prepaid");
+                                try {
+                                   const res = await fetch("/api/admin/settlements/payout", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ vendorIds: vendorsToPay, payoutType: "prepaid", testMode: true })
+                                   });
+                                   const data = await res.json();
+                                   if (res.ok) {
+                                      showToast(data.message || "Mock Prepaid payout processed successfully", "success");
+                                      fetchData();
+                                   } else {
+                                      showToast(data.error || "Failed to process mock Prepaid payout", "error");
+                                   }
+                                } catch (e) {
+                                   showToast("Error processing mock Prepaid payout", "error");
+                                } finally {
+                                   setIsProcessingPayout(null);
+                                }
+                             }}
+                             disabled={!!isProcessingPayout}
+                             className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-50 whitespace-nowrap"
+                          >
+                             {isProcessingPayout === "test_prepaid" ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                             Test Payout (Prepaid Mock)
+                          </button>
+
+                          <button
+                             onClick={async () => {
+                                setIsProcessingPayout("test_cod");
+                                try {
+                                   const res = await fetch("/api/admin/settlements/payout", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ payoutType: "cod", testMode: true })
+                                   });
+                                   const data = await res.json();
+                                   if (res.ok) {
+                                      showToast(data.message || "Mock COD payout processed successfully", "success");
+                                      fetchData();
+                                   } else {
+                                      showToast(data.error || "Failed to process mock COD payout", "error");
+                                   }
+                                } catch (e) {
+                                   showToast("Error processing mock COD payout", "error");
+                                } finally {
+                                   setIsProcessingPayout(null);
+                                }
+                             }}
+                             disabled={!!isProcessingPayout}
+                             className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-50 whitespace-nowrap"
+                          >
+                             {isProcessingPayout === "test_cod" ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                             Test Payout (COD Mock)
+                          </button>
                       </div>
                    </div>
 
@@ -1730,44 +1931,146 @@ export const AdminPanel = () => {
                                <div className="flex flex-col">
                                   <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Total Amount to Pay</p>
                                   <p className="text-4xl font-black text-emerald-500">₹{(selectedVendorSettlement.summary.eligible / 100).toLocaleString()}</p>
+                                  <div className="flex gap-4 mt-2">
+                                     <p className="text-xs font-bold text-emerald-700 bg-emerald-500/20 px-2 py-1 rounded">
+                                        Prepaid: ₹{(selectedVendorSettlement.settlements.filter((s:any) => s.status === 'ELIGIBLE' && (s.order?.paymentMethod === 'razorpay' || s.order?.paymentMethod === 'payu')).reduce((acc: number, s: any) => acc + s.vendorPayoutPaise, 0) / 100).toLocaleString()}
+                                     </p>
+                                     <p className="text-xs font-bold text-amber-700 bg-amber-500/20 px-2 py-1 rounded">
+                                        COD: ₹{(selectedVendorSettlement.settlements.filter((s:any) => s.status === 'ELIGIBLE' && s.order?.paymentMethod === 'cod').reduce((acc: number, s: any) => acc + s.vendorPayoutPaise, 0) / 100).toLocaleString()}
+                                     </p>
+                                  </div>
                                </div>
-                               {selectedVendorSettlement.summary.eligible > 0 && (
-                                  <button
-                                     onClick={async () => {
-                                        if (confirm(`Process Razorpay payout of ₹${(selectedVendorSettlement.summary.eligible / 100).toLocaleString()} for ${selectedVendorSettlement.vendor.name}?`)) {
-                                           setIsProcessingPayout(true);
+                               <div className="flex gap-2">
+                                  {selectedVendorSettlement.settlements.some((s:any) => s.status === 'ELIGIBLE' && (s.order?.paymentMethod === 'razorpay' || s.order?.paymentMethod === 'payu')) && (
+                                     <button
+                                        onClick={async () => {
+                                           setIsProcessingPayout("razorpay");
                                            try {
                                               const res = await fetch("/api/admin/settlements/payout", {
                                                  method: "POST",
                                                  headers: { "Content-Type": "application/json" },
-                                                 body: JSON.stringify({ vendorIds: [selectedVendorSettlement.vendor.id] })
+                                                 body: JSON.stringify({ vendorIds: [selectedVendorSettlement.vendor.id], payoutType: "prepaid" })
                                               });
                                               const data = await res.json();
                                               if (res.ok) {
                                                  showToast(data.message || "Payout processed successfully", "success");
                                                  fetchData();
-                                                 setSelectedVendorSettlement((prev: any) => ({
-                                                    ...prev,
-                                                    summary: { ...prev.summary, eligible: 0, settled: prev.summary.settled + prev.summary.eligible },
-                                                    settlements: prev.settlements.map((st: any) => st.status === 'ELIGIBLE' ? { ...st, status: 'SETTLED' } : st)
-                                                 }));
+                                                 // Close modal to refresh data properly
+                                                 setSelectedVendorSettlement(null);
                                               } else {
-                                                 alert(data.error || "Failed to process payout");
+                                                 showToast(data.error || "Failed to process payout", "error");
                                               }
                                            } catch (e) {
-                                              alert("Error processing payout");
+                                              showToast("Error processing payout", "error");
                                            } finally {
-                                              setIsProcessingPayout(false);
+                                              setIsProcessingPayout(null);
                                            }
-                                        }
-                                     }}
-                                     disabled={isProcessingPayout}
-                                     className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
-                                  >
-                                     {isProcessingPayout ? <RefreshCcw size={18} className="animate-spin" /> : <DollarSign size={18} />}
-                                     Payout All for this Vendor
-                                  </button>
-                               )}
+                                        }}
+                                        disabled={!!isProcessingPayout}
+                                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
+                                     >
+                                        {isProcessingPayout === "razorpay" ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                                        Razorpay Payout
+                                     </button>
+                                  )}
+
+                                  {selectedVendorSettlement.settlements.some((s:any) => s.status === 'ELIGIBLE' && (s.order?.paymentMethod === 'razorpay' || s.order?.paymentMethod === 'payu')) && (
+                                     <button
+                                        onClick={async () => {
+                                           setIsProcessingPayout("test_razorpay");
+                                           try {
+                                              const res = await fetch("/api/admin/settlements/payout", {
+                                                 method: "POST",
+                                                 headers: { "Content-Type": "application/json" },
+                                                 body: JSON.stringify({ vendorIds: [selectedVendorSettlement.vendor.id], payoutType: "prepaid", testMode: true })
+                                              });
+                                              const data = await res.json();
+                                              if (res.ok) {
+                                                 showToast(data.message || "Mock Prepaid Payout processed successfully", "success");
+                                                 fetchData();
+                                                 setSelectedVendorSettlement(null);
+                                              } else {
+                                                 showToast(data.error || "Failed to process mock payout", "error");
+                                              }
+                                           } catch (e) {
+                                              showToast("Error processing mock payout", "error");
+                                           } finally {
+                                              setIsProcessingPayout(null);
+                                           }
+                                        }}
+                                        disabled={!!isProcessingPayout}
+                                        className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
+                                     >
+                                        {isProcessingPayout === "test_razorpay" ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                                        Test Prepaid (Mock)
+                                     </button>
+                                  )}
+
+                                  {selectedVendorSettlement.settlements.some((s:any) => s.status === 'ELIGIBLE' && s.order?.paymentMethod === 'cod') && (
+                                     <button
+                                        onClick={async () => {
+                                           setIsProcessingPayout("cod");
+                                           try {
+                                              const res = await fetch("/api/admin/settlements/payout", {
+                                                 method: "POST",
+                                                 headers: { "Content-Type": "application/json" },
+                                                 body: JSON.stringify({ vendorIds: [selectedVendorSettlement.vendor.id], payoutType: "cod" })
+                                              });
+                                              const data = await res.json();
+                                              if (res.ok) {
+                                                 showToast(data.message || "Payout processed successfully", "success");
+                                                 fetchData();
+                                                 // Close modal to refresh data properly
+                                                 setSelectedVendorSettlement(null);
+                                              } else {
+                                                 showToast(data.error || "Failed to process payout", "error");
+                                              }
+                                           } catch (e) {
+                                              showToast("Error processing payout", "error");
+                                           } finally {
+                                              setIsProcessingPayout(null);
+                                           }
+                                        }}
+                                        disabled={!!isProcessingPayout}
+                                        className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
+                                     >
+                                        {isProcessingPayout === "cod" ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                                        Automated COD Payout (Razorpay)
+                                     </button>
+                                  )}
+
+                                  {selectedVendorSettlement.settlements.some((s:any) => s.status === 'ELIGIBLE' && s.order?.paymentMethod === 'cod') && (
+                                     <button
+                                        onClick={async () => {
+                                           setIsProcessingPayout("test_cod_vendor");
+                                           try {
+                                              const res = await fetch("/api/admin/settlements/payout", {
+                                                 method: "POST",
+                                                 headers: { "Content-Type": "application/json" },
+                                                 body: JSON.stringify({ vendorIds: [selectedVendorSettlement.vendor.id], payoutType: "cod", testMode: true })
+                                              });
+                                              const data = await res.json();
+                                              if (res.ok) {
+                                                 showToast(data.message || "Mock COD Payout processed successfully", "success");
+                                                 fetchData();
+                                                 setSelectedVendorSettlement(null);
+                                              } else {
+                                                 showToast(data.error || "Failed to process mock payout", "error");
+                                              }
+                                           } catch (e) {
+                                              showToast("Error processing mock payout", "error");
+                                           } finally {
+                                              setIsProcessingPayout(null);
+                                           }
+                                        }}
+                                        disabled={!!isProcessingPayout}
+                                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
+                                     >
+                                        {isProcessingPayout === "test_cod_vendor" ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                                        Test COD (Mock)
+                                     </button>
+                                  )}
+                               </div>
                             </div>
 
                             {/* List of Products/Orders */}
@@ -1786,11 +2089,23 @@ export const AdminPanel = () => {
                                   <tbody className="divide-y divide-border">
                                      {selectedVendorSettlement.settlements.filter((s:any) => s.status === 'ELIGIBLE' || s.status === 'HOLD' || s.status === 'SETTLED').map((s:any) => (
                                         <tr key={s.id} className="hover:bg-surface-hover/50 transition-colors">
-                                           <td className="py-4 font-bold text-orange-500">{s.order?.orderNumber}</td>
+                                           <td className="py-4 font-bold text-orange-500">
+                                              {s.order?.orderNumber}
+                                              {s.order?.paymentMethod && (
+                                                 <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-surface-card border border-border text-muted uppercase">
+                                                    {s.order.paymentMethod === 'cod' ? 'COD' : 'PREPAID'}
+                                                 </span>
+                                              )}
+                                           </td>
                                            <td className="py-4">
                                               <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase ${s.status === 'HOLD' ? 'bg-amber-500/10 text-amber-600' : s.status === 'ELIGIBLE' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-500/10 text-blue-600'}`}>
                                                  {s.status}
                                               </span>
+                                              {s.status === 'SETTLED' && s.vendorPaymentRef && (
+                                                <div className="text-[10px] text-muted mt-1 font-mono break-all">
+                                                   UTR: {s.vendorPaymentRef}
+                                                </div>
+                                              )}
                                            </td>
                                            <td className="py-4 text-right">₹{(s.orderAmountPaise/100).toLocaleString()}</td>
                                            <td className="py-4 font-bold text-heading text-right">₹{(s.vendorPayoutPaise/100).toLocaleString()}</td>
@@ -1799,46 +2114,157 @@ export const AdminPanel = () => {
                                                 <Download size={12} />
                                                 Invoice
                                               </button>
-                                              {s.status === 'ELIGIBLE' && (
-                                                 <button onClick={async () => {
-                                                    const ref = window.prompt("Enter Bank UTR / Payment Reference to mark as Paid:");
-                                                    if (ref) {
-                                                       const res = await fetch(`/api/admin/settlements/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "SETTLE", vendorPaymentRef: ref, vendorPaymentMode: "bank_transfer" }) });
-                                                       if (res.ok) { 
-                                                          fetchData(); 
-                                                          // Update modal state manually so it updates instantly without closing
-                                                          setSelectedVendorSettlement((prev: any) => ({
-                                                             ...prev,
-                                                             summary: { ...prev.summary, eligible: prev.summary.eligible - s.vendorPayoutPaise, settled: prev.summary.settled + s.vendorPayoutPaise },
-                                                             settlements: prev.settlements.map((st: any) => st.id === s.id ? { ...st, status: 'SETTLED' } : st)
-                                                          }));
-                                                          showToast("Payout recorded successfully", "success");
-                                                       } else alert("Failed to settle");
-                                                    }
-                                                 }} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-bold transition-colors shadow-sm">Pay Out</button>
+                                              {s.status === 'ELIGIBLE' && (s.order?.paymentMethod === 'razorpay' || s.order?.paymentMethod === 'payu') && (
+                                                 <>
+                                                    <button 
+                                                       disabled={!!isProcessingPayout}
+                                                       onClick={async () => {
+                                                          setIsProcessingPayout(`item_${s.id}`);
+                                                          try {
+                                                             const res = await fetch(`/api/admin/settlements/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "SETTLE_RAZORPAY" }) });
+                                                             const data = await res.json();
+                                                             if (res.ok) { 
+                                                                fetchData(); 
+                                                                // Update modal state manually
+                                                                setSelectedVendorSettlement((prev: any) => ({
+                                                                   ...prev,
+                                                                   summary: { ...prev.summary, eligible: prev.summary.eligible - s.vendorPayoutPaise },
+                                                                   settlements: prev.settlements.map((st: any) => st.id === s.id ? { ...st, status: 'PROCESSING', vendorPaymentRef: data.data?.vendorPaymentRef } : st)
+                                                                }));
+                                                                showToast("Razorpay Payout Processing", "success");
+                                                             } else showToast(data.error || "Failed to settle", "error");
+                                                          } catch (e) {
+                                                             showToast("Error processing payout", "error");
+                                                          } finally {
+                                                             setIsProcessingPayout(null);
+                                                          }
+                                                       }} 
+                                                       className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg text-[10px] font-bold transition-colors shadow-sm whitespace-nowrap"
+                                                    >
+                                                       {isProcessingPayout === `item_${s.id}` ? <RefreshCcw size={12} className="animate-spin inline mr-1" /> : null}
+                                                       Razorpay Payout
+                                                    </button>
+                                                    
+                                                    <button 
+                                                       disabled={!!isProcessingPayout}
+                                                       onClick={async () => {
+                                                          setIsProcessingPayout(`item_test_${s.id}`);
+                                                          try {
+                                                             const res = await fetch(`/api/admin/settlements/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "SETTLE_RAZORPAY", testMode: true }) });
+                                                             const data = await res.json();
+                                                             if (res.ok) { 
+                                                                fetchData(); 
+                                                                setSelectedVendorSettlement((prev: any) => ({
+                                                                   ...prev,
+                                                                   summary: { ...prev.summary, eligible: prev.summary.eligible - s.vendorPayoutPaise },
+                                                                   settlements: prev.settlements.map((st: any) => st.id === s.id ? { ...st, status: 'SETTLED', vendorPaymentRef: data.data?.vendorPaymentRef } : st)
+                                                                }));
+                                                                showToast("Mock Payout Successful", "success");
+                                                             } else showToast(data.error || "Failed to settle", "error");
+                                                          } catch (e) {
+                                                             showToast("Error processing mock payout", "error");
+                                                          } finally {
+                                                             setIsProcessingPayout(null);
+                                                          }
+                                                       }} 
+                                                       className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-lg text-[10px] font-bold transition-colors shadow-sm whitespace-nowrap"
+                                                    >
+                                                       {isProcessingPayout === `item_test_${s.id}` ? <RefreshCcw size={12} className="animate-spin inline mr-1" /> : null}
+                                                       Test Pay (Mock)
+                                                    </button>
+                                                 </>
+                                              )}
+                                              {s.status === 'ELIGIBLE' && s.order?.paymentMethod === 'cod' && (
+                                                 <>
+                                                    <button 
+                                                       disabled={!!isProcessingPayout}
+                                                       onClick={async () => {
+                                                          setIsProcessingPayout(`item_${s.id}`);
+                                                          try {
+                                                             const res = await fetch(`/api/admin/settlements/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "SETTLE_RAZORPAY" }) });
+                                                             const data = await res.json();
+                                                             if (res.ok) { 
+                                                                fetchData(); 
+                                                                setSelectedVendorSettlement((prev: any) => ({
+                                                                   ...prev,
+                                                                   summary: { ...prev.summary, eligible: prev.summary.eligible - s.vendorPayoutPaise },
+                                                                   settlements: prev.settlements.map((st: any) => st.id === s.id ? { ...st, status: 'PROCESSING', vendorPaymentRef: data.data?.vendorPaymentRef } : st)
+                                                                }));
+                                                                showToast("Automated Payout Processing", "success");
+                                                             } else showToast(data.error || "Failed to settle", "error");
+                                                          } catch (e) {
+                                                             showToast("Error processing payout", "error");
+                                                          } finally {
+                                                             setIsProcessingPayout(null);
+                                                          }
+                                                       }} 
+                                                       className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white rounded-lg text-[10px] font-bold transition-colors shadow-sm whitespace-nowrap"
+                                                    >
+                                                       {isProcessingPayout === `item_${s.id}` ? <RefreshCcw size={12} className="animate-spin inline mr-1" /> : null}
+                                                       Automated Payout
+                                                    </button>
+                                                    
+                                                    <button 
+                                                       disabled={!!isProcessingPayout}
+                                                       onClick={async () => {
+                                                          setIsProcessingPayout(`item_test_${s.id}`);
+                                                          try {
+                                                             const res = await fetch(`/api/admin/settlements/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "SETTLE_RAZORPAY", testMode: true }) });
+                                                             const data = await res.json();
+                                                             if (res.ok) { 
+                                                                fetchData(); 
+                                                                setSelectedVendorSettlement((prev: any) => ({
+                                                                   ...prev,
+                                                                   summary: { ...prev.summary, eligible: prev.summary.eligible - s.vendorPayoutPaise },
+                                                                   settlements: prev.settlements.map((st: any) => st.id === s.id ? { ...st, status: 'SETTLED', vendorPaymentRef: data.data?.vendorPaymentRef } : st)
+                                                                }));
+                                                                showToast("Mock COD Payout Successful", "success");
+                                                             } else showToast(data.error || "Failed to settle", "error");
+                                                          } catch (e) {
+                                                             showToast("Error processing mock payout", "error");
+                                                          } finally {
+                                                             setIsProcessingPayout(null);
+                                                          }
+                                                       }} 
+                                                       className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-[10px] font-bold transition-colors shadow-sm whitespace-nowrap"
+                                                    >
+                                                       {isProcessingPayout === `item_test_${s.id}` ? <RefreshCcw size={12} className="animate-spin inline mr-1" /> : null}
+                                                       Test Pay (Mock)
+                                                    </button>
+                                                 </>
                                               )}
                                               {(s.status === 'ELIGIBLE' || s.status === 'HOLD') && (
-                                                <button onClick={async () => {
-                                                   const newStatus = s.status === 'ELIGIBLE' ? 'HOLD' : 'ELIGIBLE';
-                                                   if (confirm(`Change settlement status to ${newStatus}?`)) {
-                                                      const res = await fetch(`/api/admin/settlements/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "UPDATE_STATUS", status: newStatus }) });
-                                                      if (res.ok) { 
-                                                         fetchData();
-                                                         setSelectedVendorSettlement((prev: any) => ({
-                                                            ...prev,
-                                                            summary: { 
-                                                               ...prev.summary, 
-                                                               eligible: newStatus === 'ELIGIBLE' ? prev.summary.eligible + s.vendorPayoutPaise : prev.summary.eligible - s.vendorPayoutPaise, 
-                                                               hold: newStatus === 'HOLD' ? prev.summary.hold + s.vendorPayoutPaise : prev.summary.hold - s.vendorPayoutPaise 
-                                                            },
-                                                            settlements: prev.settlements.map((st: any) => st.id === s.id ? { ...st, status: newStatus } : st)
-                                                         }));
-                                                         showToast(`Order marked as ${newStatus}`, "info");
-                                                      } else alert("Failed to update status");
-                                                   }
-                                                }} className={`px-3 py-1.5 border rounded-lg text-[10px] font-bold transition-colors ${s.status === 'ELIGIBLE' ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'}`}>
-                                                   {s.status === 'ELIGIBLE' ? "Hold" : "Release"}
-                                                </button>
+                                                 <button 
+                                                    disabled={!!isProcessingPayout}
+                                                    onClick={async () => {
+                                                       const newStatus = s.status === 'ELIGIBLE' ? 'HOLD' : 'ELIGIBLE';
+                                                       setIsProcessingPayout(`item_hold_${s.id}`);
+                                                       try {
+                                                          const res = await fetch(`/api/admin/settlements/${s.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "UPDATE_STATUS", status: newStatus }) });
+                                                          if (res.ok) { 
+                                                             fetchData();
+                                                             setSelectedVendorSettlement((prev: any) => ({
+                                                                ...prev,
+                                                                summary: { 
+                                                                   ...prev.summary, 
+                                                                   eligible: newStatus === 'ELIGIBLE' ? prev.summary.eligible + s.vendorPayoutPaise : prev.summary.eligible - s.vendorPayoutPaise, 
+                                                                   hold: newStatus === 'HOLD' ? prev.summary.hold + s.vendorPayoutPaise : prev.summary.hold - s.vendorPayoutPaise 
+                                                                },
+                                                                settlements: prev.settlements.map((st: any) => st.id === s.id ? { ...st, status: newStatus } : st)
+                                                             }));
+                                                             showToast(`Order marked as ${newStatus}`, "info");
+                                                          } else showToast("Failed to update status", "error");
+                                                       } catch (e) {
+                                                          showToast("Error updating status", "error");
+                                                       } finally {
+                                                          setIsProcessingPayout(null);
+                                                       }
+                                                    }} 
+                                                    className={`px-3 py-1.5 border rounded-lg text-[10px] font-bold transition-colors disabled:opacity-50 ${s.status === 'ELIGIBLE' ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'}`}
+                                                 >
+                                                    {isProcessingPayout === `item_hold_${s.id}` ? <RefreshCcw size={12} className="animate-spin inline mr-1" /> : null}
+                                                    {s.status === 'ELIGIBLE' ? "Hold" : "Release"}
+                                                 </button>
                                               )}
                                            </td>
                                         </tr>
@@ -1872,6 +2298,14 @@ export const AdminPanel = () => {
                            <div className="space-y-1">
                               <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Default Commission Rate (%)</label>
                               <input type="number" step="0.1" value={settings.defaultCommissionRate} onChange={e => setSettings({...settings, defaultCommissionRate: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Commission GST Rate (%)</label>
+                              <input type="number" step="0.1" value={settings.commissionGstRate} onChange={e => setSettings({...settings, commissionGstRate: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Commission SAC Code</label>
+                              <input type="text" value={settings.commissionSacCode} onChange={e => setSettings({...settings, commissionSacCode: e.target.value})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
                            </div>
                            <div className="space-y-1">
                               <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Global Tax Rate (%)</label>
@@ -1949,8 +2383,8 @@ export const AdminPanel = () => {
                         </div>
 
                         <div className="pt-2">
-                           <button type="submit" className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg">
-                              Save Platform Settings
+                           <button type="submit" disabled={savingSettings} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50">
+                              {savingSettings ? "Saving..." : "Save Platform Settings"}
                            </button>
                         </div>
                      </form>
@@ -2046,8 +2480,8 @@ export const AdminPanel = () => {
                         </div>
 
                         <div className="pt-2">
-                           <button type="submit" className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg">
-                              Save Company Profile
+                           <button type="submit" disabled={savingSettings} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50">
+                              {savingSettings ? "Saving..." : "Save Company Profile"}
                            </button>
                         </div>
                      </form>
@@ -2259,8 +2693,10 @@ export const AdminPanel = () => {
                   <p className="text-xs text-muted mt-1">Select up to 15 products per existing category to highlight on the homepage.</p>
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={async () => {
+                  <button disabled={savingHomepage} onClick={async () => {
+                    if (savingHomepage) return;
                     try {
+                      setSavingHomepage(true);
                       const res = await fetch("/api/admin/settings/homepage", {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
@@ -2273,8 +2709,13 @@ export const AdminPanel = () => {
                         showToast(`Failed to save homepage settings. Server says: ${errText}`, "error");
                       }
                     } catch (e: any) { showToast(`Error saving homepage: ${e.message}`, "error"); }
-                  }} className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-sm transition-colors">
-                    Save Live Homepage
+                    finally { setSavingHomepage(false); }
+                  }} className={`px-5 py-2 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center justify-center min-w-[150px] ${savingHomepage ? 'bg-orange-400 cursor-not-allowed opacity-70' : 'bg-orange-500 hover:bg-orange-600'}`}>
+                    {savingHomepage ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="animate-spin" size={14} /> Saving...
+                      </span>
+                    ) : "Save Live Homepage"}
                   </button>
                 </div>
               </div>
@@ -2392,6 +2833,7 @@ export const AdminPanel = () => {
                 <table className="w-full text-left text-xs border-collapse">
                    <thead>
                        <tr className="bg-surface text-muted">
+                          <th className="p-4 font-bold uppercase">Date & Time</th>
                           <th className="p-4 font-bold uppercase">Name</th>
                           <th className="p-4 font-bold uppercase">Phone</th>
                           <th className="p-4 font-bold uppercase">Email</th>
@@ -2401,6 +2843,7 @@ export const AdminPanel = () => {
                    <tbody className="divide-y divide-border">
                        {inquiries.map(i => (
                           <tr key={i.id} className="hover:bg-surface-hover">
+                             <td className="p-4 text-muted whitespace-nowrap">{new Date(i.createdAt).toLocaleString('en-US', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
                              <td className="p-4 font-bold text-heading whitespace-nowrap">{i.name}</td>
                              <td className="p-4 whitespace-nowrap font-mono">{i.phone || "N/A"}</td>
                              <td className="p-4">{i.email}</td>
@@ -2734,7 +3177,7 @@ export const AdminPanel = () => {
                                 // Revert on failure
                                 setVendorProfileModal(v);
                                 setVendors(vendors.map(vendor => vendor.id === v.id ? v : vendor));
-                                alert("Failed to update permission");
+                                showToast("Failed to update permission", "error");
                               }
                             }}
                             className="w-3 h-3 rounded text-orange-500 focus:ring-orange-500" 
@@ -2796,13 +3239,13 @@ export const AdminPanel = () => {
                                               body: JSON.stringify({ active: newValue })
                                            });
                                            if (!res.ok) {
-                                              alert("Failed to update product visibility.");
+                                              showToast("Failed to update product visibility.", "error");
                                               setVendorProducts(vendorProducts.map(vp => vp.id === p.id ? p : vp));
                                            } else {
                                               fetchData();
                                            }
                                         } catch (e) {
-                                           alert("Error updating visibility");
+                                           showToast("Error updating visibility", "error");
                                            setVendorProducts(vendorProducts.map(vp => vp.id === p.id ? p : vp));
                                         }
                                      }}
