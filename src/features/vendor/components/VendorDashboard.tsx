@@ -1179,7 +1179,7 @@ export const VendorDashboard = () => {
   // Pre-calculate tab inquiry counts
   const activeInquiriesCount = inquiries.flatMap((inq) => {
     try {
-      const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
+      const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any) || [];
       return itemsList.filter((item: any) =>
         products.some((p) => String(p.id) === String(item.id)) && !["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
       );
@@ -1190,7 +1190,7 @@ export const VendorDashboard = () => {
 
   const historyInquiriesCount = inquiries.flatMap((inq) => {
     try {
-      const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
+      const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any) || [];
       return itemsList.filter((item: any) =>
         products.some((p) => String(p.id) === String(item.id)) && ["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
       );
@@ -1214,7 +1214,7 @@ export const VendorDashboard = () => {
       const isToday = new Date(inq.createdAt).getTime() >= startOfTodayTime;
       let itemsList: any[] = [];
       try {
-        itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
+        itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any) || [];
       } catch (e) {}
 
       itemsList.forEach((item: any) => {
@@ -1242,7 +1242,7 @@ export const VendorDashboard = () => {
 
   const generalInquiries = allInquiries.filter((inq) => {
     try {
-      const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
+      const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any) || [];
       return itemsList.length === 0;
     } catch (e) {
       return true;
@@ -3108,6 +3108,16 @@ export const VendorDashboard = () => {
                             </span>
                           ) : (
                             new Date(s.holdUntil).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Admin Panel Tab */}
         {activeTab === "admin-panel" && vendor?.role === "admin" && (
           <div className="space-y-6 animate-in fade-in duration-300 text-xs">
