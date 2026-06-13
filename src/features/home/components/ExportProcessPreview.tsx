@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+
 import { Search, ShieldCheck, Box, Plane, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -33,7 +33,7 @@ const steps = [
 export const ExportProcessPreview = () => {
   return (
     <section className="py-10 md:py-12 section-glass-ambient ambient-ocean overflow-hidden">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-bronze-500/5 rounded-full blur-[200px]" />
+
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Export Theme Background Line Art Drawing */}
@@ -76,55 +76,39 @@ export const ExportProcessPreview = () => {
 
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-16 gap-6 relative z-10">
           <div className="space-y-4">
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
+            <p
               className="text-sm uppercase tracking-[0.2em] text-orange-600 dark:text-bronze-400 font-medium"
             >
               Our Process
-            </motion.p>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
+            </p>
+            <h2
               className="text-4xl sm:text-5xl font-display font-bold text-heading"
             >
               How We <span className="gradient-text">Export</span>
-            </motion.h2>
+            </h2>
           </div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-          >
+          <div>
             <Link
               href="/about"
-              className="group inline-flex items-center gap-2 text-sm text-orange-600 dark:text-bronze-400 hover:text-orange-500 dark:hover:text-bronze-300 transition-colors"
+              className="group inline-flex items-center gap-2 text-sm text-orange-600 dark:text-bronze-400 hover:text-orange-500 dark:hover:text-bronze-300"
             >
               View full process
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={16} />
             </Link>
-          </motion.div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {steps.map((step, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.12 }}
               className="group relative glass rounded-2xl p-8 hover-lift gradient-border"
             >
-              <span className="absolute top-6 right-6 text-5xl font-display font-bold text-heading/[0.04] group-hover:text-bronze-500/10 transition-colors">
+              <span className="absolute top-6 right-6 text-5xl font-display font-bold text-heading/[0.04] group-hover:text-bronze-500/10">
                 {step.number}
               </span>
               <div className="relative space-y-5">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-bronze-500/20 to-bronze-600/10 flex items-center justify-center group-hover:from-bronze-500/30 group-hover:to-bronze-600/20 transition-all">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-bronze-500/20 to-bronze-600/10 flex items-center justify-center group-hover:from-bronze-500/30 group-hover:to-bronze-600/20">
                   <step.icon size={26} className="text-bronze-500 dark:text-bronze-400" />
                 </div>
                 <h3 className="text-xl font-display font-semibold text-heading">{step.title}</h3>
@@ -133,7 +117,7 @@ export const ExportProcessPreview = () => {
               {index < steps.length - 1 && (
                 <div className="hidden lg:block absolute top-1/2 -right-3 w-6 border-t border-dashed border-bronze-500/25 dark:border-bronze-700/40" />
               )}
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

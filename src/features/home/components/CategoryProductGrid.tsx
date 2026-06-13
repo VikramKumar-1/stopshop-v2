@@ -1,6 +1,6 @@
 "use client";
-import { motion } from "framer-motion";
-import { ArrowRight, Star, Check, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+
+import { ArrowRight, Star, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRef } from "react";
@@ -77,14 +77,14 @@ export const CategoryProductGrid = ({
         : "ambient-gold";
 
   return (
-    <section className={`pt-1.5 pb-5 md:pt-2 md:pb-8 relative overflow-hidden ${
+    <section className={`lazy-scroll-section pt-1.5 pb-5 md:pt-2 md:pb-8 relative overflow-hidden ${
       accentColor === "rose" 
         ? "bg-premium-maroon" 
         : `section-glass-ambient ${ambientClass}`
     } border-b border-bronze-500/10`}>
       {/* Traditional Pooja Mandala Top Hanging Ornament Drawing */}
       {accentColor === "rose" && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] h-[250px] pointer-events-none z-0 overflow-hidden select-none opacity-90">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] h-[250px] pointer-events-none z-0 overflow-hidden select-none opacity-90 will-change-transform transform-gpu">
           <svg 
             className="w-full h-full text-orange-500/80" 
             viewBox="0 0 400 200" 
@@ -185,10 +185,7 @@ export const CategoryProductGrid = ({
         {/* Section Header */}
         <div className="flex items-end justify-between mb-4 md:mb-5 gap-4">
           <div className="max-w-xl">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <div
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
                 accentColor === "rose" 
                   ? "bg-white/10 text-orange-200 border-orange-500/25" 
@@ -199,7 +196,7 @@ export const CategoryProductGrid = ({
                 accentColor === "rose" ? "bg-orange-400" : "bg-bronze-500"
               } animate-pulse`} />
               {tagLine}
-            </motion.div>
+            </div>
             
             <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-display font-bold ${
               accentColor === "rose" ? "text-orange-100" : "text-heading"
@@ -217,7 +214,7 @@ export const CategoryProductGrid = ({
                   scrollRef.current.scrollTo({ left: scrollLeft - clientWidth * 0.75, behavior: "smooth" });
                 }
               }}
-              className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm transition-all hover:scale-105 active:scale-95"
+              className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm"
               aria-label="Scroll left"
             >
               <ChevronLeft size={16} />
@@ -229,7 +226,7 @@ export const CategoryProductGrid = ({
                   scrollRef.current.scrollTo({ left: scrollLeft + clientWidth * 0.75, behavior: "smooth" });
                 }
               }}
-              className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm transition-all hover:scale-105 active:scale-95"
+              className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm"
               aria-label="Scroll right"
             >
               <ChevronRight size={16} />
@@ -240,7 +237,7 @@ export const CategoryProductGrid = ({
         {/* Scrollable Horizontal 2-Row Grid Container */}
         <div 
           ref={scrollRef}
-          className="grid grid-rows-2 grid-flow-col auto-cols-[calc(50%-8px)] sm:auto-cols-[230px] lg:auto-cols-[250px] gap-4 sm:gap-6 pb-6 pt-2 overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth"
+          className="grid grid-rows-2 grid-flow-col auto-cols-[calc(50%-8px)] sm:auto-cols-[230px] lg:auto-cols-[250px] gap-4 sm:gap-6 pb-6 pt-2 overflow-x-auto scrollbar-none"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none"
@@ -257,7 +254,7 @@ export const CategoryProductGrid = ({
               <Link
                 key={product.id}
                 href={`/product/${product.slug || product.id}`}
-                className="group snap-start snap-always shrink-0 w-full flex flex-col justify-between bg-surface-card border border-bronze-500/[0.14] rounded-2xl max-sm:rounded-xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-bronze-500/8 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                className="group shrink-0 w-full flex flex-col justify-between bg-surface-card border border-bronze-500/[0.14] rounded-2xl max-sm:rounded-xl overflow-hidden shadow-sm cursor-pointer will-change-transform transform-gpu"
               >
                 {/* Product Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-orange-50/50 dark:bg-white/5 border-b border-bronze-500/[0.08]">
@@ -267,7 +264,7 @@ export const CategoryProductGrid = ({
                     </div>
                   )}
                   
-                  <span className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-md capitalize">
+                  <span className="absolute bottom-3 left-3 z-10 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded-md capitalize">
                     {product.category?.name || product.categoryName?.replace(/-/g, " ") || title || "Premium"}
                   </span>
 
@@ -277,9 +274,9 @@ export const CategoryProductGrid = ({
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                     loading="lazy"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
                 </div>
 
                 {/* Product Info */}
@@ -348,7 +345,7 @@ export const CategoryProductGrid = ({
                           e.stopPropagation();
                           addToCart(product, 1);
                         }}
-                        className="px-3 py-2 sm:py-2.5 rounded-xl border border-bronze-500 text-bronze-500 dark:text-bronze-400 hover:bg-bronze-500/10 transition-all duration-200 flex items-center justify-center cursor-pointer shrink-0"
+                        className="px-3 py-2 sm:py-2.5 rounded-xl border border-bronze-500 text-bronze-500 dark:text-bronze-400 hover:bg-bronze-500/10 flex items-center justify-center cursor-pointer shrink-0"
                         title="Add to Cart"
                       >
                         <ShoppingCart size={14} />
@@ -360,7 +357,7 @@ export const CategoryProductGrid = ({
                           e.stopPropagation();
                           window.location.href = `/checkout?productId=${product.id}`;
                         }}
-                        className="flex-grow inline-flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-[10px] sm:text-xs active:scale-[0.97] cursor-pointer text-center"
+                        className="flex-grow inline-flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold text-[10px] sm:text-xs cursor-pointer text-center"
                       >
                         Buy Now
                       </button>
@@ -376,7 +373,7 @@ export const CategoryProductGrid = ({
         <div className="mt-4 md:mt-5 text-center">
           <Link
             href={viewAllLink}
-            className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 rounded-full bg-gradient-to-r from-bronze-500/10 to-orange-500/10 hover:from-bronze-500/20 hover:to-orange-500/20 backdrop-blur-md border border-bronze-500/20 hover:border-bronze-500/40 text-orange-600 dark:text-orange-400 text-xs sm:text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 rounded-full bg-gradient-to-r from-bronze-500/10 to-orange-500/10 hover:from-bronze-500/20 hover:to-orange-500/20 border border-bronze-500/20 hover:border-bronze-500/40 text-orange-600 dark:text-orange-400 text-xs sm:text-sm font-semibold shadow-sm"
           >
             See More
             <ArrowRight size={14} className="sm:w-4 sm:h-4" />

@@ -19,6 +19,46 @@ interface ProductFilters {
  * Decouples app/api/products routes from DB operations.
  */
 
+function calculateRelevanceScore(product: any, query: string, tokens: string[]): number {
+  let score = 0;
+  const name = (product.name || "").toLowerCase();
+  const desc = (product.description || "").toLowerCase();
+  const cat = (product.categoryName || "").toLowerCase();
+  const mat = (product.material || "").toLowerCase();
+
+  // 1. Exact phrase matches (highest reward)
+  if (name.includes(query)) score += 100;
+  if (desc.includes(query)) score += 20;
+
+  // 2. Token matches
+  for (const token of tokens) {
+    if (name.includes(token)) {
+      // Bonus if it's an exact word match (surrounded by word boundaries or start/end of string)
+      const wordRegex = new RegExp(`\\b${token}\\b`, 'i');
+      if (wordRegex.test(name)) {
+        score += 30;
+      } else {
+        score += 15;
+      }
+    }
+    if (cat.includes(token)) {
+      score += 10;
+    }
+    if (mat.includes(token)) {
+      score += 8;
+    }
+    if (desc.includes(token)) {
+      score += 3;
+    }
+  }
+
+  // 3. Small boosts for popular/featured/highly-rated products to break ties
+  if (product.featured) score += 5;
+  if (product.rating) score += product.rating;
+  
+  return score;
+}
+
 export async function getProducts(filters: ProductFilters) {
   const whereClause: any = {};
 
@@ -26,11 +66,20 @@ export async function getProducts(filters: ProductFilters) {
     whereClause.active = true;
   }
 
+  let hasSearch = false;
+  let searchTokens: string[] = [];
   if (filters.search) {
-    whereClause.OR = [
-      { name: { contains: filters.search } },
-      { description: { contains: filters.search } },
-    ];
+    const cleanSearch = filters.search.trim().toLowerCase();
+    searchTokens = cleanSearch.split(/\s+/).filter(Boolean);
+    if (searchTokens.length > 0) {
+      hasSearch = true;
+      whereClause.OR = searchTokens.flatMap(token => [
+        { name: { contains: token } },
+        { description: { contains: token } },
+        { categoryName: { contains: token } },
+        { material: { contains: token } },
+      ]);
+    }
   }
 
   if (filters.category) {
@@ -65,15 +114,55 @@ export async function getProducts(filters: ProductFilters) {
     orderBy = { reviews: "desc" };
   }
 
-  return prisma.product.findMany({
+  // If we have search, we fetch all matched records (without skip/take) and order them in memory
+  // to apply relevance scoring before paginating.
+  let products = await prisma.product.findMany({
     where: whereClause,
-    orderBy: orderBy,
-    skip: filters.skip,
-    take: filters.take,
+    orderBy: hasSearch ? undefined : orderBy,
+    skip: hasSearch ? undefined : filters.skip,
+    take: hasSearch ? undefined : filters.take,
     include: {
       category: true,
     },
   });
+
+  if (hasSearch) {
+    // Sort in memory
+    if (filters.sort === "price-low-high") {
+      products.sort((a, b) => a.price - b.price);
+    } else if (filters.sort === "price-high-low") {
+      products.sort((a, b) => b.price - a.price);
+    } else if (filters.sort === "rating") {
+      products.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (filters.sort === "best-sellers") {
+      products.sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
+    } else {
+      const queryLower = (filters.search || "").trim().toLowerCase();
+      const scores = new Map<number, number>();
+      products.forEach(p => {
+        scores.set(p.id, calculateRelevanceScore(p, queryLower, searchTokens));
+      });
+      
+      products.sort((a, b) => {
+        const scoreA = scores.get(a.id) || 0;
+        const scoreB = scores.get(b.id) || 0;
+        if (scoreB !== scoreA) {
+          return scoreB - scoreA;
+        }
+        // Tie-breaker: newest first
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
+
+    // Apply pagination in memory after sorting
+    if (filters.skip !== undefined || filters.take !== undefined) {
+      const start = filters.skip || 0;
+      const end = filters.take !== undefined ? start + filters.take : undefined;
+      products = products.slice(start, end);
+    }
+  }
+
+  return products;
 }
 
 export async function createProduct(body: any, session: TokenPayload) {

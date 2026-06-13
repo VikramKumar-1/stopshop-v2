@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useRef } from "react";
 
@@ -69,43 +69,36 @@ export const TestimonialsSection = () => {
 
   return (
     <section className="py-6 md:py-8 relative overflow-hidden section-glass-ambient ambient-indigo">
-      <div className="absolute bottom-0 left-1/4 w-[600px] h-[300px] bg-bronze-500/5 rounded-full blur-[180px]" />
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
           <div className="text-center md:text-left space-y-3">
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
+            <p
               className="text-sm uppercase tracking-[0.2em] text-orange-600 dark:text-bronze-400 font-medium"
             >
               Customer Reviews
-            </motion.p>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
+            </p>
+            <h2
               className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-heading"
             >
               Trusted <span className="gradient-text">Globally</span>
-            </motion.h2>
+            </h2>
           </div>
 
           {/* Desktop nav arrows */}
           <div className="hidden md:flex gap-2">
             <button
               onClick={() => scroll("left")}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-bronze-500/20 bg-surface-card hover:bg-surface-hover text-heading shadow-sm hover:shadow-md transition-all active:scale-95"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-bronze-500/20 bg-surface-card hover:bg-surface-hover text-heading shadow-sm hover:shadow-md"
               aria-label="Scroll left"
             >
               <ChevronLeft size={18} />
             </button>
             <button
               onClick={() => scroll("right")}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-bronze-500/20 bg-surface-card hover:bg-surface-hover text-heading shadow-sm hover:shadow-md transition-all active:scale-95"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-bronze-500/20 bg-surface-card hover:bg-surface-hover text-heading shadow-sm hover:shadow-md"
               aria-label="Scroll right"
             >
               <ChevronRight size={18} />
@@ -120,12 +113,8 @@ export const TestimonialsSection = () => {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {testimonials.map((t, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.08 }}
               className="snap-start shrink-0 w-[280px] sm:w-[320px] lg:w-[350px] glass rounded-2xl p-5 sm:p-6 gradient-border hover-lift flex flex-col justify-between"
             >
               <div className="space-y-4">
@@ -164,7 +153,7 @@ export const TestimonialsSection = () => {
                   <p className="text-[10px] sm:text-xs text-muted">{t.role}</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

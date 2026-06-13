@@ -1,9 +1,8 @@
 "use client";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowRight, Sparkles, ChevronLeft, ChevronRight, Star, ShieldCheck, Package, Leaf } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Star, ShieldCheck, Package } from "lucide-react";
 
 const slides = [
   {
@@ -82,9 +81,6 @@ export const HeroSection = () => {
     <section id="hero-section" className="relative min-h-0 py-4 sm:py-6 lg:py-6 flex items-center overflow-hidden section-glass-ambient bg-gradient-to-br from-blue-600/[0.12] via-indigo-500/[0.08] to-violet-600/[0.10]">
       {/* Background Effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-orange-500/[0.18] rounded-full blur-[160px]" />
-        <div className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-bronze-400/[0.15] rounded-full blur-[160px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-orange-600/[0.10] rounded-full blur-[200px]" />
         <div
           className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]"
           style={{
@@ -111,14 +107,14 @@ export const HeroSection = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/contact"
-                className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-bronze-500 to-bronze-600 text-white font-semibold shadow-xl shadow-bronze-500/20 hover:shadow-bronze-500/40 hover:from-bronze-400 hover:to-bronze-500 transition-all duration-300 text-sm"
+                className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-bronze-500 to-bronze-600 text-white font-semibold shadow-xl shadow-bronze-500/20 hover:shadow-bronze-500/40 hover:from-bronze-400 hover:to-bronze-500 text-sm"
               >
                 Request a Quote
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={16} />
               </Link>
               <Link
                 href="/about"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-full glass text-heading font-semibold hover:bg-surface-hover transition-all duration-300 text-sm"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-full glass text-heading font-semibold hover:bg-surface-hover text-sm"
               >
                 Explore Export Program
               </Link>
@@ -158,7 +154,7 @@ export const HeroSection = () => {
             >
               {/* Pure CSS transform track — no Framer Motion animation conflicts */}
               <div
-                className="absolute inset-0 flex h-full will-change-transform"
+                className="absolute inset-0 flex h-full will-change-transform transform-gpu"
                 style={{
                   width: `${slides.length * 100}%`,
                   transform: `translateX(-${current * (100 / slides.length)}%)`,
@@ -202,14 +198,14 @@ export const HeroSection = () => {
               <div className="absolute top-4 right-4 z-20 hidden md:flex gap-2">
                 <button
                   onClick={handlePrev}
-                  className="w-10 h-10 rounded-full flex items-center justify-center glass-light hover:bg-white/20 text-white transition-all active:scale-95"
+                  className="w-10 h-10 rounded-full flex items-center justify-center glass-light hover:bg-white/20 text-white"
                   aria-label="Previous image"
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button
                   onClick={handleNext}
-                  className="w-10 h-10 rounded-full flex items-center justify-center glass-light hover:bg-white/20 text-white transition-all active:scale-95"
+                  className="w-10 h-10 rounded-full flex items-center justify-center glass-light hover:bg-white/20 text-white"
                   aria-label="Next image"
                 >
                   <ChevronRight size={20} />
@@ -222,7 +218,7 @@ export const HeroSection = () => {
                   <button
                     key={index}
                     onClick={() => setCurrent(index)}
-                    className="h-2 rounded-full transition-all duration-300"
+                    className="h-2 rounded-full"
                     style={{
                       width: index === current ? "24px" : "8px",
                       backgroundColor: index === current ? "#fbbf24" : "rgba(255,255,255,0.45)",
@@ -234,24 +230,20 @@ export const HeroSection = () => {
             </div>
 
             {/* Floating badge: Orders — smaller on mobile */}
-            <motion.div
-              animate={{ y: [-5, 5, -5] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-1 sm:-left-4 lg:-left-8 top-1/4 glass rounded-xl sm:rounded-2xl px-3 py-2 sm:px-5 sm:py-4 shadow-2xl z-20"
+            <div
+              className="absolute left-1 sm:-left-4 lg:-left-8 top-1/4 glass rounded-xl sm:rounded-2xl px-3 py-2 sm:px-5 sm:py-4 shadow-2xl z-20 will-change-transform transform-gpu"
             >
               <p className="text-base sm:text-2xl font-display font-bold text-heading">500+</p>
               <p className="text-[10px] sm:text-xs text-muted">Orders Shipped</p>
-            </motion.div>
+            </div>
 
             {/* Floating badge: Quality — smaller on mobile */}
-            <motion.div
-              animate={{ y: [5, -5, 5] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute right-1 sm:-right-4 lg:-right-6 bottom-1/4 glass rounded-xl sm:rounded-2xl px-3 py-2 sm:px-5 sm:py-4 shadow-2xl z-20"
+            <div
+              className="absolute right-1 sm:-right-4 lg:-right-6 bottom-1/4 glass rounded-xl sm:rounded-2xl px-3 py-2 sm:px-5 sm:py-4 shadow-2xl z-20 will-change-transform transform-gpu"
             >
               <p className="text-base sm:text-2xl font-display font-bold gradient-text">100%</p>
               <p className="text-[10px] sm:text-xs text-muted">Quality Assured</p>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

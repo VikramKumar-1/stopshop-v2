@@ -171,11 +171,11 @@ export const BlinkitMobileSection = () => {
               <Link
                 key={cat.id}
                 href={cat.href}
-                className="group flex flex-col items-center gap-1.5 active:scale-95 transition-transform duration-150"
+                className="group flex flex-col items-center gap-1.5"
               >
                 {/* Circle */}
                 <div
-                  className={`w-[56px] h-[56px] rounded-full flex items-center justify-center bg-gradient-to-br ${cat.bg} shadow-sm border border-white/60 dark:border-white/10 transition-all duration-200 group-active:scale-95`}
+                  className={`w-[56px] h-[56px] rounded-full flex items-center justify-center bg-gradient-to-br ${cat.bg} shadow-sm border border-white/60 dark:border-white/10`}
                 >
                   <Icon size={22} strokeWidth={1.8} className={cat.iconClr} />
                 </div>
@@ -219,7 +219,7 @@ export const BlinkitMobileSection = () => {
                     className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${b.gradient} p-5 min-h-[130px] flex items-center`}
                   >
                     {/* Decorative */}
-                    <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10 blur-sm" />
+                    <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10" />
                     <div className="absolute -right-2 -bottom-4 w-20 h-20 rounded-full bg-white/[0.07]" />
 
                     {/* Content */}
@@ -234,7 +234,7 @@ export const BlinkitMobileSection = () => {
                         {b.subtitle}
                       </h3>
                       <p className="text-xs text-white/75 mb-3">{b.desc}</p>
-                      <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-[11px] font-bold text-white border border-white/20">
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 rounded-full text-[11px] font-bold text-white border border-white/20">
                         {b.cta}
                         <ChevronRight size={12} />
                       </span>
@@ -256,7 +256,7 @@ export const BlinkitMobileSection = () => {
               <button
                 key={i}
                 onClick={() => setCurrent(i)}
-                className="rounded-full transition-all duration-300"
+                className="rounded-full"
                 style={{
                   width: i === current ? "20px" : "6px",
                   height: "6px",

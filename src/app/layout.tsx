@@ -6,6 +6,7 @@ import { CategoryStrip } from "@/features/core/components/CategoryStrip";
 import { Footer } from "@/features/core/components/Footer";
 import { ThemeProvider } from "@/features/core/components/ThemeProvider";
 import { CartProvider } from "@/context/CartContext";
+import { SmoothScroll } from "@/features/core/components/SmoothScroll";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,6 +36,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Disable browser scroll restoration BEFORE render to prevent hero flash on reload */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if ('scrollRestoration' in history) {
+                  history.scrollRestoration = 'manual';
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -58,12 +71,12 @@ export default function RootLayout({
           <RegionProvider>
             <CartProvider>
               <WishlistProvider>
-                <div className="fixed top-0 left-0 right-0 z-40 w-full lg:contents">
+                <SmoothScroll>
                   <Navbar />
                   <CategoryStrip />
-                </div>
-                <MainLayout>{children}</MainLayout>
-                <Footer />
+                  <MainLayout>{children}</MainLayout>
+                  <Footer />
+                </SmoothScroll>
               </WishlistProvider>
             </CartProvider>
           </RegionProvider>

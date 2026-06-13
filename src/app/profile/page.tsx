@@ -239,7 +239,7 @@ function ProfilePageInner() {
   // Not Logged In - Render Login / Signup Form
   if (!user) {
     return (
-      <div className="min-h-screen bg-surface pt-6 pb-16 px-4 flex items-center justify-center">
+      <div className="py-8 sm:py-12 px-4 flex items-center justify-center">
         <div className="max-w-md w-full bg-surface-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
           {/* Subtle gradient highlights */}
           <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full blur-3xl -z-10" />
@@ -394,7 +394,7 @@ function ProfilePageInner() {
 
   // Logged In - Render Dashboard & Orders tracking
   return (
-    <div className="min-h-screen bg-surface pt-4 pb-16">
+    <div className="py-6 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Profile Card Header */}
@@ -406,10 +406,16 @@ function ProfilePageInner() {
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-bold font-display text-orange-400">{user.name}</h2>
-              <p className="text-xs text-orange-300/80 flex items-center gap-1.5 mt-1">
-                <Mail size={12} className="text-orange-400" />
-                {user.email} | <span className="font-bold text-orange-400 uppercase tracking-wider text-[10px] bg-orange-500/15 px-2 py-0.5 rounded-md">{user.role} Account</span>
-              </p>
+              <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-orange-300/80">
+                <div className="flex items-center gap-1">
+                  <Mail size={12} className="text-orange-400 shrink-0" />
+                  <span>{user.email}</span>
+                </div>
+                <span className="hidden sm:inline text-orange-400/40">|</span>
+                <span className="font-bold text-orange-400 uppercase tracking-wider text-[10px] bg-orange-500/15 px-2 py-0.5 rounded-md shrink-0">
+                  {user.role} Account
+                </span>
+              </div>
             </div>
           </div>
           <button

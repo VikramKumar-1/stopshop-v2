@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
              });
              // Unfreeze settlement - vendor gets paid
              await tx.settlement.updateMany({
-                where: { orderId: returnRequest.orderId, status: "DISPUTED" },
+                where: { orderId: returnRequest.orderId, status: { in: ["DISPUTED", "HOLD", "ELIGIBLE"] } },
                 data: { status: "ELIGIBLE" }
              });
              await tx.order.update({
@@ -62,8 +62,27 @@ export async function POST(req: NextRequest) {
           let returnShiprocketId = null;
 
           if (fullOrder && fullOrder.items.length > 0) {
+             // Get vendor's real address from DB
+             const vendorId = fullOrder.items[0]?.vendorId;
+             let vendorInfo: any = undefined;
+             if (vendorId) {
+               const vendorUser = await prisma.user.findUnique({ where: { id: vendorId }, select: { name: true, mobile: true, location: true } });
+               if (vendorUser?.location && vendorUser.location.includes("|")) {
+                 const parts = vendorUser.location.split("|").map((p: string) => p.trim());
+                 vendorInfo = {
+                   name: vendorUser.name || "Vendor Return",
+                   address: parts[4] || parts[0] || "Vendor Warehouse",
+                   city: parts[0] || "Delhi",
+                   state: parts[1] || "Delhi",
+                   country: parts[2] || "India",
+                   pincode: parts[3] || "110001",
+                   phone: vendorUser.mobile || ""
+                 };
+               }
+             }
+
              try {
-                const srOrder = await ShiprocketService.createReturnOrder(fullOrder, fullOrder.items, "Vendor Warehouse");
+                const srOrder = await ShiprocketService.createReturnOrder(fullOrder, fullOrder.items, "Vendor Warehouse", vendorInfo);
                 returnShiprocketId = srOrder.shiprocket_order_id;
                 const assignment = await ShiprocketService.assignCourier(srOrder.shipment_id);
                 returnAwbCode = assignment.awb_code || returnAwbCode;
@@ -101,7 +120,7 @@ export async function POST(req: NextRequest) {
              });
              // Vendor loses money, user gets refund
              await tx.settlement.updateMany({
-                where: { orderId: returnRequest.orderId, status: "DISPUTED" },
+                where: { orderId: returnRequest.orderId, status: { in: ["DISPUTED", "HOLD", "ELIGIBLE"] } },
                 data: { status: "CANCELLED" }
              });
              await tx.order.update({
@@ -159,7 +178,7 @@ export async function POST(req: NextRequest) {
              });
              // Vendor gets paid
              await tx.settlement.updateMany({
-                where: { orderId: returnRequest.orderId, status: "DISPUTED" },
+                where: { orderId: returnRequest.orderId, status: { in: ["DISPUTED", "HOLD", "ELIGIBLE"] } },
                 data: { status: "ELIGIBLE" }
              });
              await tx.order.update({

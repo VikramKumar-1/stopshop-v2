@@ -73,33 +73,33 @@ function CheckoutSuccessContent() {
   }, [orderId]);
 
   return (
-    <div className="min-h-screen relative bg-surface flex items-center justify-center p-4 pt-24 pb-16">
+    <div className="min-h-[calc(100vh-160px)] relative bg-surface flex items-center justify-center p-4 pt-2 pb-4 sm:min-h-screen sm:items-center sm:pt-[120px] sm:pb-16 overflow-hidden">
       {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-emerald-500/10 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-emerald-600/10 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
       
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-md w-full bg-surface-card border border-border rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_60px_rgba(16,185,129,0.1)] relative backdrop-blur-xl flex flex-col overflow-hidden"
+        className="max-w-md w-full bg-surface-card border border-border rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_60px_rgba(16,185,129,0.12)] relative backdrop-blur-xl flex flex-col overflow-hidden -mt-14 sm:-mt-0"
       >
         <Confetti />
 
         {/* Top Full Green Div */}
-        <div className="bg-gradient-to-b from-emerald-500 to-emerald-600 px-4 py-5 sm:py-6 text-center relative z-10 shrink-0">
+        <div className="bg-[#0d5c43] px-4 py-5 text-center relative z-10 shrink-0">
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-emerald-500 flex items-center justify-center mx-auto shadow-xl shadow-black/10 mb-3 sm:mb-4"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#063325] text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto shadow-xl mb-3 sm:mb-4"
           >
-            <CheckCircle size={28} className="sm:w-8 sm:h-8" strokeWidth={2.5} />
+            <CheckCircle size={28} className="sm:w-8 sm:h-8 text-emerald-400" strokeWidth={3} />
           </motion.div>
           
-          <h1 className="text-xl sm:text-2xl font-display font-black text-white tracking-tight mb-1">
+          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-white tracking-tight mb-1 drop-shadow-sm">
             Order Confirmed!
           </h1>
-          <p className="text-[10px] sm:text-xs text-emerald-50 max-w-sm mx-auto leading-relaxed">
+          <p className="text-[10px] sm:text-xs text-emerald-100/90 max-w-sm mx-auto font-medium leading-relaxed">
             Your order has been confirmed. We'll start preparing it right away.
           </p>
         </div>
@@ -108,7 +108,7 @@ function CheckoutSuccessContent() {
         <div className="p-4 sm:p-5 relative z-10 flex-grow bg-surface-card flex flex-col justify-between">
           {loading ? (
             <div className="flex items-center justify-center py-6">
-              <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+              <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
             </div>
           ) : order ? (
             <motion.div 
@@ -120,12 +120,12 @@ function CheckoutSuccessContent() {
               {/* Order Meta */}
               <div className="flex items-center justify-between border-b border-border/60 pb-3">
                 <div>
-                  <p className="text-[9px] uppercase font-bold text-muted tracking-wider mb-0.5">Order Number</p>
-                  <p className="text-xs sm:text-sm font-black text-heading">{order.orderNumber}</p>
+                  <p className="text-[9px] uppercase font-extrabold text-muted tracking-wider mb-0.5">Order Number</p>
+                  <p className="text-xs sm:text-sm font-extrabold text-heading">{order.orderNumber}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] uppercase font-bold text-muted tracking-wider mb-0.5">Total Paid</p>
-                  <p className="text-base sm:text-lg font-black text-emerald-600">{formatPrice(order.totalPaise / 100)}</p>
+                  <p className="text-[9px] uppercase font-extrabold text-muted tracking-wider mb-0.5">Total Paid</p>
+                  <p className="text-base sm:text-lg font-extrabold text-emerald-600 dark:text-emerald-400">{formatPrice(order.totalPaise / 100)}</p>
                 </div>
               </div>
 
@@ -142,10 +142,10 @@ function CheckoutSuccessContent() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] sm:text-xs font-bold text-heading truncate">{item.productName}</p>
-                      <p className="text-[9px] sm:text-[10px] text-muted">Qty: {item.quantity}</p>
+                      <p className="text-[10px] sm:text-xs font-extrabold text-heading truncate">{item.productName}</p>
+                      <p className="text-[9px] sm:text-[10px] text-muted font-semibold">Qty: {item.quantity}</p>
                     </div>
-                    <div className="text-[10px] sm:text-xs font-bold text-heading whitespace-nowrap pl-2">
+                    <div className="text-[10px] sm:text-xs font-extrabold text-heading whitespace-nowrap pl-2">
                       {formatPrice(item.totalPaise / 100)}
                     </div>
                   </div>
@@ -156,8 +156,8 @@ function CheckoutSuccessContent() {
               <div className="flex gap-2 bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-xl">
                 <MapPin className="text-emerald-500 shrink-0 mt-0.5" size={14} />
                 <div className="min-w-0">
-                  <p className="text-[10px] sm:text-xs font-bold text-heading truncate">{order.shippingName}</p>
-                  <p className="text-[9px] sm:text-[10px] text-muted mt-0.5 leading-snug line-clamp-1">
+                  <p className="text-[10px] sm:text-xs font-extrabold text-heading truncate">{order.shippingName}</p>
+                  <p className="text-[9px] sm:text-[10px] text-body font-semibold mt-0.5 leading-snug line-clamp-1">
                     {order.shippingAddress}, {order.shippingCity}, {order.shippingState} - {order.shippingPincode}
                   </p>
                 </div>

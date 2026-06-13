@@ -1,6 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
-import { ArrowRight, Play, Pause, VolumeX, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, VolumeX, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
 
@@ -137,15 +136,12 @@ export const ShopByVideos = () => {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-12 gap-6">
           <div className="max-w-xl">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-light text-xs font-semibold text-orange-700 dark:text-bronze-300 tracking-wider uppercase mb-4"
             >
               <Sparkles size={14} className="text-bronze-500" />
               Watch & Shop
-            </motion.div>
+            </div>
             
             <h2 className="text-4xl sm:text-5xl font-display font-bold text-heading">
               Shop by <span className="gradient-text">Videos</span>
@@ -156,14 +152,14 @@ export const ShopByVideos = () => {
           <div className="hidden md:flex gap-3">
             <button
               onClick={() => scroll("left")}
-              className="w-12 h-12 rounded-full flex items-center justify-center border border-bronze-500/20 bg-surface-card hover:bg-surface-hover text-heading shadow-md hover:shadow-lg transition-all active:scale-95"
+              className="w-12 h-12 rounded-full flex items-center justify-center border border-bronze-500/20 bg-surface-card hover:bg-surface-hover text-heading shadow-md hover:shadow-lg"
               aria-label="Scroll left"
             >
               <ChevronLeft size={20} />
             </button>
             <button
               onClick={() => scroll("right")}
-              className="w-12 h-12 rounded-full flex items-center justify-center border border-bronze-500/20 bg-surface-card hover:bg-surface-hover text-heading shadow-md hover:shadow-lg transition-all active:scale-95"
+              className="w-12 h-12 rounded-full flex items-center justify-center border border-bronze-500/20 bg-surface-card hover:bg-surface-hover text-heading shadow-md hover:shadow-lg"
               aria-label="Scroll right"
             >
               <ChevronRight size={20} />
@@ -176,7 +172,7 @@ export const ShopByVideos = () => {
           {/* Left Side Floating Arrow */}
           <button
             onClick={() => scroll("left")}
-            className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface-card/90 dark:bg-surface-card/85 hover:bg-surface-hover text-heading shadow-xl border border-bronze-500/30 hover:scale-105 active:scale-95 hidden md:flex items-center justify-center transition-all backdrop-blur-sm"
+            className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface-card/90 dark:bg-surface-card/85 hover:bg-surface-hover text-heading shadow-xl border border-bronze-500/30 hidden md:flex items-center justify-center"
             aria-label="Scroll left"
           >
             <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
@@ -188,7 +184,7 @@ export const ShopByVideos = () => {
             onMouseDown={handleDragStart}
             onTouchMove={handleDragMove}
             onMouseMove={handleDragMove}
-            className="flex overflow-x-auto gap-6 pb-8 pt-2 scrollbar-none snap-x snap-mandatory scroll-smooth"
+            className="flex overflow-x-auto gap-6 pb-8 pt-2 scrollbar-none"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none"
@@ -197,7 +193,7 @@ export const ShopByVideos = () => {
             {videos.map((video) => (
               <div
                 key={video.id}
-                className="snap-start snap-always shrink-0 w-[280px] sm:w-[320px] lg:w-[calc(25%-18px)] flex flex-col justify-between bg-surface-card border border-bronze-500/[0.14] rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-bronze-500/8 hover:-translate-y-1 transition-all duration-300"
+                className="shrink-0 w-[280px] sm:w-[320px] lg:w-[calc(25%-18px)] flex flex-col justify-between bg-surface-card border border-bronze-500/[0.14] rounded-3xl overflow-hidden shadow-sm"
               >
                 {/* Video Player Container */}
                 <div className="relative aspect-[9/16] w-full overflow-hidden bg-black group">
@@ -212,14 +208,14 @@ export const ShopByVideos = () => {
                   />
                   
                   {/* Visual Overlays */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/35 opacity-90 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/35 opacity-90" />
                   
                   {/* Floating Tags */}
                   <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-bronze-500 to-orange-600 text-white text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full shadow-lg">
                     {video.tag}
                   </div>
 
-                  <div className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/90">
+                  <div className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-black/40 flex items-center justify-center text-white/90">
                     <VolumeX size={14} />
                   </div>
 
@@ -237,10 +233,10 @@ export const ShopByVideos = () => {
                     <Link
                       href="/contact"
                       onClickCapture={handleLinkClick}
-                      className="group/btn inline-flex items-center justify-center gap-1.5 px-4 py-2.5 w-full rounded-full bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-semibold shadow-md transition-all duration-300 text-xs"
+                      className="group/btn inline-flex items-center justify-center gap-1.5 px-4 py-2.5 w-full rounded-full bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-semibold shadow-md text-xs"
                     >
                       Inquire Product
-                      <ArrowRight size={13} className="group-hover/btn:translate-x-1 transition-transform" />
+                      <ArrowRight size={13} />
                     </Link>
                   </div>
                 </div>
@@ -251,7 +247,7 @@ export const ShopByVideos = () => {
           {/* Right Side Floating Arrow */}
           <button
             onClick={() => scroll("right")}
-            className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface-card/90 dark:bg-surface-card/85 hover:bg-surface-hover text-heading shadow-xl border border-bronze-500/30 hover:scale-105 active:scale-95 hidden md:flex items-center justify-center transition-all backdrop-blur-sm"
+            className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface-card/90 dark:bg-surface-card/85 hover:bg-surface-hover text-heading shadow-xl border border-bronze-500/30 hidden md:flex items-center justify-center"
             aria-label="Scroll right"
           >
             <ChevronRight size={20} className="sm:w-6 sm:h-6" />

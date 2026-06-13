@@ -126,7 +126,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
          // Release Settlement to Vendor
          await tx.settlement.updateMany({
-           where: { orderId: returnReq.orderId, status: "DISPUTED" },
+           where: { orderId: returnReq.orderId, status: { in: ["DISPUTED", "HOLD", "ELIGIBLE"] } },
            data: { status: "ELIGIBLE" }
          });
 
@@ -155,7 +155,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
          // Release Settlement to Vendor
          await tx.settlement.updateMany({
-           where: { orderId: returnReq.orderId, status: "DISPUTED" },
+           where: { orderId: returnReq.orderId, status: { in: ["DISPUTED", "HOLD", "ELIGIBLE"] } },
            data: { status: "ELIGIBLE" }
          });
          

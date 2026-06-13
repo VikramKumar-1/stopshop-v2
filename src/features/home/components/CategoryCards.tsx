@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -75,7 +75,7 @@ export const CategoryCards = () => {
           {/* Mobile Arrows */}
           <button
             onClick={() => scroll("left")}
-            className="sm:hidden absolute -left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center border border-orange-500/30 bg-surface-card text-orange-600 shadow-sm active:scale-95 transition-transform"
+            className="sm:hidden absolute -left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center border border-orange-500/30 bg-surface-card text-orange-600 shadow-sm"
             aria-label="Scroll left"
           >
             <ChevronLeft size={16} />
@@ -83,7 +83,7 @@ export const CategoryCards = () => {
 
           <button
             onClick={() => scroll("right")}
-            className="sm:hidden absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center border border-orange-500/30 bg-surface-card text-orange-600 shadow-sm active:scale-95 transition-transform"
+            className="sm:hidden absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center border border-orange-500/30 bg-surface-card text-orange-600 shadow-sm"
             aria-label="Scroll right"
           >
             <ChevronRight size={16} />
@@ -101,7 +101,7 @@ export const CategoryCards = () => {
             {categoryCards.map((card, cardIndex) => (
               <div
                 key={cardIndex}
-                className="snap-start snap-always shrink-0 w-[85%] sm:w-auto bg-surface-card border border-bronze-500/10 rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:shadow-lg hover:shadow-bronze-500/[0.04] transition-shadow duration-300"
+                className="snap-start snap-always shrink-0 w-[85%] sm:w-auto bg-surface-card border border-bronze-500/10 rounded-2xl p-4 sm:p-5 flex flex-col justify-between"
               >
                 {/* Card Title */}
                 <div>
@@ -124,10 +124,10 @@ export const CategoryCards = () => {
                             fill
                             sizes="(max-width: 640px) 40vw, (max-width: 1024px) 20vw, 14vw"
                             loading="lazy"
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="object-cover"
                           />
                         </div>
-                        <span className="text-[11px] sm:text-xs text-body font-medium mt-1.5 leading-tight line-clamp-2 group-hover:text-bronze-600 dark:group-hover:text-bronze-400 transition-colors">
+                        <span className="text-[11px] sm:text-xs text-body font-medium mt-1.5 leading-tight line-clamp-2">
                           {item.name}
                         </span>
                       </Link>
@@ -138,7 +138,7 @@ export const CategoryCards = () => {
                 {/* See More Link */}
                 <Link
                   href={card.link}
-                  className="inline-block mt-4 text-sm font-semibold text-bronze-600 dark:text-bronze-400 hover:text-bronze-500 transition-colors"
+                  className="inline-block mt-4 text-sm font-semibold text-bronze-600 dark:text-bronze-400"
                 >
                   {card.linkText}
                 </Link>

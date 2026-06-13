@@ -66,11 +66,8 @@ export async function POST(req: NextRequest) {
          data: { status: "RETURN_APPROVED" } // Auto-approve
        });
 
-       // Freeze settlement if it's still HOLD or ELIGIBLE
-       await tx.settlement.updateMany({
-         where: { orderId: order.id, status: { in: ["HOLD", "ELIGIBLE"] } },
-         data: { status: "DISPUTED" }
-       });
+       // Settlement is NOT auto-frozen here.
+       // Admin can manually hold the settlement from the dashboard if needed.
 
        return req;
     });
@@ -80,7 +77,26 @@ export async function POST(req: NextRequest) {
       let returnAwbCode = `RET-AWB-${Math.floor(Math.random() * 10000000)}`;
       let returnShiprocketId = null;
       
-      const srOrder = await ShiprocketService.createReturnOrder(order, returnItems, "Vendor Warehouse");
+      // Get the vendor's real address from DB
+      const vendorId = order.items?.[0]?.vendorId;
+      let vendorInfo: any = undefined;
+      if (vendorId) {
+        const vendorUser = await prisma.user.findUnique({ where: { id: vendorId }, select: { name: true, mobile: true, location: true } });
+        if (vendorUser?.location && vendorUser.location.includes("|")) {
+          const parts = vendorUser.location.split("|").map((p: string) => p.trim());
+          vendorInfo = {
+            name: vendorUser.name || "Vendor Return",
+            address: parts[4] || parts[0] || "Vendor Warehouse",
+            city: parts[0] || "Delhi",
+            state: parts[1] || "Delhi",
+            country: parts[2] || "India",
+            pincode: parts[3] || "110001",
+            phone: vendorUser.mobile || ""
+          };
+        }
+      }
+
+      const srOrder = await ShiprocketService.createReturnOrder(order, returnItems, "Vendor Warehouse", vendorInfo);
       returnShiprocketId = srOrder.shiprocket_order_id;
       const assignment = await ShiprocketService.assignCourier(srOrder.shipment_id);
       returnAwbCode = assignment.awb_code || returnAwbCode;

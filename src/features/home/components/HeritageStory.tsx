@@ -1,17 +1,13 @@
 "use client";
-import { motion } from "framer-motion";
+
 import { ArrowRight, Heart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 export const HeritageStory = () => {
   return (
-    <section className="py-8 md:py-10 relative overflow-hidden bg-[#1A0F05] border-y border-orange-900/30">
-      {/* Ambient background glows */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-800/[0.12] rounded-full blur-[200px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-amber-700/[0.08] rounded-full blur-[200px]" />
-      </div>
+    <section className="lazy-scroll-section py-8 md:py-10 relative overflow-hidden bg-[#1A0F05] border-y border-orange-900/30">
+
 
       {/* Subtle pattern overlay */}
       <div
@@ -26,14 +22,10 @@ export const HeritageStory = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
           {/* Left — Image */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+          <div
             className="relative"
           >
-            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl shadow-black/30">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl shadow-black/30 will-change-transform transform-gpu">
               <Image
                 src="/bronze-kadai.png"
                 alt="Indian artisans crafting bronze utensils"
@@ -46,22 +38,16 @@ export const HeritageStory = () => {
             </div>
 
             {/* Floating stat badge */}
-            <motion.div
-              animate={{ y: [-4, 4, -4] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            <div
               className="absolute -bottom-4 -right-2 sm:-bottom-6 sm:-right-6 bg-[#2D1A08] border border-orange-800/40 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-6 sm:py-4 shadow-2xl z-20"
             >
               <p className="text-2xl sm:text-3xl font-display font-bold text-amber-400">200+</p>
               <p className="text-[10px] sm:text-xs text-orange-300/80 font-medium">Artisan Partners</p>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Right — Content */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.15 }}
+          <div
             className="space-y-6"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-xs font-semibold text-orange-300 tracking-wider uppercase">
@@ -94,12 +80,12 @@ export const HeritageStory = () => {
 
             <Link
               href="/about"
-              className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold shadow-xl shadow-orange-900/30 hover:shadow-orange-800/40 transition-all duration-300 text-sm"
+              className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold shadow-xl shadow-orange-900/30 hover:shadow-orange-800/40 text-sm"
             >
               Meet Our Makers
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={16} />
             </Link>
-          </motion.div>
+          </div>
 
         </div>
       </div>

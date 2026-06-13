@@ -14,36 +14,36 @@ function CheckoutFailureContent() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-surface flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-surface flex items-center justify-center p-4 pt-[16px] md:pt-[120px] pb-28 sm:pb-16">
       {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-red-500/10 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-red-500/15 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
       
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-md w-full bg-surface-card border border-border rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_60px_rgba(239,68,68,0.1)] relative backdrop-blur-xl flex flex-col overflow-hidden"
+        className="max-w-md w-full bg-surface-card border border-border rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_60px_rgba(239,68,68,0.12)] relative backdrop-blur-xl flex flex-col overflow-hidden"
       >
         {/* Top Full Red Div */}
-        <div className="bg-gradient-to-b from-red-500 to-red-600 px-4 py-5 sm:py-6 text-center relative z-10 shrink-0">
+        <div className="bg-gradient-to-tr from-[#3b070c] via-[#5b0e12] to-[#450a0d] px-4 py-6 text-center relative z-10 shrink-0">
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-red-500 flex items-center justify-center mx-auto shadow-xl shadow-black/10 mb-3 sm:mb-4"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-950/40 text-red-400 border border-red-500/30 flex items-center justify-center mx-auto shadow-xl mb-3 sm:mb-4"
           >
             <motion.div
               animate={{ rotate: [-5, 5, -5, 5, 0] }}
               transition={{ duration: 0.5, delay: 0.5 }}
             >
-              <AlertCircle size={28} className="sm:w-8 sm:h-8" strokeWidth={2.5} />
+              <AlertCircle size={28} className="sm:w-8 sm:h-8 text-red-400" strokeWidth={3} />
             </motion.div>
           </motion.div>
           
-          <h1 className="text-xl sm:text-2xl font-display font-black text-white tracking-tight mb-1">
+          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-white tracking-tight mb-1 drop-shadow-sm">
             Payment Failed
           </h1>
-          <p className="text-[10px] sm:text-xs text-red-50 max-w-sm mx-auto leading-relaxed">
+          <p className="text-[10px] sm:text-xs text-rose-100/90 max-w-sm mx-auto font-medium leading-relaxed">
             We couldn't process your payment. Don't worry, no charges were made.
           </p>
         </div>
@@ -60,15 +60,15 @@ function CheckoutFailureContent() {
             <div className="flex gap-2 bg-red-500/5 border border-red-500/10 p-3 rounded-xl">
               <ShieldAlert className="text-red-500 shrink-0 mt-0.5" size={14} />
               <div className="min-w-0">
-                <p className="text-[10px] sm:text-xs font-bold text-heading">Error Reason</p>
-                <p className="text-[9px] sm:text-[10px] text-red-600 dark:text-red-400 mt-0.5 leading-snug capitalize">
+                <p className="text-[10px] sm:text-xs font-extrabold text-heading">Error Reason</p>
+                <p className="text-[9px] sm:text-[10px] text-red-600 dark:text-red-400 mt-0.5 leading-snug capitalize font-semibold">
                   {reason.replace(/_/g, ' ')}
                 </p>
               </div>
             </div>
 
             <div className="text-center">
-              <p className="text-[9px] sm:text-[10px] text-muted">
+              <p className="text-[9px] sm:text-[10px] text-body font-semibold">
                 Please try again with a different payment method, or contact your bank if the issue persists.
               </p>
             </div>

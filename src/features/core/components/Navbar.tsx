@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { Menu, X, Search, User, Heart, ShoppingCart, ChevronDown, LogOut, Store, PhoneCall, LayoutDashboard, Package, Home, Grid } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
@@ -35,6 +35,8 @@ export const Navbar = () => {
 
   // Mobile bottom navigation scroll state
   const [bottomVisible, setBottomVisible] = useState(true);
+  const rafRef = useRef<number>(0);
+  const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("stopshops_recent_searches");
@@ -147,7 +149,7 @@ export const Navbar = () => {
                 <button 
                   type="button" 
                   onClick={clearRecentSearches}
-                  className="hover:text-orange-500 transition-colors cursor-pointer text-[10px] font-semibold"
+                  className="hover:text-orange-500 cursor-pointer text-[10px] font-semibold"
                 >
                   Clear All
                 </button>
@@ -156,7 +158,7 @@ export const Navbar = () => {
                 {recentSearches.map((term, idx) => (
                   <div 
                     key={idx} 
-                    className="flex items-center gap-1.5 bg-bronze-500/[0.05] hover:bg-bronze-500/10 border border-border rounded-full px-3 py-1 transition-all text-[11px] text-heading font-medium shrink-0 cursor-pointer"
+                    className="flex items-center gap-1.5 bg-bronze-500/[0.05] hover:bg-bronze-500/10 border border-border rounded-full px-3 py-1 text-[11px] text-heading font-medium shrink-0 cursor-pointer"
                     onClick={() => {
                       addToRecentSearches(term);
                       setSearchQuery(term);
@@ -200,7 +202,7 @@ export const Navbar = () => {
                     setSearchQuery(item.term);
                     window.location.href = `/products?search=${encodeURIComponent(item.term)}&category=${item.category}`;
                   }}
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-orange-500/5 hover:border-orange-500/20 text-left transition-all cursor-pointer text-body hover:text-orange-500 font-semibold"
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-orange-500/5 hover:border-orange-500/20 text-left cursor-pointer text-body hover:text-orange-500 font-semibold"
                 >
                   <span className="text-[10px]">🔍</span>
                   <span className="font-semibold">{item.term}</span>
@@ -243,7 +245,7 @@ export const Navbar = () => {
                   setSuggestionsOpen(false);
                   setSearchOpen(false);
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface-hover rounded-xl transition-all cursor-pointer group"
+                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface-hover rounded-xl cursor-pointer group"
               >
                 {product.image ? (
                   <img
@@ -257,7 +259,7 @@ export const Navbar = () => {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-xs font-bold text-heading truncate group-hover:text-orange-500 transition-colors">
+                  <h4 className="text-xs font-bold text-heading truncate group-hover:text-orange-500">
                     {product.name}
                   </h4>
                   <p className="text-[10px] text-muted truncate">
@@ -279,7 +281,7 @@ export const Navbar = () => {
                 setSuggestionsOpen(false);
                 setSearchOpen(false);
               }}
-              className="w-full text-center py-2.5 text-[11px] font-bold text-orange-500 dark:text-orange-400 hover:bg-orange-500/5 rounded-xl border-t border-border/50 transition-all cursor-pointer"
+              className="w-full text-center py-2.5 text-[11px] font-bold text-orange-500 dark:text-orange-400 hover:bg-orange-500/5 rounded-xl border-t border-border/50 cursor-pointer"
             >
               See all results for "{searchQuery}"
             </button>
@@ -333,50 +335,79 @@ export const Navbar = () => {
     if (isDashboard) return;
 
     let lastScrollY = window.scrollY;
+    let ticking = false;
 
-    const handleScroll = () => {
+    const updateNavbar = () => {
       const currentScrollY = window.scrollY;
       const isHomepage = window.location.pathname === "/";
+      const isMobile = window.matchMedia("(max-width: 1023px)").matches;
       
-      if (isHomepage) {
+      if (isMobile) {
+        setVisible(true);
+      } else if (isHomepage) {
         const hero = document.getElementById("hero-section");
         const heroHeight = hero ? hero.offsetHeight : 600;
         
-        if (currentScrollY > lastScrollY) {
-          // Scrolling down: hide navbar immediately past 120px
-          if (currentScrollY > 120) {
-            setVisible(false);
-          }
+        if (currentScrollY <= 60) {
+          setVisible(true);
         } else {
-          // Scrolling up: only show navbar when back inside/above the hero section
-          if (currentScrollY <= heroHeight) {
-            setVisible(true);
+          const diff = currentScrollY - lastScrollY;
+          if (Math.abs(diff) > 10) {
+            if (diff > 0) {
+              setVisible(false);
+            } else if (currentScrollY <= heroHeight) {
+              setVisible(true);
+            }
           }
         }
       } else {
-        // Standard page behavior: hide when scrolling down, show when scrolling up (except on product pages)
+        // Standard page behavior: hide when scrolling down, show when scrolling up
         const isStickyPage = window.location.pathname.startsWith("/product") || (window.location.pathname.startsWith("/profile") && !user) || window.location.pathname === "/cart" || window.location.pathname.startsWith("/checkout");
         if (isStickyPage) {
           setVisible(true);
-        } else if (currentScrollY > 120 && currentScrollY > lastScrollY) {
-          setVisible(false);
-        } else {
+        } else if (currentScrollY <= 60) {
           setVisible(true);
+        } else {
+          const diff = currentScrollY - lastScrollY;
+          if (Math.abs(diff) > 10) { // 10px threshold to prevent flickering
+            if (diff > 0) {
+              setVisible(false);
+            } else {
+              setVisible(true);
+            }
+          }
         }
       }
 
-      // Handle mobile bottom navbar scroll visibility (Blinkit style)
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setBottomVisible(false);
-      } else {
+      // Handle mobile bottom navbar scroll visibility (Blinkit style) with threshold to prevent flickering
+      if (currentScrollY <= 10) {
         setBottomVisible(true);
+      } else {
+        const diff = currentScrollY - lastScrollY;
+        if (Math.abs(diff) > 15) {
+          if (currentScrollY > lastScrollY) {
+            setBottomVisible(false);
+          } else {
+            setBottomVisible(true);
+          }
+        }
       }
       
       lastScrollY = currentScrollY;
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateNavbar);
+        ticking = true;
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [isDashboard, user, pathname]);
 
   const marqueeItems = [
@@ -397,7 +428,7 @@ export const Navbar = () => {
     <>
       {!isDashboard && (
         <div 
-          className="relative lg:fixed lg:top-0 lg:left-0 lg:right-0 h-8 z-[120] bg-gradient-to-r from-bronze-950 via-bronze-900 to-bronze-950 border-b border-bronze-800/40 flex items-center overflow-hidden"
+          className="fixed top-0 left-0 right-0 h-8 z-[120] bg-gradient-to-r from-bronze-950 via-bronze-900 to-bronze-950 border-b border-bronze-800/40 flex items-center overflow-hidden"
           style={{
             backgroundImage: `
               linear-gradient(rgba(26, 15, 8, 0.96), rgba(26, 15, 8, 0.96)), 
@@ -439,7 +470,7 @@ export const Navbar = () => {
 
       {/* Main Navigation bar */}
       <nav
-        className={`relative lg:fixed ${isDashboard ? "top-0 lg:top-0" : "lg:top-8"} left-0 right-0 z-[100] w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-[var(--surface)] supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-xl ${isDashboard ? "" : "lg:transition-transform lg:duration-300"} ${visible || isDashboard ? "translate-y-0" : "lg:-translate-y-full"}`}
+        className={`fixed lg:sticky ${isDashboard ? "top-0" : "top-8"} left-0 right-0 z-[100] w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-[var(--surface)] transition-[transform,opacity] duration-300 ease-out will-change-transform transform-gpu ${visible || isDashboard ? "translate-y-0" : "-translate-y-full"}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col w-full pt-1.5 pb-0 lg:py-0">
@@ -466,9 +497,9 @@ export const Navbar = () => {
                   <img 
                     src="/logo4.jpg" 
                     alt="StopShop Logo" 
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white rounded-xl sm:rounded-2xl p-1 object-contain shadow-sm border border-border group-hover:border-bronze-500/30 transition-all duration-200"
+                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white rounded-xl sm:rounded-2xl p-1 object-contain shadow-sm border border-border group-hover:border-bronze-500/30"
                   />
-                  <span className="hidden sm:inline-block text-sm sm:text-base lg:text-2xl xl:text-2xl font-display font-bold tracking-tight text-heading">
+                  <span className="inline-block text-sm sm:text-base lg:text-2xl xl:text-2xl font-display font-bold tracking-tight text-heading">
                     Stop<span className="gradient-text">Shop</span>
                   </span>
                 </Link>
@@ -477,7 +508,7 @@ export const Navbar = () => {
               {/* Centered Wide Search Bar (Desktop only, permanently visible) */}
               {!isDashboard && !isProfilePage && (
                 <div className="hidden lg:flex flex-1 max-w-[340px] xl:max-w-[400px] mx-6 relative search-container">
-                  <form onSubmit={handleSearchSubmit} className="relative w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
+                  <form onSubmit={handleSearchSubmit} className="relative w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full">
                     <input
                       type="text"
                       value={searchQuery}
@@ -500,7 +531,7 @@ export const Navbar = () => {
                     )}
                     <button
                       type="submit"
-                      className="h-full px-4 xl:px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center transition-all border-l border-bronze-500/20 rounded-r-full absolute right-0 top-0 bottom-0"
+                      className="h-full px-4 xl:px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center border-l border-bronze-500/20 rounded-r-full absolute right-0 top-0 bottom-0"
                       aria-label="Search"
                     >
                       <Search size={14} />
@@ -513,7 +544,7 @@ export const Navbar = () => {
               {/* Expandable Search Input (Mobile only, shown when searchOpen is true) */}
               {!isDashboard && !isProfilePage && searchOpen && (
                 <div className="lg:hidden flex-grow mx-1 relative search-container animate-in fade-in slide-in-from-top-1 duration-200">
-                  <form onSubmit={handleSearchSubmit} className="relative w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
+                  <form onSubmit={handleSearchSubmit} className="relative w-full h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full">
                     <input
                       type="text"
                       value={searchQuery}
@@ -537,7 +568,7 @@ export const Navbar = () => {
                     )}
                     <button
                       type="submit"
-                      className="h-full px-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center transition-all border-l border-bronze-500/20 rounded-r-full absolute right-0 top-0 bottom-0"
+                      className="h-full px-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white flex items-center justify-center border-l border-bronze-500/20 rounded-r-full absolute right-0 top-0 bottom-0"
                       aria-label="Search"
                     >
                       <Search size={13} />
@@ -554,7 +585,7 @@ export const Navbar = () => {
                     setSearchOpen(false);
                     setSearchQuery("");
                   }}
-                  className="lg:hidden p-1.5 hover:bg-orange-500/10 text-muted hover:text-heading rounded-full transition-colors flex-shrink-0"
+                  className="lg:hidden p-1.5 hover:bg-orange-500/10 text-muted hover:text-heading rounded-full flex-shrink-0"
                   aria-label="Close search"
                 >
                   <X size={20} />
@@ -568,7 +599,7 @@ export const Navbar = () => {
                   <div className="relative currency-container-desktop">
                     <button
                       onClick={() => isLoaded && setDesktopCurrencyOpen(!desktopCurrencyOpen)}
-                      className={`flex items-center gap-1.5 bg-surface hover:bg-surface-hover border border-border px-2.5 py-1.5 rounded-xl text-xs font-bold text-heading transition-colors shadow-sm cursor-pointer ${!isLoaded ? 'opacity-50 pointer-events-none' : ''}`}
+                      className={`flex items-center gap-1.5 bg-surface hover:bg-surface-hover border border-border px-2.5 py-1.5 rounded-xl text-xs font-bold text-heading shadow-sm cursor-pointer ${!isLoaded ? 'opacity-50 pointer-events-none' : ''}`}
                     >
                       {isLoaded ? (
                         <>
@@ -612,7 +643,7 @@ export const Navbar = () => {
                                         setDesktopCurrencyOpen(false);
                                         setCurrencySearch("");
                                       }}
-                                      className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading font-semibold transition-colors cursor-pointer border-l-2 border-orange-500 bg-orange-500/[0.03]"
+                                      className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading font-semibold cursor-pointer border-l-2 border-orange-500 bg-orange-500/[0.03]"
                                     >
                                       <span className="flex items-center gap-2">
                                         <img
@@ -644,7 +675,7 @@ export const Navbar = () => {
                                     setDesktopCurrencyOpen(false);
                                     setCurrencySearch("");
                                   }}
-                                  className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading transition-colors cursor-pointer"
+                                  className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading cursor-pointer"
                                 >
                                   <span className="flex items-center gap-2">
                                     <img
@@ -668,7 +699,7 @@ export const Navbar = () => {
                   {/* Amazon-style User profile link & Dropdown */}
                   {!pathname.startsWith("/admin") && (
                     <div className="relative group/profile text-left py-2">
-                      <button className="flex items-center gap-1.5 text-muted hover:text-heading transition-colors cursor-pointer focus:outline-none">
+                      <button className="flex items-center gap-1.5 text-muted hover:text-heading cursor-pointer focus:outline-none">
                         <div className="w-8 h-8 rounded-full bg-bronze-500/10 dark:bg-bronze-500/25 flex items-center justify-center text-bronze-600 dark:text-bronze-400">
                           <User size={16} />
                         </div>
@@ -684,14 +715,14 @@ export const Navbar = () => {
                       </button>
 
                       {/* Dropdown Menu */}
-                      <div className="absolute top-full right-0 mt-0 w-60 bg-[var(--surface)] border border-border dark:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_45px_rgba(0,0,0,0.4)] rounded-2xl py-2 hidden group-hover/profile:block z-[9999] text-xs">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 w-60 bg-[var(--surface)] border border-border dark:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_45px_rgba(0,0,0,0.4)] rounded-2xl py-2 hidden group-hover/profile:block z-[9999] text-xs">
                         {/* Header: Sign In / Welcome */}
                         {!user ? (
                           <div className="px-4 py-3 border-b border-border dark:border-white/10 flex items-center justify-between gap-3">
                             <span className="text-muted text-xs font-semibold">New customer?</span>
                             <Link
                               href="/profile?mode=login"
-                              className="px-3.5 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-lg text-[11px] shadow-sm transition-all duration-200"
+                              className="px-3.5 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-lg text-[11px] shadow-sm"
                             >
                               Login
                             </Link>
@@ -708,7 +739,7 @@ export const Navbar = () => {
                           {!isDashboard && (
                             <Link
                               href="/profile"
-                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl"
                             >
                               <User size={15} className="text-muted" />
                               <span>My Profile</span>
@@ -718,7 +749,7 @@ export const Navbar = () => {
                           {user?.role === "vendor" && (
                             <Link
                               href="/vendor/profile"
-                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl"
                             >
                               <Store size={15} className="text-muted" />
                               <span>Vendor Profile</span>
@@ -799,7 +830,7 @@ export const Navbar = () => {
                           {user && (
                             <button
                               onClick={handleLogout}
-                              className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-500/5 rounded-xl transition-all text-left"
+                              className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-500/5 rounded-xl text-left"
                             >
                               <LogOut size={15} />
                               <span>Sign Out</span>
@@ -816,10 +847,10 @@ export const Navbar = () => {
                       {/* Wishlist Icon */}
                       <Link 
                         href="/wishlist" 
-                        className="relative flex items-center gap-1.5 text-muted hover:text-heading transition-colors group/wishlist"
+                        className="relative flex items-center gap-1.5 text-muted hover:text-heading group/wishlist"
                       >
                         <div className="relative">
-                          <Heart size={20} className="group-hover/wishlist:scale-105 transition-transform" />
+                          <Heart size={20} />
                           {wishlistCount > 0 && (
                             <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[var(--surface)] shadow-sm">
                               {wishlistCount}
@@ -832,13 +863,13 @@ export const Navbar = () => {
                       {/* Amazon-style Shopping Cart */}
                       <Link 
                         href="/cart" 
-                        className="flex items-end gap-1.5 text-muted hover:text-heading transition-colors group/cart"
+                        className="flex items-end gap-1.5 text-muted hover:text-heading group/cart"
                       >
                         <div className="relative pb-0.5">
                           <span className="absolute -top-2 left-2 text-[10px] font-extrabold text-orange-500 dark:text-orange-400 bg-[var(--surface)] px-0.5 rounded-full">
                             {cartCount}
                           </span>
-                          <ShoppingCart size={22} className="group-hover/cart:scale-105 transition-transform" />
+                          <ShoppingCart size={22} />
                         </div>
                         <span className="text-xs font-bold text-heading">Cart</span>
                       </Link>
@@ -847,7 +878,7 @@ export const Navbar = () => {
                       {(!user || user.role !== "vendor") && (
                         <Link
                           href="/vendor/register"
-                          className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold transition-all duration-300 shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/25 whitespace-nowrap ml-2"
+                          className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold shadow-md shadow-orange-500/10 whitespace-nowrap ml-2"
                         >
                           Sell with us
                         </Link>
@@ -857,7 +888,7 @@ export const Navbar = () => {
                   {pathname.startsWith("/vendor") && (
                     <button
                       onClick={handleLogout}
-                      className="px-4 py-2.5 rounded-xl border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 text-red-500 text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ml-2 cursor-pointer flex items-center gap-1.5"
+                      className="px-4 py-2.5 rounded-xl border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 text-red-500 text-[11px] sm:text-xs font-bold whitespace-nowrap ml-2 cursor-pointer flex items-center gap-1.5"
                     >
                       <LogOut size={14} />
                       Sign Out
@@ -869,7 +900,7 @@ export const Navbar = () => {
                 <div className="flex items-center gap-5 flex-shrink-0">
                   <Link
                     href="/vendor/register"
-                    className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold transition-all duration-300 shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/25 whitespace-nowrap ml-2"
+                    className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold shadow-md shadow-orange-500/10 whitespace-nowrap ml-2"
                   >
                     Sell with us
                   </Link>
@@ -894,7 +925,7 @@ export const Navbar = () => {
                     <div className="relative currency-container-mobile">
                       <button
                         onClick={() => isLoaded && setMobileCurrencyOpen(!mobileCurrencyOpen)}
-                        className={`flex items-center gap-1 bg-surface hover:bg-surface-hover border border-border px-2 py-1 rounded-xl text-[10px] font-bold text-heading transition-colors shadow-sm cursor-pointer ${!isLoaded ? 'opacity-50 pointer-events-none' : ''}`}
+                        className={`flex items-center gap-1 bg-surface hover:bg-surface-hover border border-border px-2 py-1 rounded-xl text-[10px] font-bold text-heading shadow-sm cursor-pointer ${!isLoaded ? 'opacity-50 pointer-events-none' : ''}`}
                       >
                         {isLoaded ? (
                           <>
@@ -938,7 +969,7 @@ export const Navbar = () => {
                                           setMobileCurrencyOpen(false);
                                           setCurrencySearch("");
                                         }}
-                                        className="w-full text-left px-2 py-1 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading font-semibold transition-colors cursor-pointer border-l border-orange-500 bg-orange-500/[0.03]"
+                                        className="w-full text-left px-2 py-1 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading font-semibold cursor-pointer border-l border-orange-500 bg-orange-500/[0.03]"
                                       >
                                         <span className="flex items-center gap-1.5">
                                           <img
@@ -970,7 +1001,7 @@ export const Navbar = () => {
                                       setMobileCurrencyOpen(false);
                                       setCurrencySearch("");
                                     }}
-                                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading transition-colors cursor-pointer"
+                                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-surface-hover flex items-center justify-between text-heading cursor-pointer"
                                   >
                                     <span className="flex items-center gap-1.5">
                                       <img
@@ -1000,12 +1031,8 @@ export const Navbar = () => {
         </div>
 
         {/* Mobile Expandable Nav Links */}
-        <AnimatePresence>
           {mobileOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
+            <div
               className="lg:hidden border-t border-border bg-[var(--surface)] max-h-[calc(100vh-100px)] overflow-y-auto"
             >
               <div className="px-4 py-5 space-y-2">
@@ -1025,7 +1052,7 @@ export const Navbar = () => {
                   <Link
                     href="/profile?mode=login"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-orange-500 font-bold hover:bg-orange-500/5 transition-all mb-2"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-orange-500 font-bold hover:bg-orange-500/5 mb-2"
                   >
                     <User size={16} />
                     Sign In / Register
@@ -1037,7 +1064,7 @@ export const Navbar = () => {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="block px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
+                    className="block px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium"
                   >
                     {link.label}
                   </Link>
@@ -1048,7 +1075,7 @@ export const Navbar = () => {
                   <Link
                     href="/"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium"
                   >
                     <Store size={16} />
                     User website homepage
@@ -1067,7 +1094,7 @@ export const Navbar = () => {
                   <Link
                     href="/vendor/register"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-orange-500 font-bold hover:bg-orange-500/5 transition-all"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-orange-500 font-bold hover:bg-orange-500/5"
                   >
                     <Store size={16} />
                     Sell With Us
@@ -1125,7 +1152,7 @@ export const Navbar = () => {
                       handleLogout();
                       setMobileOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-500 font-bold hover:bg-red-500/5 transition-all text-left cursor-pointer"
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-500 font-bold hover:bg-red-500/5 text-left cursor-pointer"
                   >
                     <LogOut size={16} />
                     Sign Out
@@ -1140,28 +1167,22 @@ export const Navbar = () => {
                   Checkout
                 </Link>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </nav>
 
       {/* Mobile Menu Backdrop */}
-      <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm"
+            className="lg:hidden fixed inset-0 z-[90] bg-black/60"
           />
         )}
-      </AnimatePresence>
 
       {/* Sticky Bottom Navigation Bar for Mobile (Blinkit Style) */}
       {!isDashboard && (
         <div 
-          className={`lg:hidden fixed bottom-4 left-4 right-4 z-[120] rounded-2xl backdrop-blur-xl bg-white/75 dark:bg-zinc-900/75 border border-white/50 dark:border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] transition-all duration-300 ease-out ${
+          className={`lg:hidden fixed bottom-4 left-4 right-4 z-[120] rounded-2xl bg-white dark:bg-zinc-900 border border-white/50 dark:border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] ${
             bottomVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
           }`}
         >
@@ -1169,13 +1190,11 @@ export const Navbar = () => {
               {/* Home */}
               <Link 
                 href="/" 
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative"
               >
                 {pathname === "/" && (
-                  <motion.div 
-                    layoutId="blinkit-tab"
-                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-md border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
-                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  <div 
+                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
                   />
                 )}
                 <Home size={22} className={`relative z-10 ${pathname === "/" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname === "/" ? 2.2 : 1.6} />
@@ -1188,10 +1207,8 @@ export const Navbar = () => {
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
               >
                 {pathname === "/products" && (
-                  <motion.div 
-                    layoutId="blinkit-tab"
-                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-md border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
-                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  <div 
+                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
                   />
                 )}
                 <Grid size={22} className={`relative z-10 ${pathname === "/products" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname === "/products" ? 2.2 : 1.6} />
@@ -1204,10 +1221,8 @@ export const Navbar = () => {
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
               >
                 {pathname === "/cart" && (
-                  <motion.div 
-                    layoutId="blinkit-tab"
-                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-md border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
-                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  <div 
+                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
                   />
                 )}
                 <div className="relative z-10">
@@ -1227,10 +1242,8 @@ export const Navbar = () => {
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
               >
                 {pathname.startsWith("/profile") && (
-                  <motion.div 
-                    layoutId="blinkit-tab"
-                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-md border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
-                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  <div 
+                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
                   />
                 )}
                 <User size={22} className={`relative z-10 ${pathname.startsWith("/profile") ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname.startsWith("/profile") ? 2.2 : 1.6} />

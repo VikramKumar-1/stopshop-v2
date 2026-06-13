@@ -1,5 +1,4 @@
 "use client";
-import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -50,24 +49,18 @@ const collections = [
 export const FeaturedCollections = () => {
   return (
     <section className="py-6 md:py-8 relative overflow-hidden bg-surface">
-      {/* Ambient glow */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-bronze-500/[0.04] rounded-full blur-[200px]" />
-      </div>
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-light text-xs font-semibold text-orange-700 dark:text-bronze-300 tracking-wider uppercase mb-4"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-bronze-500" />
             Curated For You
-          </motion.div>
+          </div>
 
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-heading mb-3">
             Featured <span className="gradient-text">Collections</span>
@@ -103,15 +96,10 @@ interface CollectionCardProps {
 
 const CollectionCard = ({ collection, index }: CollectionCardProps) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.08 }}
-    >
+    <div>
       <Link
         href={`/collection/${collection.id}`}
-        className="group relative block rounded-2xl sm:rounded-3xl overflow-hidden aspect-[16/10] shadow-lg hover:shadow-2xl hover:shadow-bronze-500/[0.08] transition-all duration-300"
+        className="group relative block rounded-2xl sm:rounded-3xl overflow-hidden aspect-[16/10] shadow-lg"
       >
         {/* Background Image */}
         <Image
@@ -120,7 +108,7 @@ const CollectionCard = ({ collection, index }: CollectionCardProps) => {
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 33vw"
           loading="lazy"
-          className="object-cover group-hover:scale-105 transition-transform duration-700"
+          className="object-cover"
         />
 
         {/* Gradient overlay */}
@@ -138,12 +126,12 @@ const CollectionCard = ({ collection, index }: CollectionCardProps) => {
           <p className="text-xs sm:text-sm text-white/75 leading-relaxed mb-3 max-w-xs line-clamp-2">
             {collection.tagline}
           </p>
-          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white font-semibold group-hover:gap-2.5 transition-all">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white font-semibold">
             <span>Explore Collection</span>
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight size={14} />
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 };

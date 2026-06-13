@@ -61,7 +61,10 @@ export async function POST(req: NextRequest) {
           await prisma.$transaction([
              prisma.order.update({
                 where: { id: order.id },
-                data: { shiprocketStatus: current_status }
+                data: { 
+                   shiprocketStatus: current_status,
+                   status: "RETURN_RECEIVED"
+                }
              }),
              prisma.returnRequest.update({
                 where: { id: returnReq.id },

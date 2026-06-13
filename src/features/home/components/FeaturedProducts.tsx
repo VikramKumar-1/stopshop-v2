@@ -1,6 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
-import { ArrowRight, Star, ShoppingCart, ShieldCheck, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
+import { ArrowRight, Star, ShoppingCart, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import React, { useRef } from "react";
@@ -184,21 +183,18 @@ export const FeaturedProducts = () => {
   };
 
   return (
-    <section className="pt-5 pb-2 md:pt-6 md:pb-3 relative overflow-hidden section-glass-ambient ambient-bronze">
+    <section className="lazy-scroll-section pt-5 pb-2 md:pt-6 md:pb-3 relative overflow-hidden section-glass-ambient ambient-bronze">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-2 md:mb-3 gap-4">
           <div className="max-w-xl">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <div
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full glass-light text-[8px] sm:text-[9px] font-semibold text-orange-700 dark:text-bronze-300 tracking-wider uppercase mb-1.5"
             >
               <TrendingUp size={11} className="text-bronze-500" />
               Most Popular
-            </motion.div>
+            </div>
             
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-heading">
               Best <span className="gradient-text">Sellers</span>
@@ -209,7 +205,7 @@ export const FeaturedProducts = () => {
           <div>
             <Link
               href="/products?sort=best-sellers"
-              className="text-sm font-semibold text-bronze-600 dark:text-bronze-400 hover:text-bronze-500 transition-colors hidden sm:inline-flex items-center gap-1"
+              className="text-sm font-semibold text-bronze-600 dark:text-bronze-400 hover:text-bronze-500 hidden sm:inline-flex items-center gap-1"
             >
               View All
               <ArrowRight size={14} />
@@ -223,7 +219,7 @@ export const FeaturedProducts = () => {
           {/* Left Arrow */}
           <button
             onClick={() => scroll("left")}
-            className="absolute -left-3 sm:-left-5 lg:-left-8 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center border border-orange-500/40 bg-surface-card hover:bg-surface-hover text-orange-600 dark:text-orange-400 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95"
+            className="absolute -left-3 sm:-left-5 lg:-left-8 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center border border-orange-500/40 bg-surface-card hover:bg-surface-hover text-orange-600 dark:text-orange-400 shadow-md hover:shadow-lg"
             aria-label="Scroll left"
           >
             <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
@@ -236,7 +232,7 @@ export const FeaturedProducts = () => {
             onMouseDown={handleDragStart}
             onTouchMove={handleDragMove}
             onMouseMove={handleDragMove}
-            className="flex overflow-x-auto gap-4 sm:gap-5 pb-6 pt-2 scrollbar-none snap-x snap-mandatory scroll-smooth"
+            className="flex overflow-x-auto gap-4 sm:gap-5 pb-6 pt-2 scrollbar-none"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none"
@@ -247,7 +243,7 @@ export const FeaturedProducts = () => {
                 key={product.id}
                 href={`/product/${product.slug || product.id}`}
                 onClickCapture={handleLinkClick}
-                className="group snap-start snap-always shrink-0 w-[200px] sm:w-[230px] lg:w-[250px] h-[365px] sm:h-[415px] lg:h-[450px] flex flex-col justify-between bg-surface-card border border-bronze-500/[0.12] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-bronze-500/[0.06] hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                className="group shrink-0 w-[200px] sm:w-[230px] lg:w-[250px] h-[365px] sm:h-[415px] lg:h-[450px] flex flex-col justify-between bg-surface-card border border-bronze-500/[0.12] rounded-2xl overflow-hidden shadow-sm cursor-pointer will-change-transform transform-gpu"
               >
                 {/* Product Image */}
                 <div className="relative aspect-square w-full overflow-hidden bg-orange-50 dark:bg-white/5">
@@ -261,7 +257,7 @@ export const FeaturedProducts = () => {
                     fill
                     sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 280px"
                     loading="lazy"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-cover"
                   />
                 </div>
 
@@ -320,7 +316,7 @@ export const FeaturedProducts = () => {
                         e.stopPropagation();
                         addToCart(product, 1);
                       }}
-                      className="px-3 py-2 sm:py-2.5 rounded-xl border border-bronze-500 text-bronze-500 dark:text-bronze-400 hover:bg-bronze-500/10 transition-all duration-200 flex items-center justify-center cursor-pointer shrink-0"
+                      className="px-3 py-2 sm:py-2.5 rounded-xl border border-bronze-500 text-bronze-500 dark:text-bronze-400 hover:bg-bronze-500/10 flex items-center justify-center cursor-pointer shrink-0"
                       title="Add to Cart"
                     >
                       <ShoppingCart size={14} />
@@ -332,7 +328,7 @@ export const FeaturedProducts = () => {
                         e.stopPropagation();
                         window.location.href = `/checkout?productId=${product.id}`;
                       }}
-                      className="flex-grow inline-flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-[10px] sm:text-xs active:scale-[0.97] cursor-pointer text-center"
+                      className="flex-grow inline-flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold text-[10px] sm:text-xs cursor-pointer text-center"
                     >
                       Buy Now
                     </button>
@@ -345,7 +341,7 @@ export const FeaturedProducts = () => {
           {/* Right Arrow */}
           <button
             onClick={() => scroll("right")}
-            className="absolute -right-3 sm:-right-5 lg:-right-8 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center border border-orange-500/40 bg-surface-card hover:bg-surface-hover text-orange-600 dark:text-orange-400 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95"
+            className="absolute -right-3 sm:-right-5 lg:-right-8 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center border border-orange-500/40 bg-surface-card hover:bg-surface-hover text-orange-600 dark:text-orange-400 shadow-md hover:shadow-lg"
             aria-label="Scroll right"
           >
             <ChevronRight size={18} className="sm:w-5 sm:h-5" />

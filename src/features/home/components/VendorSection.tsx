@@ -1,6 +1,5 @@
 "use client";
 import React, { useRef } from "react";
-import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Award, MapPin, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -278,27 +277,20 @@ export const VendorSection = () => {
   };
 
   return (
-    <section className="py-6 md:py-8 relative overflow-hidden section-glass-ambient ambient-bronze border-y border-bronze-500/10">
-      {/* Background ambient glows */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-orange-500/[0.03] rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-amber-600/[0.03] rounded-full blur-[150px]" />
-      </div>
+    <section className="lazy-scroll-section py-6 md:py-8 relative overflow-hidden section-glass-ambient ambient-bronze border-y border-bronze-500/10">
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-3 sm:mb-4 gap-4">
           <div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <div
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[8px] sm:text-[9px] font-semibold text-orange-700 dark:text-bronze-300 tracking-wider uppercase mb-1.5"
             >
               <Award size={11} className="text-bronze-500" />
               Verified Heritage Hubs
-            </motion.div>
+            </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-heading">
               Shop by <span className="gradient-text">Artisan Clusters</span>
             </h2>
@@ -308,7 +300,7 @@ export const VendorSection = () => {
           <div className="flex items-center justify-between sm:justify-end gap-4">
             <Link
               href="/brands"
-              className="text-xs sm:text-sm font-semibold text-bronze-600 dark:text-bronze-400 hover:text-bronze-500 transition-colors inline-flex items-center gap-1"
+              className="text-xs sm:text-sm font-semibold text-bronze-600 dark:text-bronze-400 hover:text-bronze-500 inline-flex items-center gap-1"
             >
               Explore All Clusters
               <ArrowRight size={14} />
@@ -317,14 +309,14 @@ export const VendorSection = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => scroll("left")}
-                className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm transition-all hover:scale-105 active:scale-95"
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm"
                 aria-label="Scroll left"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={() => scroll("right")}
-                className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm transition-all hover:scale-105 active:scale-95"
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm"
                 aria-label="Scroll right"
               >
                 <ChevronRight size={16} />
@@ -340,7 +332,7 @@ export const VendorSection = () => {
           onMouseDown={handleDragStart}
           onTouchMove={handleDragMove}
           onMouseMove={handleDragMove}
-          className="flex overflow-x-auto gap-4 sm:gap-6 pb-6 pt-2 scrollbar-none snap-x snap-mandatory scroll-smooth px-4 -mx-4 sm:px-0 sm:mx-0"
+          className="flex overflow-x-auto gap-4 sm:gap-6 pb-6 pt-2 scrollbar-none px-4 -mx-4 sm:px-0 sm:mx-0"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
@@ -349,19 +341,18 @@ export const VendorSection = () => {
           {vendors.map((vendor) => (
             <div
               key={vendor.id}
-              className="snap-start snap-always shrink-0 w-[82%] sm:w-[280px] bg-gradient-to-br from-surface-card to-bronze-500/[0.02] border border-bronze-500/15 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-2xl hover:shadow-bronze-500/10 hover:border-bronze-500/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+              className="shrink-0 w-[82%] sm:w-[280px] bg-gradient-to-br from-surface-card to-bronze-500/[0.02] border border-bronze-500/15 rounded-3xl p-5 sm:p-6 shadow-md hover:border-bronze-500/40 flex flex-col justify-between group cursor-pointer relative overflow-hidden will-change-transform transform-gpu [contain:paint]"
             >
-              {/* Subtle background glow */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-bronze-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-bronze-500/10 transition-colors" />
+
 
               <div>
                 {/* Logo and Brand Header */}
                 <div className="flex items-center gap-4 mb-5">
-                  <div className="w-16 h-16 rounded-2xl bg-white dark:bg-stone-900/40 p-2.5 shadow-md border border-bronze-500/20 group-hover:border-bronze-500/50 transition-colors flex items-center justify-center flex-shrink-0">
+                  <div className="w-16 h-16 rounded-2xl bg-white dark:bg-stone-900/40 p-2.5 shadow-md border border-bronze-500/20 group-hover:border-bronze-500/50 flex items-center justify-center flex-shrink-0">
                     {vendor.logo}
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-heading font-display leading-tight group-hover:text-bronze-600 dark:group-hover:text-bronze-400 transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-heading font-display leading-tight group-hover:text-bronze-600 dark:group-hover:text-bronze-400">
                       {vendor.name}
                     </h3>
                     <p className="text-xs text-orange-700 dark:text-bronze-500 font-semibold tracking-wide">
@@ -390,10 +381,10 @@ export const VendorSection = () => {
                 <Link
                   href={`/brands/${vendor.id}`}
                   onClickCapture={handleLinkClick}
-                  className="text-xs font-bold text-orange-600 hover:text-orange-700 dark:text-bronze-400 dark:hover:text-bronze-300 transition-colors inline-flex items-center gap-0.5 group/btn"
+                  className="text-xs font-bold text-orange-600 hover:text-orange-700 dark:text-bronze-400 dark:hover:text-bronze-300 inline-flex items-center gap-0.5 group/btn"
                 >
                   View Collection
-                  <ChevronRight size={14} className="group-hover/btn:translate-x-0.5 transition-transform" />
+                  <ChevronRight size={14} />
                 </Link>
               </div>
             </div>

@@ -556,25 +556,21 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-6">
                 {products.map((product) => {
                   const rawMrp = getRawPrice(product.mrp, product, true);
                   const rawPrice = getRawPrice(product.price, product, false);
                   const savedAmount = Math.max(0, rawMrp - rawPrice);
 
                   return (
-                    <motion.div
+                    <div
                       key={product.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3 }}
                       onClick={() => router.push(`/product/${product.slug || product.id}`)}
-                      className="group bg-surface-card border border-bronze-500/[0.12] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
+                      className="group bg-surface-card border border-bronze-500/[0.12] rounded-xl sm:rounded-2xl overflow-hidden shadow-sm transition-all duration-300 flex flex-col justify-between cursor-pointer will-change-transform transform-gpu"
                     >
                       <Link href={`/product/${product.slug || product.id}`} className="relative aspect-square block bg-orange-50/50 dark:bg-white/5 overflow-hidden">
                         {product.discount > 0 && (
-                          <span className="absolute top-3 left-3 z-10 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-md">
+                          <span className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 bg-emerald-500 text-white text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded sm:rounded-md">
                             {product.discount}% OFF
                           </span>
                         )}
@@ -585,68 +581,67 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                             e.stopPropagation();
                             addToWishlist(product);
                           }}
-                          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-md border border-border/60 hover:text-red-500 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+                          className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 p-1.5 sm:p-2 rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-md border border-border/60 hover:text-red-500 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
                           title={isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
                         >
-                          <Heart size={14} fill={isInWishlist(product.id) ? "currentColor" : "none"} className={isInWishlist(product.id) ? "text-red-500" : "text-muted"} />
+                          <Heart size={12} fill={isInWishlist(product.id) ? "currentColor" : "none"} className={isInWishlist(product.id) ? "text-red-500" : "text-muted"} />
                         </button>
                         
-                        <span className="absolute bottom-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-md capitalize">
+                        <span className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded sm:rounded-md capitalize">
                           {product.category?.name || product.categoryName?.replace(/-/g, " ") || "Premium"}
                         </span>
 
-                        <Image
+                        <img
                           src={product.image}
                           alt={product.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="eager"
                         />
                       </Link>
 
-                      <div className="p-4 flex-grow flex flex-col justify-between">
+                      <div className="p-2.5 sm:p-4 flex-grow flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted mb-1.5 flex-wrap">
-                            <div className="flex items-center gap-0.5 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold">
+                          <div className="flex items-center gap-1 text-[8px] sm:text-xs text-muted mb-1 flex-wrap">
+                            <div className="flex items-center gap-0.5 bg-emerald-600 text-white px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-bold shrink-0">
                               <span>{product.rating}</span>
-                              <Star size={8} fill="currentColor" className="stroke-none" />
+                              <Star size={7} fill="currentColor" className="stroke-none" />
                             </div>
-                            <span>({product.reviews} reviews)</span>
+                            <span className="shrink-0">({product.reviews})</span>
                             {product.material && (
                               <>
                                 <span className="text-bronze-500 font-semibold">•</span>
-                                <span className="font-semibold text-bronze-700 dark:text-bronze-300">{product.material}</span>
+                                <span className="font-semibold text-bronze-700 dark:text-bronze-300 truncate max-w-[50px]">{product.material}</span>
                               </>
                             )}
                           </div>
 
                           <Link href={`/product/${product.slug || product.id}`}>
-                            <h3 className="text-sm sm:text-base font-bold text-heading hover:text-bronze-500 transition-colors line-clamp-1 mb-1">
+                            <h3 className="text-xs sm:text-base font-bold text-heading hover:text-bronze-500 transition-colors line-clamp-2 min-h-[2.4em] sm:min-h-0 mb-1">
                               {product.name}
                             </h3>
                           </Link>
 
-                          <div className="flex items-baseline gap-1.5 mb-2.5 flex-wrap">
-                            <span className="text-base font-bold text-heading">{convertPrice(product.price, product, false)}</span>
+                          <div className="flex items-baseline gap-1 sm:gap-1.5 mb-1.5 flex-wrap">
+                            <span className="text-sm sm:text-base font-bold text-heading">{convertPrice(product.price, product, false)}</span>
                             {rawMrp > rawPrice && (
                               <>
-                                <span className="text-xs text-muted line-through">{convertPrice(product.mrp, product, true)}</span>
-                                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">
+                                <span className="text-[10px] sm:text-xs text-muted line-through">{convertPrice(product.mrp, product, true)}</span>
+                                <span className="text-[8px] sm:text-[9px] text-emerald-600 dark:text-emerald-400 font-bold block sm:inline">
                                   Save {formatPrice(savedAmount)}
                                 </span>
                               </>
                             )}
                           </div>
 
-                          <div className="flex items-center justify-between text-[10px] font-medium border-t border-border pt-2.5 mb-4">
-                            <span className="flex items-center gap-1 text-bronze-800 dark:text-bronze-400">
-                              <ShieldCheck size={12} />
-                              100% Export Quality
+                          <div className="flex items-center justify-between text-[8px] sm:text-[10px] font-medium border-t border-border pt-2 mb-3">
+                            <span className="flex items-center gap-0.5 sm:gap-1 text-bronze-800 dark:text-bronze-400">
+                              <ShieldCheck size={10} />
+                              100% Export
                             </span>
                             
                             {product.stock <= 5 ? (
                               <span className="text-red-500 font-bold animate-pulse">
-                                Only {product.stock} left in stock
+                                Only {product.stock} left
                               </span>
                             ) : (
                               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -656,7 +651,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 w-full">
+                        <div className="flex items-center gap-1.5 w-full mt-auto">
                           <button
                             type="button"
                             onClick={async (e) => {
@@ -664,10 +659,10 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                               e.stopPropagation();
                               addToCart(product, 1);
                             }}
-                            className="px-3 py-2.5 rounded-xl border border-bronze-500 text-bronze-500 dark:text-bronze-400 hover:bg-bronze-500/10 transition-all duration-200 flex items-center justify-center cursor-pointer shrink-0"
+                            className="p-2 sm:px-3 sm:py-2.5 rounded-lg sm:rounded-xl border border-bronze-500 text-bronze-500 dark:text-bronze-400 hover:bg-bronze-500/10 transition-all duration-200 flex items-center justify-center cursor-pointer shrink-0"
                             title="Add to Cart"
                           >
-                            <ShoppingCart size={14} />
+                            <ShoppingCart size={12} />
                           </button>
                           <button
                             type="button"
@@ -690,13 +685,13 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                                 window.location.href = `/checkout?productId=${product.id}`;
                               }
                             }}
-                            className="flex-grow inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-xs active:scale-[0.97] cursor-pointer"
+                            className="flex-grow inline-flex items-center justify-center gap-1 py-2 rounded-lg sm:rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold transition-all duration-300 text-[10px] sm:text-xs active:scale-[0.97] cursor-pointer text-center"
                           >
                             Buy Now
                           </button>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
@@ -731,14 +726,14 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => setSidebarOpen(false)}
-              className="fixed inset-0 bg-black z-50"
+              className="fixed inset-0 bg-black z-[200]"
             />
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "tween", duration: 0.3 }}
-              className="fixed right-0 top-0 bottom-0 w-80 bg-surface-card z-50 p-6 shadow-2xl flex flex-col justify-between"
+              className="fixed right-0 top-0 bottom-0 w-80 bg-surface-card z-[200] p-6 shadow-2xl flex flex-col justify-between"
             >
               <div className="space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b border-border">

@@ -44,9 +44,17 @@ export async function POST(req: NextRequest) {
        where: { orderId: orderItem.orderId }
     });
     
-    const allPacked = allItems.every(item => 
-       item.dispatchImages && Array.isArray(item.dispatchImages) && item.dispatchImages.length >= 5
-    );
+    const allPacked = allItems.every(item => {
+       let imgs = item.dispatchImages;
+       if (typeof imgs === 'string') {
+          try { imgs = JSON.parse(imgs as string); } catch(e) {}
+       }
+       const isPacked = imgs && Array.isArray(imgs) && imgs.length >= 5;
+       console.log(`[Dispatch Check] Item ${item.id}: isPacked=${isPacked}, vendorId=${item.vendorId}, imgsLength=${Array.isArray(imgs) ? imgs.length : 'not_array'}`);
+       return isPacked;
+    });
+
+    console.log(`[Dispatch Result] orderId=${orderItem.orderId}, allPacked=${allPacked}`);
 
     if (allPacked && (orderItem.order.status === "CONFIRMED" || orderItem.order.status === "PENDING")) {
        await prisma.order.update({

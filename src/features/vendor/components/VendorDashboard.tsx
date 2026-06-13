@@ -40,7 +40,7 @@ export const VendorDashboard = () => {
       });
       if (res.ok) {
         showToast(`Simulated Shiprocket Webhook: ${status}`, "success");
-        if (vendor) fetchData(vendor.id);
+        if (vendor) await fetchData(vendor.id);
       } else {
         showToast("Webhook simulation failed", "error");
       }
@@ -803,7 +803,7 @@ export const VendorDashboard = () => {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (data.authenticated) {
@@ -859,9 +859,10 @@ export const VendorDashboard = () => {
   const fetchOrders = async (vId: number, page: number) => {
     setFetchingOrders(true);
     try {
-      const res = await fetch(`/api/orders?vendorId=${vId}&page=${page}&limit=10`);
+      const res = await fetch(`/api/orders?vendorId=${vId}&page=${page}&limit=10&t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
+        console.log("[fetchOrders] Received orders:", data.orders?.map((o: any) => ({ id: o.id, status: o.status, orderNumber: o.orderNumber })));
         setDirectOrders(prev => page === 1 ? (data.orders || []) : [...prev, ...(data.orders || [])]);
         if (data.pagination) {
           setOrderTotalPages(data.pagination.totalPages || 1);
@@ -878,7 +879,7 @@ export const VendorDashboard = () => {
     try {
       // Fetch categories
       setLoadingCategories(true);
-      const resCat = await fetch("/api/categories");
+      const resCat = await fetch("/api/categories", { cache: "no-store" });
       if (resCat.ok) {
         const dataCat = await resCat.json();
         setDbCategories(dataCat);
@@ -896,13 +897,13 @@ export const VendorDashboard = () => {
       setLoadingCategories(false);
 
       // Fetch vendor's own products
-      const resProd = await fetch(`/api/products?vendorId=${vendorId}`);
+      const resProd = await fetch(`/api/products?vendorId=${vendorId}`, { cache: "no-store" });
       if (resProd.ok) {
         const dataProd = await resProd.json();
         setProducts(dataProd);
 
         // Fetch B2B inquiries and filter to show only those containing this vendor's products
-        const resInq = await fetch("/api/inquiries");
+        const resInq = await fetch("/api/inquiries", { cache: "no-store" });
         if (resInq.ok) {
           const allInqs = await resInq.json();
           setAllInquiries(allInqs);
@@ -922,11 +923,12 @@ export const VendorDashboard = () => {
           setInquiries(filteredInq);
         }
 
-        // Fetch direct orders via separate function
-        await fetchOrders(vendorId, orderPage);
+        // Fetch direct orders - always reset to page 1 for fresh data
+        setOrderPage(1);
+        await fetchOrders(vendorId, 1);
 
         // Fetch vendor stats
-        const resStats = await fetch(`/api/vendor/stats?vendorId=${vendorId}`);
+        const resStats = await fetch(`/api/vendor/stats?vendorId=${vendorId}`, { cache: "no-store" });
         if (resStats.ok) {
           const statsData = await resStats.json();
           if (statsData.success) {
@@ -935,7 +937,7 @@ export const VendorDashboard = () => {
         }
 
         // Fetch Settlements
-        const resSettlements = await fetch(`/api/admin/settlements`);
+        const resSettlements = await fetch(`/api/admin/settlements`, { cache: "no-store" });
         if (resSettlements.ok) {
           const dataSettlements = await resSettlements.json();
           if (dataSettlements.success) {
@@ -946,7 +948,7 @@ export const VendorDashboard = () => {
         }
 
         // Fetch Returns
-        const resReturns = await fetch(`/api/vendor/returns`);
+        const resReturns = await fetch(`/api/vendor/returns`, { cache: "no-store" });
         if (resReturns.ok) {
           const dataReturns = await resReturns.json();
           if (dataReturns.success) {
@@ -1082,6 +1084,7 @@ export const VendorDashboard = () => {
   };
 
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
 
   const handleUpdateItemStatus = async (inquiryId: number, productId: number, status: string, deliveryDate?: string) => {
     if (updatingStatus) return;
@@ -1107,7 +1110,8 @@ export const VendorDashboard = () => {
   };
 
   const handleUpdateDirectOrderStatus = async (orderId: string, status: string, deliveryDate?: string) => {
-    if (updatingStatus) return;
+    if (savingOrderId) return;
+    setSavingOrderId(orderId);
     setUpdatingStatus(true);
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -1118,7 +1122,7 @@ export const VendorDashboard = () => {
 
       if (res.ok) {
         showToast("Order status updated successfully!", "success");
-        if (vendor) fetchData(vendor.id);
+        if (vendor) await fetchData(vendor.id);
       } else {
         const data = await res.json();
         showToast(data.error || "Failed to update order status", "error");
@@ -1126,6 +1130,7 @@ export const VendorDashboard = () => {
     } catch (err) {
       showToast("Error updating order status", "error");
     } finally {
+      setSavingOrderId(null);
       setUpdatingStatus(false);
     }
   };
@@ -1530,7 +1535,7 @@ export const VendorDashboard = () => {
                           {/* Product Details */}
                           <td className="p-4">
                             <div className="flex flex-col gap-3">
-                              {order.items && order.items.map((item: any) => (
+                              {order.items && order.items.filter((item: any) => item.vendorId === vendor?.id).map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-3">
                                   <div className="w-10 h-10 rounded-xl overflow-hidden border border-border/60 bg-white flex-shrink-0 relative shadow-sm">
                                     <img src={item.productImage || "/logo4.jpg"} alt={item.productName} className="w-full h-full object-cover" />
@@ -1691,8 +1696,9 @@ export const VendorDashboard = () => {
                             {["PENDING", "CONFIRMED"].includes(currentStatus) && (
                               <button
                                 type="button"
+                                disabled={savingOrderId === order.id}
                                 onClick={() => setShowPackingModal(order)}
-                                className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold shadow-sm shadow-blue-500/10 transition-all duration-200"
+                                className={`px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold shadow-sm shadow-blue-500/10 transition-all duration-200 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                               >
                                 Start Packing (Upload Photos)
                               </button>
@@ -1702,18 +1708,21 @@ export const VendorDashboard = () => {
                                 {order.awbCode && (
                                   <button
                                     type="button"
+                                    disabled={!!savingOrderId}
                                     onClick={() => simulateShiprocketWebhook(order.awbCode, "PICKED UP")}
-                                    className="px-2 py-1.5 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-xl font-bold transition-colors border border-purple-500/20"
+                                    className={`px-2 py-1.5 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-xl font-bold transition-colors border border-purple-500/20 ${savingOrderId ? 'opacity-50 cursor-not-allowed' : ''}`}
                                   >
                                     Simulate Pickup (Test Webhook)
                                   </button>
                                 )}
                                 <button
                                   type="button"
+                                  disabled={savingOrderId === order.id}
                                   onClick={() => handleUpdateDirectOrderStatus(order.id, "DISPATCHED")}
-                                  className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 rounded-xl font-bold shadow-sm shadow-orange-500/10 transition-all duration-200"
+                                  className={`px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 rounded-xl font-bold shadow-sm shadow-orange-500/10 transition-all duration-200 inline-flex items-center gap-1.5 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                  Dispatch Order (Manual)
+                                  {savingOrderId === order.id && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                                  {savingOrderId === order.id ? 'Dispatching...' : 'Dispatch Order (Manual)'}
                                 </button>
                               </div>
                             )}
@@ -1723,8 +1732,9 @@ export const VendorDashboard = () => {
                                 {order.returnAwbCode && (
                                   <button
                                     type="button"
+                                    disabled={!!savingOrderId}
                                     onClick={() => simulateShiprocketWebhook(order.returnAwbCode, "DELIVERED")}
-                                    className="px-2 py-1 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-md font-bold transition-colors border border-purple-500/20"
+                                    className={`px-2 py-1 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-md font-bold transition-colors border border-purple-500/20 ${savingOrderId ? 'opacity-50 cursor-not-allowed' : ''}`}
                                   >
                                     Test Webhook
                                   </button>
@@ -1736,16 +1746,19 @@ export const VendorDashboard = () => {
                               <div className="flex items-center gap-2 justify-end">
                                 <button
                                   type="button"
+                                  disabled={savingOrderId === order.id}
                                   onClick={() => handleUpdateDirectOrderStatus(order.id, "DELIVERED")}
-                                  className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 rounded-xl font-bold shadow-sm shadow-emerald-500/10 transition-all duration-200"
+                                  className={`px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 rounded-xl font-bold shadow-sm shadow-emerald-500/10 transition-all duration-200 inline-flex items-center gap-1.5 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                  Mark Delivered (Manual)
+                                  {savingOrderId === order.id && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                                  {savingOrderId === order.id ? 'Delivering...' : 'Mark Delivered (Manual)'}
                                 </button>
                                 {order.awbCode && (
                                   <button
                                     type="button"
+                                    disabled={!!savingOrderId}
                                     onClick={() => simulateShiprocketWebhook(order.awbCode, "DELIVERED")}
-                                    className="px-2 py-1.5 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-xl font-bold transition-colors border border-purple-500/20"
+                                    className={`px-2 py-1.5 text-[9px] text-purple-600 bg-purple-500/10 hover:bg-purple-500 hover:text-white rounded-xl font-bold transition-colors border border-purple-500/20 ${savingOrderId ? 'opacity-50 cursor-not-allowed' : ''}`}
                                   >
                                     Simulate Delivery (Test Webhook)
                                   </button>
@@ -1764,28 +1777,21 @@ export const VendorDashboard = () => {
                               ) : (
                                 <button
                                   type="button"
+                                  disabled={savingOrderId === order.id}
                                   onClick={() => {
                                     setIsDisputing(false);
                                     setQcImages([]);
                                     setQcNotes("");
                                     setReviewReturnOrder(order);
                                   }}
-                                  className="px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl font-bold shadow-sm shadow-red-500/10 transition-all duration-200"
+                                  className={`px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl font-bold shadow-sm shadow-red-500/10 transition-all duration-200 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                   Review Delivered Return (QC)
                                 </button>
                               )
                             )}
 
-                            {["PENDING", "CONFIRMED"].includes(currentStatus) && (
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateDirectOrderStatus(order.id, "CANCELLED")}
-                                className="px-3 py-1.5 text-[10px] text-red-500 hover:text-white border border-red-500/20 hover:bg-red-500 rounded-xl font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-red-500/10"
-                              >
-                                Cancel Order
-                              </button>
-                            )}
+
                           </td>
                         </tr>
                       );
@@ -3236,7 +3242,7 @@ export const VendorDashboard = () => {
       
       {/* Product Details Modal */}
       {modalProduct && (
-        <div className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div data-lenis-prevent className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-card border border-border rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200">
             {/* Close button */}
             <button
@@ -3393,7 +3399,7 @@ export const VendorDashboard = () => {
 
       {/* Buyer Message Modal */}
       {modalMessage && (
-        <div className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div data-lenis-prevent className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-card border border-border rounded-3xl max-w-md w-full overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200 p-6 sm:p-8">
             {/* Close button */}
             <button
@@ -3431,7 +3437,7 @@ export const VendorDashboard = () => {
 
       {/* Product Image Modal */}
       {modalProduct && !modalEditProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setModalProduct(null)}>
+        <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setModalProduct(null)}>
           <div className="bg-surface-card border border-border p-2 rounded-2xl max-w-3xl w-full relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setModalProduct(null)}
@@ -3471,7 +3477,7 @@ export const VendorDashboard = () => {
                <p className="text-xs text-muted">You must upload 5 to 8 photos for each item in the order to prove it was packed correctly.</p>
                
                <div className="space-y-6">
-                  {showPackingModal.items?.map((item: any) => (
+                  {showPackingModal.items?.filter((item: any) => item.vendorId === vendor?.id).map((item: any) => (
                      <div key={item.id} className="border border-border rounded-2xl p-4 bg-surface/50">
                         <div className="flex items-center gap-3 mb-3">
                            <img src={item.productImage} className="w-10 h-10 rounded-lg object-cover" />
@@ -3551,7 +3557,7 @@ export const VendorDashboard = () => {
                         e.preventDefault();
                         if (submittingPacking) return;
                         // Check if all items have 5-8 photos
-                        const items = showPackingModal.items || [];
+                        const items = (showPackingModal.items || []).filter((item: any) => item.vendorId === vendor?.id);
                         let valid = true;
                         for (const item of items) {
                            const imgs = packingImages[item.id] || [];
@@ -3566,29 +3572,34 @@ export const VendorDashboard = () => {
                         }
                         
                         setSubmittingPacking(true);
+                        setSavingOrderId(showPackingModal.id);
                         try {
-                           // Upload for each item
                            for (const item of items) {
-                              await fetch("/api/vendor/dispatch", {
+                              const res = await fetch("/api/vendor/dispatch", {
                                  method: "POST",
                                  headers: { "Content-Type": "application/json" },
                                  body: JSON.stringify({ orderItemId: item.id, dispatchImages: packingImages[item.id] })
                               });
+                              if (!res.ok) {
+                                 const errData = await res.json().catch(() => ({}));
+                                 throw new Error(errData.error || "Failed to pack item " + item.id);
+                              }
                            }
                            showToast("Order packed successfully!", "success");
                            setShowPackingModal(null);
-                           if (vendor) fetchData(vendor.id);
-                        } catch (err) {
-                           showToast("Failed to pack order", "error");
+                           if (vendor) await fetchData(vendor.id);
+                        } catch (err: any) {
+                           showToast(err.message || "Failed to pack order", "error");
                         } finally {
                            setSubmittingPacking(false);
+                           setSavingOrderId(null);
                         }
                      }} 
-                     disabled={submittingPacking} 
+                     disabled={submittingPacking || savingOrderId === showPackingModal.id} 
                      className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                     {submittingPacking && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />} 
-                     {submittingPacking ? "Packing..." : "Confirm Packing"}
+                     {(submittingPacking || savingOrderId === showPackingModal.id) && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />} 
+                     {(submittingPacking || savingOrderId === showPackingModal.id) ? "Packing..." : "Confirm Packing"}
                   </button>
                </div>
             </div>

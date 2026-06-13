@@ -123,7 +123,7 @@ export const CartPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-surface py-16 relative overflow-hidden">
+    <div className="min-h-screen bg-surface py-8 sm:py-16 relative overflow-hidden">
       {/* Decorative background glow */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/[0.03] dark:bg-orange-500/[0.02] rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-amber-500/[0.03] dark:bg-amber-500/[0.02] rounded-full blur-[120px] pointer-events-none" />

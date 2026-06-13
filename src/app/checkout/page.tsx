@@ -128,14 +128,26 @@ function CheckoutPageInner() {
   }, [cart, router, loaded, buyNowProductId, buyNowQty]);
 
   const checkoutItems = buyNowCart.length > 0 ? buyNowCart : cart;
+  const activeAddress = addresses.find(a => a.id === selectedAddressId);
+  const country = activeAddress?.country || "India";
+  const isInternational = country.toLowerCase() !== "india" && country.toLowerCase() !== "in";
+
+  // Auto-switch payment method based on country of selected address
+  useEffect(() => {
+    if (isInternational) {
+      if (paymentMethod !== "payu") {
+        setPaymentMethod("payu");
+      }
+    } else {
+      if (paymentMethod === "payu") {
+        setPaymentMethod("razorpay");
+      }
+    }
+  }, [isInternational, paymentMethod]);
 
   // Recalculate Pricing
   useEffect(() => {
     if (!settings || checkoutItems.length === 0) return;
-
-    const activeAddress = addresses.find(a => a.id === selectedAddressId);
-    const country = activeAddress?.country || "India";
-    const isInternational = country.toLowerCase() !== "india" && country.toLowerCase() !== "in";
 
     let subtotal = 0;
     checkoutItems.forEach(item => {
@@ -171,7 +183,7 @@ function CheckoutPageInner() {
        total: subtotal + shipping + codSurcharge + tax
     });
 
-  }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice]);
+  }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice, isInternational]);
 
   // Handle Address Submit
   const handleAddressSubmit = async (e: React.FormEvent) => {
@@ -543,22 +555,48 @@ function CheckoutPageInner() {
                 <span className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-[10px] font-black">2</span>
                 <h2 className="text-sm font-display font-bold text-heading uppercase tracking-wide">Payment Method</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <label className={`cursor-pointer p-4 border-2 rounded-xl flex flex-col items-center gap-2 transition-all ${paymentMethod === 'razorpay' ? 'border-orange-500 bg-orange-500/5' : 'border-border hover:border-orange-500/30'}`}>
-                   <input type="radio" name="payment" value="razorpay" checked={paymentMethod === 'razorpay'} onChange={() => setPaymentMethod('razorpay')} className="sr-only" />
-                   <CreditCard size={24} className={paymentMethod === 'razorpay' ? 'text-orange-500' : 'text-muted'} />
-                   <span className="text-xs font-bold text-heading">Razorpay (India)</span>
-                </label>
-                <label className={`cursor-pointer p-4 border-2 rounded-xl flex flex-col items-center gap-2 transition-all ${paymentMethod === 'payu' ? 'border-orange-500 bg-orange-500/5' : 'border-border hover:border-orange-500/30'}`}>
-                   <input type="radio" name="payment" value="payu" checked={paymentMethod === 'payu'} onChange={() => setPaymentMethod('payu')} className="sr-only" />
-                   <Globe size={24} className={paymentMethod === 'payu' ? 'text-orange-500' : 'text-muted'} />
-                   <span className="text-xs font-bold text-heading">PayU (International)</span>
-                </label>
-                <label className={`cursor-pointer p-4 border-2 rounded-xl flex flex-col items-center gap-2 transition-all ${paymentMethod === 'cod' ? 'border-orange-500 bg-orange-500/5' : 'border-border hover:border-orange-500/30'}`}>
-                   <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="sr-only" />
-                   <Building2 size={24} className={paymentMethod === 'cod' ? 'text-orange-500' : 'text-muted'} />
-                   <span className="text-xs font-bold text-heading">Cash on Delivery</span>
-                </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Razorpay (Online Payment for India) */}
+                {!isInternational && (
+                  <label className={`cursor-pointer p-4 border-2 rounded-2xl flex items-center gap-4 transition-all ${paymentMethod === 'razorpay' ? 'border-orange-500 bg-orange-500/5 shadow-sm' : 'border-border hover:border-orange-500/30'}`}>
+                     <input type="radio" name="payment" value="razorpay" checked={paymentMethod === 'razorpay'} onChange={() => setPaymentMethod('razorpay')} className="sr-only" />
+                     <div className={`p-2.5 rounded-xl border ${paymentMethod === 'razorpay' ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' : 'bg-surface border-border text-muted'}`}>
+                       <CreditCard size={20} />
+                     </div>
+                     <div className="text-left">
+                       <span className="block text-xs font-bold text-heading">Online Payment</span>
+                       <span className="block text-[10px] text-muted font-medium mt-0.5">UPI, Cards, Netbanking, Wallets</span>
+                     </div>
+                  </label>
+                )}
+
+                {/* PayU (International Cards) */}
+                {isInternational && (
+                  <label className={`cursor-pointer p-4 border-2 rounded-2xl flex items-center gap-4 transition-all ${paymentMethod === 'payu' ? 'border-orange-500 bg-orange-500/5 shadow-sm' : 'border-border hover:border-orange-500/30'}`}>
+                     <input type="radio" name="payment" value="payu" checked={paymentMethod === 'payu'} onChange={() => setPaymentMethod('payu')} className="sr-only" />
+                     <div className={`p-2.5 rounded-xl border ${paymentMethod === 'payu' ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' : 'bg-surface border-border text-muted'}`}>
+                       <Globe size={20} />
+                     </div>
+                     <div className="text-left">
+                       <span className="block text-xs font-bold text-heading">International Payment</span>
+                       <span className="block text-[10px] text-muted font-medium mt-0.5">Credit/Debit Cards, Bank Transfer</span>
+                     </div>
+                  </label>
+                )}
+
+                {/* Cash on Delivery (India only) */}
+                {!isInternational && (
+                  <label className={`cursor-pointer p-4 border-2 rounded-2xl flex items-center gap-4 transition-all ${paymentMethod === 'cod' ? 'border-orange-500 bg-orange-500/5 shadow-sm' : 'border-border hover:border-orange-500/30'}`}>
+                     <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="sr-only" />
+                     <div className={`p-2.5 rounded-xl border ${paymentMethod === 'cod' ? 'bg-orange-500/10 border-orange-500/30 text-orange-500' : 'bg-surface border-border text-muted'}`}>
+                       <Building2 size={20} />
+                     </div>
+                     <div className="text-left">
+                       <span className="block text-xs font-bold text-heading">Cash on Delivery (COD)</span>
+                       <span className="block text-[10px] text-muted font-medium mt-0.5">Pay in cash at your doorstep</span>
+                     </div>
+                  </label>
+                )}
               </div>
             </div>
 

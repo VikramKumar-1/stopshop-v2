@@ -131,7 +131,7 @@ export const ShiprocketService = {
   },
 
   // 8. Create Return Order
-  async createReturnOrder(order: any, returnItems: any[], pickupLocation: string): Promise<{ shiprocket_order_id: number; shipment_id: number }> {
+  async createReturnOrder(order: any, returnItems: any[], pickupLocation: string, vendorInfo?: { name: string; address: string; city: string; state: string; country: string; pincode: string; phone: string }): Promise<{ shiprocket_order_id: number; shipment_id: number }> {
      if (!isShiprocketConfigured()) return { shiprocket_order_id: Math.floor(Math.random() * 100000), shipment_id: Math.floor(Math.random() * 100000) };
      
      const payload = {
@@ -145,12 +145,13 @@ export const ShiprocketService = {
       pickup_pincode: order.shippingPincode,
       pickup_email: order.shippingEmail,
       pickup_phone: order.shippingPhone,
-      shipping_customer_name: "Vendor Return",
-      shipping_address: pickupLocation, // Return back to vendor warehouse
-      shipping_city: "Vendor City",
-      shipping_state: "Vendor State",
-      shipping_country: "India",
-      shipping_pincode: "110001",
+      shipping_customer_name: vendorInfo?.name || "Vendor Return",
+      shipping_address: vendorInfo?.address || pickupLocation,
+      shipping_city: vendorInfo?.city || "Delhi",
+      shipping_state: vendorInfo?.state || "Delhi",
+      shipping_country: vendorInfo?.country || "India",
+      shipping_pincode: vendorInfo?.pincode || "110001",
+      shipping_phone: vendorInfo?.phone || "",
       order_items: returnItems.map(i => ({
         name: i.productName,
         sku: `SKU-${i.productId}`,
