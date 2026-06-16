@@ -148,13 +148,9 @@
   }
 
   .glass,
-  .section-glass-ambient,
-  .bg-premium-maroon,
-  .bg-premium-dark-bronze,
-  .bg-premium-purple,
   .glass-light {
-    will-change: transform;
-    contain: layout style paint;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .bg-premium-maroon {
@@ -351,7 +347,6 @@
   }
 
   /* Image loading placeholder - prevents white flash */
-  img[loading="lazy"],
   span[data-nimg] {
     background: linear-gradient(110deg, var(--surface-elevated) 30%, var(--surface-hover) 50%, var(--surface-elevated) 70%);
     background-size: 200% 100%;
@@ -373,10 +368,9 @@
   scrollbar-width: none !important;
 }
 
-/* Off-screen card rendering optimizations */
+/* Off-screen card rendering optimizations - preserved for layout structure */
 .lazy-scroll-section {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 400px; /* Tells browser expected height before load to prevent scroll jumps */
+  /* Disabled content-visibility: auto to prevent layout flashes and repainting when scrolling back up */
 }
 
 /* hardware accelerated text marquee rendering */
@@ -390,3 +384,5 @@ a, button, input, select, textarea, [role="button"], .clickable {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
+
