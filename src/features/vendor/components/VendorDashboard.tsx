@@ -23,12 +23,19 @@ export const VendorDashboard = () => {
   }
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
+  // Sequential queue: dismiss the active toast (first in queue) after 4 seconds
+  useEffect(() => {
+    if (toasts.length === 0) return;
+    const activeId = toasts[0].id;
+    const timer = setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== activeId));
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toasts[0]?.id]);
+
   const showToast = (message: string, type: "success" | "error" | "info" | "warning" = "info") => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, type, message }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4500);
   };
 
   const simulateShiprocketWebhook = async (awb: string, status: string) => {
@@ -912,7 +919,7 @@ export const VendorDashboard = () => {
           const filteredInq = allInqs.filter((inq: any) => {
             if (!inq.items) return false;
             try {
-              const itemsList = inq.items as any[];
+              const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
               return itemsList.some((item: any) => 
                 dataProd.some((p: any) => String(p.id) === String(item.id))
               );
@@ -1705,6 +1712,16 @@ export const VendorDashboard = () => {
                             )}
                             {currentStatus === "PACKED" && (
                               <div className="flex items-center gap-2 justify-end">
+                                {order.shippingLabelUrl && (
+                                  <a
+                                    href={order.shippingLabelUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-2.5 py-1.5 text-[9px] text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white rounded-xl font-bold transition-colors border border-emerald-500/20 inline-flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <FileText size={10} /> Print Label
+                                  </a>
+                                )}
                                 {order.awbCode && (
                                   <button
                                     type="button"
@@ -1885,7 +1902,11 @@ export const VendorDashboard = () => {
                   {(() => {
                     let activeCount = 0;
                     const rows = inquiries.flatMap((inq) => {
-                      const itemsList = (inq.items as any[]).filter((item: any) =>
+                      let parsedItems: any[] = [];
+                      try {
+                        parsedItems = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
+                      } catch (e) {}
+                      const itemsList = parsedItems.filter((item: any) =>
                         products.some((p) => String(p.id) === String(item.id))
                       );
                       
@@ -2136,7 +2157,11 @@ export const VendorDashboard = () => {
                   {(() => {
                     let historyCount = 0;
                     const rows = inquiries.flatMap((inq) => {
-                      const itemsList = (inq.items as any[]).filter((item: any) =>
+                      let parsedItems: any[] = [];
+                      try {
+                        parsedItems = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
+                      } catch (e) {}
+                      const itemsList = parsedItems.filter((item: any) =>
                         products.some((p) => String(p.id) === String(item.id))
                       );
                       
@@ -3243,7 +3268,7 @@ export const VendorDashboard = () => {
       {/* Product Details Modal */}
       {modalProduct && (
         <div data-lenis-prevent className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-card border border-border rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-surface-card border border-border rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in fade-in zoom-in duration-200 scrollbar-none">
             {/* Close button */}
             <button
               onClick={() => setModalProduct(null)}
@@ -3435,39 +3460,7 @@ export const VendorDashboard = () => {
         </div>
       )}
 
-      {/* Product Image Modal */}
-      {modalProduct && !modalEditProduct && (
-        <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setModalProduct(null)}>
-          <div className="bg-surface-card border border-border p-2 rounded-2xl max-w-3xl w-full relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setModalProduct(null)}
-              className="absolute -top-3 -right-3 w-8 h-8 bg-surface-card border border-border rounded-full flex items-center justify-center text-muted hover:text-heading hover:bg-surface-hover shadow-lg transition-all"
-            >
-              ×
-            </button>
-            <div className="w-full h-auto max-h-[80vh] overflow-hidden rounded-xl bg-surface">
-              <img src={modalProduct.image || "/logo4.jpg"} alt={modalProduct.name} className="w-full h-full object-contain" />
-            </div>
-            
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-surface-card/90 backdrop-blur border border-border p-2 rounded-2xl shadow-xl">
-              <span className="text-[10px] font-bold text-muted uppercase tracking-wider pl-2">Quick Stock Update</span>
-              <input 
-                type="number" 
-                value={editStockValue}
-                onChange={(e) => setEditStockValue(e.target.value)}
-                className="w-16 bg-surface border border-border rounded-lg px-2 py-1.5 text-xs text-center font-bold outline-none focus:border-orange-500"
-              />
-              <button 
-                onClick={handleUpdateStock}
-                disabled={updatingStock}
-                className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-[10px] uppercase rounded-xl transition-all disabled:opacity-50"
-              >
-                {updatingStock ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Packing Modal (Dispatch Photos) */}
       {showPackingModal && (
@@ -4721,9 +4714,9 @@ export const VendorDashboard = () => {
       )}
 
       {/* Premium Toast Notification Container */}
-      <div className="fixed top-6 right-6 z-[250] flex flex-col gap-3 pointer-events-none max-w-sm w-full">
+      <div className="fixed bottom-6 left-4 right-4 md:bottom-auto md:top-6 md:right-6 md:left-auto z-[250] flex flex-col gap-3 pointer-events-none max-w-sm mx-auto md:mx-0 w-[calc(100%-32px)] sm:w-full">
         <AnimatePresence>
-          {toasts.map((toast) => {
+          {toasts.slice(0, 1).map((toast) => {
             const isSuccess = toast.type === "success";
             const isError = toast.type === "error";
             const isWarning = toast.type === "warning";
@@ -4753,10 +4746,10 @@ export const VendorDashboard = () => {
             return (
               <motion.div
                 key={toast.id}
-                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 15, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
                 className={`pointer-events-auto w-full bg-surface/90 backdrop-blur-md border ${borderColor} rounded-2xl p-4 shadow-2xl ${bgGlow} relative overflow-hidden flex gap-3.5 items-start`}
               >
                 {/* Accent line */}

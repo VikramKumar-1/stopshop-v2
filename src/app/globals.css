@@ -384,3 +384,9 @@
   will-change: transform;
   transform: translateZ(0);
 }
+
+/* Optimize Mobile Touch Response Speed */
+a, button, input, select, textarea, [role="button"], .clickable {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

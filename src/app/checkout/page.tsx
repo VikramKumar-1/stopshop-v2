@@ -23,6 +23,112 @@ interface Address {
   isDefault: boolean;
 }
 
+interface AddressFormProps {
+  initialData?: {
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+  };
+  onSubmit: (data: {
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+  }) => void;
+  onCancel: () => void;
+}
+
+function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProps) {
+  const [name, setName] = useState(initialData?.name || "");
+  const [phone, setPhone] = useState(initialData?.phone || "");
+  const [address, setAddress] = useState(initialData?.address || "");
+  const [city, setCity] = useState(initialData?.city || "");
+  const [state, setState] = useState(initialData?.state || "");
+  const [pincode, setPincode] = useState(initialData?.pincode || "");
+  const [country, setCountry] = useState(initialData?.country || "India");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({ name, phone, address, city, state, pincode, country });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+      <input 
+        type="text" 
+        required 
+        value={name} 
+        onChange={e=>setName(e.target.value)} 
+        placeholder="Full Name" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+      />
+      <input 
+        type="text" 
+        required 
+        value={phone} 
+        onChange={e=>setPhone(e.target.value)} 
+        placeholder="Contact Number" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+      />
+      <input 
+        type="text" 
+        required 
+        value={address} 
+        onChange={e=>setAddress(e.target.value)} 
+        placeholder="Street Address" 
+        className="sm:col-span-2 w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+      />
+      <input 
+        type="text" 
+        required 
+        value={city} 
+        onChange={e=>setCity(e.target.value)} 
+        placeholder="City" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+      />
+      <input 
+        type="text" 
+        required 
+        value={state} 
+        onChange={e=>setState(e.target.value)} 
+        placeholder="State" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+      />
+      <input 
+        type="text" 
+        required 
+        value={pincode} 
+        onChange={e=>setPincode(e.target.value)} 
+        placeholder="Pincode" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+      />
+      <select 
+        required 
+        value={country} 
+        onChange={e=>setCountry(e.target.value)} 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs"
+      >
+        {countries.map((c) => (
+          <option key={c.code} value={c.name}>
+            {c.flag} {c.name}
+          </option>
+        ))}
+      </select>
+      <div className="sm:col-span-2 flex justify-end gap-2 pt-2 border-t border-border">
+        <button type="button" onClick={onCancel} className="px-4 py-2 text-xs font-bold text-muted hover:text-heading">Cancel</button>
+        <button type="submit" className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl">Save Address</button>
+      </div>
+    </form>
+  );
+}
+
 function CheckoutPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -186,17 +292,24 @@ function CheckoutPageInner() {
   }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice, isInternational]);
 
   // Handle Address Submit
-  const handleAddressSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddressSubmit = async (formData: {
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+  }) => {
     try {
       const payload = {
-        name: addrName,
-        phone: addrPhone,
-        address: addrLine,
-        city: addrCity,
-        state: addrState,
-        pincode: addrPincode,
-        country: addrCountry,
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        country: formData.country,
         isDefault: addrDefault || addresses.length === 0
       };
 
@@ -520,32 +633,20 @@ function CheckoutPageInner() {
                   )}
                 </div>
               )}
-
               {showAddressForm && (
-                <form onSubmit={handleAddressSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <input type="text" required value={addrName} onChange={e=>setAddrName(e.target.value)} placeholder="Full Name" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
-                  <input type="text" required value={addrPhone} onChange={e=>setAddrPhone(e.target.value)} placeholder="Contact Number" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
-                  <input type="text" required value={addrLine} onChange={e=>setAddrLine(e.target.value)} placeholder="Street Address" className="sm:col-span-2 w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
-                  <input type="text" required value={addrCity} onChange={e=>setAddrCity(e.target.value)} placeholder="City" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
-                  <input type="text" required value={addrState} onChange={e=>setAddrState(e.target.value)} placeholder="State" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
-                  <input type="text" required value={addrPincode} onChange={e=>setAddrPincode(e.target.value)} placeholder="Pincode" className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none" />
-                   <select 
-                     required 
-                     value={addrCountry} 
-                     onChange={e=>setAddrCountry(e.target.value)} 
-                     className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none"
-                   >
-                     {countries.map((c) => (
-                       <option key={c.code} value={c.name}>
-                         {c.flag} {c.name}
-                       </option>
-                     ))}
-                   </select>
-                  <div className="sm:col-span-2 flex justify-end gap-2 pt-2 border-t border-border">
-                    <button type="button" onClick={resetAddressForm} className="px-4 py-2 text-xs font-bold text-muted hover:text-heading">Cancel</button>
-                    <button type="submit" className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl">Save Address</button>
-                  </div>
-                </form>
+                <AddressForm
+                  initialData={editingAddressId ? {
+                    name: addrName,
+                    phone: addrPhone,
+                    address: addrLine,
+                    city: addrCity,
+                    state: addrState,
+                    pincode: addrPincode,
+                    country: addrCountry
+                  } : undefined}
+                  onSubmit={handleAddressSubmit}
+                  onCancel={resetAddressForm}
+                />
               )}
             </div>
 
