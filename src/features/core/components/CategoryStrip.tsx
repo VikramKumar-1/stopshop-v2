@@ -235,7 +235,7 @@ export const CategoryStrip = () => {
 
   return (
     <div
-      className={`fixed lg:sticky z-40 w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-gradient-to-r from-[#ffd8b8]/90 via-[#ffe5cc]/95 to-[#ffd8b8]/90 dark:from-[#2e1305]/95 dark:via-[#1e0a02]/95 dark:to-[#2e1305]/95 md:bg-[var(--surface)] md:bg-none md:supports-[backdrop-filter]:bg-[var(--glass-bg)] supports-[backdrop-filter]:backdrop-blur-md shadow-sm transition-[transform,opacity] duration-300 ease-out will-change-transform transform-gpu top-[95px] lg:top-[112px] ${
+      className={`fixed lg:sticky z-40 w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-white/85 dark:bg-[#141414]/85 backdrop-blur-md shadow-sm transition-[transform,opacity] duration-300 ease-out top-[95px] lg:top-[112px] ${
         isMobile
           ? (showMobileStrip ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none")
           : (scrollingDown ? "-translate-y-[80px]" : "translate-y-0")
@@ -320,7 +320,7 @@ export const CategoryStrip = () => {
                         isMini ? "gap-0.5 w-[50px] lg:w-[64px]" : "gap-1 w-[58px] sm:w-[92px] lg:w-[78px] xl:w-[92px]"
                       }`}
                     >
-                      <div className={`rounded-lg lg:rounded-xl flex items-center justify-center border transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 shadow-sm group-hover:shadow-md ${cat.bgColor} ${cat.borderColor} ${cat.shadowColor} ${
+                      <div className={`rounded-lg lg:rounded-xl flex items-center justify-center border border-orange-500/25 dark:border-orange-500/35 group-hover:border-orange-500/60 transition-all duration-300 shadow-sm group-hover:shadow-md ${cat.bgColor} ${cat.shadowColor} ${
                         isMini ? "w-7 h-7 lg:w-8 lg:h-8" : "w-8 h-8 sm:w-12 sm:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12"
                       }`}>
                         <Icon size={14} strokeWidth={1.8} className={`${cat.iconColor} sm:hidden transition-transform duration-300 group-hover:scale-110`} />

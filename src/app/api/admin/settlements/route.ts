@@ -34,7 +34,12 @@ export async function GET(req: NextRequest) {
             status: true,
             deliveredAt: true,
             paymentMethod: true,
-            currency: true
+            currency: true,
+            items: {
+              include: {
+                product: true
+              }
+            }
           }
         }
       },
@@ -70,9 +75,18 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    const customPayouts = await prisma.customPayout.findMany({
+      where: whereClause,
+      include: {
+        product: { select: { name: true } }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
     // Group them
     const groupedSettlements = vendors.map(vendor => {
       const vendorSettlements = settlements.filter(s => s.vendorId === vendor.id);
+      const vendorCustomPayouts = customPayouts.filter(c => c.vendorId === vendor.id);
       
       let vendorSummary = {
         hold: 0,
@@ -91,7 +105,8 @@ export async function GET(req: NextRequest) {
       return {
         vendor,
         summary: vendorSummary,
-        settlements: vendorSettlements
+        settlements: vendorSettlements,
+        customPayouts: vendorCustomPayouts
       };
     });
 
@@ -102,6 +117,39 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, settlements, groupedSettlements, summary, settings });
   } catch (error: any) {
     console.error("Fetch settlements error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const admin = requireRole(req, ["admin"]);
+    if (admin instanceof NextResponse) return admin;
+
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+    // Delete settled settlements older than 1 month
+    const result = await prisma.settlement.deleteMany({
+      where: {
+        status: "SETTLED",
+        settledAt: {
+          lt: oneMonthAgo
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully deleted ${result.count} settled records older than 1 month.`,
+      count: result.count
+    });
+
+  } catch (error: any) {
+    console.error("Failed to delete old settlements:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Internal server error" },
       { status: 500 }

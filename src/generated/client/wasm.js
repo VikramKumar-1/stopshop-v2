@@ -235,6 +235,8 @@ exports.Prisma.OrderScalarFieldEnum = {
   returnShiprocketId: 'returnShiprocketId',
   returnAwbCode: 'returnAwbCode',
   returnCourierName: 'returnCourierName',
+  couponCode: 'couponCode',
+  discountPaise: 'discountPaise',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -328,6 +330,7 @@ exports.Prisma.AdminSettingsScalarFieldEnum = {
   companyState: 'companyState',
   companyCountry: 'companyCountry',
   companyPincode: 'companyPincode',
+  invoiceTemplate: 'invoiceTemplate',
   shippingFreeAbove: 'shippingFreeAbove',
   shippingChargePaise: 'shippingChargePaise',
   codShippingChargePaise: 'codShippingChargePaise',
@@ -345,6 +348,58 @@ exports.Prisma.AdminSettingsScalarFieldEnum = {
   shiprocketAutoAssign: 'shiprocketAutoAssign',
   shiprocketCourierPriority: 'shiprocketCourierPriority',
   homepageSections: 'homepageSections',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CustomPayoutScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  productId: 'productId',
+  amountPaise: 'amountPaise',
+  status: 'status',
+  paymentRef: 'paymentRef',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReviewScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  userId: 'userId',
+  orderId: 'orderId',
+  rating: 'rating',
+  title: 'title',
+  comment: 'comment',
+  images: 'images',
+  isVerified: 'isVerified',
+  isApproved: 'isApproved',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CouponScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  description: 'description',
+  creatorRole: 'creatorRole',
+  vendorId: 'vendorId',
+  vendorStatus: 'vendorStatus',
+  discountType: 'discountType',
+  discountValue: 'discountValue',
+  maxDiscountPaise: 'maxDiscountPaise',
+  minOrderPaise: 'minOrderPaise',
+  maxUses: 'maxUses',
+  maxUsesPerUser: 'maxUsesPerUser',
+  usedCount: 'usedCount',
+  isActive: 'isActive',
+  isAutoApply: 'isAutoApply',
+  startsAt: 'startsAt',
+  expiresAt: 'expiresAt',
+  applicableCategories: 'applicableCategories',
+  applicableMaterials: 'applicableMaterials',
+  minItems: 'minItems',
+  createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
 
@@ -384,7 +439,10 @@ exports.Prisma.ModelName = {
   ReturnRequest: 'ReturnRequest',
   Settlement: 'Settlement',
   Address: 'Address',
-  AdminSettings: 'AdminSettings'
+  AdminSettings: 'AdminSettings',
+  CustomPayout: 'CustomPayout',
+  Review: 'Review',
+  Coupon: 'Coupon'
 };
 
 /**

@@ -243,7 +243,7 @@ export const FeaturedProducts = () => {
                 key={product.id}
                 href={`/product/${product.slug || product.id}`}
                 onClickCapture={handleLinkClick}
-                className="group shrink-0 w-[200px] sm:w-[230px] lg:w-[250px] h-[365px] sm:h-[415px] lg:h-[450px] flex flex-col justify-between bg-surface-card border border-bronze-500/[0.12] rounded-2xl overflow-hidden shadow-sm cursor-pointer will-change-transform transform-gpu"
+                className="group shrink-0 w-[200px] sm:w-[230px] lg:w-[250px] h-[365px] sm:h-[415px] lg:h-[450px] flex flex-col justify-between bg-surface-card border border-bronze-500/[0.12] rounded-2xl overflow-hidden shadow-sm cursor-pointer"
               >
                 {/* Product Image */}
                 <div className="relative aspect-square w-full overflow-hidden bg-orange-50 dark:bg-white/5">

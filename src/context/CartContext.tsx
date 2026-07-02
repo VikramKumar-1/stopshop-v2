@@ -52,56 +52,41 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("stopshops-cart", JSON.stringify(newCart));
   };
 
-  const addToCart = async (product: any, quantity: number = 1) => {
-    try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.authenticated) {
-          const existingIndex = cart.findIndex((item) => item.id === product.id);
-          const newCart = [...cart];
+  const addToCart = (product: any, quantity: number = 1) => {
+    const existingIndex = cart.findIndex((item) => item.id === product.id);
+    const newCart = [...cart];
 
-          const stock = product.stock !== undefined ? product.stock : 10;
-          const price = product.price || Math.round(product.id * 100 + 299);
-          const mrp = product.mrp || Math.round(product.id * 150 + 499);
-          const slug = product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const stock = product.stock !== undefined ? product.stock : 10;
+    const price = product.price || Math.round(product.id * 100 + 299);
+    const mrp = product.mrp || Math.round(product.id * 150 + 499);
+    const slug = product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-          if (existingIndex > -1) {
-            const newQty = newCart[existingIndex].quantity + quantity;
-            newCart[existingIndex].quantity = Math.min(newQty, stock);
-          } else {
-            newCart.push({
-              id: product.id,
-              slug,
-              name: product.name,
-              price,
-              mrp,
-              prices: product.prices,
-              image: product.image,
-              specs: product.specs || "",
-              material: product.material || "Bronze",
-              categoryName: product.categoryName || "kitchen-utility",
-              quantity: Math.min(quantity, stock),
-              stock,
-            });
-          }
-          saveCart(newCart);
-          
-          // Show toast notification
-          setToastMessage(`"${product.name}" added to cart successfully!`);
-          const timer = setTimeout(() => {
-            setToastMessage(null);
-          }, 3000);
-        } else {
-          window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}&reason=inquiry`;
-        }
-      } else {
-        window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}&reason=inquiry`;
-      }
-    } catch (e) {
-      console.error("Auth check failed during add to cart:", e);
-      window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}&reason=inquiry`;
+    if (existingIndex > -1) {
+      const newQty = newCart[existingIndex].quantity + quantity;
+      newCart[existingIndex].quantity = Math.min(newQty, stock);
+    } else {
+      newCart.push({
+        id: product.id,
+        slug,
+        name: product.name,
+        price,
+        mrp,
+        prices: product.prices,
+        image: product.image,
+        specs: product.specs || "",
+        material: product.material || "Bronze",
+        categoryName: product.categoryName || "kitchen-utility",
+        quantity: Math.min(quantity, stock),
+        stock,
+      });
     }
+    saveCart(newCart);
+    
+    // Show toast notification
+    setToastMessage(`"${product.name}" added to cart successfully!`);
+    const timer = setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
   };
 
   const removeFromCart = (productId: number) => {

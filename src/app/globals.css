@@ -14,9 +14,9 @@
   --subtle: #A1A1AA;
   --border: rgba(0, 0, 0, 0.08);
 
-  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-bg: rgba(255, 255, 255, 0.97);
   --glass-border: rgba(0, 0, 0, 0.07);
-  --glass-light-bg: rgba(255, 255, 255, 0.50);
+  --glass-light-bg: rgba(255, 255, 255, 0.95);
   --glass-light-border: rgba(0, 0, 0, 0.05);
 
   --gradient-text-from: #ea580c;
@@ -37,8 +37,8 @@
 /* ===== DARK MODE — softer, not pure black ===== */
 .dark {
   --surface: #181818;
-  --surface-card: rgba(38, 38, 38, 0.7);
-  --surface-hover: rgba(45, 45, 45, 0.8);
+  --surface-card: #262626;
+  --surface-hover: #2d2d2d;
   --surface-elevated: #242424;
   --heading: #f0ece6;
   --body: #bbb4aa;
@@ -46,9 +46,9 @@
   --subtle: #524e4a;
   --border: rgba(255, 255, 255, 0.08);
 
-  --glass-bg: rgba(34, 34, 34, 0.65);
+  --glass-bg: rgba(34, 34, 34, 0.97);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-light-bg: rgba(255, 255, 255, 0.04);
+  --glass-light-bg: rgba(38, 38, 38, 0.95);
   --glass-light-border: rgba(255, 255, 255, 0.06);
 
   --gradient-text-from: #fdba74;
@@ -72,39 +72,16 @@
   }
 
   html {
-    scroll-behavior: smooth;
-  }
-
-  /* Prevent Lenis and native smooth scroll from fighting */
-  .lenis.lenis-smooth {
-    scroll-behavior: auto !important;
-  }
-
-  .lenis.lenis-smooth [data-lenis-prevent] {
-    overscroll-behavior: contain;
-  }
-
-  .lenis.lenis-stopped {
-    overflow: hidden;
+    /* scroll-behavior: smooth removed — it causes micro-jank during native fast scrolling */
   }
 
   body {
     background-color: var(--surface);
     color: var(--body);
-    transition: background-color 0.35s ease, color 0.35s ease;
   }
 
   /* Light mode: very subtle warm ambient glow for depth */
-  html:not(.dark) body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image:
-      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(249, 115, 22, 0.04) 0%, transparent 70%),
-      radial-gradient(ellipse 50% 40% at 90% 100%, rgba(234, 88, 12, 0.025) 0%, transparent 60%);
-  }
+  /* body::before ambient overlay removed — fixed-position transparent layers force full-page repaint on every scroll frame */
 
   ::selection {
     background-color: rgba(249, 115, 22, 0.18);
@@ -138,149 +115,69 @@
 
   .section-glass-ambient {
     position: relative;
-    background-color: rgba(250, 250, 250, 0.95);
+    background-color: #fafafa;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
   
   html.dark .section-glass-ambient {
-    background-color: rgba(24, 24, 24, 0.95);
+    background-color: #181818;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
-  .glass,
-  .glass-light {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
+  /* backdrop-filter removed — it was forcing per-frame GPU resampling on 30+ elements during scroll */
 
   .bg-premium-maroon {
     position: relative;
-    background-color: #2D0A11;
-    background-image: 
-      radial-gradient(circle at 50% 0%, rgba(249, 115, 22, 0.15) 0%, transparent 60%),
-      radial-gradient(circle at 10% 20%, rgba(128, 0, 32, 0.4) 0%, transparent 50%),
-      radial-gradient(circle at 90% 80%, rgba(45, 10, 17, 0.8) 0%, transparent 60%);
+    background: linear-gradient(135deg, #2D0A11 0%, #3d0813 50%, #1f050a 100%);
     border-bottom: 1px solid rgba(249, 115, 22, 0.25);
   }
 
   html.dark .bg-premium-maroon {
-    background-color: #1a0408;
-    background-image: 
-      radial-gradient(circle at 50% 0%, rgba(249, 115, 22, 0.12) 0%, transparent 50%),
-      radial-gradient(circle at 10% 20%, rgba(80, 0, 20, 0.5) 0%, transparent 50%),
-      radial-gradient(circle at 90% 80%, rgba(20, 2, 5, 0.9) 0%, transparent 60%);
+    background: linear-gradient(135deg, #1a0408 0%, #26060c 50%, #100204 100%);
   }
 
   .bg-premium-dark-bronze {
     position: relative;
-    background-color: #1a0d02;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.08) 0%, transparent 60%),
-      radial-gradient(circle at 90% 80%, rgba(251, 146, 60, 0.06) 0%, transparent 60%);
+    background: linear-gradient(135deg, #1a0d02 0%, #2a1505 50%, #140801 100%);
     border-bottom: 1px solid rgba(249, 115, 22, 0.2);
   }
   
   html.dark .bg-premium-dark-bronze {
-    background-color: #0c0804;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.07) 0%, transparent 50%),
-      radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.03) 0%, transparent 50%);
+    background: linear-gradient(135deg, #0c0804 0%, #140d06 50%, #080402 100%);
   }
 
   .bg-premium-purple {
     position: relative;
-    background-color: #FAF6FF;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 60%),
-      radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.05) 0%, transparent 60%);
+    background: linear-gradient(135deg, #FAF6FF 0%, #f5eeff 50%, #faf8ff 100%);
     border-bottom: 1px solid rgba(168, 85, 247, 0.12);
   }
   
   html.dark .bg-premium-purple {
-    background-color: #11071C;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.12) 0%, transparent 60%),
-      radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.08) 0%, transparent 60%);
+    background: linear-gradient(135deg, #11071C 0%, #180a28 50%, #0d0514 100%);
     border-bottom: 1px solid rgba(168, 85, 247, 0.2);
   }
 
-  /* Specific color variants for each section */
-  .ambient-bronze {
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.05) 0%, transparent 60%),
-      radial-gradient(circle at 90% 80%, rgba(251, 146, 60, 0.04) 0%, transparent 60%);
-  }
-  html.dark .ambient-bronze {
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.07) 0%, transparent 60%),
-      radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.04) 0%, transparent 60%);
-  }
+  /* Ambient section tints — solid backgrounds, zero repaint cost */
+  .ambient-bronze { background-color: #faf8f6; }
+  html.dark .ambient-bronze { background-color: #1a1816; }
 
-  .ambient-rose {
-    background-image: 
-      radial-gradient(circle at 20% 30%, rgba(244, 63, 94, 0.04) 0%, transparent 60%),
-      radial-gradient(circle at 80% 70%, rgba(249, 115, 22, 0.04) 0%, transparent 60%);
-  }
-  html.dark .ambient-rose {
-    background-image: 
-      radial-gradient(circle at 20% 30%, rgba(244, 63, 94, 0.06) 0%, transparent 60%),
-      radial-gradient(circle at 80% 70%, rgba(249, 115, 22, 0.05) 0%, transparent 60%);
-  }
+  .ambient-rose { background-color: #faf7f8; }
+  html.dark .ambient-rose { background-color: #1a1718; }
 
-  .ambient-purple {
-    background-image: 
-      radial-gradient(circle at 15% 25%, rgba(168, 85, 247, 0.04) 0%, transparent 60%),
-      radial-gradient(circle at 85% 75%, rgba(249, 115, 22, 0.04) 0%, transparent 60%);
-  }
-  html.dark .ambient-purple {
-    background-image: 
-      radial-gradient(circle at 15% 25%, rgba(168, 85, 247, 0.06) 0%, transparent 60%),
-      radial-gradient(circle at 85% 75%, rgba(249, 115, 22, 0.05) 0%, transparent 60%);
-  }
+  .ambient-purple { background-color: #f9f7fb; }
+  html.dark .ambient-purple { background-color: #19171c; }
 
-  .ambient-emerald {
-    background-image: 
-      radial-gradient(circle at 25% 15%, rgba(16, 185, 129, 0.04) 0%, transparent 60%),
-      radial-gradient(circle at 75% 85%, rgba(20, 184, 166, 0.03) 0%, transparent 60%);
-  }
-  html.dark .ambient-emerald {
-    background-image: 
-      radial-gradient(circle at 25% 15%, rgba(16, 185, 129, 0.06) 0%, transparent 60%),
-      radial-gradient(circle at 75% 85%, rgba(20, 184, 166, 0.05) 0%, transparent 60%);
-  }
+  .ambient-emerald { background-color: #f6faf9; }
+  html.dark .ambient-emerald { background-color: #161a19; }
 
-  .ambient-ocean {
-    background-image: 
-      radial-gradient(circle at 30% 20%, rgba(14, 165, 233, 0.04) 0%, transparent 60%),
-      radial-gradient(circle at 70% 80%, rgba(20, 184, 166, 0.04) 0%, transparent 60%);
-  }
-  html.dark .ambient-ocean {
-    background-image: 
-      radial-gradient(circle at 30% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 60%),
-      radial-gradient(circle at 70% 80%, rgba(20, 184, 166, 0.05) 0%, transparent 60%);
-  }
+  .ambient-ocean { background-color: #f6f9fb; }
+  html.dark .ambient-ocean { background-color: #16191b; }
 
-  .ambient-gold {
-    background-image: 
-      radial-gradient(circle at 10% 30%, rgba(234, 179, 8, 0.05) 0%, transparent 60%),
-      radial-gradient(circle at 90% 70%, rgba(249, 115, 22, 0.04) 0%, transparent 60%);
-  }
-  html.dark .ambient-gold {
-    background-image: 
-      radial-gradient(circle at 10% 30%, rgba(234, 179, 8, 0.07) 0%, transparent 60%),
-      radial-gradient(circle at 90% 70%, rgba(249, 115, 22, 0.05) 0%, transparent 60%);
-  }
+  .ambient-gold { background-color: #faf9f5; }
+  html.dark .ambient-gold { background-color: #1a1915; }
 
-  .ambient-indigo {
-    background-image: 
-      radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.04) 0%, transparent 60%),
-      radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 60%);
-  }
-  html.dark .ambient-indigo {
-    background-image: 
-      radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
-      radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 60%);
-  }
+  .ambient-indigo { background-color: #f8f7fb; }
+  html.dark .ambient-indigo { background-color: #18171c; }
 
   .glass-light {
     background: var(--glass-light-bg);
@@ -296,25 +193,11 @@
 
   .gradient-border {
     position: relative;
+    border: 1px solid rgba(249, 115, 22, 0.15);
   }
 
-  .gradient-border::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.35), transparent 50%, rgba(249, 115, 22, 0.15));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-
-  /* Light mode: stronger gradient-border for card definition */
-  html:not(.dark) .gradient-border::before {
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.30), transparent 50%, rgba(234, 88, 12, 0.18));
+  html:not(.dark) .gradient-border {
+    border-color: rgba(249, 115, 22, 0.18);
   }
 
   .hover-lift {
@@ -346,11 +229,9 @@
     transition: background 0.35s ease, box-shadow 0.35s ease;
   }
 
-  /* Image loading placeholder - prevents white flash */
+  /* Image loading placeholder */
   span[data-nimg] {
-    background: linear-gradient(110deg, var(--surface-elevated) 30%, var(--surface-hover) 50%, var(--surface-elevated) 70%);
-    background-size: 200% 100%;
-    animation: img-shimmer 1.5s ease-in-out infinite;
+    background: var(--surface-elevated);
   }
 
   @keyframes img-shimmer {

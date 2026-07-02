@@ -428,14 +428,7 @@ export const Navbar = () => {
     <>
       {!isDashboard && (
         <div 
-          className="fixed top-0 left-0 right-0 h-8 z-[120] bg-gradient-to-r from-bronze-950 via-bronze-900 to-bronze-950 border-b border-bronze-800/40 flex items-center overflow-hidden"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(26, 15, 8, 0.96), rgba(26, 15, 8, 0.96)), 
-              url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='20' viewBox='0 0 60 20'%3E%3Cpath d='M0 10 C 15 0, 15 20, 30 10 C 45 0, 45 20, 60 10 L 60 20 L 0 20 Z' fill='%23fb923c' fill-opacity='0.1'/%3E%3C/svg%3E")
-            `,
-            backgroundSize: "auto, 60px 20px"
-          }}
+          className="fixed top-0 left-0 right-0 h-8 z-[120] bg-[#1a0f08] border-b border-bronze-800/40 flex items-center overflow-hidden"
         >
           <div className="flex whitespace-nowrap w-full">
             <div className="flex animate-marquee text-[9px] sm:text-[10px] font-medium tracking-[0.25em] text-bronze-200/90 uppercase items-center gap-16">
@@ -470,7 +463,7 @@ export const Navbar = () => {
 
       {/* Main Navigation bar */}
       <nav
-        className={`fixed lg:sticky ${isDashboard ? "top-0" : "top-8"} left-0 right-0 z-[100] w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-[var(--surface)] transition-[transform,opacity] duration-300 ease-out will-change-transform transform-gpu ${visible || isDashboard ? "translate-y-0" : "-translate-y-full"}`}
+        className={`fixed lg:sticky ${isDashboard ? "top-0" : "top-8"} left-0 right-0 z-[100] w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-white/85 dark:bg-[#141414]/85 backdrop-blur-md transition-[transform,opacity] duration-300 ease-out ${visible || isDashboard ? "translate-y-0" : "-translate-y-full"}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col w-full pt-1.5 pb-0 lg:py-0">
@@ -1217,7 +1210,7 @@ export const Navbar = () => {
 
               {/* Cart */}
               <Link 
-                href={user ? "/cart" : "/profile?mode=login&reason=cart&redirect=/cart"} 
+                href="/cart" 
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
               >
                 {pathname === "/cart" && (

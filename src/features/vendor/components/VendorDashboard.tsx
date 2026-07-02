@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Plus, Trash2, Store, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, CheckCircle2, XCircle, AlertTriangle, Info, X, FileText, Clock, Camera, Loader2, RefreshCcw } from "lucide-react";
+import { Plus, Trash2, Store, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, CheckCircle2, XCircle, AlertTriangle, Info, X, FileText, Clock, Camera, Loader2, RefreshCcw, Tag, Sparkles } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import QRCode from "qrcode";
 
@@ -8,6 +8,7 @@ import QRCode from "qrcode";
 import { useRouter } from "next/navigation";
 import { currencyDatabase } from "@/context/RegionContext";
 import VendorProfilePage from "@/app/vendor/profile/page";
+import { VendorCouponManager } from "@/features/coupons/components/VendorCouponManager";
 
 export const VendorDashboard = () => {
   const router = useRouter();
@@ -78,7 +79,7 @@ export const VendorDashboard = () => {
   const [updatingStock, setUpdatingStock] = useState(false);
   const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
   const [approveReturnModal, setApproveReturnModal] = useState<any | null>(null);
-  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile">("inquiries");
+  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile" | "promotions">("inquiries");
 
   useEffect(() => {
     const savedTab = localStorage.getItem("vendorActiveTab");
@@ -87,7 +88,7 @@ export const VendorDashboard = () => {
     }
   }, []);
 
-  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile") => {
+  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile" | "promotions") => {
     _setActiveTab(tab);
     localStorage.setItem("vendorActiveTab", tab);
   };
@@ -150,6 +151,51 @@ export const VendorDashboard = () => {
 
   // Edit Product Modal states & handlers
   const [modalEditProduct, setModalEditProduct] = useState<any | null>(null);
+
+  // AI Generation State
+  const [generatingAi, setGeneratingAi] = useState(false);
+
+  const handleAiGenerate = async (isEdit: boolean = false) => {
+    const currentName = isEdit ? editForm.name : productForm.name;
+    const currentCat = isEdit ? editForm.category : productForm.category;
+    const currentMat = isEdit ? editForm.material : productForm.material;
+
+    if (!currentName || currentName.trim().length < 2) {
+      showToast("Please enter a Product Name first to generate AI Description!", "warning");
+      return;
+    }
+
+    setGeneratingAi(true);
+    try {
+      const res = await fetch("/api/ai/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName: currentName,
+          category: currentCat,
+          material: currentMat,
+          promptType: "description"
+        })
+      });
+
+      const data = await res.json();
+      if (data.success && data.text) {
+        if (isEdit) {
+          setEditForm(prev => ({ ...prev, description: data.text }));
+        } else {
+          setProductForm(prev => ({ ...prev, description: data.text }));
+        }
+        showToast("✨ Premium SEO Description generated successfully!", "success");
+      } else {
+        showToast(data.error || "Could not generate description.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to connect to AI service.", "error");
+    } finally {
+      setGeneratingAi(false);
+    }
+  };
 
   // KYC / Vendor Profile State
   const [kycForm, setKycForm] = useState({
@@ -1374,6 +1420,17 @@ export const VendorDashboard = () => {
               My Profile
               {activeTab === "profile" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
+            {/* Promotions Tab */}
+            <button
+              onClick={() => setActiveTab("promotions")}
+              className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
+                activeTab === "promotions" ? "text-orange-500" : "text-muted hover:text-heading"
+              }`}
+            >
+              Promotions
+              {activeTab === "promotions" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+            </button>
+
             {/* Settlements Tab */}
             <button
               onClick={() => setActiveTab("settlements")}
@@ -2782,13 +2839,24 @@ export const VendorDashboard = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-muted uppercase tracking-wider">Product Description *</label>
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-muted uppercase tracking-wider">Product Description *</label>
+                  <button
+                    type="button"
+                    onClick={() => handleAiGenerate(false)}
+                    disabled={generatingAi}
+                    className="px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-lg text-xs font-black flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95"
+                  >
+                    {generatingAi ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                    <span>{generatingAi ? "Generating AI Copy..." : "✨ AI Generate"}</span>
+                  </button>
+                </div>
                 <textarea
                   required
                   rows={4}
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                  placeholder="Describe your metal item, how it was hand-beaten, health values, etc..."
+                  placeholder="Describe your metal item, how it was hand-beaten, health values, etc... or click ✨ AI Generate"
                   className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-heading focus:outline-none resize-none"
                 />
               </div>
@@ -3171,6 +3239,11 @@ export const VendorDashboard = () => {
           </div>
         )}
 
+        {/* Promotions Tab */}
+        {activeTab === "promotions" && vendor?.id && (
+          <VendorCouponManager vendorId={vendor.id} />
+        )}
+
         {/* Admin Panel Tab */}
         {activeTab === "admin-panel" && vendor?.role === "admin" && (
           <div className="space-y-6 animate-in fade-in duration-300 text-xs">
@@ -3267,7 +3340,7 @@ export const VendorDashboard = () => {
       
       {/* Product Details Modal */}
       {modalProduct && (
-        <div data-lenis-prevent className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-card border border-border rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in fade-in zoom-in duration-200 scrollbar-none">
             {/* Close button */}
             <button
@@ -3424,7 +3497,7 @@ export const VendorDashboard = () => {
 
       {/* Buyer Message Modal */}
       {modalMessage && (
-        <div data-lenis-prevent className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-card border border-border rounded-3xl max-w-md w-full overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200 p-6 sm:p-8">
             {/* Close button */}
             <button
@@ -3848,13 +3921,24 @@ export const VendorDashboard = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-muted uppercase tracking-wider">Product Description *</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-muted uppercase tracking-wider">Product Description *</label>
+                    <button
+                      type="button"
+                      onClick={() => handleAiGenerate(true)}
+                      disabled={generatingAi}
+                      className="px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-lg text-xs font-black flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95"
+                    >
+                      {generatingAi ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                      <span>{generatingAi ? "Generating AI Copy..." : "✨ AI Generate"}</span>
+                    </button>
+                  </div>
                   <textarea
                     required
                     rows={3}
                     value={editForm.description}
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    placeholder="Product descriptions..."
+                    placeholder="Product descriptions... or click ✨ AI Generate"
                     className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2 text-heading focus:outline-none resize-none"
                   />
                 </div>

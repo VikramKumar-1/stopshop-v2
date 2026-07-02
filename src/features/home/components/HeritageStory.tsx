@@ -11,9 +11,9 @@ export const HeritageStory = () => {
 
       {/* Subtle pattern overlay */}
       <div
-        className="absolute inset-0 opacity-[0.04]"
+        className="absolute inset-0 opacity-[0.04] pointer-events-none [contain:strict]"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='12' fill='none' stroke='%23fb923c' stroke-width='0.5'/%3E%3Ccircle cx='30' cy='30' r='24' fill='none' stroke='%23fb923c' stroke-width='0.3' stroke-dasharray='2,3'/%3E%3C/svg%3E")`,
+          backgroundImage: `url('/images/heritage-pattern.svg')`,
           backgroundSize: "60px 60px",
         }}
       />
@@ -25,7 +25,7 @@ export const HeritageStory = () => {
           <div
             className="relative"
           >
-            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl shadow-black/30 will-change-transform transform-gpu">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl shadow-black/30">
               <Image
                 src="/bronze-kadai.png"
                 alt="Indian artisans crafting bronze utensils"
@@ -33,8 +33,7 @@ export const HeritageStory = () => {
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
-              {/* Warm overlay */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-orange-900/40 via-transparent to-amber-900/20" />
+
             </div>
 
             {/* Floating stat badge */}

@@ -1,0 +1,246 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import { Plus, Trash2, Edit2, Loader2, Tag, CheckCircle2 } from "lucide-react";
+
+export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    code: "",
+    description: "",
+    discountType: "PERCENTAGE",
+    discountValue: "",
+    minOrderPaise: "",
+    maxDiscountPaise: "",
+    maxUses: "",
+    maxUsesPerUser: "1"
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
+
+  const fetchCoupons = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const res = await fetch("/api/coupons?limit=50");
+      const data = await res.json();
+      if (data.success) {
+        setCoupons(data.coupons || []);
+      } else if (!silent) {
+        setError(data.error);
+      }
+    } catch (err) {
+      if (!silent) setError("Failed to load coupons");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Vendor specific UI validation before sending to API
+    const val = parseFloat(formData.discountValue);
+    if (formData.discountType === "PERCENTAGE" && val > 15) {
+      setError("Maximum discount allowed is 15%");
+      return;
+    }
+    if (formData.discountType === "FLAT" && val > 500) {
+      setError("Maximum flat discount allowed is ₹500");
+      return;
+    }
+    
+    setSubmitting(true);
+    setError("");
+    
+    try {
+      const payload = {
+        ...formData,
+        minOrderPaise: formData.minOrderPaise ? parseInt(formData.minOrderPaise) * 100 : 0,
+        maxDiscountPaise: formData.maxDiscountPaise ? parseInt(formData.maxDiscountPaise) * 100 : null
+      };
+      
+      const res = await fetch("/api/coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setShowForm(false);
+        setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1" });
+        fetchCoupons(true);
+      } else {
+        setError(data.error);
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to create coupon");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleStatus = async (id: number, currentStatus: boolean) => {
+    const nextState = !currentStatus;
+    setCoupons(prev => prev.map(c => c.id === id ? { ...c, isActive: nextState } : c));
+    try {
+      await fetch(`/api/coupons/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: nextState })
+      });
+      fetchCoupons(true);
+    } catch (e) {
+      console.error(e);
+      setCoupons(prev => prev.map(c => c.id === id ? { ...c, isActive: currentStatus } : c));
+    }
+  };
+  
+  const handleOptIn = async (id: number, accept: boolean) => {
+    const status = accept ? "ACTIVE" : "REJECTED";
+    setCoupons(prev => prev.map(c => c.id === id ? { ...c, vendorStatus: status, isActive: accept } : c));
+    try {
+      await fetch(`/api/coupons/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendorStatus: status })
+      });
+      fetchCoupons(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this coupon?")) return;
+    try {
+      await fetch(`/api/coupons/${id}`, { method: "DELETE" });
+      fetchCoupons(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black text-heading flex items-center gap-2">
+            <Tag className="text-orange-500" />
+            Promotions & Offers
+          </h2>
+          <p className="text-sm text-muted mt-1">Create store-specific coupons or join StopShop campaigns.</p>
+        </div>
+        <button 
+          onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 bg-heading text-surface rounded-xl text-sm font-bold hover:bg-orange-500 transition-colors flex items-center gap-2"
+        >
+          {showForm ? "Cancel" : <><Plus size={16} /> Create Promo</>}
+        </button>
+      </div>
+
+      {error && <div className="p-4 bg-red-500/10 text-red-500 text-sm font-bold rounded-xl">{error}</div>}
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="bg-surface border border-border rounded-2xl p-6 space-y-4">
+          <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-4 text-xs font-medium text-blue-700">
+            <strong>Store Policy:</strong> Vendor coupons are capped at a maximum of 15% discount or ₹500 flat to protect platform pricing consistency.
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-muted mb-1 uppercase">Promo Code</label>
+              <input required value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})} placeholder="e.g. MYSALE10" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold focus:border-orange-500 focus:outline-none uppercase" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-muted mb-1 uppercase">Description</label>
+              <input value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="e.g. 10% off my store" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-muted mb-1 uppercase">Discount Type</label>
+              <select value={formData.discountType} onChange={e => setFormData({...formData, discountType: e.target.value})} className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold focus:border-orange-500 focus:outline-none">
+                <option value="PERCENTAGE">Percentage (%) - Max 15</option>
+                <option value="FLAT">Flat Amount (₹) - Max 500</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-muted mb-1 uppercase">Discount Value</label>
+              <input required type="number" step="0.01" value={formData.discountValue} onChange={e => setFormData({...formData, discountValue: e.target.value})} placeholder="e.g. 10" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-muted mb-1 uppercase">Min Order Amount (₹)</label>
+              <input type="number" value={formData.minOrderPaise} onChange={e => setFormData({...formData, minOrderPaise: e.target.value})} placeholder="0 for no minimum" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
+            </div>
+          </div>
+          <div className="flex justify-end pt-2">
+            <button disabled={submitting} type="submit" className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold flex items-center gap-2">
+              {submitting ? <Loader2 size={16} className="animate-spin" /> : "Save Promo"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center p-10"><Loader2 className="animate-spin text-orange-500" /></div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {coupons.map(c => (
+            <div key={c.id} className={`bg-surface border ${c.creatorRole === 'ADMIN' ? 'border-blue-500/30' : 'border-border'} rounded-2xl p-5 relative group flex flex-col justify-between`}>
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-black text-heading uppercase tracking-widest">{c.code}</h3>
+                  <div className="flex gap-2">
+                    {c.creatorRole === "VENDOR" && (
+                      <button onClick={() => handleDelete(c.id)} className="text-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-emerald-600 font-bold mb-3">{c.description || `${c.discountValue}${c.discountType === 'PERCENTAGE' ? '%' : '₹'} OFF`}</p>
+                
+                {c.creatorRole === "ADMIN" && (
+                  <div className="mb-3 inline-block px-2 py-1 bg-blue-500/10 text-blue-700 text-[10px] font-bold rounded uppercase">Platform Campaign</div>
+                )}
+                
+                <div className="space-y-1 text-xs text-muted font-medium">
+                  <p>Uses: {c.usedCount} / {c.maxUses || "∞"}</p>
+                  <p>Status: <span className="font-bold text-heading">{c.vendorStatus || "ACTIVE"}</span></p>
+                  {c.isAutoApply && <p className="text-orange-500 font-bold">★ Auto-Applies to cart</p>}
+                </div>
+              </div>
+              
+              <div className="mt-5 pt-4 border-t border-border flex flex-col gap-2">
+                {c.creatorRole === "ADMIN" && c.vendorStatus === "PENDING_OPT_IN" ? (
+                  <div className="flex gap-2">
+                    <button onClick={() => handleOptIn(c.id, true)} className="flex-1 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-colors">Join Campaign</button>
+                    <button onClick={() => handleOptIn(c.id, false)} className="flex-1 py-1.5 bg-surface-card border border-border text-muted hover:text-red-500 rounded-lg text-xs font-bold transition-colors">Decline</button>
+                  </div>
+                ) : c.creatorRole === "ADMIN" && c.vendorStatus === "ACTIVE" ? (
+                  <button onClick={() => handleOptIn(c.id, false)} className="w-full py-1.5 bg-surface-card border border-border text-red-500 hover:bg-red-500/10 rounded-lg text-xs font-bold transition-colors">Opt-Out of Campaign</button>
+                ) : c.creatorRole === "VENDOR" ? (
+                  <button 
+                    onClick={() => toggleStatus(c.id, c.isActive)}
+                    className={`w-full py-1.5 rounded-lg text-xs font-bold transition-colors ${c.isActive ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'}`}
+                  >
+                    {c.isActive ? "Live / Active" : "Paused / Inactive"}
+                  </button>
+                ) : (
+                  <div className="w-full py-1.5 text-center text-xs font-bold text-muted bg-surface-card rounded-lg">Declined</div>
+                )}
+              </div>
+            </div>
+          ))}
+          {coupons.length === 0 && (
+            <div className="col-span-full p-10 text-center text-muted font-medium bg-surface-card rounded-2xl border border-dashed border-border">
+              No promotions running.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};

@@ -140,7 +140,7 @@ export const ShopByCollections = () => {
           {displayCategories.map((cat, index) => (
             <div
               key={cat.id}
-              className="group relative block w-full aspect-[1.2/1] rounded-2xl sm:rounded-3xl overflow-hidden border border-bronze-500/10 hover:border-bronze-500/30 bg-bronze-900 shadow-sm will-change-transform transform-gpu"
+              className="group relative block w-full aspect-[1.2/1] rounded-2xl sm:rounded-3xl overflow-hidden border border-bronze-500/10 hover:border-bronze-500/30 bg-bronze-900 shadow-sm"
             >
               <Link href={`/products?category=${cat.id}`} className="flex flex-col w-full h-full">
                 
@@ -153,16 +153,12 @@ export const ShopByCollections = () => {
                     sizes="(max-width: 640px) 50vw, 25vw"
                     className="object-cover"
                   />
-                  
-                  {/* Fade overlay: bottom 30% of the image container */}
-                  <div className={`absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-t ${cat.fadeClass} opacity-90 z-10`} />
-                  
-                  {/* Subtle top shadow */}
-                  <div className="absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-black/20 to-transparent z-10" />
+                  {/* Subtle fade transition between image and text */}
+                  <div className={`absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t ${cat.fadeClass} pointer-events-none`} />
                 </div>
 
                 {/* Lower portion: Centered Text Area */}
-                <div className={`relative w-full h-[40%] bg-gradient-to-br ${cat.bgClass} px-3 sm:px-4 flex items-center justify-center text-center z-10 border-t border-white/[0.02]`}>
+                <div className={`relative w-full h-[40%] bg-gradient-to-br ${cat.bgClass} px-3 sm:px-4 flex items-center justify-center text-center z-10`}>
                   <h3 className="text-[11px] sm:text-xs md:text-sm lg:text-base font-display font-bold text-white leading-snug line-clamp-2">
                     {cat.name}
                   </h3>

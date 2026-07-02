@@ -32,9 +32,11 @@ model User {
   razorpayAccountId String? // For Razorpay Route Linked Accounts (Vendor Payouts)
   payoutsPaused     Boolean @default(false) // Admin override to hold vendor money
 
-  products  Product[]
-  orders    Order[]
-  addresses Address[]
+  products      Product[]
+  orders        Order[]
+  addresses     Address[]
+  customPayouts CustomPayout[]
+  reviews       Review[]
 
   @@index([role])
   @@index([vendorStatus])
@@ -71,9 +73,11 @@ model Product {
   createdAt    DateTime @default(now())
   vendorId     Int?
 
-  category   Category    @relation(fields: [categoryName], references: [slug])
-  vendor     User?       @relation(fields: [vendorId], references: [id])
-  orderItems OrderItem[]
+  category       Category       @relation(fields: [categoryName], references: [slug])
+  vendor         User?          @relation(fields: [vendorId], references: [id])
+  orderItems     OrderItem[]
+  customPayouts  CustomPayout[]
+  productReviews Review[]
 
   @@index([vendorId])
   @@index([categoryName])
@@ -160,6 +164,10 @@ model Order {
   returnShiprocketId Int? // Reverse order ID
   returnAwbCode      String? // Return AWB
   returnCourierName  String? // Return courier
+
+  // Coupon tracking
+  couponCode    String? // Coupon code used (snapshot)
+  discountPaise Int     @default(0) // Discount amount applied
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -360,4 +368,87 @@ model AdminSettings {
   homepageSections Json? // Array of { title, productIds: [] }
 
   updatedAt DateTime @updatedAt
+}
+
+// ==================== CUSTOM PAYOUTS ====================
+
+model CustomPayout {
+  id        Int      @id @default(autoincrement())
+  vendorId  Int
+  vendor    User     @relation(fields: [vendorId], references: [id])
+  productId Int?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  amountPaise Int
+  status      String  @default("COMPLETED")
+  paymentRef  String?
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vendorId])
+  @@index([productId])
+}
+
+// ==================== REVIEWS & RATINGS ====================
+
+model Review {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  orderId   String? // Link to order for verified purchase badge
+
+  rating  Int // 1-5 stars
+  title   String? // Optional review title
+  comment String  @db.Text
+  images  Json? // Array of image URLs
+
+  isVerified Boolean @default(false) // True if linked to a delivered order
+  isApproved Boolean @default(true) // Admin moderation flag
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, userId]) // One review per product per user
+  @@index([productId])
+  @@index([userId])
+  @@index([isApproved])
+}
+
+// ==================== COUPONS & OFFERS ====================
+
+model Coupon {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique // "WELCOME10", "DIWALI20"
+  description String? // Admin note
+
+  // Discount config
+  discountType     String @default("PERCENTAGE") // "PERCENTAGE" | "FLAT"
+  discountValue    Float // 10 = 10% or ₹10 flat
+  maxDiscountPaise Int? // Cap for percentage discounts (e.g., max ₹200 off)
+
+  // Constraints
+  minOrderPaise  Int  @default(0) // Minimum order value
+  maxUses        Int? // Total uses allowed (null = unlimited)
+  maxUsesPerUser Int  @default(1) // Per-user limit
+  usedCount      Int  @default(0) // Current total uses
+
+  // Validity
+  isActive  Boolean   @default(true)
+  startsAt  DateTime  @default(now())
+  expiresAt DateTime? // null = no expiry
+
+  // Targeting (optional)
+  applicableCategories String? // Comma-separated category slugs (null = all)
+  applicableMaterials  String? // Comma-separated materials (null = all)
+  minItems             Int     @default(1) // Minimum items in cart
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
 }

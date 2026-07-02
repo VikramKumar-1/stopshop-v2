@@ -341,7 +341,7 @@ export const VendorSection = () => {
           {vendors.map((vendor) => (
             <div
               key={vendor.id}
-              className="shrink-0 w-[82%] sm:w-[280px] bg-gradient-to-br from-surface-card to-bronze-500/[0.02] border border-bronze-500/15 rounded-3xl p-5 sm:p-6 shadow-md hover:border-bronze-500/40 flex flex-col justify-between group cursor-pointer relative overflow-hidden will-change-transform transform-gpu [contain:paint]"
+              className="shrink-0 w-[82%] sm:w-[280px] bg-gradient-to-br from-surface-card to-bronze-500/[0.02] border border-bronze-500/15 rounded-3xl p-5 sm:p-6 shadow-md hover:border-bronze-500/40 flex flex-col justify-between group cursor-pointer relative overflow-hidden [contain:paint]"
             >
 
 

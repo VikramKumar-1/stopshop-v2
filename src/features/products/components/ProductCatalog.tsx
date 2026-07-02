@@ -602,11 +602,23 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                       <div className="p-2.5 sm:p-4 flex-grow flex flex-col justify-between">
                         <div>
                           <div className="flex items-center gap-1 text-[8px] sm:text-xs text-muted mb-1 flex-wrap">
-                            <div className="flex items-center gap-0.5 bg-emerald-600 text-white px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-bold shrink-0">
-                              <span>{product.rating}</span>
-                              <Star size={7} fill="currentColor" className="stroke-none" />
-                            </div>
-                            <span className="shrink-0">({product.reviews})</span>
+                            {product.reviews && product.reviews > 0 ? (
+                              <>
+                                <div className="flex items-center gap-0.5 bg-emerald-600 text-white px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-bold shrink-0">
+                                  <span>{product.rating}</span>
+                                  <Star size={7} fill="currentColor" className="stroke-none" />
+                                </div>
+                                <span className="shrink-0">({product.reviews})</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-0.5 bg-muted/40 text-muted px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-bold shrink-0">
+                                  <span>0</span>
+                                  <Star size={7} className="stroke-none fill-muted" />
+                                </div>
+                                <span className="shrink-0">(0)</span>
+                              </>
+                            )}
                             {product.material && (
                               <>
                                 <span className="text-bronze-500 font-semibold">•</span>

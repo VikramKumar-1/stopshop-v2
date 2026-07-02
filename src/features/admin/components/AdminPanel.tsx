@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store, Loader2, Globe } from "lucide-react";
+import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store, Loader2, Globe, Eye, History, Tag } from "lucide-react";
 import { currencyDatabase } from "@/context/RegionContext";
 import { jsPDF } from "jspdf";
 import { AnimatePresence, motion } from "framer-motion";
+import { AdminCouponManager } from "@/features/coupons/components/AdminCouponManager";
 
 export const AdminPanel = () => {
   // Premium Toast Notification State
@@ -156,6 +157,17 @@ export const AdminPanel = () => {
   const [settlementSearchQuery, setSettlementSearchQuery] = useState("");
   const [excludedVendorIds, setExcludedVendorIds] = useState<number[]>([]);
   const [isProcessingPayout, setIsProcessingPayout] = useState<string | null>(null);
+  
+  // Custom Payout State
+  const [showCustomPayoutModal, setShowCustomPayoutModal] = useState(false);
+  const [customPayoutForm, setCustomPayoutForm] = useState<{vendorId: string, productId: string, amount: string, notes: string, testMode: boolean, isDirect: boolean, settlementId?: string}>({vendorId: "", productId: "", amount: "", notes: "", testMode: false, isDirect: false, settlementId: ""});
+  const [isSubmittingCustomPayout, setIsSubmittingCustomPayout] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [visibleHistoryLimit, setVisibleHistoryLimit] = useState(10);
+  const [isDeletingHistory, setIsDeletingHistory] = useState(false);
+  const [historyActiveTab, setHistoryActiveTab] = useState<"orders" | "custom">("orders");
+  const [visibleCustomLimit, setVisibleCustomLimit] = useState(10);
+  
   const [settings, setSettings] = useState<any>(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const [inquiries, setInquiries] = useState<any[]>([]);
@@ -223,9 +235,46 @@ export const AdminPanel = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 30000);
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    const anyModalOpen = !!selectedVendorSettlement || showCustomPayoutModal || !!modalProduct;
+    if (anyModalOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+    return () => {
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    };
+  }, [selectedVendorSettlement, showCustomPayoutModal, modalProduct]);
   
   const checkAuth = async () => {
     try {
@@ -400,8 +449,15 @@ export const AdminPanel = () => {
       if (sRes?.ok) {
          const data = await sRes.json();
          setSettlements(data.settlements || []);
-         setApiGroupedSettlements(data.groupedSettlements || []);
+         const freshGrouped = data.groupedSettlements || [];
+         setApiGroupedSettlements(freshGrouped);
          setApiSettlementSummary(data.summary);
+         
+         setSelectedVendorSettlement((prev: any) => {
+            if (!prev) return null;
+            const freshVendorData = freshGrouped.find((g: any) => g.vendor.id === prev.vendor.id);
+            return freshVendorData || prev;
+         });
       }
       if (setRes?.ok) {
          const settingsData = (await setRes.json()).settings;
@@ -641,11 +697,11 @@ export const AdminPanel = () => {
      e.preventDefault();
      setSavingSettings(true);
      try {
-        const { defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign } = settings;
+        const { defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate } = settings;
         const res = await fetch("/api/admin/settings", {
            method: "PATCH",
            headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign })
+           body: JSON.stringify({ defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate })
         });
         if (res.ok) showToast("Platform Settings saved successfully!", "success");
         else showToast("Failed to save settings", "error");
@@ -833,7 +889,7 @@ export const AdminPanel = () => {
       if (!imgs) return "/placeholder.png";
       const parsed = typeof imgs === 'string' ? JSON.parse(imgs) : imgs;
       return Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : "/placeholder.png";
-    } catch { return "/placeholder.png"; }
+    } catch (err) { return "/placeholder.png"; }
   };
 
   return (
@@ -866,6 +922,7 @@ export const AdminPanel = () => {
                { id: "settlements", label: "Settlements", icon: DollarSign },
                { id: "vendors", label: "Vendors KYC", icon: Users },
                { id: "products", label: "Products", icon: Award },
+               { id: "coupons", label: "Coupons & Offers", icon: Tag },
                { id: "homepage", label: "Homepage Control", icon: LayoutDashboard },
                { id: "inquiries", label: "Inquiries", icon: Mail },
                { id: "settings", label: "Settings", icon: Settings },
@@ -1703,6 +1760,16 @@ export const AdminPanel = () => {
                          />
                       </div>
                       <div className="flex items-center gap-3 w-full md:w-auto">
+                         <button
+                            onClick={() => {
+                               setCustomPayoutForm({vendorId: "", productId: "", amount: "", notes: "", testMode: false, isDirect: false});
+                               setShowCustomPayoutModal(true);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors whitespace-nowrap"
+                         >
+                            <DollarSign size={16} />
+                            Custom Payout
+                         </button>
                          <div className="text-xs text-muted">
                             {excludedVendorIds.length > 0 && <span className="text-amber-500 font-bold">{excludedVendorIds.length} Excluded</span>}
                          </div>
@@ -1904,14 +1971,136 @@ export const AdminPanel = () => {
              );
           })()}
 
-          {/* MODAL */}
+          {/* CUSTOM PAYOUT MODAL */}
+          <AnimatePresence>
+             {showCustomPayoutModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                   <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCustomPayoutModal(false)}/>
+                   <motion.div initial={{opacity:0, scale:0.95, y:20}} animate={{opacity:1, scale:1, y:0}} exit={{opacity:0, scale:0.95, y:20}} className="bg-surface-card border border-border rounded-3xl w-full max-w-lg max-h-[85vh] flex flex-col relative z-10 overflow-hidden shadow-2xl">
+                      <div className="p-6 border-b border-border flex justify-between items-center bg-surface shrink-0">
+                         <div>
+                            <h2 className="text-xl font-bold text-heading">Custom Vendor Payout</h2>
+                            <p className="text-xs text-muted">Process a custom Razorpay payment</p>
+                         </div>
+                         <button onClick={() => setShowCustomPayoutModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-border transition-colors text-muted">
+                            <X size={16}/>
+                         </button>
+                      </div>
+                      <div className="p-6 overflow-y-auto space-y-4">
+                         {!customPayoutForm.isDirect && (
+                            <>
+                               <div>
+                                  <label className="text-xs font-bold uppercase text-muted mb-1 block">Select Vendor</label>
+                                  <select 
+                                     value={customPayoutForm.vendorId}
+                                     onChange={(e) => setCustomPayoutForm({...customPayoutForm, vendorId: e.target.value, productId: ""})}
+                                     className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-sm"
+                                  >
+                                     <option value="">-- Choose Vendor --</option>
+                                     {vendors.map(v => (
+                                        <option key={v.id} value={v.id}>{v.name} ({v.email})</option>
+                                     ))}
+                                  </select>
+                               </div>
+                               {customPayoutForm.vendorId && (
+                                  <div>
+                                     <label className="text-xs font-bold uppercase text-muted mb-1 block">Related Product (Optional)</label>
+                                     <select 
+                                        value={customPayoutForm.productId}
+                                        onChange={(e) => setCustomPayoutForm({...customPayoutForm, productId: e.target.value})}
+                                        className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-sm"
+                                     >
+                                        <option value="">-- No Specific Product --</option>
+                                        {products.filter(p => p.vendorId === parseInt(customPayoutForm.vendorId)).map(p => (
+                                           <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                     </select>
+                                  </div>
+                               )}
+                            </>
+                         )}
+                         <div>
+                            <label className="text-xs font-bold uppercase text-muted mb-1 block">Amount (INR)</label>
+                            <input 
+                               type="number" 
+                               value={customPayoutForm.amount}
+                               onChange={(e) => setCustomPayoutForm({...customPayoutForm, amount: e.target.value})}
+                               placeholder="e.g. 5000"
+                               className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-sm"
+                            />
+                         </div>
+                         <div>
+                            <label className="text-xs font-bold uppercase text-muted mb-1 block">Admin Notes</label>
+                            <textarea 
+                               value={customPayoutForm.notes}
+                               onChange={(e) => setCustomPayoutForm({...customPayoutForm, notes: e.target.value})}
+                               placeholder="Reason for custom payout..."
+                               className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-sm"
+                               rows={3}
+                            />
+                         </div>
+                         <label className="flex items-center gap-2 cursor-pointer mt-2">
+                            <input 
+                               type="checkbox"
+                               checked={customPayoutForm.testMode}
+                               onChange={(e) => setCustomPayoutForm({...customPayoutForm, testMode: e.target.checked})}
+                               className="w-4 h-4 text-orange-500 rounded border-border"
+                            />
+                            <span className="text-sm font-bold text-heading">Test Mode (Mock Payout)</span>
+                         </label>
+                      </div>
+                      <div className="p-6 border-t border-border bg-surface flex justify-end gap-3 shrink-0">
+                         <button onClick={() => setShowCustomPayoutModal(false)} className="px-5 py-2.5 text-muted hover:text-heading font-bold text-sm">Cancel</button>
+                         <button 
+                            disabled={isSubmittingCustomPayout || !customPayoutForm.vendorId || !customPayoutForm.amount}
+                            onClick={async () => {
+                               setIsSubmittingCustomPayout(true);
+                               try {
+                                  const res = await fetch("/api/admin/settlements/custom-payout", {
+                                     method: "POST",
+                                     headers: { "Content-Type": "application/json" },
+                                     body: JSON.stringify({
+                                        vendorId: customPayoutForm.vendorId,
+                                        productId: customPayoutForm.productId || null,
+                                        amountPaise: Math.round(parseFloat(customPayoutForm.amount) * 100),
+                                        notes: customPayoutForm.notes,
+                                        testMode: customPayoutForm.testMode,
+                                        settlementId: customPayoutForm.settlementId || null
+                                     })
+                                  });
+                                  const data = await res.json();
+                                  if (res.ok) {
+                                     showToast(data.message || "Custom payout processed", "success");
+                                     setShowCustomPayoutModal(false);
+                                     setCustomPayoutForm({vendorId: "", productId: "", amount: "", notes: "", testMode: false, isDirect: false, settlementId: ""});
+                                     fetchData();
+                                  } else {
+                                     showToast(data.error || "Failed to process custom payout", "error");
+                                  }
+                               } catch (e) {
+                                  showToast("Network error", "error");
+                               } finally {
+                                  setIsSubmittingCustomPayout(false);
+                               }
+                            }}
+                            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm disabled:opacity-50 flex items-center gap-2"
+                         >
+                            {isSubmittingCustomPayout ? <RefreshCcw size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                            Process Payout
+                         </button>
+                      </div>
+                   </motion.div>
+                </div>
+             )}
+          </AnimatePresence>
+          {/* VENDOR SETTLEMENT MODAL */}
           <AnimatePresence>
              {selectedVendorSettlement && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                    <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedVendorSettlement(null)}/>
-                   <motion.div initial={{opacity:0, scale:0.95, y:20}} animate={{opacity:1, scale:1, y:0}} exit={{opacity:0, scale:0.95, y:20}} className="bg-surface-card border border-border rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col relative z-10 overflow-hidden shadow-2xl">
+                   <motion.div initial={{opacity:0, scale:0.95, y:20}} animate={{opacity:1, scale:1, y:0}} exit={{opacity:0, scale:0.95, y:20}} className="bg-surface-card border border-border rounded-3xl w-full max-w-6xl relative z-10 shadow-2xl" style={{display:'flex', flexDirection:'column', maxHeight:'90vh', overflow:'hidden'}}>
                             {/* Header */}
-                            <div className="p-6 border-b border-border flex justify-between items-center bg-surface shrink-0">
+                            <div className="p-6 border-b border-border flex justify-between items-center bg-surface" style={{flexShrink:0}}>
                                <div className="flex gap-4 items-center">
                                   <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-border bg-background flex items-center justify-center">
                                      {selectedVendorSettlement.vendor.logo ? <img src={selectedVendorSettlement.vendor.logo} alt="Logo" className="w-full h-full object-cover"/> : <Store size={20} className="text-muted"/>}
@@ -1921,13 +2110,25 @@ export const AdminPanel = () => {
                                      <p className="text-xs text-muted">Eligible Payout Invoice</p>
                                   </div>
                                </div>
-                               <button onClick={() => setSelectedVendorSettlement(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-border transition-colors text-muted">
-                                  <X size={16}/>
-                               </button>
+                               <div className="flex items-center gap-3">
+                                  <button 
+                                     onClick={() => {
+                                        setShowHistoryModal(true);
+                                        setVisibleHistoryLimit(10);
+                                     }}
+                                     className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 rounded-xl text-xs font-bold transition-colors shadow-sm"
+                                  >
+                                     <History size={14} />
+                                     Settlement History
+                                  </button>
+                                  <button onClick={() => setSelectedVendorSettlement(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-border transition-colors text-muted">
+                                     <X size={16}/>
+                                  </button>
+                               </div>
                             </div>
 
                             {/* Payout Banner */}
-                            <div className="bg-emerald-500/10 border-b border-emerald-500/20 p-6 flex items-center justify-between shrink-0">
+                            <div className="bg-emerald-500/10 border-b border-emerald-500/20 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" style={{flexShrink:0}}>
                                <div className="flex flex-col">
                                   <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Total Amount to Pay</p>
                                   <p className="text-4xl font-black text-emerald-500">₹{(selectedVendorSettlement.summary.eligible / 100).toLocaleString()}</p>
@@ -1940,7 +2141,7 @@ export const AdminPanel = () => {
                                      </p>
                                   </div>
                                </div>
-                               <div className="flex gap-2">
+                               <div className="flex flex-wrap gap-2">
                                   {selectedVendorSettlement.settlements.some((s:any) => s.status === 'ELIGIBLE' && (s.order?.paymentMethod === 'razorpay' || s.order?.paymentMethod === 'payu')) && (
                                      <button
                                         onClick={async () => {
@@ -2070,24 +2271,36 @@ export const AdminPanel = () => {
                                         Test COD (Mock)
                                      </button>
                                   )}
+                                  
+                                  <button
+                                     onClick={() => {
+                                        setCustomPayoutForm({vendorId: String(selectedVendorSettlement.vendor.id), productId: "", amount: "", notes: "", testMode: false, isDirect: true, settlementId: ""});
+                                        setShowCustomPayoutModal(true);
+                                     }}
+                                     className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors"
+                                  >
+                                     <DollarSign size={16} />
+                                     Custom Payout
+                                  </button>
                                </div>
                             </div>
 
                             {/* List of Products/Orders */}
-                            <div className="overflow-y-auto p-6 flex-1">
+                            <div style={{flex:1, minHeight:0, overflowY:'auto', overscrollBehavior:'contain'}}>
+                               <div className="p-6">
                                <h3 className="text-sm font-bold text-heading mb-4">Eligible Orders Breakdown</h3>
                                <table className="w-full text-left text-xs">
                                   <thead className="text-muted border-b border-border">
                                      <tr>
-                                        <th className="pb-3 font-bold uppercase">Order #</th>
-                                        <th className="pb-3 font-bold uppercase">Status</th>
-                                        <th className="pb-3 font-bold uppercase text-right">Order Value</th>
-                                        <th className="pb-3 font-bold uppercase text-right">Vendor Share</th>
-                                        <th className="pb-3 font-bold uppercase text-right">Action</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider text-[10px]">Order #</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider text-[10px]">Status</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider text-[10px] text-right pr-6">Order Value</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider text-[10px] text-right pr-6">Vendor Share</th>
+                                        <th className="pb-3 font-bold uppercase tracking-wider text-[10px] text-right">Action</th>
                                      </tr>
                                   </thead>
                                   <tbody className="divide-y divide-border">
-                                     {selectedVendorSettlement.settlements.filter((s:any) => s.status === 'ELIGIBLE' || s.status === 'HOLD' || s.status === 'SETTLED').map((s:any) => (
+                                     {selectedVendorSettlement.settlements.filter((s:any) => s.status === 'ELIGIBLE' || s.status === 'HOLD').map((s:any) => (
                                         <tr key={s.id} className="hover:bg-surface-hover/50 transition-colors">
                                            <td className="py-4 font-bold text-orange-500">
                                               {s.order?.orderNumber}
@@ -2095,6 +2308,19 @@ export const AdminPanel = () => {
                                                  <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-surface-card border border-border text-muted uppercase">
                                                     {s.order.paymentMethod === 'cod' ? 'COD' : 'PREPAID'}
                                                  </span>
+                                              )}
+                                              {s.order?.items?.length > 0 && (
+                                                 <div className="mt-2 space-y-1">
+                                                    {s.order.items.map((item: any) => (
+                                                       <button 
+                                                          key={item.id} 
+                                                          onClick={() => setModalProduct(item.product)}
+                                                          className="flex items-center gap-1 text-[10px] text-blue-500 hover:text-blue-600 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-2 py-1 rounded w-fit"
+                                                       >
+                                                          <Eye size={10} /> View {item.product?.name ? item.product.name.substring(0, 20) + '...' : 'Product'}
+                                                       </button>
+                                                    ))}
+                                                 </div>
                                               )}
                                            </td>
                                            <td className="py-4">
@@ -2107,9 +2333,26 @@ export const AdminPanel = () => {
                                                 </div>
                                               )}
                                            </td>
-                                           <td className="py-4 text-right">₹{(s.orderAmountPaise/100).toLocaleString()}</td>
-                                           <td className="py-4 font-bold text-heading text-right">₹{(s.vendorPayoutPaise/100).toLocaleString()}</td>
+                                           <td className="py-4 text-right font-medium text-slate-500 font-mono pr-6">₹{(s.orderAmountPaise/100).toLocaleString()}</td>
+                                           <td className="py-4 text-right pr-6">
+                                              <span className="inline-flex items-center bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
+                                                 ₹{(s.vendorPayoutPaise/100).toLocaleString()}
+                                              </span>
+                                           </td>
                                            <td className="py-4 text-right flex justify-end gap-2">
+                                              {s.status !== 'SETTLED' && (
+                                                 <button 
+                                                    onClick={() => {
+                                                       setCustomPayoutForm({vendorId: String(selectedVendorSettlement.vendor.id), productId: s.order?.items?.[0]?.product?.id ? String(s.order.items[0].product.id) : "", amount: String(s.vendorPayoutPaise / 100), notes: `Custom payout for Order #${s.order?.orderNumber || s.orderId}`, testMode: false, isDirect: true, settlementId: String(s.id)});
+                                                       setShowCustomPayoutModal(true);
+                                                    }}
+                                                    title="Custom Payout for this Order"
+                                                    className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 rounded-lg text-[10px] font-bold transition-colors shadow-sm flex items-center gap-1"
+                                                 >
+                                                    <DollarSign size={12} />
+                                                    Custom Pay
+                                                 </button>
+                                              )}
                                               <button onClick={() => generateInvoice(s)} title="Download Commission Invoice" className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg text-[10px] font-bold transition-colors shadow-sm flex items-center gap-1">
                                                 <Download size={12} />
                                                 Invoice
@@ -2271,11 +2514,217 @@ export const AdminPanel = () => {
                                      ))}
                                   </tbody>
                                </table>
+                             </div>
                             </div>
                          </motion.div>
                       </div>
                     )}
                  </AnimatePresence>
+
+                  {/* VENDOR SETTLEMENT HISTORY MODAL */}
+                  <AnimatePresence>
+                     {showHistoryModal && selectedVendorSettlement && (
+                        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowHistoryModal(false)}/>
+                           <motion.div initial={{opacity:0, scale:0.95, y:20}} animate={{opacity:1, scale:1, y:0}} exit={{opacity:0, scale:0.95, y:20}} className="bg-surface-card border border-border rounded-3xl w-full max-w-4xl relative z-10 shadow-2xl" style={{display:'flex', flexDirection:'column', maxHeight:'80vh', overflow:'hidden'}}>
+                              {/* Header */}
+                              <div className="p-6 border-b border-border flex justify-between items-center bg-surface shrink-0">
+                                 <div>
+                                    <h2 className="text-xl font-bold text-heading">Settlement History</h2>
+                                    <p className="text-xs text-muted">
+                                       History of settled payouts for {selectedVendorSettlement.vendor.storeName || selectedVendorSettlement.vendor.name}
+                                    </p>
+                                 </div>
+                                 <div className="flex items-center gap-3">
+                                    <button 
+                                       disabled={isDeletingHistory}
+                                       onClick={async () => {
+                                          if (!confirm("Are you sure you want to delete ALL settled records older than 1 month? This cannot be undone.")) return;
+                                          setIsDeletingHistory(true);
+                                          try {
+                                             const res = await fetch("/api/admin/settlements", { method: "DELETE" });
+                                             const data = await res.json();
+                                             if (res.ok) {
+                                                showToast(data.message || "History cleared successfully", "success");
+                                                fetchData();
+                                             } else {
+                                                showToast(data.error || "Failed to delete history", "error");
+                                             }
+                                          } catch (e) {
+                                             showToast("Network error", "error");
+                                          } finally {
+                                             setIsDeletingHistory(false);
+                                          }
+                                       }}
+                                       className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold transition-colors shadow-sm disabled:opacity-50"
+                                    >
+                                       {isDeletingHistory ? <RefreshCcw size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                                       Clear Old History (&gt; 1 Month)
+                                    </button>
+                                    <button onClick={() => setShowHistoryModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-border transition-colors text-muted">
+                                       <X size={16}/>
+                                    </button>
+                                 </div>
+                              </div>
+
+                              {/* Tabs */}
+                              <div className="flex border-b border-border bg-surface px-6 shrink-0 gap-6">
+                                 <button
+                                    onClick={() => setHistoryActiveTab("orders")}
+                                    className={`py-3.5 text-xs font-bold uppercase tracking-wider relative transition-colors ${historyActiveTab === "orders" ? "text-indigo-600" : "text-muted hover:text-heading"}`}
+                                 >
+                                    Order Payouts ({selectedVendorSettlement.settlements.filter((s: any) => s.status === 'SETTLED').length})
+                                    {historyActiveTab === "orders" && (
+                                       <motion.div layoutId="historyActiveTabLine" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
+                                    )}
+                                 </button>
+                                 <button
+                                    onClick={() => setHistoryActiveTab("custom")}
+                                    className={`py-3.5 text-xs font-bold uppercase tracking-wider relative transition-colors ${historyActiveTab === "custom" ? "text-indigo-600" : "text-muted hover:text-heading"}`}
+                                 >
+                                    Custom Payouts ({selectedVendorSettlement.customPayouts?.length || 0})
+                                    {historyActiveTab === "custom" && (
+                                       <motion.div layoutId="historyActiveTabLine" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
+                                    )}
+                                 </button>
+                              </div>
+
+                              {/* Content */}
+                              <div style={{flex:1, minHeight:0, overflowY:'auto', overscrollBehavior:'contain'}} className="p-6">
+                                 {historyActiveTab === "orders" ? (() => {
+                                    const settledList = selectedVendorSettlement.settlements.filter((s: any) => s.status === 'SETTLED');
+                                    
+                                    if (settledList.length === 0) {
+                                       return (
+                                          <div className="py-12 text-center text-muted">
+                                             <History size={40} className="mx-auto text-muted/40 mb-3" />
+                                             <p className="font-bold">No settled history found</p>
+                                             <p className="text-xs mt-1">Processed payouts will appear here.</p>
+                                          </div>
+                                       );
+                                    }
+
+                                    const displayedList = settledList.slice(0, visibleHistoryLimit);
+
+                                    return (
+                                       <div className="space-y-4">
+                                          <div className="overflow-x-auto">
+                                             <table className="w-full text-left text-xs">
+                                                <thead className="text-muted border-b border-border">
+                                                   <tr>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px]">Order #</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px]">Settled At</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px]">UTR/Reference</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px] text-right pr-6">Order Value</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px] text-right pr-6">Vendor Share</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px] text-right">Invoice</th>
+                                                   </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-border">
+                                                   {displayedList.map((s: any) => (
+                                                      <tr key={s.id} className="hover:bg-surface-hover/50 transition-colors">
+                                                         <td className="py-4 font-bold text-orange-500">{s.order?.orderNumber || s.orderId}</td>
+                                                         <td className="py-4 text-muted">{s.settledAt ? new Date(s.settledAt).toLocaleDateString() : 'N/A'}</td>
+                                                         <td className="py-4 font-mono text-heading text-[10px] break-all">{s.vendorPaymentRef || '-'}</td>
+                                                         <td className="py-4 text-right font-medium text-slate-500 font-mono pr-6">₹{(s.orderAmountPaise/100).toLocaleString()}</td>
+                                                         <td className="py-4 text-right pr-6">
+                                                            <span className="inline-flex items-center bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold font-mono">
+                                                               ₹{(s.vendorPayoutPaise/100).toLocaleString()}
+                                                            </span>
+                                                         </td>
+                                                         <td className="py-4 text-right">
+                                                            <button onClick={() => generateInvoice(s)} title="Download Commission Invoice" className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg text-[10px] font-bold transition-colors shadow-sm inline-flex items-center gap-1">
+                                                               <Download size={10} /> Invoice
+                                                            </button>
+                                                         </td>
+                                                      </tr>
+                                                   ))}
+                                                </tbody>
+                                             </table>
+                                          </div>
+                                          
+                                          {settledList.length > visibleHistoryLimit && (
+                                             <div className="flex justify-center pt-4 border-t border-border">
+                                                <button 
+                                                   onClick={() => setVisibleHistoryLimit(prev => prev + 10)}
+                                                   className="px-5 py-2 bg-surface hover:bg-border text-heading border border-border rounded-xl text-xs font-bold transition-colors shadow-sm"
+                                                >
+                                                   Load More Settled Orders
+                                                </button>
+                                             </div>
+                                          )}
+                                       </div>
+                                    );
+                                 })() : (() => {
+                                    const customPayouts = selectedVendorSettlement.customPayouts || [];
+                                    
+                                    if (customPayouts.length === 0) {
+                                       return (
+                                          <div className="py-12 text-center text-muted">
+                                             <DollarSign size={40} className="mx-auto text-muted/40 mb-3" />
+                                             <p className="font-bold">No custom payouts found</p>
+                                             <p className="text-xs mt-1">Processed custom payouts will appear here.</p>
+                                          </div>
+                                       );
+                                    }
+
+                                    const displayedCustom = customPayouts.slice(0, visibleCustomLimit);
+
+                                    return (
+                                       <div className="space-y-4">
+                                          <div className="overflow-x-auto">
+                                             <table className="w-full text-left text-xs">
+                                                <thead className="text-muted border-b border-border">
+                                                   <tr>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px]">Date</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px]">Product</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px] text-right pr-6">Amount</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px]">Status/Ref</th>
+                                                      <th className="pb-3 font-bold uppercase tracking-wider text-[10px] text-right">Notes</th>
+                                                   </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-border">
+                                                   {displayedCustom.map((cp: any) => (
+                                                      <tr key={cp.id} className="hover:bg-surface-hover/50 transition-colors">
+                                                         <td className="py-4">{new Date(cp.createdAt).toLocaleDateString()}</td>
+                                                         <td className="py-4 text-muted">{cp.product?.name || "N/A"}</td>
+                                                         <td className="py-4 text-right pr-6 font-bold text-indigo-500 font-mono">₹{(cp.amountPaise/100).toLocaleString()}</td>
+                                                         <td className="py-4">
+                                                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-600">
+                                                               {cp.status}
+                                                            </span>
+                                                            <div className="text-[10px] text-muted mt-1 font-mono break-all">{cp.paymentRef}</div>
+                                                         </td>
+                                                         <td className="py-4 text-right text-muted max-w-[150px] truncate" title={cp.notes}>{cp.notes || "-"}</td>
+                                                      </tr>
+                                                   ))}
+                                                </tbody>
+                                             </table>
+                                          </div>
+                                          
+                                          {customPayouts.length > visibleCustomLimit && (
+                                             <div className="flex justify-center pt-4 border-t border-border">
+                                                <button 
+                                                   onClick={() => setVisibleCustomLimit(prev => prev + 10)}
+                                                   className="px-5 py-2 bg-surface hover:bg-border text-heading border border-border rounded-xl text-xs font-bold transition-colors shadow-sm"
+                                                >
+                                                   Load More Custom Payouts
+                                                </button>
+                                             </div>
+                                          )}
+                                       </div>
+                                    );
+                                 })()}
+                              </div>
+                           </motion.div>
+                        </div>
+                     )}
+                  </AnimatePresence>
+
+          {/* COUPONS TAB */}
+          {activeTab === "coupons" && (
+            <AdminCouponManager />
+          )}
 
           {/* SETTINGS TAB */}
           {activeTab === "settings" && (
@@ -2334,6 +2783,18 @@ export const AdminPanel = () => {
                            <div className="space-y-1">
                               <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-emerald-500">Auto-Refund SLA (Hours)</label>
                               <input type="number" value={settings.vendorReturnSlaHours || 24} onChange={e => setSettings({...settings, vendorReturnSlaHours: parseInt(e.target.value)})} className="w-full px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-orange-500">PDF Invoice Template</label>
+                              <select 
+                                 value={settings.invoiceTemplate || "CLASSIC"} 
+                                 onChange={e => setSettings({...settings, invoiceTemplate: e.target.value})}
+                                 className="w-full px-3 py-2 bg-orange-500/10 border border-orange-500/20 rounded-xl text-xs text-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 font-bold appearance-none cursor-pointer"
+                              >
+                                 <option value="CLASSIC">Classic B2C GST</option>
+                                 <option value="MODERN_MINIMAL">Modern Minimalist</option>
+                                 <option value="BRAND_PREMIUM">Brand Premium (Orange)</option>
+                              </select>
                            </div>
                            <div className="space-y-1">
                               <label className="text-[10px] font-bold uppercase tracking-wider text-muted text-blue-500">Vendor Payout Schedule</label>

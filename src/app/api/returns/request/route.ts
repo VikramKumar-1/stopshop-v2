@@ -36,14 +36,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Return already requested for this order" }, { status: 400 });
     }
 
-    // Check return window
-    if (!order.deliveredAt) {
-      return NextResponse.json({ success: false, error: "Delivery date not recorded" }, { status: 400 });
-    }
+    // Check 7-day return window
+    const deliveryTimestamp = order.deliveredAt 
+      ? new Date(order.deliveredAt).getTime() 
+      : new Date(order.updatedAt || order.createdAt).getTime();
 
-    const returnWindowMs = order.returnWindowDays * 24 * 60 * 60 * 1000;
-    if (Date.now() - new Date(order.deliveredAt).getTime() > returnWindowMs) {
-      return NextResponse.json({ success: false, error: "Return window has expired" }, { status: 400 });
+    const returnWindowMs = (order.returnWindowDays || 7) * 24 * 60 * 60 * 1000;
+    if (Date.now() - deliveryTimestamp > returnWindowMs) {
+      return NextResponse.json({ success: false, error: "Return window (7 days) has expired for this order" }, { status: 400 });
     }
 
     // Create the Return Request (AUTO-APPROVED)

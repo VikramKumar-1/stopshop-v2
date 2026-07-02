@@ -5,6 +5,9 @@ import Link from "next/link";
 import { Star, ShieldCheck, ArrowLeft, Truck, PackageCheck, Award } from "lucide-react";
 import ProductClientActions from "./ProductClientActions";
 import { useRegion } from "@/context/RegionContext";
+import { trackProductView } from "@/lib/analytics";
+import ReviewSection from "./ReviewSection";
+import { RecommendedSection } from "./RecommendedSection";
 
 interface ProductDetailsProps {
   product: any;
@@ -161,15 +164,22 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
                   Material: <span className="text-heading font-black">{product.material}</span>
                 </span>
                 
-                <div className="flex items-center gap-1 text-xs">
-                  <div className="flex text-orange-500">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={13} fill={i < Math.floor(product.rating) ? "currentColor" : "none"} className="stroke-orange-500" />
-                    ))}
+                {product.reviews && product.reviews > 0 ? (
+                  <div className="flex items-center gap-1 text-xs">
+                    <div className="flex text-orange-500">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={13} fill={i < Math.floor(product.rating) ? "currentColor" : "none"} className="stroke-orange-500" />
+                      ))}
+                    </div>
+                    <span className="font-bold text-heading ml-1">{product.rating}</span>
+                    <span className="text-muted">({product.reviews} reviews)</span>
                   </div>
-                  <span className="font-bold text-heading ml-1">{product.rating}</span>
-                  <span className="text-muted">({product.reviews} reviews)</span>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-xs text-muted font-bold">
+                    <Star size={13} className="text-muted" />
+                    <span>New Arrival (No reviews yet)</span>
+                  </div>
+                )}
               </div>
 
               {/* Title */}
@@ -295,6 +305,12 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
           </div>
 
         </div>
+
+        {/* Frequently Bought Together / Recommendations */}
+        <RecommendedSection productId={product.id} category={product.category} material={product.material} />
+
+        {/* Reviews Section */}
+        <ReviewSection productId={product.id} />
 
       </div>
     </div>

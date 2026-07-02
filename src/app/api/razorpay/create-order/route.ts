@@ -16,14 +16,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { cartItems, shippingInfo } = body;
+    const { cartItems, shippingInfo, couponCode } = body;
 
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
       return NextResponse.json({ success: false, error: "Cart is empty" }, { status: 400 });
     }
 
     // 1. Server-side pricing calculation (ignores any client prices)
-    const pricing = await calculateOrderPricing(cartItems, "razorpay", shippingInfo.country);
+    const pricing = await calculateOrderPricing(cartItems, "razorpay", shippingInfo.country, couponCode);
 
     // 2. Initialize Razorpay
     const razorpay = new Razorpay({
@@ -59,6 +59,8 @@ export async function POST(req: NextRequest) {
         shippingPaise: pricing.shippingPaise,
         codChargePaise: pricing.codChargePaise,
         taxPaise: pricing.taxPaise,
+        discountPaise: pricing.discountPaise,
+        couponCode: pricing.couponCode,
         totalPaise: pricing.totalPaise,
         
         // Shipping Info

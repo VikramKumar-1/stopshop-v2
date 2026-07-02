@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" fill="none" stroke="#D97706" stroke-width="0.8">
+  <circle cx="200" cy="0" r="170" stroke="#FBBF24" stroke-width="0.6" />
+  <circle cx="200" cy="0" r="158" stroke="#D97706" stroke-width="0.6" />
+
+  <g stroke="#FBBF24" stroke-width="1.2">
+    <path d="M 200 0 L 180 135 C 190 160, 210 160, 220 135 Z" fill="none" />
+    <path d="M 200 0 L 105 110 C 117 132, 137 122, 142 98 Z" fill="none" />
+    <path d="M 200 0 L 295 110 C 283 132, 263 122, 258 98 Z" fill="none" />
+    <path d="M 200 0 L 52 75 C 67 95, 85 82, 85 58 Z" fill="none" />
+    <path d="M 200 0 L 348 75 C 333 95, 315 82, 315 58 Z" fill="none" />
+    <path d="M 200 0 L 12 28 C 27 45, 45 28, 40 5 Z" fill="none" />
+    <path d="M 200 0 L 388 28 C 373 45, 355 28, 360 5 Z" fill="none" />
+  </g>
+
+  <g stroke="#D97706" stroke-width="1" fill="#580812">
+    <path d="M 200 0 L 185 95 C 191 113, 209 113, 215 95 Z" />
+    <path d="M 200 0 L 132 85 C 141 100, 155 93, 157 75 Z" />
+    <path d="M 200 0 L 268 85 C 259 100, 245 93, 243 75 Z" />
+    <path d="M 200 0 L 88 60 C 98 73, 111 63, 111 45 Z" />
+    <path d="M 200 0 L 312 60 C 302 73, 289 63, 289 45 Z" />
+    <path d="M 200 0 L 45 25 C 55 35, 68 25, 66 8 Z" />
+    <path d="M 200 0 L 355 25 C 345 35, 332 25, 334 8 Z" />
+  </g>
+
+  <circle cx="200" cy="0" r="58" stroke="#FBBF24" stroke-width="1.2" />
+
+  <g stroke="#FBBF24" stroke-width="1.5">
+    <line x1="200" y1="0" x2="200" y2="42" />
+    <line x1="200" y1="0" x2="158" y2="28" />
+    <line x1="200" y1="0" x2="242" y2="28" />
+    <line x1="200" y1="0" x2="175" y2="38" />
+    <line x1="200" y1="0" x2="225" y2="38" />
+  </g>
+
+  <circle cx="200" cy="0" r="24" fill="#6B0914" stroke="#FBBF24" stroke-width="1.5" />
+  <circle cx="200" cy="0" r="15" fill="#FBBF24" stroke="none" />
+  <circle cx="200" cy="0" r="7" fill="#2D0A11" stroke="none" />
+</svg>

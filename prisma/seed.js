@@ -7,22 +7,29 @@ async function main() {
   console.log("Seeding database...");
 
   // Clean existing data
+  await prisma.returnRequest.deleteMany({});
+  await prisma.settlement.deleteMany({});
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
   await prisma.inquiry.deleteMany({});
   await prisma.product.deleteMany({});
   await prisma.category.deleteMany({});
+  await prisma.address.deleteMany({});
   await prisma.user.deleteMany({});
 
   // Seed Admin User
-  const hashedAdminPassword = await bcrypt.hash("admin123", 10);
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@stopshop.com";
+  const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+  const hashedAdminPassword = await bcrypt.hash(adminPassword, 10);
   const admin = await prisma.user.create({
     data: {
       name: "Admin StopShop",
-      email: "admin@stopshop.com",
+      email: adminEmail,
       password: hashedAdminPassword,
       role: "admin",
     },
   });
-  console.log("Admin seeded (admin@stopshop.com)");
+  console.log(`Admin seeded (${adminEmail})`);
 
   // Seed Vendor User
   const hashedVendorPassword = await bcrypt.hash("vendor123", 10);

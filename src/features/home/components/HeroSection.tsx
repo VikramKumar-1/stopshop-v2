@@ -78,17 +78,7 @@ export const HeroSection = () => {
   };
 
   return (
-    <section id="hero-section" className="relative min-h-0 py-4 sm:py-6 lg:py-6 flex items-center overflow-hidden section-glass-ambient bg-gradient-to-br from-blue-600/[0.12] via-indigo-500/[0.08] to-violet-600/[0.10]">
-      {/* Background Effects */}
-      <div className="absolute inset-0">
-        <div
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(160,120,60,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(160,120,60,0.15) 1px, transparent 1px)`,
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
+    <section id="hero-section" className="relative min-h-0 py-4 sm:py-6 lg:py-6 flex items-center overflow-hidden section-glass-ambient">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full pt-4 pb-6 md:pt-6 md:pb-8 lg:pt-2 lg:pb-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -198,14 +188,14 @@ export const HeroSection = () => {
               <div className="absolute top-4 right-4 z-20 hidden md:flex gap-2">
                 <button
                   onClick={handlePrev}
-                  className="w-10 h-10 rounded-full flex items-center justify-center glass-light hover:bg-white/20 text-white"
+                  className="w-10 h-10 rounded-full flex items-center justify-center bg-black/30 hover:bg-black/50 border border-white/20 text-white transition-colors"
                   aria-label="Previous image"
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button
                   onClick={handleNext}
-                  className="w-10 h-10 rounded-full flex items-center justify-center glass-light hover:bg-white/20 text-white"
+                  className="w-10 h-10 rounded-full flex items-center justify-center bg-black/30 hover:bg-black/50 border border-white/20 text-white transition-colors"
                   aria-label="Next image"
                 >
                   <ChevronRight size={20} />
@@ -231,7 +221,7 @@ export const HeroSection = () => {
 
             {/* Floating badge: Orders — smaller on mobile */}
             <div
-              className="absolute left-1 sm:-left-4 lg:-left-8 top-1/4 glass rounded-xl sm:rounded-2xl px-3 py-2 sm:px-5 sm:py-4 shadow-2xl z-20 will-change-transform transform-gpu"
+              className="absolute left-1 sm:-left-4 lg:-left-8 top-1/4 glass rounded-xl sm:rounded-2xl px-3 py-2 sm:px-5 sm:py-4 shadow-2xl z-20"
             >
               <p className="text-base sm:text-2xl font-display font-bold text-heading">500+</p>
               <p className="text-[10px] sm:text-xs text-muted">Orders Shipped</p>
@@ -239,7 +229,7 @@ export const HeroSection = () => {
 
             {/* Floating badge: Quality — smaller on mobile */}
             <div
-              className="absolute right-1 sm:-right-4 lg:-right-6 bottom-1/4 glass rounded-xl sm:rounded-2xl px-3 py-2 sm:px-5 sm:py-4 shadow-2xl z-20 will-change-transform transform-gpu"
+              className="absolute right-1 sm:-right-4 lg:-right-6 bottom-1/4 glass rounded-xl sm:rounded-2xl px-3 py-2 sm:px-5 sm:py-4 shadow-2xl z-20"
             >
               <p className="text-base sm:text-2xl font-display font-bold gradient-text">100%</p>
               <p className="text-[10px] sm:text-xs text-muted">Quality Assured</p>

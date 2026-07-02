@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Loader2, ArrowRight, User as UserIcon, Lock, Package, Truck, Download, RefreshCcw, Camera, X, AlertTriangle, ShieldCheck, CheckCircle } from "lucide-react";
+import InlineReviewStars from "./InlineReviewStars";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -372,6 +373,9 @@ export default function OrdersPage() {
                           <div className="flex-1">
                              <h4 className="font-bold text-heading text-xs">{item.productName}</h4>
                              <p className="text-[10px] text-muted">Qty: {item.quantity}</p>
+                             {order.status === "DELIVERED" && (
+                               <InlineReviewStars productId={item.productId} orderId={order.id} />
+                             )}
                           </div>
                           <div className="font-bold text-heading text-sm">
                              ₹{(item.totalPaise / 100).toLocaleString()}
@@ -395,11 +399,21 @@ export default function OrdersPage() {
                        )}
                     </div>
 
-                    {order.status === "DELIVERED" && !order.returnRequest && (
-                       <button onClick={() => openReturnModal(order)} className="text-xs font-bold text-red-500 hover:text-red-600 border border-red-500/20 bg-red-500/5 px-4 py-1.5 rounded-lg transition-colors">
-                          Return Product
-                       </button>
-                    )}
+                     {order.status === "DELIVERED" && !order.returnRequest && (() => {
+                        const returnWindowMs = 7 * 24 * 60 * 60 * 1000;
+                        const deliveredTimestamp = new Date(order.updatedAt || order.createdAt).getTime();
+                        const isWithinReturnWindow = (Date.now() - deliveredTimestamp) <= returnWindowMs;
+
+                        return isWithinReturnWindow ? (
+                           <button onClick={() => openReturnModal(order)} className="text-xs font-bold text-red-500 hover:text-red-600 border border-red-500/20 bg-red-500/5 px-4 py-1.5 rounded-lg transition-colors">
+                              Return Product
+                           </button>
+                        ) : (
+                           <span className="text-[10px] font-medium text-muted border border-border px-3 py-1.5 rounded-lg bg-surface/50">
+                              Return window closed (7 Days)
+                           </span>
+                        );
+                     })()}
                  </div>
 
                  {/* Return Notes/Dispute Details */}

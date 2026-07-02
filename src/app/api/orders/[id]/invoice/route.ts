@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import crypto from "crypto";
+import QRCode from "qrcode";
 
 function getLocaleAndTimeZone(countryCode: string) {
   const cleanCode = (countryCode || "IN").trim().toUpperCase();
@@ -57,10 +58,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Find the vendor of the first item
     const firstItem = order.items[0];
-    let vendorName = "StopShops Private Limited";
-    let vendorLocation = "StopShops Fulfillment Center, Sector 62, Noida, UP - 201301";
+    let vendorName = "StopShop Private Limited";
+    let vendorLocation = "StopShop Fulfillment Center, Sector 62, Noida, UP - 201301";
     let vendorGSTIN = "09AAACS9078K1Z3";
     let vendorPAN = "AAHCS9078K";
+
+    const settings = await prisma.adminSettings.findFirst();
+    const invoiceTemplate = (settings as any)?.invoiceTemplate || "CLASSIC";
 
     if (firstItem && firstItem.vendorId) {
       const vendorUser = await prisma.user.findUnique({
@@ -74,7 +78,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }
     } else {
       // Fallback: Fetch default marketplace billing details from AdminSettings
-      const settings = await prisma.adminSettings.findFirst();
       if (settings) {
         vendorName = settings.companyName;
         vendorLocation = settings.companyAddress;
@@ -83,7 +86,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }
     }
 
-    // Fetch dynamic QR code representing verification details (Industry Standard B2C GST e-Invoice string)
+    // Generate dynamic QR code locally in 2ms (Industry Standard B2C GST e-Invoice string)
     let qrBase64 = "";
     try {
       const hsnCode = order.items[0]?.productMaterial.toLowerCase().includes("steel") ? "7323" : "7418";
@@ -91,14 +94,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       
       const qrData = `GSTIN_SUP:${vendorGSTIN}|GSTIN_REC:URP|INV_NO:${order.orderNumber}|INV_DT:${new Date(order.createdAt).toISOString().slice(0, 10)}|VAL:${(order.totalPaise / 100).toFixed(2)}|ITEM_CNT:${order.items.length}|HSN:${hsnCode}|IRN:${irnHash}`;
       
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
-      const qrRes = await fetch(qrUrl);
-      if (qrRes.ok) {
-        const qrBuffer = await qrRes.arrayBuffer();
-        qrBase64 = `data:image/png;base64,${Buffer.from(qrBuffer).toString("base64")}`;
-      }
+      qrBase64 = await QRCode.toDataURL(qrData, { width: 150, margin: 1 });
     } catch (e) {
-      console.error("Failed to generate QR code", e);
+      console.error("Failed to generate QR code locally", e);
     }
 
     // Generate PDF using jsPDF (A4 size: 210mm x 297mm)
@@ -115,21 +113,29 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return `${currencySymbol} ${amt.toFixed(2)}`;
     };
 
+    const isBrandPremium = invoiceTemplate === "BRAND_PREMIUM";
+    const isModernMinimal = invoiceTemplate === "MODERN_MINIMAL";
+
+    if (isBrandPremium) {
+      doc.setFillColor(249, 115, 22);
+      doc.rect(0, 0, 210, 25, "F");
+    }
+
     // 1. Platform Brand Header (Top Row)
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(249, 115, 22); // Brand Orange
-    doc.text("StopShops", 14, 15);
+    doc.setFontSize(isModernMinimal ? 22 : 20);
+    doc.setTextColor(isBrandPremium ? 255 : 249, isBrandPremium ? 255 : 115, isBrandPremium ? 255 : 22); // Brand Orange or White
+    doc.text("StopShop", 14, 15);
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.setTextColor(120, 120, 120);
+    doc.setTextColor(isBrandPremium ? 250 : 120, isBrandPremium ? 230 : 120, isBrandPremium ? 210 : 120);
     doc.text("Premium Heritage Copper & Brass Utensils", 14, 20);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text("TAX INVOICE", 196, 15, { align: "right" });
+    doc.setTextColor(isBrandPremium ? 255 : (isModernMinimal ? 100 : 0), isBrandPremium ? 255 : (isModernMinimal ? 100 : 0), isBrandPremium ? 255 : (isModernMinimal ? 100 : 0));
+    doc.text(isModernMinimal ? "INVOICE" : "TAX INVOICE", 196, 15, { align: "right" });
 
     // 2. Sold By & Invoice Box Row
     doc.setFont("helvetica", "bold");
@@ -137,7 +143,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     doc.setTextColor(0, 0, 0);
     doc.text("Sold By:", 14, 28);
     doc.setFont("helvetica", "normal");
-    doc.text(`${vendorName} (on StopShops Marketplace)`, 29, 28);
+    doc.text(`${vendorName} (on StopShop Marketplace)`, 29, 28);
 
     doc.setFontSize(8);
     doc.setTextColor(80, 80, 80);
@@ -151,10 +157,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     doc.text(`GSTIN - ${vendorGSTIN}`, 14, gstinY);
 
     // Invoice Box on the Right
-    doc.setDrawColor(180, 180, 180);
-    doc.setFillColor(245, 245, 245);
-    doc.rect(130, 24, 66, 13, "F");
-    doc.rect(130, 24, 66, 13, "S");
+    if (!isModernMinimal) {
+      doc.setDrawColor(isBrandPremium ? 249 : 180, isBrandPremium ? 115 : 180, isBrandPremium ? 22 : 180);
+      doc.setFillColor(245, 245, 245);
+      doc.rect(130, 24, 66, 13, "F");
+      doc.rect(130, 24, 66, 13, "S");
+    }
     
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
@@ -166,9 +174,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Divider Line
     const dividerY = Math.max(gstinY + 4, 42);
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(0.4);
-    doc.line(14, dividerY, 196, dividerY);
+    if (!isModernMinimal) {
+      doc.setDrawColor(isBrandPremium ? 249 : 0, isBrandPremium ? 115 : 0, isBrandPremium ? 22 : 0);
+      doc.setLineWidth(0.4);
+      doc.line(14, dividerY, 196, dividerY);
+    }
 
     const { locale, timeZone } = getLocaleAndTimeZone(order.shippingCountry);
     const formattedDate = new Date(order.createdAt).toLocaleDateString(locale, {
@@ -295,13 +305,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }
     });
 
+    const tableTheme = isModernMinimal ? "plain" : "grid";
+    const headFillColor = isBrandPremium ? [249, 115, 22] : (isModernMinimal ? [255, 255, 255] : [240, 240, 240]);
+    const headTextColor = isBrandPremium ? [255, 255, 255] : (isModernMinimal ? [100, 100, 100] : [0, 0, 0]);
+
     autoTable(doc, {
       startY: tableStartY,
       head: [tableHeaders],
       body: tableData,
-      theme: "grid",
-      headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: "bold", lineWidth: 0.1 },
-      styles: { fontSize: 8, cellPadding: 2, textColor: [0, 0, 0] },
+      theme: tableTheme as any,
+      headStyles: { fillColor: headFillColor as any, textColor: headTextColor as any, fontStyle: "bold", lineWidth: isModernMinimal ? 0 : 0.1 },
+      styles: { fontSize: 8, cellPadding: 2, textColor: [0, 0, 0], lineWidth: isModernMinimal ? 0 : 0.1, lineColor: [200, 200, 200] },
       columnStyles: {
         1: { cellWidth: 80 }, // wider title column when simplified
       }
@@ -378,13 +392,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     doc.text("Returns Policy: You can request returns within 7 days of delivery for original brand box packaging.", 14, 264);
     
     doc.setFont("helvetica", "bold");
-    doc.text("Contact Support: support@stopshops.com || Helpline: 1800 208 9898", 14, 268);
+    doc.text("Contact Support: support@stopshop.com || Helpline: 1800 208 9898", 14, 268);
 
     // Flipkart-style Thank You / Brand stamp on right
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.setTextColor(249, 115, 22); // Orange
-    doc.text("StopShops", 196, 264, { align: "right" });
+    doc.text("StopShop", 196, 264, { align: "right" });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);

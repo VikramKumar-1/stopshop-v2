@@ -78,7 +78,7 @@ export const WhyChooseUs = () => {
                 className="object-cover"
               />
               {/* Subtle warm overlay */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-bronze-900/20 via-transparent to-orange-900/10" />
+
             </div>
 
             {/* Floating badge */}

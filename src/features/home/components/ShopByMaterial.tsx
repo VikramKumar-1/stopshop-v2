@@ -117,15 +117,12 @@ export const ShopByMaterial = () => {
           {materials.map((material) => (
             <div
               key={material.id}
-              className="shrink-0 w-[290px] sm:w-[400px] md:w-[440px] aspect-[16/10] sm:aspect-[1.8/1] relative rounded-3xl overflow-hidden shadow-lg border border-bronze-500/10 will-change-transform [contain:paint]"
+              className={`shrink-0 w-[290px] sm:w-[400px] md:w-[440px] aspect-[16/10] sm:aspect-[1.8/1] relative rounded-3xl overflow-hidden shadow-sm border border-bronze-500/10 bg-gradient-to-br ${material.bgClass}`}
             >
               <Link
                 href={`/products/material/${material.id}`}
-                className="relative block w-full h-full transform-gpu"
+                className="relative block w-full h-full"
               >
-                {/* Background Color/Gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${material.bgClass}`} />
-
                 {/* Left Side Content */}
                 <div className="absolute inset-y-0 left-0 w-[55%] flex flex-col justify-between p-4 sm:p-6 z-10">
                   <div className="space-y-1 sm:space-y-2">
@@ -149,15 +146,13 @@ export const ShopByMaterial = () => {
                 </div>
 
                 {/* Right Side Image */}
-                <div className="absolute bottom-3.5 right-2 sm:right-3 w-[45%] h-[78%] z-0 select-none pointer-events-none overflow-hidden rounded-2xl">
-                  <img
-                    src={material.image}
-                    alt={material.name}
-                    className="w-full h-full object-cover object-bottom"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
+                <img
+                  src={material.image}
+                  alt={material.name}
+                  className="absolute bottom-3.5 right-2 sm:right-3 w-[45%] h-[78%] object-cover object-bottom rounded-2xl z-0 select-none pointer-events-none"
+                  loading="lazy"
+                  decoding="async"
+                />
               </Link>
             </div>
           ))}

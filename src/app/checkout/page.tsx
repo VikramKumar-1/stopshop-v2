@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -46,13 +46,42 @@ interface AddressFormProps {
 }
 
 function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProps) {
+  const { region } = useRegion();
   const [name, setName] = useState(initialData?.name || "");
   const [phone, setPhone] = useState(initialData?.phone || "");
   const [address, setAddress] = useState(initialData?.address || "");
   const [city, setCity] = useState(initialData?.city || "");
   const [state, setState] = useState(initialData?.state || "");
   const [pincode, setPincode] = useState(initialData?.pincode || "");
-  const [country, setCountry] = useState(initialData?.country || "India");
+  
+  // Auto-detect country based on context region (IN -> India, etc.)
+  const [country, setCountry] = useState(() => {
+    if (initialData?.country) return initialData.country;
+    const matched = countries.find(c => c.code.toUpperCase() === region?.toUpperCase());
+    return matched ? matched.name : "India";
+  });
+
+  // Searchable Country Dropdown States
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredCountries = countries.filter(c =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const selectedCountryObj = countries.find(c => c.name === country) || countries.find(c => c.name === "India") || countries[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,21 +135,65 @@ function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProps) {
         required 
         value={pincode} 
         onChange={e=>setPincode(e.target.value)} 
-        placeholder="Pincode" 
+        placeholder="Pincode / Postal Code" 
         className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
       />
-      <select 
-        required 
-        value={country} 
-        onChange={e=>setCountry(e.target.value)} 
-        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs"
-      >
-        {countries.map((c) => (
-          <option key={c.code} value={c.name}>
-            {c.flag} {c.name}
-          </option>
-        ))}
-      </select>
+      
+      {/* Searchable Country Picker Dropdown */}
+      <div className="relative" ref={dropdownRef}>
+        <button
+          type="button"
+          onClick={() => {
+            setIsDropdownOpen(!isDropdownOpen);
+            setSearchQuery("");
+          }}
+          className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs flex items-center justify-between text-left h-[42px] sm:h-[38px]"
+        >
+          <span className="truncate">
+            {selectedCountryObj.flag} &nbsp; {selectedCountryObj.name}
+          </span>
+          <span className="text-muted text-[8px] ml-2 shrink-0">▼</span>
+        </button>
+
+        {isDropdownOpen && (
+          <div className="absolute left-0 right-0 bottom-full sm:bottom-auto sm:top-full mb-1 sm:mb-0 sm:mt-1 bg-surface-card border border-border rounded-xl shadow-xl z-50 p-2 space-y-1.5 animate-in fade-in duration-100 max-h-56 flex flex-col">
+            <input
+              type="text"
+              placeholder="Search country..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface border border-border rounded-lg px-2.5 py-1.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs shrink-0"
+              autoFocus
+            />
+            <div className="overflow-y-auto space-y-0.5 scrollbar-none flex-1 max-h-40">
+              {filteredCountries.length > 0 ? (
+                filteredCountries.map((c) => (
+                  <button
+                    key={c.code}
+                    type="button"
+                    onClick={() => {
+                      setCountry(c.name);
+                      setIsDropdownOpen(false);
+                      setSearchQuery("");
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-surface-hover transition-colors flex items-center gap-2 ${
+                      c.name === country ? "bg-orange-500/10 text-orange-500 font-bold" : "text-body"
+                    }`}
+                  >
+                    <span className="shrink-0">{c.flag}</span>
+                    <span className="truncate">{c.name}</span>
+                  </button>
+                ))
+              ) : (
+                <div className="text-center py-3 text-[10px] text-muted">
+                  No country found
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="sm:col-span-2 flex justify-end gap-2 pt-2 border-t border-border">
         <button type="button" onClick={onCancel} className="px-4 py-2 text-xs font-bold text-muted hover:text-heading">Cancel</button>
         <button type="submit" className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl">Save Address</button>
@@ -139,6 +212,7 @@ function CheckoutPageInner() {
   const { cart, cartTotal, cartCount, clearCart, loaded, updateQuantity, removeFromCart } = useCart();
 
   const [buyNowCart, setBuyNowCart] = useState<any[]>([]);
+  const checkoutItems = buyNowCart.length > 0 ? buyNowCart : cart;
   const [fetchingBuyNow, setFetchingBuyNow] = useState(!!buyNowProductId);
 
   const [loading, setLoading] = useState(true);
@@ -167,11 +241,98 @@ function CheckoutPageInner() {
     shipping: 0,
     codSurcharge: 0,
     tax: 0,
+    discount: 0,
     total: 0
   });
 
   const [settings, setSettings] = useState<any>(null);
   const [userEmail, setUserEmail] = useState("");
+
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState<{code: string, discountPaise: number, message: string} | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const autoApplyAttempted = useRef(false);
+
+  useEffect(() => {
+    if (checkoutItems.length === 0) return;
+    const fetchCoupons = async () => {
+      setLoadingCoupons(true);
+      try {
+        const res = await fetch("/api/coupons/available", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cartItems: checkoutItems.map(item => ({ productId: item.id, quantity: item.quantity }))
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setAvailableCoupons(data.coupons);
+        }
+      } catch (err) {
+        console.error("Failed to fetch coupons", err);
+      } finally {
+        setLoadingCoupons(false);
+      }
+    };
+    fetchCoupons();
+  }, [checkoutItems]);
+
+  const handleApplyCoupon = async (codeToApply?: string) => {
+    const code = typeof codeToApply === 'string' ? codeToApply : couponCode;
+    if (!code) return;
+    if (typeof codeToApply === 'string') setCouponCode(code);
+    
+    setValidatingCoupon(true);
+    setCouponError("");
+    
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          cartItems: checkoutItems.map(item => ({ productId: item.id, quantity: item.quantity })),
+          paymentMethod,
+          country: isInternational ? "US" : "IN"
+        })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setCouponApplied({ code: data.couponCode, discountPaise: data.discountPaise, message: data.message });
+      } else {
+        setCouponError(data.error);
+        setCouponApplied(null);
+      }
+    } catch (err) {
+      setCouponError("Failed to validate coupon");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponApplied(null);
+    setCouponCode("");
+    setCouponError("");
+    // Allow auto-apply again if they manually remove it? No, usually if they remove it, they don't want it automatically re-applied.
+    // So we leave autoApplyAttempted as true.
+  };
+
+  useEffect(() => {
+    if (couponApplied || availableCoupons.length === 0 || autoApplyAttempted.current) return;
+    
+    const autoCoupons = availableCoupons.filter(c => c.isAutoApply);
+    if (autoCoupons.length > 0) {
+      autoApplyAttempted.current = true;
+      // Sort by highest discountValue number as a heuristic for "best"
+      const bestAuto = autoCoupons.sort((a, b) => b.discountValue - a.discountValue)[0];
+      handleApplyCoupon(bestAuto.code);
+    }
+  }, [availableCoupons, couponApplied]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -202,7 +363,19 @@ function CheckoutPageInner() {
         const userRes = await fetch("/api/auth/me");
         if (userRes.ok) {
            const userData = await userRes.json();
-           if (userData.user) setUserEmail(userData.user.email);
+           if (userData.authenticated && userData.user) {
+              setUserEmail(userData.user.email);
+           } else {
+              const buyNowParams = buyNowProductId ? `?productId=${buyNowProductId}&qty=${buyNowQty}` : "";
+              const redirectPath = encodeURIComponent(`/checkout${buyNowParams}`);
+              router.push(`/profile?redirect=${redirectPath}`);
+              return;
+           }
+        } else {
+           const buyNowParams = buyNowProductId ? `?productId=${buyNowProductId}&qty=${buyNowQty}` : "";
+           const redirectPath = encodeURIComponent(`/checkout${buyNowParams}`);
+           router.push(`/profile?redirect=${redirectPath}`);
+           return;
         }
 
         // Fetch Addresses
@@ -233,7 +406,6 @@ function CheckoutPageInner() {
     loadData();
   }, [cart, router, loaded, buyNowProductId, buyNowQty]);
 
-  const checkoutItems = buyNowCart.length > 0 ? buyNowCart : cart;
   const activeAddress = addresses.find(a => a.id === selectedAddressId);
   const country = activeAddress?.country || "India";
   const isInternational = country.toLowerCase() !== "india" && country.toLowerCase() !== "in";
@@ -281,15 +453,23 @@ function CheckoutPageInner() {
        tax = subtotal * (settings.taxRate / 100);
     }
 
+    let discount = 0;
+    if (couponApplied) {
+       discount = couponApplied.discountPaise / 100;
+       // Ensure discount doesn't exceed subtotal
+       if (discount > subtotal) discount = subtotal;
+    }
+
     setPricing({
        subtotal,
        shipping,
        codSurcharge,
        tax,
-       total: subtotal + shipping + codSurcharge + tax
+       discount,
+       total: Math.max(0, subtotal + shipping + codSurcharge + tax - discount)
     });
 
-  }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice, isInternational]);
+  }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice, isInternational, couponApplied]);
 
   // Handle Address Submit
   const handleAddressSubmit = async (formData: {
@@ -396,6 +576,7 @@ function CheckoutPageInner() {
 
     const orderPayload = {
       cartItems: checkoutItems.map(item => ({ productId: item.id, quantity: item.quantity })),
+      couponCode: couponApplied?.code,
       shippingInfo: {
          name: activeAddress.name,
          phone: activeAddress.phone,
@@ -771,11 +952,83 @@ function CheckoutPageInner() {
                 ))}
              </div>
 
+             <div className="border-t border-border pt-4 mt-2 mb-2">
+                {!couponApplied && availableCoupons.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <p className="text-sm font-black text-heading mb-3 flex items-center gap-2">
+                      <Tag size={16} className="text-orange-500" />
+                      Available Offers
+                    </p>
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x">
+                      {availableCoupons.map((c, i) => (
+                        <div
+                          key={i}
+                          onClick={() => !validatingCoupon && handleApplyCoupon(c.code)}
+                          className={`relative shrink-0 flex flex-col p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-500/30 rounded-2xl w-[240px] group snap-center shadow-sm transition-all ${validatingCoupon ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-orange-500/60 hover:shadow-md'}`}
+                        >
+                          {/* Cutout notches */}
+                          <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-surface rounded-full border-r border-orange-500/30"></div>
+                          <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-surface rounded-full border-l border-orange-500/30"></div>
+                          
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-sm font-black text-heading uppercase tracking-widest">{c.code}</span>
+                          </div>
+                          
+                          <p className="text-xs font-bold text-emerald-600 leading-snug">{c.description}</p>
+                          
+                          <div className="mt-4 pt-3 border-t border-dashed border-orange-500/30 flex justify-between items-center relative z-10">
+                            <span className="text-[10px] font-medium text-muted">Tap to apply</span>
+                            <span className="text-xs font-bold text-orange-600 group-hover:translate-x-1 transition-transform">Apply →</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!couponApplied ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={couponCode} 
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Coupon Code" 
+                        className="flex-1 bg-surface border border-border rounded-xl px-3 py-2 text-xs focus:border-orange-500 focus:outline-none uppercase"
+                      />
+                      <button 
+                        onClick={() => handleApplyCoupon()}
+                        disabled={validatingCoupon || !couponCode}
+                        className="px-4 py-2 bg-heading text-surface rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-orange-500 transition-colors"
+                      >
+                        {validatingCoupon ? "..." : "Apply"}
+                      </button>
+                    </div>
+                    {couponError && <p className="text-[10px] text-red-500 font-medium px-1">{couponError}</p>}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-2">
+                    <div>
+                      <p className="text-[10px] font-bold text-emerald-600">✓ {couponApplied.message}</p>
+                    </div>
+                    <button onClick={handleRemoveCoupon} className="text-xs text-red-500 font-bold hover:text-red-600">
+                      Remove
+                    </button>
+                  </div>
+                )}
+             </div>
+
              <div className="border-t border-border pt-4 space-y-3 text-xs">
                 <div className="flex justify-between text-muted">
                    <span>Subtotal</span>
                    <span className="text-heading font-medium">{formatPrice(pricing.subtotal)}</span>
                 </div>
+                {pricing.discount > 0 && (
+                   <div className="flex justify-between text-emerald-500">
+                      <span>Discount ({couponApplied?.code})</span>
+                      <span className="font-medium">-{formatPrice(pricing.discount)}</span>
+                   </div>
+                )}
                 <div className="flex justify-between text-muted">
                    <span>Shipping</span>
                    <span className="text-emerald-500 font-medium">

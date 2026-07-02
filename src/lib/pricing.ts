@@ -5,6 +5,8 @@ export interface PricingResult {
   shippingPaise: number;
   codChargePaise: number;
   taxPaise: number;
+  discountPaise: number;
+  couponCode: string | null;
   totalPaise: number;
   items: {
     productId: number;
@@ -21,7 +23,8 @@ export interface PricingResult {
 export async function calculateOrderPricing(
   cartItems: { productId: number; quantity: number }[],
   paymentMethod: "razorpay" | "payu" | "cod",
-  country: string = "IN"
+  country: string = "IN",
+  couponCode?: string
 ): Promise<PricingResult> {
   // Normalize country to handle "India", "INDIA", "in", "IN" as domestic
   const normCountry = (country || "IN").trim().toUpperCase();
@@ -78,6 +81,7 @@ export async function calculateOrderPricing(
       productName: product.name,
       productImage: product.image,
       productMaterial: product.material,
+      categoryName: product.categoryName,
       vendorId: product.vendorId,
     });
   }
@@ -102,14 +106,65 @@ export async function calculateOrderPricing(
   const taxRate = settings.taxRate || 0;
   const taxPaise = Math.round(subtotalPaise * (taxRate / 100));
 
-  // 6. Total
-  const totalPaise = subtotalPaise + shippingPaise + codChargePaise + taxPaise;
+  // 6. Handle Coupon Discount
+  let discountPaise = 0;
+  let appliedCouponCode: string | null = null;
+  
+  if (couponCode) {
+    const code = couponCode.trim().toUpperCase();
+    const coupon = await prisma.coupon.findUnique({ where: { code } });
+    
+    if (coupon && coupon.isActive) {
+      const now = new Date();
+      if (coupon.startsAt <= now && (!coupon.expiresAt || coupon.expiresAt > now)) {
+        if (!coupon.maxUses || coupon.usedCount < coupon.maxUses) {
+          
+          // Determine eligible subtotal based on vendorId, applicableCategories, and applicableMaterials
+          let eligibleItems = processedItems;
+          if (coupon.vendorId) {
+            eligibleItems = eligibleItems.filter(item => item.vendorId === coupon.vendorId);
+          }
+          if (coupon.applicableCategories) {
+            const allowedCats = coupon.applicableCategories.split(',').map((c: string) => c.trim().toLowerCase()).filter(Boolean);
+            if (allowedCats.length > 0) {
+              eligibleItems = eligibleItems.filter(item => item.categoryName && allowedCats.includes(item.categoryName.toLowerCase()));
+            }
+          }
+          if (coupon.applicableMaterials) {
+            const allowedMats = coupon.applicableMaterials.split(',').map((m: string) => m.trim().toLowerCase()).filter(Boolean);
+            if (allowedMats.length > 0) {
+              eligibleItems = eligibleItems.filter(item => item.productMaterial && allowedMats.includes(item.productMaterial.toLowerCase()));
+            }
+          }
+          const eligibleSubtotalPaise = eligibleItems.reduce((sum, item) => sum + item.totalPaise, 0);
+
+          if (eligibleSubtotalPaise > 0 && eligibleSubtotalPaise >= coupon.minOrderPaise) {
+            if (coupon.discountType === "PERCENTAGE") {
+              discountPaise = Math.round(eligibleSubtotalPaise * (coupon.discountValue / 100));
+              if (coupon.maxDiscountPaise && discountPaise > coupon.maxDiscountPaise) {
+                discountPaise = coupon.maxDiscountPaise;
+              }
+            } else if (coupon.discountType === "FLAT") {
+              discountPaise = coupon.discountValue * 100;
+            }
+            if (discountPaise > eligibleSubtotalPaise) discountPaise = eligibleSubtotalPaise;
+            appliedCouponCode = code;
+          }
+        }
+      }
+    }
+  }
+
+  // 7. Total
+  const totalPaise = subtotalPaise + shippingPaise + codChargePaise + taxPaise - discountPaise;
 
   return {
     subtotalPaise,
     shippingPaise,
     codChargePaise,
     taxPaise,
+    discountPaise,
+    couponCode: appliedCouponCode,
     totalPaise,
     items: processedItems
   };

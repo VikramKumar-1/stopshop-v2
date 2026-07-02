@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     if (user instanceof NextResponse) return user;
 
     const body = await req.json();
-    const { cartItems, shippingInfo } = body;
+    const { cartItems, shippingInfo, couponCode } = body;
 
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
       return NextResponse.json({ success: false, error: "Cart is empty" }, { status: 400 });
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Pricing
-    const pricing = await calculateOrderPricing(cartItems, "cod", shippingInfo.country);
+    const pricing = await calculateOrderPricing(cartItems, "cod", shippingInfo.country, couponCode);
 
     if (pricing.totalPaise > settings.codMaxAmountPaise) {
       return NextResponse.json({ 
@@ -67,6 +67,8 @@ export async function POST(req: NextRequest) {
           shippingPaise: pricing.shippingPaise,
           codChargePaise: pricing.codChargePaise,
           taxPaise: pricing.taxPaise,
+          discountPaise: pricing.discountPaise,
+          couponCode: pricing.couponCode,
           totalPaise: pricing.totalPaise,
           commissionRate,
           commissionPaise,

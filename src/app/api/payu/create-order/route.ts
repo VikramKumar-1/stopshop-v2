@@ -16,14 +16,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { cartItems, shippingInfo } = body;
+    const { cartItems, shippingInfo, couponCode } = body;
 
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
       return NextResponse.json({ success: false, error: "Cart is empty" }, { status: 400 });
     }
 
     // 1. Server-side pricing calculation
-    const pricing = await calculateOrderPricing(cartItems, "payu", shippingInfo.country);
+    const pricing = await calculateOrderPricing(cartItems, "payu", shippingInfo.country, couponCode);
 
     // 2. Create Order in Database
     const orderNumber = `SS-INTL-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -41,6 +41,8 @@ export async function POST(req: NextRequest) {
         shippingPaise: pricing.shippingPaise,
         codChargePaise: pricing.codChargePaise,
         taxPaise: pricing.taxPaise,
+        discountPaise: pricing.discountPaise,
+        couponCode: pricing.couponCode,
         totalPaise: pricing.totalPaise,
         
         shippingName: shippingInfo.name,

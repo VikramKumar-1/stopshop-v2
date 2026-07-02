@@ -79,7 +79,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   let ptClass = "pt-[95px] lg:pt-0";
   if (isDashboard) {
-    ptClass = "pt-14 lg:pt-20";
+    ptClass = "pt-14 lg:pt-0";
   } else if (isNoStripPage) {
     ptClass = "pt-[95px] lg:pt-0";
   }

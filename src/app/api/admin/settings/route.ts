@@ -59,7 +59,7 @@ export async function PATCH(req: NextRequest) {
        "shiprocketCourierPriority", "payoutSchedule", "payoutCustomDays",
         "companyName", "companyAddress", "companyGstin", "companyPan",
         "companyCity", "companyState", "companyCountry", "companyPincode",
-        "commissionGstRate", "commissionSacCode"
+        "commissionGstRate", "commissionSacCode", "invoiceTemplate"
     ];
 
     for (const field of allowedFields) {

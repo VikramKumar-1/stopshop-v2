@@ -15,7 +15,12 @@ async function main() {
   const data = JSON.parse(fs.readFileSync(backupPath, "utf-8"));
 
   console.log("Clearing existing data in Aiven database...");
-  // Clear tables in reverse dependency order
+  // Clear tables in reverse dependency order to avoid foreign key violations
+  await prisma.settlement.deleteMany({});
+  await prisma.returnRequest.deleteMany({});
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
+  await prisma.address.deleteMany({});
   await prisma.inquiry.deleteMany({});
   await prisma.product.deleteMany({});
   await prisma.category.deleteMany({});

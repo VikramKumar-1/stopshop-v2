@@ -84,100 +84,12 @@ export const CategoryProductGrid = ({
     } border-b border-bronze-500/10`}>
       {/* Traditional Pooja Mandala Top Hanging Ornament Drawing */}
       {accentColor === "rose" && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] h-[250px] pointer-events-none z-0 overflow-hidden select-none opacity-90 will-change-transform transform-gpu">
-          <svg 
-            className="w-full h-full text-orange-500/80" 
-            viewBox="0 0 400 200" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="0.8"
-          >
-            <defs>
-              <radialGradient id="goldGlow" cx="50%" cy="0%" r="100%">
-                <stop offset="0%" stopColor="#FBBF24" stopOpacity="0.2" />
-                <stop offset="60%" stopColor="#D97706" stopOpacity="0.03" />
-                <stop offset="100%" stopColor="#7D4B2C" stopOpacity="0" />
-              </radialGradient>
-              <linearGradient id="maroonPetal" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#800B1A" />
-                <stop offset="100%" stopColor="#4A050E" />
-              </linearGradient>
-              <linearGradient id="goldOutline" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FBBF24" />
-                <stop offset="100%" stopColor="#D97706" />
-              </linearGradient>
-            </defs>
-
-            {/* Gold Ambient Glow behind Mandala */}
-            <circle cx="200" cy="0" r="180" fill="url(#goldGlow)" stroke="none" />
-
-            {/* Concentric Decorative Rings */}
-            <circle cx="200" cy="0" r="170" stroke="url(#goldOutline)" strokeOpacity="0.3" strokeDasharray="2,4" />
-            <circle cx="200" cy="0" r="158" stroke="url(#goldOutline)" strokeOpacity="0.2" />
-            <circle cx="200" cy="0" r="148" stroke="url(#goldOutline)" strokeOpacity="0.4" strokeDasharray="3,3" />
-
-            {/* Outer Layer: Golden Flame-Like Petals (Radiating from 200,0) */}
-            <g stroke="url(#goldOutline)" strokeWidth="1.2" strokeOpacity="0.85">
-              <path d="M 200 0 L 180 135 C 190 160, 210 160, 220 135 Z" fill="none" />
-              <path d="M 200 0 L 105 110 C 117 132, 137 122, 142 98 Z" fill="none" />
-              <path d="M 200 0 L 295 110 C 283 132, 263 122, 258 98 Z" fill="none" />
-              
-              <path d="M 200 0 L 52 75 C 67 95, 85 82, 85 58 Z" fill="none" />
-              <path d="M 200 0 L 348 75 C 333 95, 315 82, 315 58 Z" fill="none" />
-              
-              <path d="M 200 0 L 12 28 C 27 45, 45 28, 40 5 Z" fill="none" />
-              <path d="M 200 0 L 388 28 C 373 45, 355 28, 360 5 Z" fill="none" />
-
-              {/* Intermediate Outer Petals */}
-              <path d="M 200 0 L 142 128 C 152 150, 168 142, 172 118 Z" fill="none" />
-              <path d="M 200 0 L 258 128 C 248 150, 232 142, 228 118 Z" fill="none" />
-
-              <path d="M 200 0 L 78 98 C 92 118, 108 108, 110 82 Z" fill="none" />
-              <path d="M 200 0 L 322 98 C 308 118, 292 108, 290 82 Z" fill="none" />
-            </g>
-
-            {/* Middle Layer: Ornate Maroon Petals with Gold Borders */}
-            <g stroke="url(#goldOutline)" strokeWidth="1" fill="url(#maroonPetal)">
-              <path d="M 200 0 L 185 95 C 191 113, 209 113, 215 95 Z" />
-              <path d="M 200 0 L 132 85 C 141 100, 155 93, 157 75 Z" />
-              <path d="M 200 0 L 268 85 C 259 100, 245 93, 243 75 Z" />
-              
-              <path d="M 200 0 L 88 60 C 98 73, 111 63, 111 45 Z" />
-              <path d="M 200 0 L 312 60 C 302 73, 289 63, 289 45 Z" />
-
-              <path d="M 200 0 L 45 25 C 55 35, 68 25, 66 8 Z" />
-              <path d="M 200 0 L 355 25 C 345 35, 332 25, 334 8 Z" />
-
-              {/* Intermediate Maroon Petals */}
-              <path d="M 200 0 L 160 92 C 168 108, 180 100, 183 82 Z" />
-              <path d="M 200 0 L 240 92 C 232 108, 220 100, 217 82 Z" />
-
-              <path d="M 200 0 L 110 75 C 119 88, 131 80, 133 62 Z" />
-              <path d="M 200 0 L 290 75 C 281 88, 269 80, 267 62 Z" />
-            </g>
-
-            {/* Inner Ring Details */}
-            <circle cx="200" cy="0" r="58" stroke="url(#goldOutline)" strokeWidth="1.2" />
-            <circle cx="200" cy="0" r="50" stroke="url(#goldOutline)" strokeWidth="0.8" strokeDasharray="2,2" />
-
-            {/* Central Radiating Gold Starburst lines */}
-            <g stroke="#FBBF24" strokeWidth="1.5">
-              <line x1="200" y1="0" x2="200" y2="42" />
-              <line x1="200" y1="0" x2="158" y2="28" />
-              <line x1="200" y1="0" x2="242" y2="28" />
-              <line x1="200" y1="0" x2="175" y2="38" />
-              <line x1="200" y1="0" x2="225" y2="38" />
-              <line x1="200" y1="0" x2="135" y2="18" />
-              <line x1="200" y1="0" x2="265" y2="18" />
-              <line x1="200" y1="0" x2="115" y2="0" strokeWidth="2.5" />
-              <line x1="200" y1="0" x2="285" y2="0" strokeWidth="2.5" />
-            </g>
-
-            {/* Center Core Cap */}
-            <circle cx="200" cy="0" r="24" fill="#6B0914" stroke="url(#goldOutline)" strokeWidth="1.5" />
-            <circle cx="200" cy="0" r="15" fill="#FBBF24" stroke="none" />
-            <circle cx="200" cy="0" r="7" fill="#2D0A11" stroke="none" />
-          </svg>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] h-[250px] pointer-events-none z-0 overflow-hidden select-none [contain:strict]">
+          <img 
+            src="/images/pooja-mandala.svg" 
+            alt="Pooja Mandala Decorative Ornament" 
+            className="w-full h-full object-cover"
+          />
         </div>
       )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -192,9 +104,9 @@ export const CategoryProductGrid = ({
                   : "bg-bronze-500/5 text-bronze-800 dark:text-bronze-300 border-bronze-500/25"
               } text-[8px] sm:text-[9px] font-bold tracking-widest uppercase mb-1.5`}
             >
-              <span className={`w-1 h-1 rounded-full ${
+              <span className={`w-1.5 h-1.5 rounded-full ${
                 accentColor === "rose" ? "bg-orange-400" : "bg-bronze-500"
-              } animate-pulse`} />
+              }`} />
               {tagLine}
             </div>
             
@@ -208,11 +120,9 @@ export const CategoryProductGrid = ({
           {/* Scroll Controls beside title */}
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                if (scrollRef.current) {
-                  const { scrollLeft, clientWidth } = scrollRef.current;
-                  scrollRef.current.scrollTo({ left: scrollLeft - clientWidth * 0.75, behavior: "smooth" });
-                }
+              onClick={() => scroll("left")}
+              style={{
+                touchAction: "manipulation",
               }}
               className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm"
               aria-label="Scroll left"
@@ -220,11 +130,9 @@ export const CategoryProductGrid = ({
               <ChevronLeft size={16} />
             </button>
             <button
-              onClick={() => {
-                if (scrollRef.current) {
-                  const { scrollLeft, clientWidth } = scrollRef.current;
-                  scrollRef.current.scrollTo({ left: scrollLeft + clientWidth * 0.75, behavior: "smooth" });
-                }
+              onClick={() => scroll("right")}
+              style={{
+                touchAction: "manipulation",
               }}
               className="w-9 h-9 rounded-full flex items-center justify-center border border-orange-500/20 bg-surface-card hover:bg-surface-hover text-orange-700 dark:text-orange-300 shadow-sm"
               aria-label="Scroll right"
@@ -254,7 +162,7 @@ export const CategoryProductGrid = ({
               <Link
                 key={product.id}
                 href={`/product/${product.slug || product.id}`}
-                className="group shrink-0 w-full flex flex-col justify-between bg-surface-card border border-bronze-500/[0.14] rounded-2xl max-sm:rounded-xl overflow-hidden shadow-sm cursor-pointer will-change-transform transform-gpu"
+                className="group shrink-0 w-full flex flex-col justify-between bg-surface-card border border-bronze-500/[0.14] rounded-2xl max-sm:rounded-xl overflow-hidden shadow-sm cursor-pointer"
               >
                 {/* Product Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-orange-50/50 dark:bg-white/5 border-b border-bronze-500/[0.08]">

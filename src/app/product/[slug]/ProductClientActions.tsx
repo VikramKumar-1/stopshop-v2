@@ -16,29 +16,10 @@ export default function ProductClientActions({ product, allImages }: ProductClie
   
   const { addToCart } = useCart();
 
-  const handleAddToCart = async () => {
-    try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.authenticated) {
-          addToCart(product, quantity);
-          setAdded(true);
-          setTimeout(() => setAdded(false), 2000);
-        } else {
-          window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}`;
-        }
-      } else {
-        addToCart(product, quantity);
-        setAdded(true);
-        setTimeout(() => setAdded(false), 2000);
-      }
-    } catch (e) {
-      console.error("Auth check failed during add to cart:", e);
-      addToCart(product, quantity);
-      setAdded(true);
-      setTimeout(() => setAdded(false), 2000);
-    }
+  const handleAddToCart = () => {
+    addToCart(product, quantity);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
   };
 
   const handleQtyChange = (type: "inc" | "dec") => {
