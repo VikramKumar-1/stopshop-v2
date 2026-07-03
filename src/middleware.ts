@@ -51,7 +51,10 @@ export function middleware(request: NextRequest) {
         if (path === '/vendor/login' || path === '/vendor/register') {
            if (role === 'vendor') return NextResponse.redirect(new URL('/vendor/dashboard', request.url));
            if (role === 'admin') return NextResponse.redirect(new URL('/admin', request.url));
-           return NextResponse.redirect(new URL('/profile', request.url));
+           // Allow normal users to access /vendor/register so they can create a vendor account with a different email
+           if (path === '/vendor/login') {
+             return NextResponse.redirect(new URL('/profile', request.url));
+           }
         }
 
       } catch(e) {
