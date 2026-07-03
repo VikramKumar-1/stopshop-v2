@@ -120,8 +120,12 @@ export default function OrdersPage() {
 
       const data = await res.json();
       if (res.ok) {
-        setUser(data.user);
-        fetchProfileAndOrders();
+        if (data.user.role === "vendor") {
+          window.location.href = "/vendor/dashboard";
+        } else {
+          setUser(data.user);
+          fetchProfileAndOrders();
+        }
       } else {
         setAuthError(data.error || "Authentication failed.");
       }

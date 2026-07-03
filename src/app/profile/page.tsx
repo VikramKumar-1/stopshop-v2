@@ -149,9 +149,14 @@ function ProfilePageInner() {
         if (redirectUrl) {
           window.location.href = redirectUrl;
         } else {
-          setUser(data.user);
-          fetchProfileAndOrders();
-          window.location.reload(); // Refresh page to update the Navbar state
+          // If the user's role is vendor, redirect them to the vendor dashboard
+          if (data.user.role === "vendor") {
+            window.location.href = "/vendor/dashboard";
+          } else {
+            setUser(data.user);
+            fetchProfileAndOrders();
+            window.location.reload(); // Refresh page to update the Navbar state
+          }
         }
       } else {
         setAuthError(data.error || "Authentication failed.");

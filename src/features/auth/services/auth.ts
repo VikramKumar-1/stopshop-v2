@@ -56,7 +56,39 @@ export async function registerUser(name: string, email: string, password: string
   });
 
   if (existingUser) {
-    throw new Error("Email is already registered");
+    if (targetRole === "vendor" && existingUser.role === "user") {
+      // User exists as a regular user, check password to upgrade their role
+      const isMatch = await bcrypt.compare(password, existingUser.password);
+      if (!isMatch) {
+        throw new Error("Email is already registered. If this is you, please use your correct password to upgrade your account.");
+      }
+
+      // Upgrade role
+      const upgradedUser = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: { role: "vendor" },
+      });
+
+      const payload: TokenPayload = {
+        userId: upgradedUser.id,
+        email: upgradedUser.email,
+        role: upgradedUser.role,
+      };
+
+      const token = signToken(payload);
+
+      return {
+        user: {
+          id: upgradedUser.id,
+          name: upgradedUser.name,
+          email: upgradedUser.email,
+          role: upgradedUser.role,
+        },
+        token,
+      };
+    } else {
+      throw new Error("Email is already registered");
+    }
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
