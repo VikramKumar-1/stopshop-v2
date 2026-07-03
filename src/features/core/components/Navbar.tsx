@@ -806,7 +806,7 @@ export const Navbar = () => {
                           )}
                           {(!user || user.role !== "vendor") && (
                             <Link
-                              href="/vendor/login"
+                              href="/vendor/register"
                               className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
                             >
                               <Store size={15} className="text-muted" />
