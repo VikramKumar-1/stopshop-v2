@@ -18,7 +18,7 @@ model User {
 
   // Vendor details & verification documents
   mobile            String?
-  location          String? @default("Moradabad, Uttar Pradesh, India")
+  location          String?
   artisanId         String?
   gstin             String?
   aadhaar           String?

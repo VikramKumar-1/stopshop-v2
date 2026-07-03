@@ -85,8 +85,9 @@ export default function PublicVendorStore({ params }: { params: { slug: string }
           : "Verified Artisan Store";
         setVendor({
           id: targetIdNum || 1,
-          name: fallbackName,
-          location: "Moradabad, Uttar Pradesh, India",
+          createdAt: new Date().toISOString(),
+          location: "Not Provided",
+          totalProducts: 10,
           allowedCategories: ""
         });
       }
@@ -179,9 +180,9 @@ export default function PublicVendorStore({ params }: { params: { slug: string }
               <h1 className="text-xl sm:text-3xl font-black text-heading font-display">
                 {vendor?.name || "Verified Artisan Partner"}
               </h1>
-              <div className="flex items-center gap-2 text-xs text-muted">
+              <div className="flex items-center gap-1.5 opacity-90 text-xs text-muted">
                 <MapPin size={14} className="text-orange-500 shrink-0" />
-                <span>{vendor?.location || "Moradabad, Uttar Pradesh, India"}</span>
+                <span>{vendor?.location || "Not Provided"}</span>
               </div>
             </div>
           </div>

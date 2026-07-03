@@ -70,7 +70,7 @@ export default function PublicVendorShop({ params }: { params: { id: string } })
         setVendor({
           id: vendorIdNum,
           name: "StopShop Verified Artisan Store",
-          location: "Moradabad, Uttar Pradesh, India",
+          location: "Not Provided",
           allowedCategories: ""
         });
         if (typeof window !== "undefined") {
@@ -169,9 +169,9 @@ export default function PublicVendorShop({ params }: { params: { id: string } })
               <h1 className="text-xl sm:text-3xl font-black text-heading font-display">
                 {vendor?.name || "Verified Artisan Partner"}
               </h1>
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <MapPin size={14} className="text-orange-500 shrink-0" />
-                <span>{vendor?.location || "Moradabad, Uttar Pradesh, India"}</span>
+              <div className="flex items-center gap-1.5 opacity-90">
+                <MapPin size={14} />
+                <span>{vendor?.location || "Not Provided"}</span>
               </div>
             </div>
           </div>

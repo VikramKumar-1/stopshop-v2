@@ -614,7 +614,7 @@ export const AdminPanel = () => {
     doc.setFontSize(9);
     
     const vName = vendorObj ? (vendorObj.name || `Vendor ID: ${s.vendorId}`) : `Vendor ID: ${s.vendorId}`;
-    const vAddress = vendorObj?.location || "Moradabad, Uttar Pradesh, India";
+    const vAddress = vendorObj?.location || "Not Provided";
     const splitVendorAddress = doc.splitTextToSize(vAddress, 85);
     
     doc.text(vName, 110, 60);
