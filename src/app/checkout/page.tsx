@@ -247,6 +247,7 @@ function CheckoutPageInner() {
 
   const [settings, setSettings] = useState<any>(null);
   const [userEmail, setUserEmail] = useState("");
+  const [targetedOffers, setTargetedOffers] = useState<any[]>([]);
 
   const [couponCode, setCouponCode] = useState("");
   const [couponApplied, setCouponApplied] = useState<{code: string, discountPaise: number, message: string} | null>(null);
@@ -378,6 +379,15 @@ function CheckoutPageInner() {
            return;
         }
 
+        // Fetch Targeted Offers
+        const offersRes = await fetch("/api/targeted-offers");
+        if (offersRes.ok) {
+          const offersData = await offersRes.json();
+          if (Array.isArray(offersData)) {
+            setTargetedOffers(offersData);
+          }
+        }
+
         // Fetch Addresses
         const addrRes = await fetch("/api/addresses");
         if (addrRes.ok) {
@@ -428,8 +438,28 @@ function CheckoutPageInner() {
     if (!settings || checkoutItems.length === 0) return;
 
     let subtotal = 0;
+    let targetedDiscountPaise = 0;
+
     checkoutItems.forEach(item => {
-       subtotal += getRawPrice(item.price, item, false) * item.quantity;
+       const offer = targetedOffers.find(o => 
+         (o.productId === item.id || (!o.productId && o.vendorId === item.vendorId)) &&
+         new Date(o.expiresAt) > new Date()
+       );
+       
+       const rawPrice = getRawPrice(item.price, item, false);
+       subtotal += rawPrice * item.quantity;
+
+       if (offer) {
+          // Both rawPrice and discountAmt should be in the same scale. The db discountAmt is in ₹, so we convert it to paise for calculations
+          let itemDiscount = 0;
+          if (offer.discountPct) itemDiscount = rawPrice * (offer.discountPct / 100);
+          if (offer.discountAmt) itemDiscount = Math.min(rawPrice, offer.discountAmt * 100); // Caps at item price
+          
+          // If it's a specific product offer (abandoned cart), only apply to 1 quantity.
+          // If it's a store-wide offer (loyal customer), apply to all quantities.
+          const discountQuantity = offer.productId ? 1 : item.quantity;
+          targetedDiscountPaise += itemDiscount * discountQuantity;
+       }
     });
 
     let shipping = 0;
@@ -453,10 +483,10 @@ function CheckoutPageInner() {
        tax = subtotal * (settings.taxRate / 100);
     }
 
-    let discount = 0;
+    let discount = targetedDiscountPaise / 100; // Start with targeted discounts
     if (couponApplied) {
-       discount = couponApplied.discountPaise / 100;
-       // Ensure discount doesn't exceed subtotal
+       discount += couponApplied.discountPaise / 100;
+       // Ensure total discount doesn't exceed subtotal
        if (discount > subtotal) discount = subtotal;
     }
 
@@ -469,7 +499,15 @@ function CheckoutPageInner() {
        total: Math.max(0, subtotal + shipping + codSurcharge + tax - discount)
     });
 
-  }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice, isInternational, couponApplied]);
+  }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice, isInternational, couponApplied, targetedOffers]);
+
+  // Check if any targeted discounts apply to disable regular coupons
+  const hasTargetedDiscounts = checkoutItems.some(item => 
+    targetedOffers.some(o => 
+      (o.productId === item.id || (!o.productId && o.vendorId === item.vendorId)) &&
+      new Date(o.expiresAt) > new Date()
+    )
+  );
 
   // Handle Address Submit
   const handleAddressSubmit = async (formData: {
@@ -953,6 +991,13 @@ function CheckoutPageInner() {
              </div>
 
              <div className="border-t border-border pt-4 mt-2 mb-2">
+                {hasTargetedDiscounts ? (
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-center mb-4">
+                    <p className="text-xs font-bold text-emerald-700">Special Personalized Discount Applied!</p>
+                    <p className="text-[10px] text-emerald-600/80 mt-1">Other coupons cannot be used with this offer.</p>
+                  </div>
+                ) : (
+                  <>
                 {!couponApplied && availableCoupons.length > 0 && (
                   <div className="mb-4 space-y-2">
                     <p className="text-sm font-black text-heading mb-3 flex items-center gap-2">
@@ -1015,6 +1060,8 @@ function CheckoutPageInner() {
                       Remove
                     </button>
                   </div>
+                )}
+                  </>
                 )}
              </div>
 

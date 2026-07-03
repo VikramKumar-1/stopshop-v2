@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Edit2, Loader2, Tag, CheckCircle2 } from "lucide-react";
+import { TargetedRetargetingPanel } from "./TargetedRetargetingPanel";
 
 export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -241,6 +242,9 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
           )}
         </div>
       )}
+
+      {/* Embedded High-Intent / Abandoned Cart Engine */}
+      <TargetedRetargetingPanel vendorId={vendorId} />
     </div>
   );
 };

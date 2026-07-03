@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { intentQueue } from "@/lib/analytics/intentQueue";
 
 export interface CartItem {
   id: number;
@@ -15,6 +16,7 @@ export interface CartItem {
   categoryName: string;
   quantity: number;
   stock: number;
+  vendorId?: number;
 }
 
 interface CartContextType {
@@ -78,10 +80,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         categoryName: product.categoryName || "kitchen-utility",
         quantity: Math.min(quantity, stock),
         stock,
+        vendorId: product.vendorId || product.vendor?.id,
       });
     }
     saveCart(newCart);
     
+    // Background sync intent for targeted vendor retargeting via queue
+    const vendorId = product.vendorId || product.vendor?.id;
+    if (vendorId) {
+      intentQueue.track({ productId: product.id, vendorId, type: "CART" });
+    }
+
     // Show toast notification
     setToastMessage(`"${product.name}" added to cart successfully!`);
     const timer = setTimeout(() => {

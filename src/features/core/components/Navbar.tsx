@@ -2,7 +2,7 @@
 import Link from "next/link";
 
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, Search, User, Heart, ShoppingCart, ChevronDown, LogOut, Store, PhoneCall, LayoutDashboard, Package, Home, Grid } from "lucide-react";
+import { Menu, X, Search, User, Heart, ShoppingCart, ChevronDown, LogOut, Store, PhoneCall, LayoutDashboard, Package, Home, Grid, Loader2 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 
@@ -19,7 +19,7 @@ const navLinks = [
 
 export const Navbar = () => {
   const pathname = usePathname();
-  const isDashboard = pathname.startsWith("/vendor") || pathname.startsWith("/admin");
+  const isDashboard = (pathname.startsWith("/vendor") && !pathname.startsWith("/vendor-shop")) || pathname.startsWith("/admin");
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const { region, isLoaded, setRegion } = useRegion();
@@ -28,6 +28,7 @@ export const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const isProfilePage = pathname.startsWith("/profile") && !user;
 
   // Industry-level e-commerce smart search states
@@ -94,29 +95,39 @@ export const Navbar = () => {
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  // Fetch search suggestions
+  // Fetch search suggestions with 2-char guard and request aborting
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
       setSuggestions([]);
       return;
     }
 
+    const controller = new AbortController();
     const delayDebounceFn = setTimeout(async () => {
       setLoadingSuggestions(true);
       try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(searchQuery)}&take=5`);
+        const res = await fetch(`/api/products?search=${encodeURIComponent(searchQuery)}&take=5`, {
+          signal: controller.signal,
+        });
         if (res.ok) {
           const data = await res.json();
           setSuggestions(data);
         }
-      } catch (err) {
-        console.error("Error fetching suggestions", err);
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.error("Error fetching suggestions", err);
+        }
       } finally {
-        setLoadingSuggestions(false);
+        if (!controller.signal.aborted) {
+          setLoadingSuggestions(false);
+        }
       }
     }, 300);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      clearTimeout(delayDebounceFn);
+      controller.abort();
+    };
   }, [searchQuery]);
 
   // Click outside to close search suggestions
@@ -304,6 +315,8 @@ export const Navbar = () => {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -484,7 +497,7 @@ export const Navbar = () => {
                 )}
 
                 <Link 
-                  href={pathname.startsWith("/vendor") ? "/vendor/dashboard" : pathname.startsWith("/admin") ? "/admin" : "/"} 
+                  href={(pathname.startsWith("/vendor") && !pathname.startsWith("/vendor-shop")) ? "/vendor/dashboard" : pathname.startsWith("/admin") ? "/admin" : "/"} 
                   className={`flex items-center gap-2 group ${searchOpen ? "hidden" : "flex"}`}
                 >
                   <img 
@@ -698,7 +711,7 @@ export const Navbar = () => {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[10px] text-muted leading-tight">
-                            {user ? `Hello, ${user.name.split(" ")[0]}` : "Hello, Sign in"}
+                            {authLoading ? "Loading..." : user ? `Hello, ${user.name.split(" ")[0]}` : "Hello, Sign in"}
                           </span>
                           <span className="text-xs font-bold text-heading leading-tight flex items-center gap-0.5">
                             Account & Lists
@@ -878,7 +891,7 @@ export const Navbar = () => {
                       )}
                     </>
                   )}
-                  {pathname.startsWith("/vendor") && (
+                  {pathname.startsWith("/vendor") && !pathname.startsWith("/vendor-shop") && (
                     <button
                       onClick={handleLogout}
                       className="px-4 py-2.5 rounded-xl border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 text-red-500 text-[11px] sm:text-xs font-bold whitespace-nowrap ml-2 cursor-pointer flex items-center gap-1.5"

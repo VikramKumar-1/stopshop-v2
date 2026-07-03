@@ -78,6 +78,16 @@ export type Review = $Result.DefaultSelection<Prisma.$ReviewPayload>
  * 
  */
 export type Coupon = $Result.DefaultSelection<Prisma.$CouponPayload>
+/**
+ * Model UserIntent
+ * 
+ */
+export type UserIntent = $Result.DefaultSelection<Prisma.$UserIntentPayload>
+/**
+ * Model TargetedOffer
+ * 
+ */
+export type TargetedOffer = $Result.DefaultSelection<Prisma.$TargetedOfferPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -331,6 +341,26 @@ export class PrismaClient<
     * ```
     */
   get coupon(): Prisma.CouponDelegate<ExtArgs>;
+
+  /**
+   * `prisma.userIntent`: Exposes CRUD operations for the **UserIntent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserIntents
+    * const userIntents = await prisma.userIntent.findMany()
+    * ```
+    */
+  get userIntent(): Prisma.UserIntentDelegate<ExtArgs>;
+
+  /**
+   * `prisma.targetedOffer`: Exposes CRUD operations for the **TargetedOffer** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TargetedOffers
+    * const targetedOffers = await prisma.targetedOffer.findMany()
+    * ```
+    */
+  get targetedOffer(): Prisma.TargetedOfferDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -784,7 +814,9 @@ export namespace Prisma {
     AdminSettings: 'AdminSettings',
     CustomPayout: 'CustomPayout',
     Review: 'Review',
-    Coupon: 'Coupon'
+    Coupon: 'Coupon',
+    UserIntent: 'UserIntent',
+    TargetedOffer: 'TargetedOffer'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -800,7 +832,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "category" | "product" | "inquiry" | "order" | "orderItem" | "returnRequest" | "settlement" | "address" | "adminSettings" | "customPayout" | "review" | "coupon"
+      modelProps: "user" | "category" | "product" | "inquiry" | "order" | "orderItem" | "returnRequest" | "settlement" | "address" | "adminSettings" | "customPayout" | "review" | "coupon" | "userIntent" | "targetedOffer"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1662,6 +1694,138 @@ export namespace Prisma {
           }
         }
       }
+      UserIntent: {
+        payload: Prisma.$UserIntentPayload<ExtArgs>
+        fields: Prisma.UserIntentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserIntentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserIntentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload>
+          }
+          findFirst: {
+            args: Prisma.UserIntentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserIntentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload>
+          }
+          findMany: {
+            args: Prisma.UserIntentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload>[]
+          }
+          create: {
+            args: Prisma.UserIntentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload>
+          }
+          createMany: {
+            args: Prisma.UserIntentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.UserIntentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload>
+          }
+          update: {
+            args: Prisma.UserIntentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserIntentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserIntentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.UserIntentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserIntentPayload>
+          }
+          aggregate: {
+            args: Prisma.UserIntentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserIntent>
+          }
+          groupBy: {
+            args: Prisma.UserIntentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserIntentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserIntentCountArgs<ExtArgs>
+            result: $Utils.Optional<UserIntentCountAggregateOutputType> | number
+          }
+        }
+      }
+      TargetedOffer: {
+        payload: Prisma.$TargetedOfferPayload<ExtArgs>
+        fields: Prisma.TargetedOfferFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TargetedOfferFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TargetedOfferFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload>
+          }
+          findFirst: {
+            args: Prisma.TargetedOfferFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TargetedOfferFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload>
+          }
+          findMany: {
+            args: Prisma.TargetedOfferFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload>[]
+          }
+          create: {
+            args: Prisma.TargetedOfferCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload>
+          }
+          createMany: {
+            args: Prisma.TargetedOfferCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.TargetedOfferDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload>
+          }
+          update: {
+            args: Prisma.TargetedOfferUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload>
+          }
+          deleteMany: {
+            args: Prisma.TargetedOfferDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TargetedOfferUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.TargetedOfferUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TargetedOfferPayload>
+          }
+          aggregate: {
+            args: Prisma.TargetedOfferAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTargetedOffer>
+          }
+          groupBy: {
+            args: Prisma.TargetedOfferGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TargetedOfferGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TargetedOfferCountArgs<ExtArgs>
+            result: $Utils.Optional<TargetedOfferCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1828,6 +1992,8 @@ export namespace Prisma {
     addresses: number
     customPayouts: number
     reviews: number
+    intents: number
+    targetedOffers: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1836,6 +2002,8 @@ export namespace Prisma {
     addresses?: boolean | UserCountOutputTypeCountAddressesArgs
     customPayouts?: boolean | UserCountOutputTypeCountCustomPayoutsArgs
     reviews?: boolean | UserCountOutputTypeCountReviewsArgs
+    intents?: boolean | UserCountOutputTypeCountIntentsArgs
+    targetedOffers?: boolean | UserCountOutputTypeCountTargetedOffersArgs
   }
 
   // Custom InputTypes
@@ -1884,6 +2052,20 @@ export namespace Prisma {
     where?: ReviewWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountIntentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserIntentWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountTargetedOffersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TargetedOfferWhereInput
+  }
+
 
   /**
    * Count Type CategoryCountOutputType
@@ -1924,12 +2106,16 @@ export namespace Prisma {
     orderItems: number
     customPayouts: number
     productReviews: number
+    intents: number
+    targetedOffers: number
   }
 
   export type ProductCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     orderItems?: boolean | ProductCountOutputTypeCountOrderItemsArgs
     customPayouts?: boolean | ProductCountOutputTypeCountCustomPayoutsArgs
     productReviews?: boolean | ProductCountOutputTypeCountProductReviewsArgs
+    intents?: boolean | ProductCountOutputTypeCountIntentsArgs
+    targetedOffers?: boolean | ProductCountOutputTypeCountTargetedOffersArgs
   }
 
   // Custom InputTypes
@@ -1962,6 +2148,20 @@ export namespace Prisma {
    */
   export type ProductCountOutputTypeCountProductReviewsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ReviewWhereInput
+  }
+
+  /**
+   * ProductCountOutputType without action
+   */
+  export type ProductCountOutputTypeCountIntentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserIntentWhereInput
+  }
+
+  /**
+   * ProductCountOutputType without action
+   */
+  export type ProductCountOutputTypeCountTargetedOffersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TargetedOfferWhereInput
   }
 
 
@@ -2332,6 +2532,8 @@ export namespace Prisma {
     addresses?: boolean | User$addressesArgs<ExtArgs>
     customPayouts?: boolean | User$customPayoutsArgs<ExtArgs>
     reviews?: boolean | User$reviewsArgs<ExtArgs>
+    intents?: boolean | User$intentsArgs<ExtArgs>
+    targetedOffers?: boolean | User$targetedOffersArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2365,6 +2567,8 @@ export namespace Prisma {
     addresses?: boolean | User$addressesArgs<ExtArgs>
     customPayouts?: boolean | User$customPayoutsArgs<ExtArgs>
     reviews?: boolean | User$reviewsArgs<ExtArgs>
+    intents?: boolean | User$intentsArgs<ExtArgs>
+    targetedOffers?: boolean | User$targetedOffersArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -2376,6 +2580,8 @@ export namespace Prisma {
       addresses: Prisma.$AddressPayload<ExtArgs>[]
       customPayouts: Prisma.$CustomPayoutPayload<ExtArgs>[]
       reviews: Prisma.$ReviewPayload<ExtArgs>[]
+      intents: Prisma.$UserIntentPayload<ExtArgs>[]
+      targetedOffers: Prisma.$TargetedOfferPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2743,6 +2949,8 @@ export namespace Prisma {
     addresses<T extends User$addressesArgs<ExtArgs> = {}>(args?: Subset<T, User$addressesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AddressPayload<ExtArgs>, T, "findMany"> | Null>
     customPayouts<T extends User$customPayoutsArgs<ExtArgs> = {}>(args?: Subset<T, User$customPayoutsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPayoutPayload<ExtArgs>, T, "findMany"> | Null>
     reviews<T extends User$reviewsArgs<ExtArgs> = {}>(args?: Subset<T, User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany"> | Null>
+    intents<T extends User$intentsArgs<ExtArgs> = {}>(args?: Subset<T, User$intentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "findMany"> | Null>
+    targetedOffers<T extends User$targetedOffersArgs<ExtArgs> = {}>(args?: Subset<T, User$targetedOffersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3188,6 +3396,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ReviewScalarFieldEnum | ReviewScalarFieldEnum[]
+  }
+
+  /**
+   * User.intents
+   */
+  export type User$intentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    where?: UserIntentWhereInput
+    orderBy?: UserIntentOrderByWithRelationInput | UserIntentOrderByWithRelationInput[]
+    cursor?: UserIntentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserIntentScalarFieldEnum | UserIntentScalarFieldEnum[]
+  }
+
+  /**
+   * User.targetedOffers
+   */
+  export type User$targetedOffersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    where?: TargetedOfferWhereInput
+    orderBy?: TargetedOfferOrderByWithRelationInput | TargetedOfferOrderByWithRelationInput[]
+    cursor?: TargetedOfferWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TargetedOfferScalarFieldEnum | TargetedOfferScalarFieldEnum[]
   }
 
   /**
@@ -4480,6 +4728,8 @@ export namespace Prisma {
     orderItems?: boolean | Product$orderItemsArgs<ExtArgs>
     customPayouts?: boolean | Product$customPayoutsArgs<ExtArgs>
     productReviews?: boolean | Product$productReviewsArgs<ExtArgs>
+    intents?: boolean | Product$intentsArgs<ExtArgs>
+    targetedOffers?: boolean | Product$targetedOffersArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["product"]>
 
@@ -4514,6 +4764,8 @@ export namespace Prisma {
     orderItems?: boolean | Product$orderItemsArgs<ExtArgs>
     customPayouts?: boolean | Product$customPayoutsArgs<ExtArgs>
     productReviews?: boolean | Product$productReviewsArgs<ExtArgs>
+    intents?: boolean | Product$intentsArgs<ExtArgs>
+    targetedOffers?: boolean | Product$targetedOffersArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -4525,6 +4777,8 @@ export namespace Prisma {
       orderItems: Prisma.$OrderItemPayload<ExtArgs>[]
       customPayouts: Prisma.$CustomPayoutPayload<ExtArgs>[]
       productReviews: Prisma.$ReviewPayload<ExtArgs>[]
+      intents: Prisma.$UserIntentPayload<ExtArgs>[]
+      targetedOffers: Prisma.$TargetedOfferPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -4893,6 +5147,8 @@ export namespace Prisma {
     orderItems<T extends Product$orderItemsArgs<ExtArgs> = {}>(args?: Subset<T, Product$orderItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany"> | Null>
     customPayouts<T extends Product$customPayoutsArgs<ExtArgs> = {}>(args?: Subset<T, Product$customPayoutsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPayoutPayload<ExtArgs>, T, "findMany"> | Null>
     productReviews<T extends Product$productReviewsArgs<ExtArgs> = {}>(args?: Subset<T, Product$productReviewsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany"> | Null>
+    intents<T extends Product$intentsArgs<ExtArgs> = {}>(args?: Subset<T, Product$intentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "findMany"> | Null>
+    targetedOffers<T extends Product$targetedOffersArgs<ExtArgs> = {}>(args?: Subset<T, Product$targetedOffersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5314,6 +5570,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ReviewScalarFieldEnum | ReviewScalarFieldEnum[]
+  }
+
+  /**
+   * Product.intents
+   */
+  export type Product$intentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    where?: UserIntentWhereInput
+    orderBy?: UserIntentOrderByWithRelationInput | UserIntentOrderByWithRelationInput[]
+    cursor?: UserIntentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserIntentScalarFieldEnum | UserIntentScalarFieldEnum[]
+  }
+
+  /**
+   * Product.targetedOffers
+   */
+  export type Product$targetedOffersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    where?: TargetedOfferWhereInput
+    orderBy?: TargetedOfferOrderByWithRelationInput | TargetedOfferOrderByWithRelationInput[]
+    cursor?: TargetedOfferWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TargetedOfferScalarFieldEnum | TargetedOfferScalarFieldEnum[]
   }
 
   /**
@@ -16210,6 +16506,1997 @@ export namespace Prisma {
 
 
   /**
+   * Model UserIntent
+   */
+
+  export type AggregateUserIntent = {
+    _count: UserIntentCountAggregateOutputType | null
+    _avg: UserIntentAvgAggregateOutputType | null
+    _sum: UserIntentSumAggregateOutputType | null
+    _min: UserIntentMinAggregateOutputType | null
+    _max: UserIntentMaxAggregateOutputType | null
+  }
+
+  export type UserIntentAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    productId: number | null
+    vendorId: number | null
+  }
+
+  export type UserIntentSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    productId: number | null
+    vendorId: number | null
+  }
+
+  export type UserIntentMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    productId: number | null
+    vendorId: number | null
+    type: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    hasPurchased: boolean | null
+    isDismissed: boolean | null
+  }
+
+  export type UserIntentMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    productId: number | null
+    vendorId: number | null
+    type: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    hasPurchased: boolean | null
+    isDismissed: boolean | null
+  }
+
+  export type UserIntentCountAggregateOutputType = {
+    id: number
+    userId: number
+    productId: number
+    vendorId: number
+    type: number
+    createdAt: number
+    updatedAt: number
+    hasPurchased: number
+    isDismissed: number
+    _all: number
+  }
+
+
+  export type UserIntentAvgAggregateInputType = {
+    id?: true
+    userId?: true
+    productId?: true
+    vendorId?: true
+  }
+
+  export type UserIntentSumAggregateInputType = {
+    id?: true
+    userId?: true
+    productId?: true
+    vendorId?: true
+  }
+
+  export type UserIntentMinAggregateInputType = {
+    id?: true
+    userId?: true
+    productId?: true
+    vendorId?: true
+    type?: true
+    createdAt?: true
+    updatedAt?: true
+    hasPurchased?: true
+    isDismissed?: true
+  }
+
+  export type UserIntentMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    productId?: true
+    vendorId?: true
+    type?: true
+    createdAt?: true
+    updatedAt?: true
+    hasPurchased?: true
+    isDismissed?: true
+  }
+
+  export type UserIntentCountAggregateInputType = {
+    id?: true
+    userId?: true
+    productId?: true
+    vendorId?: true
+    type?: true
+    createdAt?: true
+    updatedAt?: true
+    hasPurchased?: true
+    isDismissed?: true
+    _all?: true
+  }
+
+  export type UserIntentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserIntent to aggregate.
+     */
+    where?: UserIntentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserIntents to fetch.
+     */
+    orderBy?: UserIntentOrderByWithRelationInput | UserIntentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserIntentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserIntents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserIntents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserIntents
+    **/
+    _count?: true | UserIntentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UserIntentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UserIntentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserIntentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserIntentMaxAggregateInputType
+  }
+
+  export type GetUserIntentAggregateType<T extends UserIntentAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserIntent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserIntent[P]>
+      : GetScalarType<T[P], AggregateUserIntent[P]>
+  }
+
+
+
+
+  export type UserIntentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserIntentWhereInput
+    orderBy?: UserIntentOrderByWithAggregationInput | UserIntentOrderByWithAggregationInput[]
+    by: UserIntentScalarFieldEnum[] | UserIntentScalarFieldEnum
+    having?: UserIntentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserIntentCountAggregateInputType | true
+    _avg?: UserIntentAvgAggregateInputType
+    _sum?: UserIntentSumAggregateInputType
+    _min?: UserIntentMinAggregateInputType
+    _max?: UserIntentMaxAggregateInputType
+  }
+
+  export type UserIntentGroupByOutputType = {
+    id: number
+    userId: number
+    productId: number
+    vendorId: number
+    type: string
+    createdAt: Date
+    updatedAt: Date
+    hasPurchased: boolean
+    isDismissed: boolean
+    _count: UserIntentCountAggregateOutputType | null
+    _avg: UserIntentAvgAggregateOutputType | null
+    _sum: UserIntentSumAggregateOutputType | null
+    _min: UserIntentMinAggregateOutputType | null
+    _max: UserIntentMaxAggregateOutputType | null
+  }
+
+  type GetUserIntentGroupByPayload<T extends UserIntentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserIntentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserIntentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserIntentGroupByOutputType[P]>
+            : GetScalarType<T[P], UserIntentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserIntentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    productId?: boolean
+    vendorId?: boolean
+    type?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    hasPurchased?: boolean
+    isDismissed?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userIntent"]>
+
+
+  export type UserIntentSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    productId?: boolean
+    vendorId?: boolean
+    type?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    hasPurchased?: boolean
+    isDismissed?: boolean
+  }
+
+  export type UserIntentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+
+  export type $UserIntentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserIntent"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      product: Prisma.$ProductPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      productId: number
+      vendorId: number
+      type: string
+      createdAt: Date
+      updatedAt: Date
+      hasPurchased: boolean
+      isDismissed: boolean
+    }, ExtArgs["result"]["userIntent"]>
+    composites: {}
+  }
+
+  type UserIntentGetPayload<S extends boolean | null | undefined | UserIntentDefaultArgs> = $Result.GetResult<Prisma.$UserIntentPayload, S>
+
+  type UserIntentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<UserIntentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: UserIntentCountAggregateInputType | true
+    }
+
+  export interface UserIntentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserIntent'], meta: { name: 'UserIntent' } }
+    /**
+     * Find zero or one UserIntent that matches the filter.
+     * @param {UserIntentFindUniqueArgs} args - Arguments to find a UserIntent
+     * @example
+     * // Get one UserIntent
+     * const userIntent = await prisma.userIntent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserIntentFindUniqueArgs>(args: SelectSubset<T, UserIntentFindUniqueArgs<ExtArgs>>): Prisma__UserIntentClient<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one UserIntent that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {UserIntentFindUniqueOrThrowArgs} args - Arguments to find a UserIntent
+     * @example
+     * // Get one UserIntent
+     * const userIntent = await prisma.userIntent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserIntentFindUniqueOrThrowArgs>(args: SelectSubset<T, UserIntentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserIntentClient<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first UserIntent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserIntentFindFirstArgs} args - Arguments to find a UserIntent
+     * @example
+     * // Get one UserIntent
+     * const userIntent = await prisma.userIntent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserIntentFindFirstArgs>(args?: SelectSubset<T, UserIntentFindFirstArgs<ExtArgs>>): Prisma__UserIntentClient<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first UserIntent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserIntentFindFirstOrThrowArgs} args - Arguments to find a UserIntent
+     * @example
+     * // Get one UserIntent
+     * const userIntent = await prisma.userIntent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserIntentFindFirstOrThrowArgs>(args?: SelectSubset<T, UserIntentFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserIntentClient<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more UserIntents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserIntentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserIntents
+     * const userIntents = await prisma.userIntent.findMany()
+     * 
+     * // Get first 10 UserIntents
+     * const userIntents = await prisma.userIntent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userIntentWithIdOnly = await prisma.userIntent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserIntentFindManyArgs>(args?: SelectSubset<T, UserIntentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a UserIntent.
+     * @param {UserIntentCreateArgs} args - Arguments to create a UserIntent.
+     * @example
+     * // Create one UserIntent
+     * const UserIntent = await prisma.userIntent.create({
+     *   data: {
+     *     // ... data to create a UserIntent
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserIntentCreateArgs>(args: SelectSubset<T, UserIntentCreateArgs<ExtArgs>>): Prisma__UserIntentClient<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many UserIntents.
+     * @param {UserIntentCreateManyArgs} args - Arguments to create many UserIntents.
+     * @example
+     * // Create many UserIntents
+     * const userIntent = await prisma.userIntent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserIntentCreateManyArgs>(args?: SelectSubset<T, UserIntentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a UserIntent.
+     * @param {UserIntentDeleteArgs} args - Arguments to delete one UserIntent.
+     * @example
+     * // Delete one UserIntent
+     * const UserIntent = await prisma.userIntent.delete({
+     *   where: {
+     *     // ... filter to delete one UserIntent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserIntentDeleteArgs>(args: SelectSubset<T, UserIntentDeleteArgs<ExtArgs>>): Prisma__UserIntentClient<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one UserIntent.
+     * @param {UserIntentUpdateArgs} args - Arguments to update one UserIntent.
+     * @example
+     * // Update one UserIntent
+     * const userIntent = await prisma.userIntent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserIntentUpdateArgs>(args: SelectSubset<T, UserIntentUpdateArgs<ExtArgs>>): Prisma__UserIntentClient<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more UserIntents.
+     * @param {UserIntentDeleteManyArgs} args - Arguments to filter UserIntents to delete.
+     * @example
+     * // Delete a few UserIntents
+     * const { count } = await prisma.userIntent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserIntentDeleteManyArgs>(args?: SelectSubset<T, UserIntentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserIntents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserIntentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserIntents
+     * const userIntent = await prisma.userIntent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserIntentUpdateManyArgs>(args: SelectSubset<T, UserIntentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one UserIntent.
+     * @param {UserIntentUpsertArgs} args - Arguments to update or create a UserIntent.
+     * @example
+     * // Update or create a UserIntent
+     * const userIntent = await prisma.userIntent.upsert({
+     *   create: {
+     *     // ... data to create a UserIntent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserIntent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserIntentUpsertArgs>(args: SelectSubset<T, UserIntentUpsertArgs<ExtArgs>>): Prisma__UserIntentClient<$Result.GetResult<Prisma.$UserIntentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of UserIntents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserIntentCountArgs} args - Arguments to filter UserIntents to count.
+     * @example
+     * // Count the number of UserIntents
+     * const count = await prisma.userIntent.count({
+     *   where: {
+     *     // ... the filter for the UserIntents we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserIntentCountArgs>(
+      args?: Subset<T, UserIntentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserIntentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserIntent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserIntentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserIntentAggregateArgs>(args: Subset<T, UserIntentAggregateArgs>): Prisma.PrismaPromise<GetUserIntentAggregateType<T>>
+
+    /**
+     * Group by UserIntent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserIntentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserIntentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserIntentGroupByArgs['orderBy'] }
+        : { orderBy?: UserIntentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserIntentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserIntentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserIntent model
+   */
+  readonly fields: UserIntentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserIntent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserIntentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserIntent model
+   */ 
+  interface UserIntentFieldRefs {
+    readonly id: FieldRef<"UserIntent", 'Int'>
+    readonly userId: FieldRef<"UserIntent", 'Int'>
+    readonly productId: FieldRef<"UserIntent", 'Int'>
+    readonly vendorId: FieldRef<"UserIntent", 'Int'>
+    readonly type: FieldRef<"UserIntent", 'String'>
+    readonly createdAt: FieldRef<"UserIntent", 'DateTime'>
+    readonly updatedAt: FieldRef<"UserIntent", 'DateTime'>
+    readonly hasPurchased: FieldRef<"UserIntent", 'Boolean'>
+    readonly isDismissed: FieldRef<"UserIntent", 'Boolean'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserIntent findUnique
+   */
+  export type UserIntentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * Filter, which UserIntent to fetch.
+     */
+    where: UserIntentWhereUniqueInput
+  }
+
+  /**
+   * UserIntent findUniqueOrThrow
+   */
+  export type UserIntentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * Filter, which UserIntent to fetch.
+     */
+    where: UserIntentWhereUniqueInput
+  }
+
+  /**
+   * UserIntent findFirst
+   */
+  export type UserIntentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * Filter, which UserIntent to fetch.
+     */
+    where?: UserIntentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserIntents to fetch.
+     */
+    orderBy?: UserIntentOrderByWithRelationInput | UserIntentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserIntents.
+     */
+    cursor?: UserIntentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserIntents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserIntents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserIntents.
+     */
+    distinct?: UserIntentScalarFieldEnum | UserIntentScalarFieldEnum[]
+  }
+
+  /**
+   * UserIntent findFirstOrThrow
+   */
+  export type UserIntentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * Filter, which UserIntent to fetch.
+     */
+    where?: UserIntentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserIntents to fetch.
+     */
+    orderBy?: UserIntentOrderByWithRelationInput | UserIntentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserIntents.
+     */
+    cursor?: UserIntentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserIntents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserIntents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserIntents.
+     */
+    distinct?: UserIntentScalarFieldEnum | UserIntentScalarFieldEnum[]
+  }
+
+  /**
+   * UserIntent findMany
+   */
+  export type UserIntentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * Filter, which UserIntents to fetch.
+     */
+    where?: UserIntentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserIntents to fetch.
+     */
+    orderBy?: UserIntentOrderByWithRelationInput | UserIntentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserIntents.
+     */
+    cursor?: UserIntentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserIntents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserIntents.
+     */
+    skip?: number
+    distinct?: UserIntentScalarFieldEnum | UserIntentScalarFieldEnum[]
+  }
+
+  /**
+   * UserIntent create
+   */
+  export type UserIntentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserIntent.
+     */
+    data: XOR<UserIntentCreateInput, UserIntentUncheckedCreateInput>
+  }
+
+  /**
+   * UserIntent createMany
+   */
+  export type UserIntentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserIntents.
+     */
+    data: UserIntentCreateManyInput | UserIntentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserIntent update
+   */
+  export type UserIntentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserIntent.
+     */
+    data: XOR<UserIntentUpdateInput, UserIntentUncheckedUpdateInput>
+    /**
+     * Choose, which UserIntent to update.
+     */
+    where: UserIntentWhereUniqueInput
+  }
+
+  /**
+   * UserIntent updateMany
+   */
+  export type UserIntentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserIntents.
+     */
+    data: XOR<UserIntentUpdateManyMutationInput, UserIntentUncheckedUpdateManyInput>
+    /**
+     * Filter which UserIntents to update
+     */
+    where?: UserIntentWhereInput
+  }
+
+  /**
+   * UserIntent upsert
+   */
+  export type UserIntentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserIntent to update in case it exists.
+     */
+    where: UserIntentWhereUniqueInput
+    /**
+     * In case the UserIntent found by the `where` argument doesn't exist, create a new UserIntent with this data.
+     */
+    create: XOR<UserIntentCreateInput, UserIntentUncheckedCreateInput>
+    /**
+     * In case the UserIntent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserIntentUpdateInput, UserIntentUncheckedUpdateInput>
+  }
+
+  /**
+   * UserIntent delete
+   */
+  export type UserIntentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+    /**
+     * Filter which UserIntent to delete.
+     */
+    where: UserIntentWhereUniqueInput
+  }
+
+  /**
+   * UserIntent deleteMany
+   */
+  export type UserIntentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserIntents to delete
+     */
+    where?: UserIntentWhereInput
+  }
+
+  /**
+   * UserIntent without action
+   */
+  export type UserIntentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserIntent
+     */
+    select?: UserIntentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIntentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model TargetedOffer
+   */
+
+  export type AggregateTargetedOffer = {
+    _count: TargetedOfferCountAggregateOutputType | null
+    _avg: TargetedOfferAvgAggregateOutputType | null
+    _sum: TargetedOfferSumAggregateOutputType | null
+    _min: TargetedOfferMinAggregateOutputType | null
+    _max: TargetedOfferMaxAggregateOutputType | null
+  }
+
+  export type TargetedOfferAvgAggregateOutputType = {
+    id: number | null
+    vendorId: number | null
+    userId: number | null
+    productId: number | null
+    discountPct: number | null
+    discountAmt: number | null
+  }
+
+  export type TargetedOfferSumAggregateOutputType = {
+    id: number | null
+    vendorId: number | null
+    userId: number | null
+    productId: number | null
+    discountPct: number | null
+    discountAmt: number | null
+  }
+
+  export type TargetedOfferMinAggregateOutputType = {
+    id: number | null
+    vendorId: number | null
+    userId: number | null
+    productId: number | null
+    couponCode: string | null
+    discountPct: number | null
+    discountAmt: number | null
+    expiresAt: Date | null
+    isActive: boolean | null
+    isClaimed: boolean | null
+    createdAt: Date | null
+  }
+
+  export type TargetedOfferMaxAggregateOutputType = {
+    id: number | null
+    vendorId: number | null
+    userId: number | null
+    productId: number | null
+    couponCode: string | null
+    discountPct: number | null
+    discountAmt: number | null
+    expiresAt: Date | null
+    isActive: boolean | null
+    isClaimed: boolean | null
+    createdAt: Date | null
+  }
+
+  export type TargetedOfferCountAggregateOutputType = {
+    id: number
+    vendorId: number
+    userId: number
+    productId: number
+    couponCode: number
+    discountPct: number
+    discountAmt: number
+    expiresAt: number
+    isActive: number
+    isClaimed: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type TargetedOfferAvgAggregateInputType = {
+    id?: true
+    vendorId?: true
+    userId?: true
+    productId?: true
+    discountPct?: true
+    discountAmt?: true
+  }
+
+  export type TargetedOfferSumAggregateInputType = {
+    id?: true
+    vendorId?: true
+    userId?: true
+    productId?: true
+    discountPct?: true
+    discountAmt?: true
+  }
+
+  export type TargetedOfferMinAggregateInputType = {
+    id?: true
+    vendorId?: true
+    userId?: true
+    productId?: true
+    couponCode?: true
+    discountPct?: true
+    discountAmt?: true
+    expiresAt?: true
+    isActive?: true
+    isClaimed?: true
+    createdAt?: true
+  }
+
+  export type TargetedOfferMaxAggregateInputType = {
+    id?: true
+    vendorId?: true
+    userId?: true
+    productId?: true
+    couponCode?: true
+    discountPct?: true
+    discountAmt?: true
+    expiresAt?: true
+    isActive?: true
+    isClaimed?: true
+    createdAt?: true
+  }
+
+  export type TargetedOfferCountAggregateInputType = {
+    id?: true
+    vendorId?: true
+    userId?: true
+    productId?: true
+    couponCode?: true
+    discountPct?: true
+    discountAmt?: true
+    expiresAt?: true
+    isActive?: true
+    isClaimed?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type TargetedOfferAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TargetedOffer to aggregate.
+     */
+    where?: TargetedOfferWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TargetedOffers to fetch.
+     */
+    orderBy?: TargetedOfferOrderByWithRelationInput | TargetedOfferOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TargetedOfferWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TargetedOffers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TargetedOffers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned TargetedOffers
+    **/
+    _count?: true | TargetedOfferCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TargetedOfferAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TargetedOfferSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TargetedOfferMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TargetedOfferMaxAggregateInputType
+  }
+
+  export type GetTargetedOfferAggregateType<T extends TargetedOfferAggregateArgs> = {
+        [P in keyof T & keyof AggregateTargetedOffer]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTargetedOffer[P]>
+      : GetScalarType<T[P], AggregateTargetedOffer[P]>
+  }
+
+
+
+
+  export type TargetedOfferGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TargetedOfferWhereInput
+    orderBy?: TargetedOfferOrderByWithAggregationInput | TargetedOfferOrderByWithAggregationInput[]
+    by: TargetedOfferScalarFieldEnum[] | TargetedOfferScalarFieldEnum
+    having?: TargetedOfferScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TargetedOfferCountAggregateInputType | true
+    _avg?: TargetedOfferAvgAggregateInputType
+    _sum?: TargetedOfferSumAggregateInputType
+    _min?: TargetedOfferMinAggregateInputType
+    _max?: TargetedOfferMaxAggregateInputType
+  }
+
+  export type TargetedOfferGroupByOutputType = {
+    id: number
+    vendorId: number
+    userId: number
+    productId: number | null
+    couponCode: string | null
+    discountPct: number | null
+    discountAmt: number | null
+    expiresAt: Date
+    isActive: boolean
+    isClaimed: boolean
+    createdAt: Date
+    _count: TargetedOfferCountAggregateOutputType | null
+    _avg: TargetedOfferAvgAggregateOutputType | null
+    _sum: TargetedOfferSumAggregateOutputType | null
+    _min: TargetedOfferMinAggregateOutputType | null
+    _max: TargetedOfferMaxAggregateOutputType | null
+  }
+
+  type GetTargetedOfferGroupByPayload<T extends TargetedOfferGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TargetedOfferGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TargetedOfferGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TargetedOfferGroupByOutputType[P]>
+            : GetScalarType<T[P], TargetedOfferGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TargetedOfferSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vendorId?: boolean
+    userId?: boolean
+    productId?: boolean
+    couponCode?: boolean
+    discountPct?: boolean
+    discountAmt?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    product?: boolean | TargetedOffer$productArgs<ExtArgs>
+  }, ExtArgs["result"]["targetedOffer"]>
+
+
+  export type TargetedOfferSelectScalar = {
+    id?: boolean
+    vendorId?: boolean
+    userId?: boolean
+    productId?: boolean
+    couponCode?: boolean
+    discountPct?: boolean
+    discountAmt?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: boolean
+  }
+
+  export type TargetedOfferInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    product?: boolean | TargetedOffer$productArgs<ExtArgs>
+  }
+
+  export type $TargetedOfferPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "TargetedOffer"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      product: Prisma.$ProductPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      vendorId: number
+      userId: number
+      productId: number | null
+      couponCode: string | null
+      discountPct: number | null
+      discountAmt: number | null
+      expiresAt: Date
+      isActive: boolean
+      isClaimed: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["targetedOffer"]>
+    composites: {}
+  }
+
+  type TargetedOfferGetPayload<S extends boolean | null | undefined | TargetedOfferDefaultArgs> = $Result.GetResult<Prisma.$TargetedOfferPayload, S>
+
+  type TargetedOfferCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<TargetedOfferFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: TargetedOfferCountAggregateInputType | true
+    }
+
+  export interface TargetedOfferDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TargetedOffer'], meta: { name: 'TargetedOffer' } }
+    /**
+     * Find zero or one TargetedOffer that matches the filter.
+     * @param {TargetedOfferFindUniqueArgs} args - Arguments to find a TargetedOffer
+     * @example
+     * // Get one TargetedOffer
+     * const targetedOffer = await prisma.targetedOffer.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TargetedOfferFindUniqueArgs>(args: SelectSubset<T, TargetedOfferFindUniqueArgs<ExtArgs>>): Prisma__TargetedOfferClient<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one TargetedOffer that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {TargetedOfferFindUniqueOrThrowArgs} args - Arguments to find a TargetedOffer
+     * @example
+     * // Get one TargetedOffer
+     * const targetedOffer = await prisma.targetedOffer.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TargetedOfferFindUniqueOrThrowArgs>(args: SelectSubset<T, TargetedOfferFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TargetedOfferClient<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first TargetedOffer that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TargetedOfferFindFirstArgs} args - Arguments to find a TargetedOffer
+     * @example
+     * // Get one TargetedOffer
+     * const targetedOffer = await prisma.targetedOffer.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TargetedOfferFindFirstArgs>(args?: SelectSubset<T, TargetedOfferFindFirstArgs<ExtArgs>>): Prisma__TargetedOfferClient<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first TargetedOffer that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TargetedOfferFindFirstOrThrowArgs} args - Arguments to find a TargetedOffer
+     * @example
+     * // Get one TargetedOffer
+     * const targetedOffer = await prisma.targetedOffer.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TargetedOfferFindFirstOrThrowArgs>(args?: SelectSubset<T, TargetedOfferFindFirstOrThrowArgs<ExtArgs>>): Prisma__TargetedOfferClient<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more TargetedOffers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TargetedOfferFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TargetedOffers
+     * const targetedOffers = await prisma.targetedOffer.findMany()
+     * 
+     * // Get first 10 TargetedOffers
+     * const targetedOffers = await prisma.targetedOffer.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const targetedOfferWithIdOnly = await prisma.targetedOffer.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TargetedOfferFindManyArgs>(args?: SelectSubset<T, TargetedOfferFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a TargetedOffer.
+     * @param {TargetedOfferCreateArgs} args - Arguments to create a TargetedOffer.
+     * @example
+     * // Create one TargetedOffer
+     * const TargetedOffer = await prisma.targetedOffer.create({
+     *   data: {
+     *     // ... data to create a TargetedOffer
+     *   }
+     * })
+     * 
+     */
+    create<T extends TargetedOfferCreateArgs>(args: SelectSubset<T, TargetedOfferCreateArgs<ExtArgs>>): Prisma__TargetedOfferClient<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many TargetedOffers.
+     * @param {TargetedOfferCreateManyArgs} args - Arguments to create many TargetedOffers.
+     * @example
+     * // Create many TargetedOffers
+     * const targetedOffer = await prisma.targetedOffer.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TargetedOfferCreateManyArgs>(args?: SelectSubset<T, TargetedOfferCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a TargetedOffer.
+     * @param {TargetedOfferDeleteArgs} args - Arguments to delete one TargetedOffer.
+     * @example
+     * // Delete one TargetedOffer
+     * const TargetedOffer = await prisma.targetedOffer.delete({
+     *   where: {
+     *     // ... filter to delete one TargetedOffer
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TargetedOfferDeleteArgs>(args: SelectSubset<T, TargetedOfferDeleteArgs<ExtArgs>>): Prisma__TargetedOfferClient<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one TargetedOffer.
+     * @param {TargetedOfferUpdateArgs} args - Arguments to update one TargetedOffer.
+     * @example
+     * // Update one TargetedOffer
+     * const targetedOffer = await prisma.targetedOffer.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TargetedOfferUpdateArgs>(args: SelectSubset<T, TargetedOfferUpdateArgs<ExtArgs>>): Prisma__TargetedOfferClient<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more TargetedOffers.
+     * @param {TargetedOfferDeleteManyArgs} args - Arguments to filter TargetedOffers to delete.
+     * @example
+     * // Delete a few TargetedOffers
+     * const { count } = await prisma.targetedOffer.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TargetedOfferDeleteManyArgs>(args?: SelectSubset<T, TargetedOfferDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TargetedOffers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TargetedOfferUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TargetedOffers
+     * const targetedOffer = await prisma.targetedOffer.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TargetedOfferUpdateManyArgs>(args: SelectSubset<T, TargetedOfferUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one TargetedOffer.
+     * @param {TargetedOfferUpsertArgs} args - Arguments to update or create a TargetedOffer.
+     * @example
+     * // Update or create a TargetedOffer
+     * const targetedOffer = await prisma.targetedOffer.upsert({
+     *   create: {
+     *     // ... data to create a TargetedOffer
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TargetedOffer we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TargetedOfferUpsertArgs>(args: SelectSubset<T, TargetedOfferUpsertArgs<ExtArgs>>): Prisma__TargetedOfferClient<$Result.GetResult<Prisma.$TargetedOfferPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of TargetedOffers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TargetedOfferCountArgs} args - Arguments to filter TargetedOffers to count.
+     * @example
+     * // Count the number of TargetedOffers
+     * const count = await prisma.targetedOffer.count({
+     *   where: {
+     *     // ... the filter for the TargetedOffers we want to count
+     *   }
+     * })
+    **/
+    count<T extends TargetedOfferCountArgs>(
+      args?: Subset<T, TargetedOfferCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TargetedOfferCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a TargetedOffer.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TargetedOfferAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TargetedOfferAggregateArgs>(args: Subset<T, TargetedOfferAggregateArgs>): Prisma.PrismaPromise<GetTargetedOfferAggregateType<T>>
+
+    /**
+     * Group by TargetedOffer.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TargetedOfferGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TargetedOfferGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TargetedOfferGroupByArgs['orderBy'] }
+        : { orderBy?: TargetedOfferGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TargetedOfferGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTargetedOfferGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the TargetedOffer model
+   */
+  readonly fields: TargetedOfferFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TargetedOffer.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TargetedOfferClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    product<T extends TargetedOffer$productArgs<ExtArgs> = {}>(args?: Subset<T, TargetedOffer$productArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the TargetedOffer model
+   */ 
+  interface TargetedOfferFieldRefs {
+    readonly id: FieldRef<"TargetedOffer", 'Int'>
+    readonly vendorId: FieldRef<"TargetedOffer", 'Int'>
+    readonly userId: FieldRef<"TargetedOffer", 'Int'>
+    readonly productId: FieldRef<"TargetedOffer", 'Int'>
+    readonly couponCode: FieldRef<"TargetedOffer", 'String'>
+    readonly discountPct: FieldRef<"TargetedOffer", 'Float'>
+    readonly discountAmt: FieldRef<"TargetedOffer", 'Float'>
+    readonly expiresAt: FieldRef<"TargetedOffer", 'DateTime'>
+    readonly isActive: FieldRef<"TargetedOffer", 'Boolean'>
+    readonly isClaimed: FieldRef<"TargetedOffer", 'Boolean'>
+    readonly createdAt: FieldRef<"TargetedOffer", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * TargetedOffer findUnique
+   */
+  export type TargetedOfferFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which TargetedOffer to fetch.
+     */
+    where: TargetedOfferWhereUniqueInput
+  }
+
+  /**
+   * TargetedOffer findUniqueOrThrow
+   */
+  export type TargetedOfferFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which TargetedOffer to fetch.
+     */
+    where: TargetedOfferWhereUniqueInput
+  }
+
+  /**
+   * TargetedOffer findFirst
+   */
+  export type TargetedOfferFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which TargetedOffer to fetch.
+     */
+    where?: TargetedOfferWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TargetedOffers to fetch.
+     */
+    orderBy?: TargetedOfferOrderByWithRelationInput | TargetedOfferOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TargetedOffers.
+     */
+    cursor?: TargetedOfferWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TargetedOffers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TargetedOffers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TargetedOffers.
+     */
+    distinct?: TargetedOfferScalarFieldEnum | TargetedOfferScalarFieldEnum[]
+  }
+
+  /**
+   * TargetedOffer findFirstOrThrow
+   */
+  export type TargetedOfferFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which TargetedOffer to fetch.
+     */
+    where?: TargetedOfferWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TargetedOffers to fetch.
+     */
+    orderBy?: TargetedOfferOrderByWithRelationInput | TargetedOfferOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TargetedOffers.
+     */
+    cursor?: TargetedOfferWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TargetedOffers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TargetedOffers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TargetedOffers.
+     */
+    distinct?: TargetedOfferScalarFieldEnum | TargetedOfferScalarFieldEnum[]
+  }
+
+  /**
+   * TargetedOffer findMany
+   */
+  export type TargetedOfferFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which TargetedOffers to fetch.
+     */
+    where?: TargetedOfferWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TargetedOffers to fetch.
+     */
+    orderBy?: TargetedOfferOrderByWithRelationInput | TargetedOfferOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing TargetedOffers.
+     */
+    cursor?: TargetedOfferWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TargetedOffers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TargetedOffers.
+     */
+    skip?: number
+    distinct?: TargetedOfferScalarFieldEnum | TargetedOfferScalarFieldEnum[]
+  }
+
+  /**
+   * TargetedOffer create
+   */
+  export type TargetedOfferCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * The data needed to create a TargetedOffer.
+     */
+    data: XOR<TargetedOfferCreateInput, TargetedOfferUncheckedCreateInput>
+  }
+
+  /**
+   * TargetedOffer createMany
+   */
+  export type TargetedOfferCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TargetedOffers.
+     */
+    data: TargetedOfferCreateManyInput | TargetedOfferCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * TargetedOffer update
+   */
+  export type TargetedOfferUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * The data needed to update a TargetedOffer.
+     */
+    data: XOR<TargetedOfferUpdateInput, TargetedOfferUncheckedUpdateInput>
+    /**
+     * Choose, which TargetedOffer to update.
+     */
+    where: TargetedOfferWhereUniqueInput
+  }
+
+  /**
+   * TargetedOffer updateMany
+   */
+  export type TargetedOfferUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TargetedOffers.
+     */
+    data: XOR<TargetedOfferUpdateManyMutationInput, TargetedOfferUncheckedUpdateManyInput>
+    /**
+     * Filter which TargetedOffers to update
+     */
+    where?: TargetedOfferWhereInput
+  }
+
+  /**
+   * TargetedOffer upsert
+   */
+  export type TargetedOfferUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * The filter to search for the TargetedOffer to update in case it exists.
+     */
+    where: TargetedOfferWhereUniqueInput
+    /**
+     * In case the TargetedOffer found by the `where` argument doesn't exist, create a new TargetedOffer with this data.
+     */
+    create: XOR<TargetedOfferCreateInput, TargetedOfferUncheckedCreateInput>
+    /**
+     * In case the TargetedOffer was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TargetedOfferUpdateInput, TargetedOfferUncheckedUpdateInput>
+  }
+
+  /**
+   * TargetedOffer delete
+   */
+  export type TargetedOfferDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+    /**
+     * Filter which TargetedOffer to delete.
+     */
+    where: TargetedOfferWhereUniqueInput
+  }
+
+  /**
+   * TargetedOffer deleteMany
+   */
+  export type TargetedOfferDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TargetedOffers to delete
+     */
+    where?: TargetedOfferWhereInput
+  }
+
+  /**
+   * TargetedOffer.product
+   */
+  export type TargetedOffer$productArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Product
+     */
+    select?: ProductSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductInclude<ExtArgs> | null
+    where?: ProductWhereInput
+  }
+
+  /**
+   * TargetedOffer without action
+   */
+  export type TargetedOfferDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TargetedOffer
+     */
+    select?: TargetedOfferSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TargetedOfferInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -16543,6 +18830,38 @@ export namespace Prisma {
   export type CouponScalarFieldEnum = (typeof CouponScalarFieldEnum)[keyof typeof CouponScalarFieldEnum]
 
 
+  export const UserIntentScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    productId: 'productId',
+    vendorId: 'vendorId',
+    type: 'type',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    hasPurchased: 'hasPurchased',
+    isDismissed: 'isDismissed'
+  };
+
+  export type UserIntentScalarFieldEnum = (typeof UserIntentScalarFieldEnum)[keyof typeof UserIntentScalarFieldEnum]
+
+
+  export const TargetedOfferScalarFieldEnum: {
+    id: 'id',
+    vendorId: 'vendorId',
+    userId: 'userId',
+    productId: 'productId',
+    couponCode: 'couponCode',
+    discountPct: 'discountPct',
+    discountAmt: 'discountAmt',
+    expiresAt: 'expiresAt',
+    isActive: 'isActive',
+    isClaimed: 'isClaimed',
+    createdAt: 'createdAt'
+  };
+
+  export type TargetedOfferScalarFieldEnum = (typeof TargetedOfferScalarFieldEnum)[keyof typeof TargetedOfferScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -16662,6 +18981,8 @@ export namespace Prisma {
     addresses?: AddressListRelationFilter
     customPayouts?: CustomPayoutListRelationFilter
     reviews?: ReviewListRelationFilter
+    intents?: UserIntentListRelationFilter
+    targetedOffers?: TargetedOfferListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -16690,6 +19011,8 @@ export namespace Prisma {
     addresses?: AddressOrderByRelationAggregateInput
     customPayouts?: CustomPayoutOrderByRelationAggregateInput
     reviews?: ReviewOrderByRelationAggregateInput
+    intents?: UserIntentOrderByRelationAggregateInput
+    targetedOffers?: TargetedOfferOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -16721,6 +19044,8 @@ export namespace Prisma {
     addresses?: AddressListRelationFilter
     customPayouts?: CustomPayoutListRelationFilter
     reviews?: ReviewListRelationFilter
+    intents?: UserIntentListRelationFilter
+    targetedOffers?: TargetedOfferListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -16859,6 +19184,8 @@ export namespace Prisma {
     orderItems?: OrderItemListRelationFilter
     customPayouts?: CustomPayoutListRelationFilter
     productReviews?: ReviewListRelationFilter
+    intents?: UserIntentListRelationFilter
+    targetedOffers?: TargetedOfferListRelationFilter
   }
 
   export type ProductOrderByWithRelationInput = {
@@ -16888,6 +19215,8 @@ export namespace Prisma {
     orderItems?: OrderItemOrderByRelationAggregateInput
     customPayouts?: CustomPayoutOrderByRelationAggregateInput
     productReviews?: ReviewOrderByRelationAggregateInput
+    intents?: UserIntentOrderByRelationAggregateInput
+    targetedOffers?: TargetedOfferOrderByRelationAggregateInput
   }
 
   export type ProductWhereUniqueInput = Prisma.AtLeast<{
@@ -16920,6 +19249,8 @@ export namespace Prisma {
     orderItems?: OrderItemListRelationFilter
     customPayouts?: CustomPayoutListRelationFilter
     productReviews?: ReviewListRelationFilter
+    intents?: UserIntentListRelationFilter
+    targetedOffers?: TargetedOfferListRelationFilter
   }, "id" | "slug">
 
   export type ProductOrderByWithAggregationInput = {
@@ -18293,6 +20624,177 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Coupon"> | Date | string
   }
 
+  export type UserIntentWhereInput = {
+    AND?: UserIntentWhereInput | UserIntentWhereInput[]
+    OR?: UserIntentWhereInput[]
+    NOT?: UserIntentWhereInput | UserIntentWhereInput[]
+    id?: IntFilter<"UserIntent"> | number
+    userId?: IntFilter<"UserIntent"> | number
+    productId?: IntFilter<"UserIntent"> | number
+    vendorId?: IntFilter<"UserIntent"> | number
+    type?: StringFilter<"UserIntent"> | string
+    createdAt?: DateTimeFilter<"UserIntent"> | Date | string
+    updatedAt?: DateTimeFilter<"UserIntent"> | Date | string
+    hasPurchased?: BoolFilter<"UserIntent"> | boolean
+    isDismissed?: BoolFilter<"UserIntent"> | boolean
+    user?: XOR<UserRelationFilter, UserWhereInput>
+    product?: XOR<ProductRelationFilter, ProductWhereInput>
+  }
+
+  export type UserIntentOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    vendorId?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    hasPurchased?: SortOrder
+    isDismissed?: SortOrder
+    user?: UserOrderByWithRelationInput
+    product?: ProductOrderByWithRelationInput
+  }
+
+  export type UserIntentWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    userId_productId_type?: UserIntentUserIdProductIdTypeCompoundUniqueInput
+    AND?: UserIntentWhereInput | UserIntentWhereInput[]
+    OR?: UserIntentWhereInput[]
+    NOT?: UserIntentWhereInput | UserIntentWhereInput[]
+    userId?: IntFilter<"UserIntent"> | number
+    productId?: IntFilter<"UserIntent"> | number
+    vendorId?: IntFilter<"UserIntent"> | number
+    type?: StringFilter<"UserIntent"> | string
+    createdAt?: DateTimeFilter<"UserIntent"> | Date | string
+    updatedAt?: DateTimeFilter<"UserIntent"> | Date | string
+    hasPurchased?: BoolFilter<"UserIntent"> | boolean
+    isDismissed?: BoolFilter<"UserIntent"> | boolean
+    user?: XOR<UserRelationFilter, UserWhereInput>
+    product?: XOR<ProductRelationFilter, ProductWhereInput>
+  }, "id" | "userId_productId_type">
+
+  export type UserIntentOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    vendorId?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    hasPurchased?: SortOrder
+    isDismissed?: SortOrder
+    _count?: UserIntentCountOrderByAggregateInput
+    _avg?: UserIntentAvgOrderByAggregateInput
+    _max?: UserIntentMaxOrderByAggregateInput
+    _min?: UserIntentMinOrderByAggregateInput
+    _sum?: UserIntentSumOrderByAggregateInput
+  }
+
+  export type UserIntentScalarWhereWithAggregatesInput = {
+    AND?: UserIntentScalarWhereWithAggregatesInput | UserIntentScalarWhereWithAggregatesInput[]
+    OR?: UserIntentScalarWhereWithAggregatesInput[]
+    NOT?: UserIntentScalarWhereWithAggregatesInput | UserIntentScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"UserIntent"> | number
+    userId?: IntWithAggregatesFilter<"UserIntent"> | number
+    productId?: IntWithAggregatesFilter<"UserIntent"> | number
+    vendorId?: IntWithAggregatesFilter<"UserIntent"> | number
+    type?: StringWithAggregatesFilter<"UserIntent"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"UserIntent"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"UserIntent"> | Date | string
+    hasPurchased?: BoolWithAggregatesFilter<"UserIntent"> | boolean
+    isDismissed?: BoolWithAggregatesFilter<"UserIntent"> | boolean
+  }
+
+  export type TargetedOfferWhereInput = {
+    AND?: TargetedOfferWhereInput | TargetedOfferWhereInput[]
+    OR?: TargetedOfferWhereInput[]
+    NOT?: TargetedOfferWhereInput | TargetedOfferWhereInput[]
+    id?: IntFilter<"TargetedOffer"> | number
+    vendorId?: IntFilter<"TargetedOffer"> | number
+    userId?: IntFilter<"TargetedOffer"> | number
+    productId?: IntNullableFilter<"TargetedOffer"> | number | null
+    couponCode?: StringNullableFilter<"TargetedOffer"> | string | null
+    discountPct?: FloatNullableFilter<"TargetedOffer"> | number | null
+    discountAmt?: FloatNullableFilter<"TargetedOffer"> | number | null
+    expiresAt?: DateTimeFilter<"TargetedOffer"> | Date | string
+    isActive?: BoolFilter<"TargetedOffer"> | boolean
+    isClaimed?: BoolFilter<"TargetedOffer"> | boolean
+    createdAt?: DateTimeFilter<"TargetedOffer"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+    product?: XOR<ProductNullableRelationFilter, ProductWhereInput> | null
+  }
+
+  export type TargetedOfferOrderByWithRelationInput = {
+    id?: SortOrder
+    vendorId?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrderInput | SortOrder
+    couponCode?: SortOrderInput | SortOrder
+    discountPct?: SortOrderInput | SortOrder
+    discountAmt?: SortOrderInput | SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    isClaimed?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    product?: ProductOrderByWithRelationInput
+  }
+
+  export type TargetedOfferWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    couponCode?: string
+    AND?: TargetedOfferWhereInput | TargetedOfferWhereInput[]
+    OR?: TargetedOfferWhereInput[]
+    NOT?: TargetedOfferWhereInput | TargetedOfferWhereInput[]
+    vendorId?: IntFilter<"TargetedOffer"> | number
+    userId?: IntFilter<"TargetedOffer"> | number
+    productId?: IntNullableFilter<"TargetedOffer"> | number | null
+    discountPct?: FloatNullableFilter<"TargetedOffer"> | number | null
+    discountAmt?: FloatNullableFilter<"TargetedOffer"> | number | null
+    expiresAt?: DateTimeFilter<"TargetedOffer"> | Date | string
+    isActive?: BoolFilter<"TargetedOffer"> | boolean
+    isClaimed?: BoolFilter<"TargetedOffer"> | boolean
+    createdAt?: DateTimeFilter<"TargetedOffer"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+    product?: XOR<ProductNullableRelationFilter, ProductWhereInput> | null
+  }, "id" | "couponCode">
+
+  export type TargetedOfferOrderByWithAggregationInput = {
+    id?: SortOrder
+    vendorId?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrderInput | SortOrder
+    couponCode?: SortOrderInput | SortOrder
+    discountPct?: SortOrderInput | SortOrder
+    discountAmt?: SortOrderInput | SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    isClaimed?: SortOrder
+    createdAt?: SortOrder
+    _count?: TargetedOfferCountOrderByAggregateInput
+    _avg?: TargetedOfferAvgOrderByAggregateInput
+    _max?: TargetedOfferMaxOrderByAggregateInput
+    _min?: TargetedOfferMinOrderByAggregateInput
+    _sum?: TargetedOfferSumOrderByAggregateInput
+  }
+
+  export type TargetedOfferScalarWhereWithAggregatesInput = {
+    AND?: TargetedOfferScalarWhereWithAggregatesInput | TargetedOfferScalarWhereWithAggregatesInput[]
+    OR?: TargetedOfferScalarWhereWithAggregatesInput[]
+    NOT?: TargetedOfferScalarWhereWithAggregatesInput | TargetedOfferScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"TargetedOffer"> | number
+    vendorId?: IntWithAggregatesFilter<"TargetedOffer"> | number
+    userId?: IntWithAggregatesFilter<"TargetedOffer"> | number
+    productId?: IntNullableWithAggregatesFilter<"TargetedOffer"> | number | null
+    couponCode?: StringNullableWithAggregatesFilter<"TargetedOffer"> | string | null
+    discountPct?: FloatNullableWithAggregatesFilter<"TargetedOffer"> | number | null
+    discountAmt?: FloatNullableWithAggregatesFilter<"TargetedOffer"> | number | null
+    expiresAt?: DateTimeWithAggregatesFilter<"TargetedOffer"> | Date | string
+    isActive?: BoolWithAggregatesFilter<"TargetedOffer"> | boolean
+    isClaimed?: BoolWithAggregatesFilter<"TargetedOffer"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"TargetedOffer"> | Date | string
+  }
+
   export type UserCreateInput = {
     name: string
     email: string
@@ -18318,6 +20820,8 @@ export namespace Prisma {
     addresses?: AddressCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutVendorInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    intents?: UserIntentCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -18346,6 +20850,8 @@ export namespace Prisma {
     addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutVendorInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -18373,6 +20879,8 @@ export namespace Prisma {
     addresses?: AddressUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutVendorNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -18401,6 +20909,8 @@ export namespace Prisma {
     addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutVendorNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -18545,6 +21055,8 @@ export namespace Prisma {
     orderItems?: OrderItemCreateNestedManyWithoutProductInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutProductInput
     productReviews?: ReviewCreateNestedManyWithoutProductInput
+    intents?: UserIntentCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateInput = {
@@ -18572,6 +21084,8 @@ export namespace Prisma {
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutProductInput
     productReviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductUpdateInput = {
@@ -18598,6 +21112,8 @@ export namespace Prisma {
     orderItems?: OrderItemUpdateManyWithoutProductNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateInput = {
@@ -18625,6 +21141,8 @@ export namespace Prisma {
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type ProductCreateManyInput = {
@@ -20263,6 +22781,178 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserIntentCreateInput = {
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+    user: UserCreateNestedOneWithoutIntentsInput
+    product: ProductCreateNestedOneWithoutIntentsInput
+  }
+
+  export type UserIntentUncheckedCreateInput = {
+    id?: number
+    userId: number
+    productId: number
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+  }
+
+  export type UserIntentUpdateInput = {
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+    user?: UserUpdateOneRequiredWithoutIntentsNestedInput
+    product?: ProductUpdateOneRequiredWithoutIntentsNestedInput
+  }
+
+  export type UserIntentUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    productId?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type UserIntentCreateManyInput = {
+    id?: number
+    userId: number
+    productId: number
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+  }
+
+  export type UserIntentUpdateManyMutationInput = {
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type UserIntentUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    productId?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type TargetedOfferCreateInput = {
+    vendorId: number
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutTargetedOffersInput
+    product?: ProductCreateNestedOneWithoutTargetedOffersInput
+  }
+
+  export type TargetedOfferUncheckedCreateInput = {
+    id?: number
+    vendorId: number
+    userId: number
+    productId?: number | null
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
+  }
+
+  export type TargetedOfferUpdateInput = {
+    vendorId?: IntFieldUpdateOperationsInput | number
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutTargetedOffersNestedInput
+    product?: ProductUpdateOneWithoutTargetedOffersNestedInput
+  }
+
+  export type TargetedOfferUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    productId?: NullableIntFieldUpdateOperationsInput | number | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TargetedOfferCreateManyInput = {
+    id?: number
+    vendorId: number
+    userId: number
+    productId?: number | null
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
+  }
+
+  export type TargetedOfferUpdateManyMutationInput = {
+    vendorId?: IntFieldUpdateOperationsInput | number
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TargetedOfferUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    productId?: NullableIntFieldUpdateOperationsInput | number | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -20348,6 +23038,18 @@ export namespace Prisma {
     none?: ReviewWhereInput
   }
 
+  export type UserIntentListRelationFilter = {
+    every?: UserIntentWhereInput
+    some?: UserIntentWhereInput
+    none?: UserIntentWhereInput
+  }
+
+  export type TargetedOfferListRelationFilter = {
+    every?: TargetedOfferWhereInput
+    some?: TargetedOfferWhereInput
+    none?: TargetedOfferWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -20370,6 +23072,14 @@ export namespace Prisma {
   }
 
   export type ReviewOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserIntentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TargetedOfferOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -21723,6 +24433,149 @@ export namespace Prisma {
     minItems?: SortOrder
   }
 
+  export type UserIntentUserIdProductIdTypeCompoundUniqueInput = {
+    userId: number
+    productId: number
+    type: string
+  }
+
+  export type UserIntentCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    vendorId?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    hasPurchased?: SortOrder
+    isDismissed?: SortOrder
+  }
+
+  export type UserIntentAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    vendorId?: SortOrder
+  }
+
+  export type UserIntentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    vendorId?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    hasPurchased?: SortOrder
+    isDismissed?: SortOrder
+  }
+
+  export type UserIntentMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    vendorId?: SortOrder
+    type?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    hasPurchased?: SortOrder
+    isDismissed?: SortOrder
+  }
+
+  export type UserIntentSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    vendorId?: SortOrder
+  }
+
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type TargetedOfferCountOrderByAggregateInput = {
+    id?: SortOrder
+    vendorId?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    couponCode?: SortOrder
+    discountPct?: SortOrder
+    discountAmt?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    isClaimed?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type TargetedOfferAvgOrderByAggregateInput = {
+    id?: SortOrder
+    vendorId?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    discountPct?: SortOrder
+    discountAmt?: SortOrder
+  }
+
+  export type TargetedOfferMaxOrderByAggregateInput = {
+    id?: SortOrder
+    vendorId?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    couponCode?: SortOrder
+    discountPct?: SortOrder
+    discountAmt?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    isClaimed?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type TargetedOfferMinOrderByAggregateInput = {
+    id?: SortOrder
+    vendorId?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    couponCode?: SortOrder
+    discountPct?: SortOrder
+    discountAmt?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    isClaimed?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type TargetedOfferSumOrderByAggregateInput = {
+    id?: SortOrder
+    vendorId?: SortOrder
+    userId?: SortOrder
+    productId?: SortOrder
+    discountPct?: SortOrder
+    discountAmt?: SortOrder
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type ProductCreateNestedManyWithoutVendorInput = {
     create?: XOR<ProductCreateWithoutVendorInput, ProductUncheckedCreateWithoutVendorInput> | ProductCreateWithoutVendorInput[] | ProductUncheckedCreateWithoutVendorInput[]
     connectOrCreate?: ProductCreateOrConnectWithoutVendorInput | ProductCreateOrConnectWithoutVendorInput[]
@@ -21758,6 +24611,20 @@ export namespace Prisma {
     connect?: ReviewWhereUniqueInput | ReviewWhereUniqueInput[]
   }
 
+  export type UserIntentCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserIntentCreateWithoutUserInput, UserIntentUncheckedCreateWithoutUserInput> | UserIntentCreateWithoutUserInput[] | UserIntentUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserIntentCreateOrConnectWithoutUserInput | UserIntentCreateOrConnectWithoutUserInput[]
+    createMany?: UserIntentCreateManyUserInputEnvelope
+    connect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+  }
+
+  export type TargetedOfferCreateNestedManyWithoutUserInput = {
+    create?: XOR<TargetedOfferCreateWithoutUserInput, TargetedOfferUncheckedCreateWithoutUserInput> | TargetedOfferCreateWithoutUserInput[] | TargetedOfferUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: TargetedOfferCreateOrConnectWithoutUserInput | TargetedOfferCreateOrConnectWithoutUserInput[]
+    createMany?: TargetedOfferCreateManyUserInputEnvelope
+    connect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+  }
+
   export type ProductUncheckedCreateNestedManyWithoutVendorInput = {
     create?: XOR<ProductCreateWithoutVendorInput, ProductUncheckedCreateWithoutVendorInput> | ProductCreateWithoutVendorInput[] | ProductUncheckedCreateWithoutVendorInput[]
     connectOrCreate?: ProductCreateOrConnectWithoutVendorInput | ProductCreateOrConnectWithoutVendorInput[]
@@ -21791,6 +24658,20 @@ export namespace Prisma {
     connectOrCreate?: ReviewCreateOrConnectWithoutUserInput | ReviewCreateOrConnectWithoutUserInput[]
     createMany?: ReviewCreateManyUserInputEnvelope
     connect?: ReviewWhereUniqueInput | ReviewWhereUniqueInput[]
+  }
+
+  export type UserIntentUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserIntentCreateWithoutUserInput, UserIntentUncheckedCreateWithoutUserInput> | UserIntentCreateWithoutUserInput[] | UserIntentUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserIntentCreateOrConnectWithoutUserInput | UserIntentCreateOrConnectWithoutUserInput[]
+    createMany?: UserIntentCreateManyUserInputEnvelope
+    connect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+  }
+
+  export type TargetedOfferUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<TargetedOfferCreateWithoutUserInput, TargetedOfferUncheckedCreateWithoutUserInput> | TargetedOfferCreateWithoutUserInput[] | TargetedOfferUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: TargetedOfferCreateOrConnectWithoutUserInput | TargetedOfferCreateOrConnectWithoutUserInput[]
+    createMany?: TargetedOfferCreateManyUserInputEnvelope
+    connect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -21879,6 +24760,34 @@ export namespace Prisma {
     deleteMany?: ReviewScalarWhereInput | ReviewScalarWhereInput[]
   }
 
+  export type UserIntentUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserIntentCreateWithoutUserInput, UserIntentUncheckedCreateWithoutUserInput> | UserIntentCreateWithoutUserInput[] | UserIntentUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserIntentCreateOrConnectWithoutUserInput | UserIntentCreateOrConnectWithoutUserInput[]
+    upsert?: UserIntentUpsertWithWhereUniqueWithoutUserInput | UserIntentUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserIntentCreateManyUserInputEnvelope
+    set?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    disconnect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    delete?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    connect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    update?: UserIntentUpdateWithWhereUniqueWithoutUserInput | UserIntentUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserIntentUpdateManyWithWhereWithoutUserInput | UserIntentUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserIntentScalarWhereInput | UserIntentScalarWhereInput[]
+  }
+
+  export type TargetedOfferUpdateManyWithoutUserNestedInput = {
+    create?: XOR<TargetedOfferCreateWithoutUserInput, TargetedOfferUncheckedCreateWithoutUserInput> | TargetedOfferCreateWithoutUserInput[] | TargetedOfferUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: TargetedOfferCreateOrConnectWithoutUserInput | TargetedOfferCreateOrConnectWithoutUserInput[]
+    upsert?: TargetedOfferUpsertWithWhereUniqueWithoutUserInput | TargetedOfferUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: TargetedOfferCreateManyUserInputEnvelope
+    set?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    disconnect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    delete?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    connect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    update?: TargetedOfferUpdateWithWhereUniqueWithoutUserInput | TargetedOfferUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: TargetedOfferUpdateManyWithWhereWithoutUserInput | TargetedOfferUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: TargetedOfferScalarWhereInput | TargetedOfferScalarWhereInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -21957,6 +24866,34 @@ export namespace Prisma {
     deleteMany?: ReviewScalarWhereInput | ReviewScalarWhereInput[]
   }
 
+  export type UserIntentUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserIntentCreateWithoutUserInput, UserIntentUncheckedCreateWithoutUserInput> | UserIntentCreateWithoutUserInput[] | UserIntentUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserIntentCreateOrConnectWithoutUserInput | UserIntentCreateOrConnectWithoutUserInput[]
+    upsert?: UserIntentUpsertWithWhereUniqueWithoutUserInput | UserIntentUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserIntentCreateManyUserInputEnvelope
+    set?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    disconnect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    delete?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    connect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    update?: UserIntentUpdateWithWhereUniqueWithoutUserInput | UserIntentUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserIntentUpdateManyWithWhereWithoutUserInput | UserIntentUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserIntentScalarWhereInput | UserIntentScalarWhereInput[]
+  }
+
+  export type TargetedOfferUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<TargetedOfferCreateWithoutUserInput, TargetedOfferUncheckedCreateWithoutUserInput> | TargetedOfferCreateWithoutUserInput[] | TargetedOfferUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: TargetedOfferCreateOrConnectWithoutUserInput | TargetedOfferCreateOrConnectWithoutUserInput[]
+    upsert?: TargetedOfferUpsertWithWhereUniqueWithoutUserInput | TargetedOfferUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: TargetedOfferCreateManyUserInputEnvelope
+    set?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    disconnect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    delete?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    connect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    update?: TargetedOfferUpdateWithWhereUniqueWithoutUserInput | TargetedOfferUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: TargetedOfferUpdateManyWithWhereWithoutUserInput | TargetedOfferUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: TargetedOfferScalarWhereInput | TargetedOfferScalarWhereInput[]
+  }
+
   export type ProductCreateNestedManyWithoutCategoryInput = {
     create?: XOR<ProductCreateWithoutCategoryInput, ProductUncheckedCreateWithoutCategoryInput> | ProductCreateWithoutCategoryInput[] | ProductUncheckedCreateWithoutCategoryInput[]
     connectOrCreate?: ProductCreateOrConnectWithoutCategoryInput | ProductCreateOrConnectWithoutCategoryInput[]
@@ -22032,6 +24969,20 @@ export namespace Prisma {
     connect?: ReviewWhereUniqueInput | ReviewWhereUniqueInput[]
   }
 
+  export type UserIntentCreateNestedManyWithoutProductInput = {
+    create?: XOR<UserIntentCreateWithoutProductInput, UserIntentUncheckedCreateWithoutProductInput> | UserIntentCreateWithoutProductInput[] | UserIntentUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: UserIntentCreateOrConnectWithoutProductInput | UserIntentCreateOrConnectWithoutProductInput[]
+    createMany?: UserIntentCreateManyProductInputEnvelope
+    connect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+  }
+
+  export type TargetedOfferCreateNestedManyWithoutProductInput = {
+    create?: XOR<TargetedOfferCreateWithoutProductInput, TargetedOfferUncheckedCreateWithoutProductInput> | TargetedOfferCreateWithoutProductInput[] | TargetedOfferUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: TargetedOfferCreateOrConnectWithoutProductInput | TargetedOfferCreateOrConnectWithoutProductInput[]
+    createMany?: TargetedOfferCreateManyProductInputEnvelope
+    connect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+  }
+
   export type OrderItemUncheckedCreateNestedManyWithoutProductInput = {
     create?: XOR<OrderItemCreateWithoutProductInput, OrderItemUncheckedCreateWithoutProductInput> | OrderItemCreateWithoutProductInput[] | OrderItemUncheckedCreateWithoutProductInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutProductInput | OrderItemCreateOrConnectWithoutProductInput[]
@@ -22051,6 +25002,20 @@ export namespace Prisma {
     connectOrCreate?: ReviewCreateOrConnectWithoutProductInput | ReviewCreateOrConnectWithoutProductInput[]
     createMany?: ReviewCreateManyProductInputEnvelope
     connect?: ReviewWhereUniqueInput | ReviewWhereUniqueInput[]
+  }
+
+  export type UserIntentUncheckedCreateNestedManyWithoutProductInput = {
+    create?: XOR<UserIntentCreateWithoutProductInput, UserIntentUncheckedCreateWithoutProductInput> | UserIntentCreateWithoutProductInput[] | UserIntentUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: UserIntentCreateOrConnectWithoutProductInput | UserIntentCreateOrConnectWithoutProductInput[]
+    createMany?: UserIntentCreateManyProductInputEnvelope
+    connect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+  }
+
+  export type TargetedOfferUncheckedCreateNestedManyWithoutProductInput = {
+    create?: XOR<TargetedOfferCreateWithoutProductInput, TargetedOfferUncheckedCreateWithoutProductInput> | TargetedOfferCreateWithoutProductInput[] | TargetedOfferUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: TargetedOfferCreateOrConnectWithoutProductInput | TargetedOfferCreateOrConnectWithoutProductInput[]
+    createMany?: TargetedOfferCreateManyProductInputEnvelope
+    connect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
   }
 
   export type FloatFieldUpdateOperationsInput = {
@@ -22121,6 +25086,34 @@ export namespace Prisma {
     deleteMany?: ReviewScalarWhereInput | ReviewScalarWhereInput[]
   }
 
+  export type UserIntentUpdateManyWithoutProductNestedInput = {
+    create?: XOR<UserIntentCreateWithoutProductInput, UserIntentUncheckedCreateWithoutProductInput> | UserIntentCreateWithoutProductInput[] | UserIntentUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: UserIntentCreateOrConnectWithoutProductInput | UserIntentCreateOrConnectWithoutProductInput[]
+    upsert?: UserIntentUpsertWithWhereUniqueWithoutProductInput | UserIntentUpsertWithWhereUniqueWithoutProductInput[]
+    createMany?: UserIntentCreateManyProductInputEnvelope
+    set?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    disconnect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    delete?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    connect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    update?: UserIntentUpdateWithWhereUniqueWithoutProductInput | UserIntentUpdateWithWhereUniqueWithoutProductInput[]
+    updateMany?: UserIntentUpdateManyWithWhereWithoutProductInput | UserIntentUpdateManyWithWhereWithoutProductInput[]
+    deleteMany?: UserIntentScalarWhereInput | UserIntentScalarWhereInput[]
+  }
+
+  export type TargetedOfferUpdateManyWithoutProductNestedInput = {
+    create?: XOR<TargetedOfferCreateWithoutProductInput, TargetedOfferUncheckedCreateWithoutProductInput> | TargetedOfferCreateWithoutProductInput[] | TargetedOfferUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: TargetedOfferCreateOrConnectWithoutProductInput | TargetedOfferCreateOrConnectWithoutProductInput[]
+    upsert?: TargetedOfferUpsertWithWhereUniqueWithoutProductInput | TargetedOfferUpsertWithWhereUniqueWithoutProductInput[]
+    createMany?: TargetedOfferCreateManyProductInputEnvelope
+    set?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    disconnect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    delete?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    connect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    update?: TargetedOfferUpdateWithWhereUniqueWithoutProductInput | TargetedOfferUpdateWithWhereUniqueWithoutProductInput[]
+    updateMany?: TargetedOfferUpdateManyWithWhereWithoutProductInput | TargetedOfferUpdateManyWithWhereWithoutProductInput[]
+    deleteMany?: TargetedOfferScalarWhereInput | TargetedOfferScalarWhereInput[]
+  }
+
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -22169,6 +25162,34 @@ export namespace Prisma {
     update?: ReviewUpdateWithWhereUniqueWithoutProductInput | ReviewUpdateWithWhereUniqueWithoutProductInput[]
     updateMany?: ReviewUpdateManyWithWhereWithoutProductInput | ReviewUpdateManyWithWhereWithoutProductInput[]
     deleteMany?: ReviewScalarWhereInput | ReviewScalarWhereInput[]
+  }
+
+  export type UserIntentUncheckedUpdateManyWithoutProductNestedInput = {
+    create?: XOR<UserIntentCreateWithoutProductInput, UserIntentUncheckedCreateWithoutProductInput> | UserIntentCreateWithoutProductInput[] | UserIntentUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: UserIntentCreateOrConnectWithoutProductInput | UserIntentCreateOrConnectWithoutProductInput[]
+    upsert?: UserIntentUpsertWithWhereUniqueWithoutProductInput | UserIntentUpsertWithWhereUniqueWithoutProductInput[]
+    createMany?: UserIntentCreateManyProductInputEnvelope
+    set?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    disconnect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    delete?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    connect?: UserIntentWhereUniqueInput | UserIntentWhereUniqueInput[]
+    update?: UserIntentUpdateWithWhereUniqueWithoutProductInput | UserIntentUpdateWithWhereUniqueWithoutProductInput[]
+    updateMany?: UserIntentUpdateManyWithWhereWithoutProductInput | UserIntentUpdateManyWithWhereWithoutProductInput[]
+    deleteMany?: UserIntentScalarWhereInput | UserIntentScalarWhereInput[]
+  }
+
+  export type TargetedOfferUncheckedUpdateManyWithoutProductNestedInput = {
+    create?: XOR<TargetedOfferCreateWithoutProductInput, TargetedOfferUncheckedCreateWithoutProductInput> | TargetedOfferCreateWithoutProductInput[] | TargetedOfferUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: TargetedOfferCreateOrConnectWithoutProductInput | TargetedOfferCreateOrConnectWithoutProductInput[]
+    upsert?: TargetedOfferUpsertWithWhereUniqueWithoutProductInput | TargetedOfferUpsertWithWhereUniqueWithoutProductInput[]
+    createMany?: TargetedOfferCreateManyProductInputEnvelope
+    set?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    disconnect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    delete?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    connect?: TargetedOfferWhereUniqueInput | TargetedOfferWhereUniqueInput[]
+    update?: TargetedOfferUpdateWithWhereUniqueWithoutProductInput | TargetedOfferUpdateWithWhereUniqueWithoutProductInput[]
+    updateMany?: TargetedOfferUpdateManyWithWhereWithoutProductInput | TargetedOfferUpdateManyWithWhereWithoutProductInput[]
+    deleteMany?: TargetedOfferScalarWhereInput | TargetedOfferScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutOrdersInput = {
@@ -22433,6 +25454,72 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReviewsInput, UserUpdateWithoutReviewsInput>, UserUncheckedUpdateWithoutReviewsInput>
   }
 
+  export type UserCreateNestedOneWithoutIntentsInput = {
+    create?: XOR<UserCreateWithoutIntentsInput, UserUncheckedCreateWithoutIntentsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutIntentsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type ProductCreateNestedOneWithoutIntentsInput = {
+    create?: XOR<ProductCreateWithoutIntentsInput, ProductUncheckedCreateWithoutIntentsInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutIntentsInput
+    connect?: ProductWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutIntentsNestedInput = {
+    create?: XOR<UserCreateWithoutIntentsInput, UserUncheckedCreateWithoutIntentsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutIntentsInput
+    upsert?: UserUpsertWithoutIntentsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutIntentsInput, UserUpdateWithoutIntentsInput>, UserUncheckedUpdateWithoutIntentsInput>
+  }
+
+  export type ProductUpdateOneRequiredWithoutIntentsNestedInput = {
+    create?: XOR<ProductCreateWithoutIntentsInput, ProductUncheckedCreateWithoutIntentsInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutIntentsInput
+    upsert?: ProductUpsertWithoutIntentsInput
+    connect?: ProductWhereUniqueInput
+    update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutIntentsInput, ProductUpdateWithoutIntentsInput>, ProductUncheckedUpdateWithoutIntentsInput>
+  }
+
+  export type UserCreateNestedOneWithoutTargetedOffersInput = {
+    create?: XOR<UserCreateWithoutTargetedOffersInput, UserUncheckedCreateWithoutTargetedOffersInput>
+    connectOrCreate?: UserCreateOrConnectWithoutTargetedOffersInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type ProductCreateNestedOneWithoutTargetedOffersInput = {
+    create?: XOR<ProductCreateWithoutTargetedOffersInput, ProductUncheckedCreateWithoutTargetedOffersInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutTargetedOffersInput
+    connect?: ProductWhereUniqueInput
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type UserUpdateOneRequiredWithoutTargetedOffersNestedInput = {
+    create?: XOR<UserCreateWithoutTargetedOffersInput, UserUncheckedCreateWithoutTargetedOffersInput>
+    connectOrCreate?: UserCreateOrConnectWithoutTargetedOffersInput
+    upsert?: UserUpsertWithoutTargetedOffersInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutTargetedOffersInput, UserUpdateWithoutTargetedOffersInput>, UserUncheckedUpdateWithoutTargetedOffersInput>
+  }
+
+  export type ProductUpdateOneWithoutTargetedOffersNestedInput = {
+    create?: XOR<ProductCreateWithoutTargetedOffersInput, ProductUncheckedCreateWithoutTargetedOffersInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutTargetedOffersInput
+    upsert?: ProductUpsertWithoutTargetedOffersInput
+    disconnect?: ProductWhereInput | boolean
+    delete?: ProductWhereInput | boolean
+    connect?: ProductWhereUniqueInput
+    update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutTargetedOffersInput, ProductUpdateWithoutTargetedOffersInput>, ProductUncheckedUpdateWithoutTargetedOffersInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -22694,6 +25781,22 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type ProductCreateWithoutVendorInput = {
     name: string
     slug: string
@@ -22717,6 +25820,8 @@ export namespace Prisma {
     orderItems?: OrderItemCreateNestedManyWithoutProductInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutProductInput
     productReviews?: ReviewCreateNestedManyWithoutProductInput
+    intents?: UserIntentCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutVendorInput = {
@@ -22743,6 +25848,8 @@ export namespace Prisma {
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutProductInput
     productReviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutVendorInput = {
@@ -22978,6 +26085,72 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserIntentCreateWithoutUserInput = {
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+    product: ProductCreateNestedOneWithoutIntentsInput
+  }
+
+  export type UserIntentUncheckedCreateWithoutUserInput = {
+    id?: number
+    productId: number
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+  }
+
+  export type UserIntentCreateOrConnectWithoutUserInput = {
+    where: UserIntentWhereUniqueInput
+    create: XOR<UserIntentCreateWithoutUserInput, UserIntentUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserIntentCreateManyUserInputEnvelope = {
+    data: UserIntentCreateManyUserInput | UserIntentCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TargetedOfferCreateWithoutUserInput = {
+    vendorId: number
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
+    product?: ProductCreateNestedOneWithoutTargetedOffersInput
+  }
+
+  export type TargetedOfferUncheckedCreateWithoutUserInput = {
+    id?: number
+    vendorId: number
+    productId?: number | null
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
+  }
+
+  export type TargetedOfferCreateOrConnectWithoutUserInput = {
+    where: TargetedOfferWhereUniqueInput
+    create: XOR<TargetedOfferCreateWithoutUserInput, TargetedOfferUncheckedCreateWithoutUserInput>
+  }
+
+  export type TargetedOfferCreateManyUserInputEnvelope = {
+    data: TargetedOfferCreateManyUserInput | TargetedOfferCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ProductUpsertWithWhereUniqueWithoutVendorInput = {
     where: ProductWhereUniqueInput
     update: XOR<ProductUpdateWithoutVendorInput, ProductUncheckedUpdateWithoutVendorInput>
@@ -23191,6 +26364,70 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Review"> | Date | string
   }
 
+  export type UserIntentUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserIntentWhereUniqueInput
+    update: XOR<UserIntentUpdateWithoutUserInput, UserIntentUncheckedUpdateWithoutUserInput>
+    create: XOR<UserIntentCreateWithoutUserInput, UserIntentUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserIntentUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserIntentWhereUniqueInput
+    data: XOR<UserIntentUpdateWithoutUserInput, UserIntentUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserIntentUpdateManyWithWhereWithoutUserInput = {
+    where: UserIntentScalarWhereInput
+    data: XOR<UserIntentUpdateManyMutationInput, UserIntentUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserIntentScalarWhereInput = {
+    AND?: UserIntentScalarWhereInput | UserIntentScalarWhereInput[]
+    OR?: UserIntentScalarWhereInput[]
+    NOT?: UserIntentScalarWhereInput | UserIntentScalarWhereInput[]
+    id?: IntFilter<"UserIntent"> | number
+    userId?: IntFilter<"UserIntent"> | number
+    productId?: IntFilter<"UserIntent"> | number
+    vendorId?: IntFilter<"UserIntent"> | number
+    type?: StringFilter<"UserIntent"> | string
+    createdAt?: DateTimeFilter<"UserIntent"> | Date | string
+    updatedAt?: DateTimeFilter<"UserIntent"> | Date | string
+    hasPurchased?: BoolFilter<"UserIntent"> | boolean
+    isDismissed?: BoolFilter<"UserIntent"> | boolean
+  }
+
+  export type TargetedOfferUpsertWithWhereUniqueWithoutUserInput = {
+    where: TargetedOfferWhereUniqueInput
+    update: XOR<TargetedOfferUpdateWithoutUserInput, TargetedOfferUncheckedUpdateWithoutUserInput>
+    create: XOR<TargetedOfferCreateWithoutUserInput, TargetedOfferUncheckedCreateWithoutUserInput>
+  }
+
+  export type TargetedOfferUpdateWithWhereUniqueWithoutUserInput = {
+    where: TargetedOfferWhereUniqueInput
+    data: XOR<TargetedOfferUpdateWithoutUserInput, TargetedOfferUncheckedUpdateWithoutUserInput>
+  }
+
+  export type TargetedOfferUpdateManyWithWhereWithoutUserInput = {
+    where: TargetedOfferScalarWhereInput
+    data: XOR<TargetedOfferUpdateManyMutationInput, TargetedOfferUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type TargetedOfferScalarWhereInput = {
+    AND?: TargetedOfferScalarWhereInput | TargetedOfferScalarWhereInput[]
+    OR?: TargetedOfferScalarWhereInput[]
+    NOT?: TargetedOfferScalarWhereInput | TargetedOfferScalarWhereInput[]
+    id?: IntFilter<"TargetedOffer"> | number
+    vendorId?: IntFilter<"TargetedOffer"> | number
+    userId?: IntFilter<"TargetedOffer"> | number
+    productId?: IntNullableFilter<"TargetedOffer"> | number | null
+    couponCode?: StringNullableFilter<"TargetedOffer"> | string | null
+    discountPct?: FloatNullableFilter<"TargetedOffer"> | number | null
+    discountAmt?: FloatNullableFilter<"TargetedOffer"> | number | null
+    expiresAt?: DateTimeFilter<"TargetedOffer"> | Date | string
+    isActive?: BoolFilter<"TargetedOffer"> | boolean
+    isClaimed?: BoolFilter<"TargetedOffer"> | boolean
+    createdAt?: DateTimeFilter<"TargetedOffer"> | Date | string
+  }
+
   export type ProductCreateWithoutCategoryInput = {
     name: string
     slug: string
@@ -23214,6 +26451,8 @@ export namespace Prisma {
     orderItems?: OrderItemCreateNestedManyWithoutProductInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutProductInput
     productReviews?: ReviewCreateNestedManyWithoutProductInput
+    intents?: UserIntentCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutCategoryInput = {
@@ -23240,6 +26479,8 @@ export namespace Prisma {
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutProductInput
     productReviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutCategoryInput = {
@@ -23310,6 +26551,8 @@ export namespace Prisma {
     addresses?: AddressCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutVendorInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    intents?: UserIntentCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutProductsInput = {
@@ -23337,6 +26580,8 @@ export namespace Prisma {
     addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutVendorInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutProductsInput = {
@@ -23453,6 +26698,72 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserIntentCreateWithoutProductInput = {
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+    user: UserCreateNestedOneWithoutIntentsInput
+  }
+
+  export type UserIntentUncheckedCreateWithoutProductInput = {
+    id?: number
+    userId: number
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+  }
+
+  export type UserIntentCreateOrConnectWithoutProductInput = {
+    where: UserIntentWhereUniqueInput
+    create: XOR<UserIntentCreateWithoutProductInput, UserIntentUncheckedCreateWithoutProductInput>
+  }
+
+  export type UserIntentCreateManyProductInputEnvelope = {
+    data: UserIntentCreateManyProductInput | UserIntentCreateManyProductInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TargetedOfferCreateWithoutProductInput = {
+    vendorId: number
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutTargetedOffersInput
+  }
+
+  export type TargetedOfferUncheckedCreateWithoutProductInput = {
+    id?: number
+    vendorId: number
+    userId: number
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
+  }
+
+  export type TargetedOfferCreateOrConnectWithoutProductInput = {
+    where: TargetedOfferWhereUniqueInput
+    create: XOR<TargetedOfferCreateWithoutProductInput, TargetedOfferUncheckedCreateWithoutProductInput>
+  }
+
+  export type TargetedOfferCreateManyProductInputEnvelope = {
+    data: TargetedOfferCreateManyProductInput | TargetedOfferCreateManyProductInput[]
+    skipDuplicates?: boolean
+  }
+
   export type CategoryUpsertWithoutProductsInput = {
     update: XOR<CategoryUpdateWithoutProductsInput, CategoryUncheckedUpdateWithoutProductsInput>
     create: XOR<CategoryCreateWithoutProductsInput, CategoryUncheckedCreateWithoutProductsInput>
@@ -23512,6 +26823,8 @@ export namespace Prisma {
     addresses?: AddressUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutVendorNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProductsInput = {
@@ -23539,6 +26852,8 @@ export namespace Prisma {
     addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutVendorNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutProductInput = {
@@ -23609,6 +26924,38 @@ export namespace Prisma {
     data: XOR<ReviewUpdateManyMutationInput, ReviewUncheckedUpdateManyWithoutProductInput>
   }
 
+  export type UserIntentUpsertWithWhereUniqueWithoutProductInput = {
+    where: UserIntentWhereUniqueInput
+    update: XOR<UserIntentUpdateWithoutProductInput, UserIntentUncheckedUpdateWithoutProductInput>
+    create: XOR<UserIntentCreateWithoutProductInput, UserIntentUncheckedCreateWithoutProductInput>
+  }
+
+  export type UserIntentUpdateWithWhereUniqueWithoutProductInput = {
+    where: UserIntentWhereUniqueInput
+    data: XOR<UserIntentUpdateWithoutProductInput, UserIntentUncheckedUpdateWithoutProductInput>
+  }
+
+  export type UserIntentUpdateManyWithWhereWithoutProductInput = {
+    where: UserIntentScalarWhereInput
+    data: XOR<UserIntentUpdateManyMutationInput, UserIntentUncheckedUpdateManyWithoutProductInput>
+  }
+
+  export type TargetedOfferUpsertWithWhereUniqueWithoutProductInput = {
+    where: TargetedOfferWhereUniqueInput
+    update: XOR<TargetedOfferUpdateWithoutProductInput, TargetedOfferUncheckedUpdateWithoutProductInput>
+    create: XOR<TargetedOfferCreateWithoutProductInput, TargetedOfferUncheckedCreateWithoutProductInput>
+  }
+
+  export type TargetedOfferUpdateWithWhereUniqueWithoutProductInput = {
+    where: TargetedOfferWhereUniqueInput
+    data: XOR<TargetedOfferUpdateWithoutProductInput, TargetedOfferUncheckedUpdateWithoutProductInput>
+  }
+
+  export type TargetedOfferUpdateManyWithWhereWithoutProductInput = {
+    where: TargetedOfferScalarWhereInput
+    data: XOR<TargetedOfferUpdateManyMutationInput, TargetedOfferUncheckedUpdateManyWithoutProductInput>
+  }
+
   export type UserCreateWithoutOrdersInput = {
     name: string
     email: string
@@ -23633,6 +26980,8 @@ export namespace Prisma {
     addresses?: AddressCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutVendorInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    intents?: UserIntentCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOrdersInput = {
@@ -23660,6 +27009,8 @@ export namespace Prisma {
     addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutVendorInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOrdersInput = {
@@ -23838,6 +27189,8 @@ export namespace Prisma {
     addresses?: AddressUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutVendorNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -23865,6 +27218,8 @@ export namespace Prisma {
     addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutVendorNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -24115,6 +27470,8 @@ export namespace Prisma {
     vendor?: UserCreateNestedOneWithoutProductsInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutProductInput
     productReviews?: ReviewCreateNestedManyWithoutProductInput
+    intents?: UserIntentCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutOrderItemsInput = {
@@ -24141,6 +27498,8 @@ export namespace Prisma {
     vendorId?: number | null
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutProductInput
     productReviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutOrderItemsInput = {
@@ -24301,6 +27660,8 @@ export namespace Prisma {
     vendor?: UserUpdateOneWithoutProductsNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutOrderItemsInput = {
@@ -24327,6 +27688,8 @@ export namespace Prisma {
     vendorId?: NullableIntFieldUpdateOperationsInput | number | null
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type OrderCreateWithoutReturnRequestInput = {
@@ -24817,6 +28180,8 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutVendorInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    intents?: UserIntentCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAddressesInput = {
@@ -24844,6 +28209,8 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutVendorInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAddressesInput = {
@@ -24886,6 +28253,8 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutVendorNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAddressesInput = {
@@ -24913,6 +28282,8 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutVendorNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutCustomPayoutsInput = {
@@ -24939,6 +28310,8 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutUserInput
     addresses?: AddressCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    intents?: UserIntentCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCustomPayoutsInput = {
@@ -24966,6 +28339,8 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCustomPayoutsInput = {
@@ -24996,6 +28371,8 @@ export namespace Prisma {
     vendor?: UserCreateNestedOneWithoutProductsInput
     orderItems?: OrderItemCreateNestedManyWithoutProductInput
     productReviews?: ReviewCreateNestedManyWithoutProductInput
+    intents?: UserIntentCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutCustomPayoutsInput = {
@@ -25022,6 +28399,8 @@ export namespace Prisma {
     vendorId?: number | null
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
     productReviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutCustomPayoutsInput = {
@@ -25064,6 +28443,8 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutUserNestedInput
     addresses?: AddressUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCustomPayoutsInput = {
@@ -25091,6 +28472,8 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ProductUpsertWithoutCustomPayoutsInput = {
@@ -25127,6 +28510,8 @@ export namespace Prisma {
     vendor?: UserUpdateOneWithoutProductsNestedInput
     orderItems?: OrderItemUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutCustomPayoutsInput = {
@@ -25153,6 +28538,8 @@ export namespace Prisma {
     vendorId?: NullableIntFieldUpdateOperationsInput | number | null
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type ProductCreateWithoutProductReviewsInput = {
@@ -25178,6 +28565,8 @@ export namespace Prisma {
     vendor?: UserCreateNestedOneWithoutProductsInput
     orderItems?: OrderItemCreateNestedManyWithoutProductInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutProductInput
+    intents?: UserIntentCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutProductReviewsInput = {
@@ -25204,6 +28593,8 @@ export namespace Prisma {
     vendorId?: number | null
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutProductInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutProductReviewsInput = {
@@ -25235,6 +28626,8 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutUserInput
     addresses?: AddressCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutCreateNestedManyWithoutVendorInput
+    intents?: UserIntentCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutReviewsInput = {
@@ -25262,6 +28655,8 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
     customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutVendorInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutReviewsInput = {
@@ -25303,6 +28698,8 @@ export namespace Prisma {
     vendor?: UserUpdateOneWithoutProductsNestedInput
     orderItems?: OrderItemUpdateManyWithoutProductNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutProductReviewsInput = {
@@ -25329,6 +28726,8 @@ export namespace Prisma {
     vendorId?: NullableIntFieldUpdateOperationsInput | number | null
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type UserUpsertWithoutReviewsInput = {
@@ -25366,6 +28765,8 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutUserNestedInput
     addresses?: AddressUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutVendorNestedInput
+    intents?: UserIntentUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -25393,6 +28794,520 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutVendorNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutIntentsInput = {
+    name: string
+    email: string
+    password: string
+    role?: string
+    createdAt?: Date | string
+    mobile?: string | null
+    location?: string | null
+    artisanId?: string | null
+    gstin?: string | null
+    aadhaar?: string | null
+    pan?: string | null
+    aadhaarUrl?: string | null
+    panUrl?: string | null
+    docUrl?: string | null
+    vendorStatus?: string
+    rejectionReason?: string | null
+    allowedCategories?: string | null
+    razorpayAccountId?: string | null
+    payoutsPaused?: boolean
+    products?: ProductCreateNestedManyWithoutVendorInput
+    orders?: OrderCreateNestedManyWithoutUserInput
+    addresses?: AddressCreateNestedManyWithoutUserInput
+    customPayouts?: CustomPayoutCreateNestedManyWithoutVendorInput
+    reviews?: ReviewCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutIntentsInput = {
+    id?: number
+    name: string
+    email: string
+    password: string
+    role?: string
+    createdAt?: Date | string
+    mobile?: string | null
+    location?: string | null
+    artisanId?: string | null
+    gstin?: string | null
+    aadhaar?: string | null
+    pan?: string | null
+    aadhaarUrl?: string | null
+    panUrl?: string | null
+    docUrl?: string | null
+    vendorStatus?: string
+    rejectionReason?: string | null
+    allowedCategories?: string | null
+    razorpayAccountId?: string | null
+    payoutsPaused?: boolean
+    products?: ProductUncheckedCreateNestedManyWithoutVendorInput
+    orders?: OrderUncheckedCreateNestedManyWithoutUserInput
+    addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
+    customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutVendorInput
+    reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutIntentsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutIntentsInput, UserUncheckedCreateWithoutIntentsInput>
+  }
+
+  export type ProductCreateWithoutIntentsInput = {
+    name: string
+    slug: string
+    description: string
+    specs: string
+    image: string
+    images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
+    price: number
+    mrp: number
+    discount: number
+    rating?: number
+    reviews?: number
+    material: string
+    stock?: number
+    featured?: boolean
+    newLaunch?: boolean
+    active?: boolean
+    createdAt?: Date | string
+    category: CategoryCreateNestedOneWithoutProductsInput
+    vendor?: UserCreateNestedOneWithoutProductsInput
+    orderItems?: OrderItemCreateNestedManyWithoutProductInput
+    customPayouts?: CustomPayoutCreateNestedManyWithoutProductInput
+    productReviews?: ReviewCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductUncheckedCreateWithoutIntentsInput = {
+    id?: number
+    name: string
+    slug: string
+    description: string
+    specs: string
+    image: string
+    images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
+    price: number
+    mrp: number
+    discount: number
+    rating?: number
+    reviews?: number
+    categoryName: string
+    material: string
+    stock?: number
+    featured?: boolean
+    newLaunch?: boolean
+    active?: boolean
+    createdAt?: Date | string
+    vendorId?: number | null
+    orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
+    customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutProductInput
+    productReviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    targetedOffers?: TargetedOfferUncheckedCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductCreateOrConnectWithoutIntentsInput = {
+    where: ProductWhereUniqueInput
+    create: XOR<ProductCreateWithoutIntentsInput, ProductUncheckedCreateWithoutIntentsInput>
+  }
+
+  export type UserUpsertWithoutIntentsInput = {
+    update: XOR<UserUpdateWithoutIntentsInput, UserUncheckedUpdateWithoutIntentsInput>
+    create: XOR<UserCreateWithoutIntentsInput, UserUncheckedCreateWithoutIntentsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutIntentsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutIntentsInput, UserUncheckedUpdateWithoutIntentsInput>
+  }
+
+  export type UserUpdateWithoutIntentsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mobile?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    gstin?: NullableStringFieldUpdateOperationsInput | string | null
+    aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
+    pan?: NullableStringFieldUpdateOperationsInput | string | null
+    aadhaarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    panUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    docUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
+    products?: ProductUpdateManyWithoutVendorNestedInput
+    orders?: OrderUpdateManyWithoutUserNestedInput
+    addresses?: AddressUpdateManyWithoutUserNestedInput
+    customPayouts?: CustomPayoutUpdateManyWithoutVendorNestedInput
+    reviews?: ReviewUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutIntentsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mobile?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    gstin?: NullableStringFieldUpdateOperationsInput | string | null
+    aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
+    pan?: NullableStringFieldUpdateOperationsInput | string | null
+    aadhaarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    panUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    docUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
+    products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+    addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
+    customPayouts?: CustomPayoutUncheckedUpdateManyWithoutVendorNestedInput
+    reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ProductUpsertWithoutIntentsInput = {
+    update: XOR<ProductUpdateWithoutIntentsInput, ProductUncheckedUpdateWithoutIntentsInput>
+    create: XOR<ProductCreateWithoutIntentsInput, ProductUncheckedCreateWithoutIntentsInput>
+    where?: ProductWhereInput
+  }
+
+  export type ProductUpdateToOneWithWhereWithoutIntentsInput = {
+    where?: ProductWhereInput
+    data: XOR<ProductUpdateWithoutIntentsInput, ProductUncheckedUpdateWithoutIntentsInput>
+  }
+
+  export type ProductUpdateWithoutIntentsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    specs?: StringFieldUpdateOperationsInput | string
+    image?: StringFieldUpdateOperationsInput | string
+    images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
+    price?: FloatFieldUpdateOperationsInput | number
+    mrp?: FloatFieldUpdateOperationsInput | number
+    discount?: FloatFieldUpdateOperationsInput | number
+    rating?: FloatFieldUpdateOperationsInput | number
+    reviews?: IntFieldUpdateOperationsInput | number
+    material?: StringFieldUpdateOperationsInput | string
+    stock?: IntFieldUpdateOperationsInput | number
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    newLaunch?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    category?: CategoryUpdateOneRequiredWithoutProductsNestedInput
+    vendor?: UserUpdateOneWithoutProductsNestedInput
+    orderItems?: OrderItemUpdateManyWithoutProductNestedInput
+    customPayouts?: CustomPayoutUpdateManyWithoutProductNestedInput
+    productReviews?: ReviewUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutProductNestedInput
+  }
+
+  export type ProductUncheckedUpdateWithoutIntentsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    specs?: StringFieldUpdateOperationsInput | string
+    image?: StringFieldUpdateOperationsInput | string
+    images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
+    price?: FloatFieldUpdateOperationsInput | number
+    mrp?: FloatFieldUpdateOperationsInput | number
+    discount?: FloatFieldUpdateOperationsInput | number
+    rating?: FloatFieldUpdateOperationsInput | number
+    reviews?: IntFieldUpdateOperationsInput | number
+    categoryName?: StringFieldUpdateOperationsInput | string
+    material?: StringFieldUpdateOperationsInput | string
+    stock?: IntFieldUpdateOperationsInput | number
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    newLaunch?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vendorId?: NullableIntFieldUpdateOperationsInput | number | null
+    orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
+    customPayouts?: CustomPayoutUncheckedUpdateManyWithoutProductNestedInput
+    productReviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutProductNestedInput
+  }
+
+  export type UserCreateWithoutTargetedOffersInput = {
+    name: string
+    email: string
+    password: string
+    role?: string
+    createdAt?: Date | string
+    mobile?: string | null
+    location?: string | null
+    artisanId?: string | null
+    gstin?: string | null
+    aadhaar?: string | null
+    pan?: string | null
+    aadhaarUrl?: string | null
+    panUrl?: string | null
+    docUrl?: string | null
+    vendorStatus?: string
+    rejectionReason?: string | null
+    allowedCategories?: string | null
+    razorpayAccountId?: string | null
+    payoutsPaused?: boolean
+    products?: ProductCreateNestedManyWithoutVendorInput
+    orders?: OrderCreateNestedManyWithoutUserInput
+    addresses?: AddressCreateNestedManyWithoutUserInput
+    customPayouts?: CustomPayoutCreateNestedManyWithoutVendorInput
+    reviews?: ReviewCreateNestedManyWithoutUserInput
+    intents?: UserIntentCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutTargetedOffersInput = {
+    id?: number
+    name: string
+    email: string
+    password: string
+    role?: string
+    createdAt?: Date | string
+    mobile?: string | null
+    location?: string | null
+    artisanId?: string | null
+    gstin?: string | null
+    aadhaar?: string | null
+    pan?: string | null
+    aadhaarUrl?: string | null
+    panUrl?: string | null
+    docUrl?: string | null
+    vendorStatus?: string
+    rejectionReason?: string | null
+    allowedCategories?: string | null
+    razorpayAccountId?: string | null
+    payoutsPaused?: boolean
+    products?: ProductUncheckedCreateNestedManyWithoutVendorInput
+    orders?: OrderUncheckedCreateNestedManyWithoutUserInput
+    addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
+    customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutVendorInput
+    reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutTargetedOffersInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutTargetedOffersInput, UserUncheckedCreateWithoutTargetedOffersInput>
+  }
+
+  export type ProductCreateWithoutTargetedOffersInput = {
+    name: string
+    slug: string
+    description: string
+    specs: string
+    image: string
+    images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
+    price: number
+    mrp: number
+    discount: number
+    rating?: number
+    reviews?: number
+    material: string
+    stock?: number
+    featured?: boolean
+    newLaunch?: boolean
+    active?: boolean
+    createdAt?: Date | string
+    category: CategoryCreateNestedOneWithoutProductsInput
+    vendor?: UserCreateNestedOneWithoutProductsInput
+    orderItems?: OrderItemCreateNestedManyWithoutProductInput
+    customPayouts?: CustomPayoutCreateNestedManyWithoutProductInput
+    productReviews?: ReviewCreateNestedManyWithoutProductInput
+    intents?: UserIntentCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductUncheckedCreateWithoutTargetedOffersInput = {
+    id?: number
+    name: string
+    slug: string
+    description: string
+    specs: string
+    image: string
+    images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
+    price: number
+    mrp: number
+    discount: number
+    rating?: number
+    reviews?: number
+    categoryName: string
+    material: string
+    stock?: number
+    featured?: boolean
+    newLaunch?: boolean
+    active?: boolean
+    createdAt?: Date | string
+    vendorId?: number | null
+    orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
+    customPayouts?: CustomPayoutUncheckedCreateNestedManyWithoutProductInput
+    productReviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    intents?: UserIntentUncheckedCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductCreateOrConnectWithoutTargetedOffersInput = {
+    where: ProductWhereUniqueInput
+    create: XOR<ProductCreateWithoutTargetedOffersInput, ProductUncheckedCreateWithoutTargetedOffersInput>
+  }
+
+  export type UserUpsertWithoutTargetedOffersInput = {
+    update: XOR<UserUpdateWithoutTargetedOffersInput, UserUncheckedUpdateWithoutTargetedOffersInput>
+    create: XOR<UserCreateWithoutTargetedOffersInput, UserUncheckedCreateWithoutTargetedOffersInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutTargetedOffersInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutTargetedOffersInput, UserUncheckedUpdateWithoutTargetedOffersInput>
+  }
+
+  export type UserUpdateWithoutTargetedOffersInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mobile?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    gstin?: NullableStringFieldUpdateOperationsInput | string | null
+    aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
+    pan?: NullableStringFieldUpdateOperationsInput | string | null
+    aadhaarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    panUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    docUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
+    products?: ProductUpdateManyWithoutVendorNestedInput
+    orders?: OrderUpdateManyWithoutUserNestedInput
+    addresses?: AddressUpdateManyWithoutUserNestedInput
+    customPayouts?: CustomPayoutUpdateManyWithoutVendorNestedInput
+    reviews?: ReviewUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutTargetedOffersInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mobile?: NullableStringFieldUpdateOperationsInput | string | null
+    location?: NullableStringFieldUpdateOperationsInput | string | null
+    artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    gstin?: NullableStringFieldUpdateOperationsInput | string | null
+    aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
+    pan?: NullableStringFieldUpdateOperationsInput | string | null
+    aadhaarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    panUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    docUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    vendorStatus?: StringFieldUpdateOperationsInput | string
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
+    products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+    addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
+    customPayouts?: CustomPayoutUncheckedUpdateManyWithoutVendorNestedInput
+    reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ProductUpsertWithoutTargetedOffersInput = {
+    update: XOR<ProductUpdateWithoutTargetedOffersInput, ProductUncheckedUpdateWithoutTargetedOffersInput>
+    create: XOR<ProductCreateWithoutTargetedOffersInput, ProductUncheckedCreateWithoutTargetedOffersInput>
+    where?: ProductWhereInput
+  }
+
+  export type ProductUpdateToOneWithWhereWithoutTargetedOffersInput = {
+    where?: ProductWhereInput
+    data: XOR<ProductUpdateWithoutTargetedOffersInput, ProductUncheckedUpdateWithoutTargetedOffersInput>
+  }
+
+  export type ProductUpdateWithoutTargetedOffersInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    specs?: StringFieldUpdateOperationsInput | string
+    image?: StringFieldUpdateOperationsInput | string
+    images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
+    price?: FloatFieldUpdateOperationsInput | number
+    mrp?: FloatFieldUpdateOperationsInput | number
+    discount?: FloatFieldUpdateOperationsInput | number
+    rating?: FloatFieldUpdateOperationsInput | number
+    reviews?: IntFieldUpdateOperationsInput | number
+    material?: StringFieldUpdateOperationsInput | string
+    stock?: IntFieldUpdateOperationsInput | number
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    newLaunch?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    category?: CategoryUpdateOneRequiredWithoutProductsNestedInput
+    vendor?: UserUpdateOneWithoutProductsNestedInput
+    orderItems?: OrderItemUpdateManyWithoutProductNestedInput
+    customPayouts?: CustomPayoutUpdateManyWithoutProductNestedInput
+    productReviews?: ReviewUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUpdateManyWithoutProductNestedInput
+  }
+
+  export type ProductUncheckedUpdateWithoutTargetedOffersInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    specs?: StringFieldUpdateOperationsInput | string
+    image?: StringFieldUpdateOperationsInput | string
+    images?: NullableJsonNullValueInput | InputJsonValue
+    prices?: NullableJsonNullValueInput | InputJsonValue
+    price?: FloatFieldUpdateOperationsInput | number
+    mrp?: FloatFieldUpdateOperationsInput | number
+    discount?: FloatFieldUpdateOperationsInput | number
+    rating?: FloatFieldUpdateOperationsInput | number
+    reviews?: IntFieldUpdateOperationsInput | number
+    categoryName?: StringFieldUpdateOperationsInput | string
+    material?: StringFieldUpdateOperationsInput | string
+    stock?: IntFieldUpdateOperationsInput | number
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    newLaunch?: BoolFieldUpdateOperationsInput | boolean
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vendorId?: NullableIntFieldUpdateOperationsInput | number | null
+    orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
+    customPayouts?: CustomPayoutUncheckedUpdateManyWithoutProductNestedInput
+    productReviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type ProductCreateManyVendorInput = {
@@ -25508,6 +29423,30 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type UserIntentCreateManyUserInput = {
+    id?: number
+    productId: number
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+  }
+
+  export type TargetedOfferCreateManyUserInput = {
+    id?: number
+    vendorId: number
+    productId?: number | null
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
+  }
+
   export type ProductUpdateWithoutVendorInput = {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
@@ -25531,6 +29470,8 @@ export namespace Prisma {
     orderItems?: OrderItemUpdateManyWithoutProductNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutVendorInput = {
@@ -25557,6 +29498,8 @@ export namespace Prisma {
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateManyWithoutVendorInput = {
@@ -25855,6 +29798,76 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserIntentUpdateWithoutUserInput = {
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+    product?: ProductUpdateOneRequiredWithoutIntentsNestedInput
+  }
+
+  export type UserIntentUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    productId?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type UserIntentUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    productId?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type TargetedOfferUpdateWithoutUserInput = {
+    vendorId?: IntFieldUpdateOperationsInput | number
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    product?: ProductUpdateOneWithoutTargetedOffersNestedInput
+  }
+
+  export type TargetedOfferUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    productId?: NullableIntFieldUpdateOperationsInput | number | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TargetedOfferUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    productId?: NullableIntFieldUpdateOperationsInput | number | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ProductCreateManyCategoryInput = {
     id?: number
     name: string
@@ -25901,6 +29914,8 @@ export namespace Prisma {
     orderItems?: OrderItemUpdateManyWithoutProductNestedInput
     customPayouts?: CustomPayoutUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutCategoryInput = {
@@ -25927,6 +29942,8 @@ export namespace Prisma {
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
     customPayouts?: CustomPayoutUncheckedUpdateManyWithoutProductNestedInput
     productReviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    intents?: UserIntentUncheckedUpdateManyWithoutProductNestedInput
+    targetedOffers?: TargetedOfferUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateManyWithoutCategoryInput = {
@@ -25991,6 +30008,30 @@ export namespace Prisma {
     isApproved?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type UserIntentCreateManyProductInput = {
+    id?: number
+    userId: number
+    vendorId: number
+    type: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    hasPurchased?: boolean
+    isDismissed?: boolean
+  }
+
+  export type TargetedOfferCreateManyProductInput = {
+    id?: number
+    vendorId: number
+    userId: number
+    couponCode?: string | null
+    discountPct?: number | null
+    discountAmt?: number | null
+    expiresAt: Date | string
+    isActive?: boolean
+    isClaimed?: boolean
+    createdAt?: Date | string
   }
 
   export type OrderItemUpdateWithoutProductInput = {
@@ -26111,6 +30152,76 @@ export namespace Prisma {
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserIntentUpdateWithoutProductInput = {
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+    user?: UserUpdateOneRequiredWithoutIntentsNestedInput
+  }
+
+  export type UserIntentUncheckedUpdateWithoutProductInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type UserIntentUncheckedUpdateManyWithoutProductInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasPurchased?: BoolFieldUpdateOperationsInput | boolean
+    isDismissed?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type TargetedOfferUpdateWithoutProductInput = {
+    vendorId?: IntFieldUpdateOperationsInput | number
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutTargetedOffersNestedInput
+  }
+
+  export type TargetedOfferUncheckedUpdateWithoutProductInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TargetedOfferUncheckedUpdateManyWithoutProductInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    vendorId?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountPct?: NullableFloatFieldUpdateOperationsInput | number | null
+    discountAmt?: NullableFloatFieldUpdateOperationsInput | number | null
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isClaimed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderItemCreateManyOrderInput = {
@@ -26312,6 +30423,14 @@ export namespace Prisma {
      * @deprecated Use CouponDefaultArgs instead
      */
     export type CouponArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CouponDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use UserIntentDefaultArgs instead
+     */
+    export type UserIntentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserIntentDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use TargetedOfferDefaultArgs instead
+     */
+    export type TargetedOfferArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TargetedOfferDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

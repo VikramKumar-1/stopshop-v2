@@ -27,6 +27,19 @@ export function getAuthUser(req: NextRequest): TokenPayload | null {
   return verifyToken(cookieHeader);
 }
 
+import { cookies } from "next/headers";
+
+export async function getSession(): Promise<TokenPayload | null> {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get("stopshop_token")?.value;
+    if (!token) return null;
+    return verifyToken(token);
+  } catch (err) {
+    return null;
+  }
+}
+
 // Middleware helper to require authentication
 export function requireAuth(req: NextRequest): TokenPayload | NextResponse {
   const user = getAuthUser(req);

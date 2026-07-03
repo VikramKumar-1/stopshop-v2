@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShieldCheck, ArrowLeft, Truck, PackageCheck, Award } from "lucide-react";
+import { Star, ShieldCheck, ArrowLeft, Truck, PackageCheck, Award, Store } from "lucide-react";
 import ProductClientActions from "./ProductClientActions";
 import { useRegion } from "@/context/RegionContext";
 import { trackProductView } from "@/lib/analytics";
@@ -38,9 +38,15 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
           label: "Back to Admin Panel"
         });
         setReferrerType("admin");
-      } else if (referrer.includes("/vendor")) {
+      } else if (referrer.includes("/store") || referrer.includes("/vendor-shop")) {
         setBackPath({
-          href: "/vendor",
+          href: referrer.substring(referrer.indexOf(window.location.host) + window.location.host.length),
+          label: "Back to Artisan Store"
+        });
+        setReferrerType("default");
+      } else if (referrer.includes("/vendor") && !referrer.includes("/vendor-shop")) {
+        setBackPath({
+          href: "/vendor/dashboard",
           label: "Back to Vendor Dashboard"
         });
         setReferrerType("vendor");
@@ -305,6 +311,68 @@ export default function ProductDetails({ product, allImages }: ProductDetailsPro
           </div>
 
         </div>
+
+        {/* Sold By Vendor Card (Exact UI as Screenshot) */}
+        {product.vendor ? (
+          <div className="bg-surface-card p-5 rounded-3xl border border-border/80 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-5 my-8">
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400 shadow-sm">
+                <Store size={26} />
+              </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-black text-muted uppercase tracking-wider">Sold By</div>
+                <h4 className="text-base sm:text-lg font-black text-heading leading-tight">
+                  {product.vendor.name || "StopShop Verified Artisan"}
+                  {product.vendor.location && (
+                    <span className="text-xs font-semibold text-muted block sm:inline sm:ml-2">({product.vendor.location})</span>
+                  )}
+                </h4>
+                <div className="flex flex-wrap items-center gap-4 text-xs pt-1.5">
+                  <div className="flex items-center gap-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 px-2.5 py-0.5 rounded-full font-bold text-xs shadow-2xs">
+                    <span>4.8</span>
+                    <span className="text-[10px]">★</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-extrabold text-heading">1,275</span>
+                    <span className="text-muted text-xs font-medium">Followers</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-extrabold text-heading">Verified</span>
+                    <span className="text-muted text-xs font-medium">Artisan Partner</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Link
+              href={`/store/${product.vendor.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || product.vendor.id}`}
+              className="px-6 py-3 border-2 border-purple-600 dark:border-purple-400 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-400 dark:hover:text-black rounded-2xl font-bold text-xs uppercase tracking-wider transition-all text-center shrink-0 shadow-sm active:scale-95"
+            >
+              View Shop
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-surface-card p-5 rounded-3xl border border-border/80 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-5 my-8">
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400 shadow-sm">
+                <Store size={26} />
+              </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-black text-muted uppercase tracking-wider">Sold By</div>
+                <h4 className="text-base sm:text-lg font-black text-heading leading-tight">StopShop Direct (Official Store)</h4>
+                <div className="flex flex-wrap items-center gap-4 text-xs pt-1.5">
+                  <div className="flex items-center gap-1 bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 px-2.5 py-0.5 rounded-full font-bold text-xs shadow-2xs">
+                    <span>4.9</span>
+                    <span className="text-[10px]">★</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-extrabold text-heading">100%</span>
+                    <span className="text-muted text-xs font-medium">Authentic Quality</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Frequently Bought Together / Recommendations */}
         <RecommendedSection productId={product.id} category={product.category} material={product.material} />

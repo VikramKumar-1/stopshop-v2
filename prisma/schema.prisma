@@ -37,6 +37,8 @@ model User {
   addresses  Address[]
   customPayouts CustomPayout[]
   reviews    Review[]
+  intents    UserIntent[]
+  targetedOffers TargetedOffer[]
 
   @@index([role])
   @@index([vendorStatus])
@@ -78,6 +80,8 @@ model Product {
   orderItems   OrderItem[]
   customPayouts CustomPayout[]
   productReviews Review[]
+  intents      UserIntent[]
+  targetedOffers TargetedOffer[]
 
   @@index([vendorId])
   @@index([categoryName])
@@ -463,3 +467,45 @@ model Coupon {
   @@index([isActive])
   @@index([vendorId])
 }
+
+// ==================== TARGETED ABANDONED CART / WISHLIST RETARGETING ====================
+
+model UserIntent {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  productId    Int
+  product      Product  @relation(fields: [productId], references: [id])
+  vendorId     Int
+  type         String   // "CART" or "WISHLIST"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  hasPurchased Boolean  @default(false)
+  isDismissed  Boolean  @default(false)
+
+  @@unique([userId, productId, type])
+  @@index([vendorId])
+  @@index([hasPurchased])
+  @@index([isDismissed])
+}
+
+model TargetedOffer {
+  id          Int       @id @default(autoincrement())
+  vendorId    Int
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  productId   Int?      // Null means valid on all vendor products
+  product     Product?  @relation(fields: [productId], references: [id])
+  couponCode  String?   @unique  // Legacy, no longer generated
+  discountPct Float?    // e.g. 15 for 15%
+  discountAmt Float?    // e.g. 200 for ₹200 flat
+  expiresAt   DateTime
+  isActive    Boolean   @default(true)
+  isClaimed   Boolean   @default(false) // Legacy field
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([vendorId])
+  @@index([isActive])
+}
+

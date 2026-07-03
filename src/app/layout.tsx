@@ -28,6 +28,7 @@ import { MainLayout } from "@/features/core/components/MainLayout";
 import { RegionProvider } from "@/context/RegionContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 
+
 export default function RootLayout({
   children,
 }: Readonly<{

@@ -403,6 +403,32 @@ exports.Prisma.CouponScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.UserIntentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  productId: 'productId',
+  vendorId: 'vendorId',
+  type: 'type',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  hasPurchased: 'hasPurchased',
+  isDismissed: 'isDismissed'
+};
+
+exports.Prisma.TargetedOfferScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  userId: 'userId',
+  productId: 'productId',
+  couponCode: 'couponCode',
+  discountPct: 'discountPct',
+  discountAmt: 'discountAmt',
+  expiresAt: 'expiresAt',
+  isActive: 'isActive',
+  isClaimed: 'isClaimed',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -442,7 +468,9 @@ exports.Prisma.ModelName = {
   AdminSettings: 'AdminSettings',
   CustomPayout: 'CustomPayout',
   Review: 'Review',
-  Coupon: 'Coupon'
+  Coupon: 'Coupon',
+  UserIntent: 'UserIntent',
+  TargetedOffer: 'TargetedOffer'
 };
 
 /**

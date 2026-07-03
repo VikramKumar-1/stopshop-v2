@@ -59,6 +59,10 @@ const config: Config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        shrink: {
+          "0%": { width: "100%" },
+          "100%": { width: "0%" },
+        }
       },
     },
   },

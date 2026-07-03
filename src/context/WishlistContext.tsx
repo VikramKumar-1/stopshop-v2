@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { intentQueue } from "@/lib/analytics/intentQueue";
 
 export interface WishlistItem {
   id: number;
@@ -81,6 +82,13 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     ];
 
     saveWishlist(newWishlist);
+    
+    // Background sync wishlist intent for targeted vendor retargeting via queue
+    const vendorId = product.vendorId || product.vendor?.id;
+    if (vendorId) {
+      intentQueue.track({ productId: product.id, vendorId, type: "WISHLIST" });
+    }
+
     setToastMessage(`"${product.name}" added to wishlist!`);
     const timer = setTimeout(() => setToastMessage(null), 3000);
     return () => clearTimeout(timer);

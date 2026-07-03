@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       select: { id: true, vendorId: true }
     });
 
-    const vendorIds = Array.from(new Set(products.map(p => p.vendorId).filter(id => id !== null))) as Int[];
+    const vendorIds = Array.from(new Set(products.map(p => p.vendorId).filter((id): id is number => id !== null)));
 
     // Fetch active coupons
     const now = new Date();
@@ -28,14 +28,19 @@ export async function POST(req: NextRequest) {
       where: {
         isActive: true,
         startsAt: { lte: now },
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: now } }
-        ],
-        // Match global coupons OR coupons for vendors in the cart
-        OR: [
-          { vendorId: null },
-          { vendorId: { in: vendorIds } }
+        AND: [
+          {
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: now } }
+            ]
+          },
+          {
+            OR: [
+              { vendorId: null },
+              { vendorId: { in: vendorIds } }
+            ]
+          }
         ]
       }
     });

@@ -123,6 +123,9 @@ export async function getProducts(filters: ProductFilters) {
     take: hasSearch ? undefined : filters.take,
     include: {
       category: true,
+      vendor: {
+        select: { id: true, name: true, location: true, allowedCategories: true, createdAt: true },
+      },
     },
   });
 
@@ -311,14 +314,20 @@ export async function deleteProduct(productId: number, session: TokenPayload) {
 export async function getProductById(id: number) {
   return prisma.product.findUnique({
     where: { id },
-    include: { category: true },
+    include: {
+      category: true,
+      vendor: { select: { id: true, name: true, location: true, allowedCategories: true, createdAt: true } },
+    },
   });
 }
 
 export async function getProductBySlug(slug: string) {
   return prisma.product.findUnique({
     where: { slug },
-    include: { category: true },
+    include: {
+      category: true,
+      vendor: { select: { id: true, name: true, location: true, allowedCategories: true, createdAt: true } },
+    },
   });
 }
 

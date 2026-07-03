@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     // Security check
     if (user.role === "vendor") {
-      if (coupon.vendorId !== user.vendorId) {
+      if (coupon.vendorId !== (user as any).vendorId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
       if (isAutoApply !== undefined) {
@@ -71,7 +71,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
     }
 
-    if (user.role === "vendor" && coupon.vendorId !== user.vendorId) {
+    if (user.role === "vendor" && coupon.vendorId !== (user as any).vendorId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

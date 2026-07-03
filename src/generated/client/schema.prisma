@@ -32,11 +32,13 @@ model User {
   razorpayAccountId String? // For Razorpay Route Linked Accounts (Vendor Payouts)
   payoutsPaused     Boolean @default(false) // Admin override to hold vendor money
 
-  products      Product[]
-  orders        Order[]
-  addresses     Address[]
-  customPayouts CustomPayout[]
-  reviews       Review[]
+  products       Product[]
+  orders         Order[]
+  addresses      Address[]
+  customPayouts  CustomPayout[]
+  reviews        Review[]
+  intents        UserIntent[]
+  targetedOffers TargetedOffer[]
 
   @@index([role])
   @@index([vendorStatus])
@@ -73,11 +75,13 @@ model Product {
   createdAt    DateTime @default(now())
   vendorId     Int?
 
-  category       Category       @relation(fields: [categoryName], references: [slug])
-  vendor         User?          @relation(fields: [vendorId], references: [id])
+  category       Category        @relation(fields: [categoryName], references: [slug])
+  vendor         User?           @relation(fields: [vendorId], references: [id])
   orderItems     OrderItem[]
   customPayouts  CustomPayout[]
   productReviews Review[]
+  intents        UserIntent[]
+  targetedOffers TargetedOffer[]
 
   @@index([vendorId])
   @@index([categoryName])
@@ -340,6 +344,9 @@ model AdminSettings {
   companyCountry String @default("India")
   companyPincode String @default("201301")
 
+  // Invoice Customization
+  invoiceTemplate String @default("CLASSIC") // "CLASSIC" | "MODERN_MINIMAL" | "BRAND_PREMIUM"
+
   // Shipping (admin manipulates these)
   shippingFreeAbove          Int @default(99900) // Free shipping above ₹999 (in paise)
   shippingChargePaise        Int @default(4900) // ₹49 default
@@ -425,6 +432,11 @@ model Coupon {
   code        String  @unique // "WELCOME10", "DIWALI20"
   description String? // Admin note
 
+  // Ownership
+  creatorRole  String  @default("ADMIN") // "ADMIN" | "VENDOR"
+  vendorId     Int? // Restrict coupon to a specific vendor
+  vendorStatus String? // "PENDING_OPT_IN" | "ACTIVE" | "REJECTED" (for admin assigned coupons)
+
   // Discount config
   discountType     String @default("PERCENTAGE") // "PERCENTAGE" | "FLAT"
   discountValue    Float // 10 = 10% or ₹10 flat
@@ -437,9 +449,10 @@ model Coupon {
   usedCount      Int  @default(0) // Current total uses
 
   // Validity
-  isActive  Boolean   @default(true)
-  startsAt  DateTime  @default(now())
-  expiresAt DateTime? // null = no expiry
+  isActive    Boolean   @default(true)
+  isAutoApply Boolean   @default(false) // Auto-apply this coupon if eligible
+  startsAt    DateTime  @default(now())
+  expiresAt   DateTime? // null = no expiry
 
   // Targeting (optional)
   applicableCategories String? // Comma-separated category slugs (null = all)
@@ -450,5 +463,47 @@ model Coupon {
   updatedAt DateTime @updatedAt
 
   @@index([code])
+  @@index([isActive])
+  @@index([vendorId])
+}
+
+// ==================== TARGETED ABANDONED CART / WISHLIST RETARGETING ====================
+
+model UserIntent {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  productId    Int
+  product      Product  @relation(fields: [productId], references: [id])
+  vendorId     Int
+  type         String // "CART" or "WISHLIST"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  hasPurchased Boolean  @default(false)
+  isDismissed  Boolean  @default(false)
+
+  @@unique([userId, productId, type])
+  @@index([vendorId])
+  @@index([hasPurchased])
+  @@index([isDismissed])
+}
+
+model TargetedOffer {
+  id          Int      @id @default(autoincrement())
+  vendorId    Int
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  productId   Int? // Null means valid on all vendor products
+  product     Product? @relation(fields: [productId], references: [id])
+  couponCode  String?  @unique // Legacy, no longer generated
+  discountPct Float? // e.g. 15 for 15%
+  discountAmt Float? // e.g. 200 for ₹200 flat
+  expiresAt   DateTime
+  isActive    Boolean  @default(true)
+  isClaimed   Boolean  @default(false) // Legacy field
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([vendorId])
   @@index([isActive])
 }

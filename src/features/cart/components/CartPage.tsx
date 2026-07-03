@@ -1,10 +1,41 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
-import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, Mail, Phone, Globe, Building, ArrowLeft, Lock, FileText, CheckCircle2 } from "lucide-react";
+import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, Clock, Lock } from "lucide-react";
 import { useRegion } from "@/context/RegionContext";
+
+// Helper component for Countdown
+const CountdownTimer = ({ expiresAt }: { expiresAt: string }) => {
+  const [timeLeft, setTimeLeft] = useState<{h: number, m: number, s: number} | null>(null);
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = new Date(expiresAt).getTime() - new Date().getTime();
+      if (difference > 0) {
+        setTimeLeft({
+          h: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          m: Math.floor((difference / 1000 / 60) % 60),
+          s: Math.floor((difference / 1000) % 60)
+        });
+      } else {
+        setTimeLeft(null);
+      }
+    };
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+
+  if (!timeLeft) return <span className="text-red-500 font-bold text-[10px]">Expired</span>;
+  return (
+    <span className="text-orange-600 font-bold text-[10px] flex items-center gap-1">
+      <Clock size={10} />
+      {timeLeft.h}h {timeLeft.m}m {timeLeft.s}s
+    </span>
+  );
+};
 
 export const CartPage = () => {
   const { cart, updateQuantity, removeFromCart, clearCart, cartCount, cartTotal, loaded } = useCart();
@@ -26,12 +57,18 @@ export const CartPage = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  const [targetedOffers, setTargetedOffers] = useState<any[]>([]);
+
   React.useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndOffers = async () => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
+        const [authRes, offersRes] = await Promise.all([
+          fetch("/api/auth/me"),
+          fetch("/api/targeted-offers")
+        ]);
+        
+        if (authRes.ok) {
+          const data = await authRes.json();
           if (data.authenticated && data.user) {
             setFormData((prev) => ({
               ...prev,
@@ -41,13 +78,32 @@ export const CartPage = () => {
               companyName: data.user.companyName || "",
               country: data.user.country || "",
             }));
+
+            // Sync the current cart items to the Intent Queue now that we are authenticated
+            if (cart.length > 0) {
+              const { intentQueue } = await import("@/lib/analytics/intentQueue");
+              cart.forEach(item => {
+                intentQueue.track({
+                  productId: item.id,
+                  vendorId: item.vendorId || 9,
+                  type: "CART"
+                });
+              });
+            }
+          }
+        }
+        
+        if (offersRes.ok) {
+          const offersData = await offersRes.json();
+          if (Array.isArray(offersData)) {
+            setTargetedOffers(offersData);
           }
         }
       } catch (err) {
-        console.error("Failed to prefill user details in cart:", err);
+        console.error("Failed to prefill user details and offers in cart:", err);
       }
     };
-    fetchUser();
+    fetchUserAndOffers();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -169,6 +225,9 @@ export const CartPage = () => {
             
             {/* Cart Items List */}
             <div className="lg:col-span-8 space-y-4">
+              
+
+
               <div className="flex justify-between items-center px-2 mb-2">
                 <span className="text-xs font-bold text-muted uppercase tracking-wider">{cart.length} {cart.length === 1 ? "Product" : "Products"} Selected</span>
                 <button 
@@ -179,7 +238,19 @@ export const CartPage = () => {
                 </button>
               </div>
 
-              {cart.map((item) => (
+              {cart.map((item) => {
+                const offer = targetedOffers.find(o => 
+                  (o.productId === item.id || (!o.productId && o.vendorId === item.vendorId)) &&
+                  new Date(o.expiresAt) > new Date()
+                );
+                
+                let discountedPrice = item.price;
+                if (offer) {
+                  if (offer.discountPct) discountedPrice = item.price * (1 - offer.discountPct / 100);
+                  if (offer.discountAmt) discountedPrice = Math.max(0, item.price - (offer.discountAmt * 100)); // Price is in paise
+                }
+
+                return (
                 <div
                   key={item.id}
                   className="group flex flex-col sm:flex-row items-center gap-6 p-5 bg-surface-card border border-border/70 hover:border-orange-500/20 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] transition-all duration-300 relative overflow-hidden"
@@ -205,12 +276,37 @@ export const CartPage = () => {
                     </Link>
                     <p className="text-xs text-muted font-medium">Specs: {convertWeight(item.specs)}</p>
                     
-                    <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
-                      <span className="text-sm font-bold text-heading">{convertPrice(item.price, item, false)}</span>
-                      {item.mrp > item.price && (
-                        <span className="text-xs text-muted/70 line-through">{convertPrice(item.mrp, item, true)}</span>
-                      )}
-                    </div>
+                    {offer && (
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-orange-500/10 rounded-md border border-orange-500/20 mb-1">
+                        <span className="text-[10px] font-bold text-orange-600">Personalized Discount Applied</span>
+                        <CountdownTimer expiresAt={offer.expiresAt} />
+                      </div>
+                    )}
+
+                    {/* Price and Category */}
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-orange-500/80 mb-1 tracking-wide">{item.categoryName || "Product"}</span>
+                      <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+                        {offer ? (
+                          <>
+                            <span className="text-sm font-black text-heading">{convertPrice(discountedPrice, item, false)}</span>
+                            <span className="text-[10px] text-muted line-through opacity-70">{convertPrice(item.mrp > item.price ? item.mrp : item.price, item, true)}</span>
+                            {offer.productId && item.quantity > 1 && (
+                              <span className="text-[9px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-bold ml-1">
+                                Discount applies to 1 unit
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-sm font-black text-heading">{convertPrice(item.price, item, false)}</span>
+                            {item.mrp > item.price && (
+                              <span className="text-[10px] text-muted line-through opacity-70">{convertPrice(item.mrp, item, true)}</span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                  </div>
                   </div>
 
                   {/* Quantity Actions */}
@@ -241,7 +337,8 @@ export const CartPage = () => {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Inquiry Form Card */}
