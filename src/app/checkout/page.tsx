@@ -380,12 +380,12 @@ function CheckoutPageInner() {
         }
 
         // Fetch Targeted Offers
-        const offersRes = await fetch("/api/targeted-offers");
+        const offersRes = await fetch("/api/targeted-offers?asBuyer=true");
         if (offersRes.ok) {
-          const offersData = await offersRes.json();
-          if (Array.isArray(offersData)) {
-            setTargetedOffers(offersData);
-          }
+           const offersData = await offersRes.json();
+           if (Array.isArray(offersData)) {
+              setTargetedOffers(offersData);
+           }
         }
 
         // Fetch Addresses

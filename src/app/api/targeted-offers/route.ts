@@ -56,7 +56,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (session.role === "vendor") {
+    const { searchParams } = new URL(req.url);
+    const asBuyer = searchParams.get("asBuyer") === "true";
+
+    if (session.role === "vendor" && !asBuyer) {
       const offers = await prisma.targetedOffer.findMany({
         where: { vendorId: session.userId },
         include: {

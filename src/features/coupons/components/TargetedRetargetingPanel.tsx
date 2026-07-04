@@ -235,9 +235,9 @@ export const TargetedRetargetingPanel = ({ vendorId }: { vendorId: number }) => 
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full">
         
-        {/* Left Side: Dynamic Tab Content */}
+        {/* Main Content: Dynamic Tab Content */}
         <div className="space-y-4">
           
           {/* ABANDONED CARTS TAB */}
@@ -284,7 +284,7 @@ export const TargetedRetargetingPanel = ({ vendorId }: { vendorId: number }) => 
                     return (
                       <div key={group.userId} className="bg-surface-card border border-border hover:border-red-500/50 transition-colors rounded-2xl p-4 shadow-sm relative overflow-hidden">
                         
-                        <div className="flex gap-4 items-center mb-3">
+                        <div className="flex gap-4 items-center">
                           <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
                             <User className="text-red-500" size={18} />
                           </div>
@@ -293,28 +293,27 @@ export const TargetedRetargetingPanel = ({ vendorId }: { vendorId: number }) => 
                               <span className="text-[10px] font-bold text-muted uppercase">Idle for {daysIdle}d</span>
                             </div>
                             <h4 className="font-bold text-sm text-heading truncate">{group.user?.name || "Customer"}</h4>
-                            <p className="text-xs text-muted truncate">{group.user?.email}</p>
+                            <p className="text-xs text-muted truncate mb-1">{group.user?.email}</p>
+                            <p className="text-[10px] text-orange-500 font-bold flex items-center gap-1">
+                              <ShoppingCart size={10} />
+                              {group.products.length} products abandoned
+                            </p>
                           </div>
-                          <button 
-                            onClick={() => setSelectedIntent(group)}
-                            className="px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold shadow-md hover:bg-red-600 transition-transform active:scale-95 shrink-0"
-                          >
-                            Apply Discount ({group.products.length})
-                          </button>
-                        </div>
-                        
-                        {/* View Products Button */}
-                        <div className="bg-surface rounded-xl p-3 border border-border/50 flex items-center justify-between">
-                          <p className="text-xs text-muted font-medium flex items-center gap-2">
-                            <ShoppingCart size={14} className="text-orange-500" />
-                            {group.products.length} products abandoned
-                          </p>
-                          <button
-                            onClick={() => setViewProductsModal({ title: `Abandoned by ${group.user?.name}`, products: group.products })}
-                            className="text-[10px] font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors uppercase"
-                          >
-                            View Products
-                          </button>
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              onClick={() => setViewProductsModal({ title: `Abandoned by ${group.user?.name}`, products: group.products })}
+                              className="text-[10px] font-bold text-orange-600 bg-orange-50 px-3 py-2 rounded-xl hover:bg-orange-100 transition-colors uppercase border border-orange-100"
+                            >
+                              View Products
+                            </button>
+                            <button 
+                              onClick={() => setSelectedIntent(group)}
+                              className="px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold shadow-md hover:bg-red-600 transition-transform active:scale-95"
+                            >
+                              Apply Discount
+                            </button>
+                          </div>
                         </div>
 
                       </div>
@@ -366,46 +365,41 @@ export const TargetedRetargetingPanel = ({ vendorId }: { vendorId: number }) => 
                 <div className="space-y-3">
                   {loyalCustomers.map(customer => (
                     <div key={customer.userId} className="bg-surface-card border border-border hover:border-yellow-500/50 transition-colors rounded-2xl p-4 shadow-sm relative overflow-hidden">
-                        <div className="flex gap-4 items-center mb-3">
+                        <div className="flex gap-4 items-center">
                           <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center shrink-0">
                             <Crown className="text-yellow-600" size={20} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-bold text-sm text-heading truncate">{customer.name}</h4>
-                            <p className="text-xs text-muted truncate">{customer.email}</p>
+                            <p className="text-xs text-muted truncate mb-1">{customer.email}</p>
                             
-                            <div className="flex items-center gap-3 mt-2">
-                              <span className="text-[10px] font-bold text-heading bg-surface px-2 py-1 rounded-md border border-border flex items-center gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-heading bg-surface px-1.5 py-0.5 rounded border border-border flex items-center gap-1">
                                 <ShoppingCart size={10} /> {customer.totalOrders} Orders
                               </span>
-                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 flex items-center gap-1">
+                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 flex items-center gap-1">
                                 <IndianRupee size={10} /> {customer.totalSpent.toLocaleString()} Spent
                               </span>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => setSelectedLoyal(customer)}
-                            className="px-6 py-2 bg-yellow-500 text-white rounded-xl text-xs font-bold shadow-md shadow-yellow-500/20 hover:bg-yellow-600 transition-transform active:scale-95 shrink-0"
-                          >
-                            Reward
-                          </button>
-                        </div>
-                        
-                        {/* View Products Button */}
-                        {customer.products && customer.products.length > 0 && (
-                          <div className="bg-surface rounded-xl p-3 border border-border/50 flex items-center justify-between">
-                            <p className="text-xs text-muted font-medium flex items-center gap-2">
-                              <CheckCircle2 size={14} className="text-emerald-500" />
-                              {customer.products.length} Products
-                            </p>
-                            <button
-                              onClick={() => setViewProductsModal({ title: `Purchased by ${customer.name}`, products: customer.products })}
-                              className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors uppercase"
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            {customer.products && customer.products.length > 0 && (
+                              <button
+                                onClick={() => setViewProductsModal({ title: `Purchased by ${customer.name}`, products: customer.products })}
+                                className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl hover:bg-emerald-100 transition-colors uppercase border border-emerald-100"
+                              >
+                                View Products ({customer.products.length})
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => setSelectedLoyal(customer)}
+                              className="px-4 py-2 bg-yellow-500 text-white rounded-xl text-xs font-bold shadow-md shadow-yellow-500/20 hover:bg-yellow-600 transition-transform active:scale-95"
                             >
-                              View Products
+                              Reward
                             </button>
                           </div>
-                        )}
+                        </div>
                     </div>
                   ))}
                 </div>
@@ -415,58 +409,7 @@ export const TargetedRetargetingPanel = ({ vendorId }: { vendorId: number }) => 
 
         </div>
 
-        {/* Right Side: Active Sent Offers */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold text-muted uppercase tracking-wider flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-emerald-500" />
-            Active Targeted Offers ({activeOffers.length})
-          </h3>
-          
-          {activeOffers.length === 0 ? (
-            <div className="bg-surface-card border border-border border-dashed rounded-2xl p-8 text-center opacity-50">
-              <p className="text-muted text-xs">No active targeted offers sent.</p>
-            </div>
-          ) : (
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin">
-              {activeOffers.map(offer => {
-                const isExpiringSoon = new Date(offer.expiresAt).getTime() - Date.now() < 12 * 60 * 60 * 1000;
-                const isStoreWide = !offer.productId;
-                return (
-                  <div key={offer.id} className="bg-surface border border-emerald-500/30 rounded-2xl p-4 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-2 bg-emerald-500/10 rounded-bl-2xl">
-                      <span className="text-[10px] font-bold text-emerald-600 uppercase flex items-center gap-1">
-                        <Gift size={10} /> {isStoreWide ? "Store-Wide" : "Active"}
-                      </span>
-                    </div>
-                    <div className="flex gap-4 items-center">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 border border-border opacity-70 flex items-center justify-center">
-                        {isStoreWide ? (
-                          <Crown className="text-yellow-500" size={24} />
-                        ) : (
-                          <img src={offer.product?.image || ""} className="w-full h-full object-contain p-1" alt="Product" />
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-xs text-heading mb-1">To: {offer.user?.name}</h4>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 bg-orange-500/10 text-orange-600 font-black text-xs rounded-md">
-                            {offer.discountPct ? `${offer.discountPct}% OFF` : `₹${offer.discountAmt} OFF`}
-                          </span>
-                          <span className={`text-[10px] font-bold flex items-center gap-1 ${isExpiringSoon ? 'text-red-500' : 'text-muted'}`}>
-                            <Clock size={10} /> Expires in {Math.max(1, Math.floor((new Date(offer.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60)))}h
-                          </span>
-                        </div>
-                        {isStoreWide && (
-                          <p className="text-[10px] text-muted mt-1 font-medium">Valid on all items in your store</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+
       </div>
 
       {/* MODAL: Send Single Offer */}

@@ -64,7 +64,7 @@ export const CartPage = () => {
       try {
         const [authRes, offersRes] = await Promise.all([
           fetch("/api/auth/me"),
-          fetch("/api/targeted-offers")
+          fetch("/api/targeted-offers?asBuyer=true")
         ]);
         
         if (authRes.ok) {

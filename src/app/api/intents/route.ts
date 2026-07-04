@@ -78,15 +78,21 @@ export async function GET(req: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const skip = (page - 1) * limit;
 
-    // 24-hour cooling off & 7-day auto-expiry logic
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    // 3-hour cooling off & 7-day auto-expiry logic
+    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    // Opportunistic cleanup of very old intents (fire and forget)
+    prisma.userIntent.deleteMany({
+      where: { updatedAt: { lt: thirtyDaysAgo } }
+    }).catch(console.error);
 
     const whereClause: any = {
       hasPurchased: false,
       isDismissed: false,
       updatedAt: {
-        // lt: oneDayAgo, // COMMENTED OUT FOR TESTING (so intents appear immediately)
+        lt: threeHoursAgo, // 3-hour delay
         gt: sevenDaysAgo
       }
     };
