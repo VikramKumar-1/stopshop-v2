@@ -8,7 +8,6 @@ import {
   CategoryProductGrid,
   ShopByMaterial,
   HeritageStory,
-  VendorSection,
 } from "../index";
 import { BlinkitMobileSection } from "./BlinkitMobileSection";
 
@@ -56,10 +55,40 @@ const mockDinnerSets = generateMock([
   { id: 502, name: "Royal Brass Dinner Set", description: "Exquisite solid brass design dinner set.", specs: "Brass | 5 Pieces", image: "/collection-tableware.png", rating: 4.8, reviews: 78, price: 3899, mrp: 4599, material: "Brass", categoryName: "dinner-sets" }
 ]);
 
+import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
+
 export const HomePage = () => {
+  const { data: allProducts, isLoading: loadingProducts } = useSWR('/api/products', fetcher);
+  const { data: hpData, isLoading: loadingSections } = useSWR('/api/homepage', fetcher);
+
   const [groupedProducts, setGroupedProducts] = useState<Record<string, any[]>>({});
   const [homepageSections, setHomepageSections] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [mobileBanners, setMobileBanners] = useState<any[]>([]);
+
+  // Group products when data arrives
+  useEffect(() => {
+    if (allProducts) {
+      const groups: Record<string, any[]> = {};
+      allProducts.forEach((product: any) => {
+        const catName = product.category?.name || "Premium Collection";
+        if (!groups[catName]) {
+          groups[catName] = [];
+        }
+        groups[catName].push(product);
+      });
+      setGroupedProducts(groups);
+    }
+  }, [allProducts]);
+
+  useEffect(() => {
+    if (hpData) {
+      if (hpData.sections) setHomepageSections(hpData.sections);
+      if (hpData.mobileBanners) setMobileBanners(hpData.mobileBanners);
+    }
+  }, [hpData]);
+
+  const loading = loadingProducts || loadingSections;
 
   const hasCategory = (slug: string) => {
     return Object.entries(groupedProducts).some(([name, products]) => {
@@ -69,55 +98,10 @@ export const HomePage = () => {
     });
   };
 
-  const fetchHomeProducts = async () => {
-    try {
-      const [res, hpRes] = await Promise.all([
-        fetch("/api/products", { cache: "no-store" }),
-        fetch("/api/homepage", { cache: "no-store" }),
-      ]);
-
-      if (res.ok) {
-        const data = await res.json();
-        
-        // Group products by their Category Name
-        const groups: Record<string, any[]> = {};
-        data.forEach((product: any) => {
-          const catName = product.category?.name || "Premium Collection";
-          if (!groups[catName]) {
-            groups[catName] = [];
-          }
-          groups[catName].push(product);
-        });
-
-        setGroupedProducts(groups);
-      }
-
-      if (hpRes.ok) {
-        const hpData = await hpRes.json();
-        setHomepageSections(hpData.sections || []);
-      }
-    } catch (e) {
-      console.error("Failed to load products dynamically on homepage", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHomeProducts();
-
-    // Auto-refresh homepage products when user switches back to this tab
-    const handleFocus = () => {
-      fetchHomeProducts();
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, []);
-
   return (
     <>
       {/* Blinkit-style mobile section (category grid + banners) — mobile only */}
-      <BlinkitMobileSection />
+      <BlinkitMobileSection banners={mobileBanners} />
 
       {/* 1. Hero Section */}
       <HeroSection />
@@ -179,6 +163,7 @@ export const HomePage = () => {
       ) : (() => {
         // Merge admin-configured sections + remaining DB categories
         const getAccent = (slug: string) => {
+          if (slug === "best-sellers") return { accentColor: "rose", tagLine: "Handpicked Top Rated & Most Popular Products" };
           if (slug === "kitchen-utility") return { accentColor: "emerald", tagLine: "Heritage Cooking Essentials" };
           if (slug === "brass-cookware") return { accentColor: "bronze", tagLine: "Royal Dining & Serveware" };
           if (slug === "pooja-collection") return { accentColor: "rose", tagLine: "Sacred Ritual Vessels" };
@@ -188,13 +173,19 @@ export const HomePage = () => {
           return { accentColor: "bronze", tagLine: "Premium Workshop Crafts" };
         };
 
+        // Ensure best-sellers is first if not configured
+        const hasBestSellers = homepageSections.some((s: any) => s.slug === "best-sellers");
+        const sectionsToRender = hasBestSellers
+          ? homepageSections
+          : [{ slug: "best-sellers", title: "🔥 Best Sellers / Top Rated", products: [] }, ...homepageSections];
+
         // Track which category slugs admin has configured
-        const adminConfiguredSlugs = new Set(homepageSections.map((s: any) => s.slug));
+        const adminConfiguredSlugs = new Set(sectionsToRender.map((s: any) => s.slug));
 
         return (
           <>
             {/* 1. Admin-configured sections first — show assigned products + auto-fill remaining up to 15 */}
-            {homepageSections.map((section: any) => {
+            {sectionsToRender.map((section: any) => {
               const { accentColor, tagLine } = getAccent(section.slug);
               
               const manualProducts = section.products || [];
@@ -202,14 +193,23 @@ export const HomePage = () => {
               let autoProducts = [];
 
               if (manualProducts.length < 15) {
-                const listEntry = Object.entries(groupedProducts).find(([_, list]: any) => list[0]?.categoryName === section.slug);
-                const availableAuto = listEntry ? (listEntry[1] as any[]) : [];
-                autoProducts = availableAuto
-                  .filter((p: any) => !manualIds.has(p.id))
-                  .slice(0, 15 - manualProducts.length);
+                if (section.slug === "best-sellers") {
+                  const allAvailable = Object.values(groupedProducts).flat() as any[];
+                  autoProducts = allAvailable
+                    .filter((p: any) => !manualIds.has(p.id))
+                    .sort((a: any, b: any) => (b.rating || 5) - (a.rating || 5))
+                    .slice(0, 15 - manualProducts.length);
+                } else {
+                  const listEntry = Object.entries(groupedProducts).find(([_, list]: any) => list[0]?.categoryName === section.slug);
+                  const availableAuto = listEntry ? (listEntry[1] as any[]) : [];
+                  autoProducts = availableAuto
+                    .filter((p: any) => !manualIds.has(p.id))
+                    .slice(0, 15 - manualProducts.length);
+                }
               }
 
               const finalProducts = [...manualProducts, ...autoProducts];
+              if (finalProducts.length === 0) return null;
 
               return (
                 <CategoryProductGrid
@@ -217,7 +217,7 @@ export const HomePage = () => {
                   title={section.title || section.slug}
                   tagLine={tagLine}
                   products={finalProducts}
-                  viewAllLink={`/products?category=${section.slug}`}
+                  viewAllLink={section.slug === "best-sellers" ? "/products" : `/products?category=${section.slug}`}
                   accentColor={accentColor}
                 />
               );
@@ -267,9 +267,6 @@ export const HomePage = () => {
 
       {/* 10. Heritage + Artisan Story */}
       <HeritageStory />
-
-      {/* Vendor Section - Artisan Clusters */}
-      <VendorSection />
 
       {/* 11. Export Program */}
       <ExportProgram />

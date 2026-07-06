@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import QRCode from "qrcode";
 
 
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { useRouter } from "next/navigation";
 import { currencyDatabase } from "@/context/RegionContext";
 import VendorProfilePage from "@/app/vendor/profile/page";
@@ -74,7 +76,8 @@ export const VendorDashboard = () => {
 
   // Dashboard Data
   const [inquiries, setInquiries] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  const { data: productsData, mutate: mutateProducts } = useSWR(vendor?.id ? `/api/products?vendorId=${vendor.id}` : null, fetcher);
+  const products = productsData || [];
   const [productSearch, setProductSearch] = useState("");
   const [modalProduct, setModalProduct] = useState<any | null>(null);
   const [modalMainImage, setModalMainImage] = useState<string>("");
@@ -99,21 +102,48 @@ export const VendorDashboard = () => {
     localStorage.setItem("vendorActiveTab", tab);
   };
 
-  const [returns, setReturns] = useState<any[]>([]);
-  const [settlements, setSettlements] = useState<any[]>([]);
-  const [settlementSummary, setSettlementSummary] = useState<any>(null);
-  const [settlementSettings, setSettlementSettings] = useState<any>(null);
+  const { data: returnsData, mutate: mutateReturns } = useSWR(vendor?.id ? `/api/vendor/returns` : null, fetcher);
+  const returns = returnsData?.success ? returnsData.returns : [];
+  const slaHours = returnsData?.success && returnsData.slaHours ? returnsData.slaHours : 24;
+
+  const { data: settlementsData, mutate: mutateSettlements } = useSWR(vendor?.id ? `/api/admin/settlements` : null, fetcher);
+  const settlements = settlementsData?.success ? settlementsData.settlements : [];
+  const settlementSummary = settlementsData?.success ? settlementsData.summary : null;
+  const settlementSettings = settlementsData?.success ? settlementsData.settings : null;
+
   const [settlementTab, setSettlementTab] = useState<"ALL" | "HOLD" | "ELIGIBLE" | "SETTLED" | "DISPUTED">("ALL");
   const [allInquiries, setAllInquiries] = useState<any[]>([]);
   const [editingDelivery, setEditingDelivery] = useState<{ inquiryId: number, productId: number, value: string } | null>(null);
   const [editingDirectDelivery, setEditingDirectDelivery] = useState<{ orderId: string, value: string } | null>(null);
   const [directOrders, setDirectOrders] = useState<any[]>([]);
-  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  
+  const { data: statsData, mutate: mutateStats } = useSWR(vendor?.id ? `/api/vendor/stats?vendorId=${vendor.id}` : null, fetcher);
+  const dashboardStats = (statsData?.success ? statsData.stats : null) || {
+    todayOrders: 0,
+    todayRevenue: 0,
+    pendingReturns: 0,
+    pendingInquiries: 0
+  };
+
   const [orderPage, setOrderPage] = useState(1);
   const [orderTotalPages, setOrderTotalPages] = useState(1);
-  const [fetchingOrders, setFetchingOrders] = useState(false);
-  const [dbCategories, setDbCategories] = useState<any[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const { data: ordData, isValidating: fetchingOrders, mutate: mutateOrders } = useSWR(
+    vendor?.id ? `/api/orders?vendorId=${vendor.id}&page=${orderPage}&limit=10` : null,
+    fetcher
+  );
+
+  useEffect(() => {
+    if (ordData?.orders) {
+      setDirectOrders(prev => orderPage === 1 ? ordData.orders : [...prev, ...ordData.orders]);
+      if (ordData.pagination) {
+        setOrderTotalPages(ordData.pagination.totalPages || 1);
+      }
+    }
+  }, [ordData, orderPage]);
+
+  const { data: catData, isLoading: loadingCategories, mutate: mutateCategories } = useSWR("/api/categories", fetcher);
+  const dbCategories = catData || [];
 
   // Packing Modal State
   const [showPackingModal, setShowPackingModal] = useState<any | null>(null);
@@ -134,7 +164,7 @@ export const VendorDashboard = () => {
 
   useEffect(() => {
     if (modalShipping) {
-      QRCode.toDataURL(`ORDER-${modalShipping.id}`, { width: 150, margin: 1 })
+      QRCode.toDataURL(modalShipping.orderNumber || modalShipping.id, { width: 150, margin: 1 })
         .then((url) => setQrDataUrl(url))
         .catch((err) => console.error("Error generating QR code", err));
     } else {
@@ -143,7 +173,6 @@ export const VendorDashboard = () => {
   }, [modalShipping]);
 
   // SLA Countdown States
-  const [slaHours, setSlaHours] = useState<number>(24);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   useEffect(() => {
@@ -322,6 +351,9 @@ export const VendorDashboard = () => {
     seoTitle?: string;
     seoDescription?: string;
     seoKeywords?: string;
+    crossSellIds: number[];
+    bundleDiscountType: string;
+    bundleDiscountValue: string;
   }>({
     id: 0,
     name: "",
@@ -357,6 +389,9 @@ export const VendorDashboard = () => {
     seoTitle: "",
     seoDescription: "",
     seoKeywords: "",
+    crossSellIds: [],
+    bundleDiscountType: "NONE",
+    bundleDiscountValue: "",
   });
   const [savingEdit, setSavingEdit] = useState(false);
   const [listingProduct, setListingProduct] = useState(false);
@@ -507,6 +542,18 @@ export const VendorDashboard = () => {
       name: prod.name,
       description: prod.description,
       specs: prod.specs || "",
+      image: prod.image,
+      images: prod.images || [],
+      price: prod.price?.toString() || "",
+      mrp: prod.mrp?.toString() || "",
+      discount: prod.discount?.toString() || "",
+      prices: pricesVal,
+      categoryName: prod.categoryName || "",
+      material: prod.material || "",
+      stock: prod.stock?.toString() || "",
+      featured: prod.featured || false,
+      newLaunch: prod.newLaunch || false,
+      active: prod.active !== false,
       weightValue: weightVal,
       weightUnit: weightUnitVal,
       customSpecs: parsedCustomSpecs,
@@ -515,18 +562,9 @@ export const VendorDashboard = () => {
       capacity: capacityVal,
       thickness: thicknessVal,
       finish: finishVal,
-      image: prod.image,
-      images: additionalImages,
-      price: prod.price.toString(),
-      mrp: prod.mrp.toString(),
-      discount: prod.discount.toString(),
-      prices: pricesVal,
-      categoryName: prod.categoryName,
-      material: prod.material,
-      stock: prod.stock.toString(),
-      featured: !!prod.featured,
-      newLaunch: !!prod.newLaunch,
-      active: prod.active !== false,
+      crossSellIds: prod.crossSellIds || [],
+      bundleDiscountType: prod.bundleDiscountType || "NONE",
+      bundleDiscountValue: prod.bundleDiscountValue?.toString() || "",
     });
     setModalEditProduct(prod);
   };
@@ -605,8 +643,10 @@ export const VendorDashboard = () => {
         material: editForm.material,
         stock: editForm.stock,
         featured: editForm.featured,
-        newLaunch: editForm.newLaunch,
         active: editForm.active,
+        crossSellIds: editForm.crossSellIds,
+        bundleDiscountType: editForm.bundleDiscountType,
+        bundleDiscountValue: parseFloat(editForm.bundleDiscountValue) || null,
       };
 
       const res = await fetch(`/api/products/${editForm.id}`, {
@@ -666,6 +706,9 @@ export const VendorDashboard = () => {
     seoTitle?: string;
     seoDescription?: string;
     seoKeywords?: string;
+    crossSellIds: number[];
+    bundleDiscountType: string;
+    bundleDiscountValue: string;
   }>({
     name: "",
     description: "",
@@ -699,7 +742,11 @@ export const VendorDashboard = () => {
     seoTitle: "",
     seoDescription: "",
     seoKeywords: "",
+    crossSellIds: [],
+    bundleDiscountType: "NONE",
+    bundleDiscountValue: "",
   });
+  const [editBundleSearch, setEditBundleSearch] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -955,115 +1002,50 @@ export const VendorDashboard = () => {
   };
 
   const fetchOrders = async (vId: number, page: number) => {
-    setFetchingOrders(true);
-    try {
-      const res = await fetch(`/api/orders?vendorId=${vId}&page=${page}&limit=10&t=${Date.now()}`, { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
-        console.log("[fetchOrders] Received orders:", data.orders?.map((o: any) => ({ id: o.id, status: o.status, orderNumber: o.orderNumber })));
-        setDirectOrders(prev => page === 1 ? (data.orders || []) : [...prev, ...(data.orders || [])]);
-        if (data.pagination) {
-          setOrderTotalPages(data.pagination.totalPages || 1);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setFetchingOrders(false);
-    }
+    mutateOrders();
   };
 
   const fetchData = async (vendorId: number, vendorData?: any) => {
     try {
-      // Fetch categories
-      setLoadingCategories(true);
-      const resCat = await fetch("/api/categories", { cache: "no-store" });
-      if (resCat.ok) {
-        const dataCat = await resCat.json();
-        setDbCategories(dataCat);
-        if (dataCat.length > 0) {
-          let firstAllowed = dataCat[0].slug;
-          if (vendorData?.allowedCategories) {
-            const allowedList = vendorData.allowedCategories.split(',').map((c: string) => c.trim());
-            const firstValid = dataCat.find((c: any) => allowedList.includes(c.slug));
-            if (firstValid) firstAllowed = firstValid.slug;
-          }
-          setProductForm(prev => ({ ...prev, categoryName: firstAllowed }));
-          setEditForm(prev => ({ ...prev, categoryName: firstAllowed }));
-        }
-      }
-      setLoadingCategories(false);
+      mutateCategories();
+      mutateProducts();
+      mutateStats();
+      mutateSettlements();
+      mutateReturns();
+      mutateOrders();
+      setOrderPage(1);
 
-      // Fetch vendor's own products
-      const resProd = await fetch(`/api/products?vendorId=${vendorId}`, { cache: "no-store" });
-      if (resProd.ok) {
-        const dataProd = await resProd.json();
-        setProducts(dataProd);
-
-        // Fetch B2B inquiries and filter to show only those containing this vendor's products
-        const resInq = await fetch("/api/inquiries", { cache: "no-store" });
-        if (resInq.ok) {
-          const allInqs = await resInq.json();
-          setAllInquiries(allInqs);
-          
-          // Filter inquiries: show if it contains any product belonging to the vendor
-          const filteredInq = allInqs.filter((inq: any) => {
-            if (!inq.items) return false;
-            try {
-              const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
-              return itemsList.some((item: any) => 
-                dataProd.some((p: any) => String(p.id) === String(item.id))
-              );
-            } catch (e) {
-              return false;
-            }
-          });
-          setInquiries(filteredInq);
-        }
-
-        // Fetch direct orders - always reset to page 1 for fresh data
-        setOrderPage(1);
-        await fetchOrders(vendorId, 1);
-
-        // Fetch vendor stats
-        const resStats = await fetch(`/api/vendor/stats?vendorId=${vendorId}`, { cache: "no-store" });
-        if (resStats.ok) {
-          const statsData = await resStats.json();
-          if (statsData.success) {
-            setDashboardStats(statsData.stats);
-          }
-        }
-
-        // Fetch Settlements
-        const resSettlements = await fetch(`/api/admin/settlements`, { cache: "no-store" });
-        if (resSettlements.ok) {
-          const dataSettlements = await resSettlements.json();
-          if (dataSettlements.success) {
-            setSettlements(dataSettlements.settlements);
-            setSettlementSummary(dataSettlements.summary);
-            setSettlementSettings(dataSettlements.settings);
-          }
-        }
-
-        // Fetch Returns
-        const resReturns = await fetch(`/api/vendor/returns`, { cache: "no-store" });
-        if (resReturns.ok) {
-          const dataReturns = await resReturns.json();
-          if (dataReturns.success) {
-            setReturns(dataReturns.returns);
-            if (dataReturns.slaHours) {
-              setSlaHours(dataReturns.slaHours);
-            }
-          }
-        }
+      // Fetch B2B inquiries and filter to show only those containing this vendor's products
+      const resInq = await fetch("/api/inquiries", { cache: "no-store" });
+      if (resInq.ok) {
+        const allInqs = await resInq.json();
+        setAllInquiries(allInqs);
       }
     } catch (e) {
       console.error("Failed to load vendor dashboard details:", e);
-      setLoadingCategories(false);
     } finally {
       setIsLoadingData(false);
     }
   };
+
+  useEffect(() => {
+    if (allInquiries.length > 0 && products.length > 0) {
+      const filteredInq = allInquiries.filter((inq: any) => {
+        if (!inq.items) return false;
+        try {
+          const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
+          return itemsList.some((item: any) => 
+            products.some((p: any) => String(p.id) === String(item.id))
+          );
+        } catch (e) {
+          return false;
+        }
+      });
+      setInquiries(filteredInq);
+    } else if (allInquiries.length > 0 && products.length === 0) {
+      setInquiries([]);
+    }
+  }, [allInquiries, products]);
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1112,8 +1094,10 @@ export const VendorDashboard = () => {
         categoryName: productForm.categoryName,
         material: productForm.material,
         stock: productForm.stock,
-        featured: productForm.featured,
         newLaunch: productForm.newLaunch,
+        crossSellIds: productForm.crossSellIds,
+        bundleDiscountType: productForm.bundleDiscountType,
+        bundleDiscountValue: parseFloat(productForm.bundleDiscountValue) || null,
       };
 
       const res = await fetch("/api/products", {
@@ -1154,6 +1138,9 @@ export const VendorDashboard = () => {
           stock: "10",
           featured: false,
           newLaunch: false,
+          crossSellIds: [],
+          bundleDiscountType: "NONE",
+          bundleDiscountValue: "",
         });
         if (vendor) fetchData(vendor.id);
       } else {
@@ -1169,14 +1156,17 @@ export const VendorDashboard = () => {
 
   const handleDeleteProduct = async (id: number) => {
     try {
+      mutateProducts((prev: any[] | undefined) => prev ? prev.filter(p => p.id !== id) : [], false);
       const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (res.ok) {
         showToast("Listing removed!", "success");
         if (vendor) fetchData(vendor.id);
       } else {
+        mutateProducts(); // revert on failure
         showToast("Failed to remove product listing", "error");
       }
     } catch (err) {
+      mutateProducts(); // revert on failure
       showToast("Error removing listing", "error");
     }
   };
@@ -1294,7 +1284,7 @@ export const VendorDashboard = () => {
     try {
       const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any) || [];
       return itemsList.filter((item: any) =>
-        products.some((p) => String(p.id) === String(item.id)) && !["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
+        products.some((p: any) => String(p.id) === String(item.id)) && !["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
       );
     } catch (e) {
       return [];
@@ -1305,7 +1295,7 @@ export const VendorDashboard = () => {
     try {
       const itemsList = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any) || [];
       return itemsList.filter((item: any) =>
-        products.some((p) => String(p.id) === String(item.id)) && ["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
+        products.some((p: any) => String(p.id) === String(item.id)) && ["DELIVERED", "CANCELLED", "RETURNED"].includes(item.status || "PENDING")
       );
     } catch (e) {
       return [];
@@ -1331,7 +1321,7 @@ export const VendorDashboard = () => {
       } catch (e) {}
 
       itemsList.forEach((item: any) => {
-        const belongsToVendor = products.some((p) => String(p.id) === String(item.id));
+        const belongsToVendor = products.some((p: any) => String(p.id) === String(item.id));
         if (!belongsToVendor) return;
 
         totalReceived++;
@@ -1534,6 +1524,8 @@ export const VendorDashboard = () => {
             orderPage={orderPage}
             orderTotalPages={orderTotalPages}
             loadMoreRef={loadMoreRef}
+            currentTime={currentTime}
+            slaHours={slaHours}
           />
         )}
 
@@ -1607,6 +1599,7 @@ export const VendorDashboard = () => {
             dbCategories={dbCategories}
             listingProduct={listingProduct}
             aiSeoData={aiSeoData}
+            products={products}
           />
         )}
 
@@ -2207,6 +2200,88 @@ export const VendorDashboard = () => {
                   </div>
                 </div>
 
+                {/* Bundle / Cross-Sell Configuration */}
+                <div className="p-4 bg-surface border border-bronze-500/20 rounded-2xl space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🎁</span>
+                    <div>
+                      <h3 className="font-bold text-heading">Bundle Configuration (Optional)</h3>
+                      <p className="text-[10px] text-muted">Select products to bundle with this item to offer a discount.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center gap-2">
+                      <label className="font-bold text-muted uppercase tracking-wider text-[10px]">Select Bundle Items</label>
+                      <input 
+                        type="text" 
+                        placeholder="Search products..." 
+                        value={editBundleSearch}
+                        onChange={(e) => setEditBundleSearch(e.target.value)}
+                        className="text-xs bg-surface border border-border rounded-lg px-3 py-1.5 focus:outline-none focus:border-orange-500 w-48"
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                      {products.length === 0 && <span className="text-xs text-muted">No other products available.</span>}
+                      {products
+                        .filter((p: any) => p.name !== editForm.name && p.name.toLowerCase().includes(editBundleSearch.toLowerCase()))
+                        .map((p: any) => {
+                        const isSelected = editForm.crossSellIds.includes(p.id);
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setEditForm((prev: any) => {
+                                const newIds = isSelected
+                                  ? prev.crossSellIds.filter((id: number) => id !== p.id)
+                                  : [...prev.crossSellIds, p.id];
+                                return { ...prev, crossSellIds: newIds };
+                              });
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                              isSelected
+                                ? "bg-bronze-500/10 border-bronze-500 text-bronze-700 dark:text-bronze-300"
+                                : "bg-surface-card border-border hover:border-bronze-500/40 text-muted hover:text-heading"
+                            }`}
+                          >
+                            {isSelected ? "✓ " : "+ "}{p.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {editForm.crossSellIds.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                      <div className="space-y-1">
+                        <label className="font-bold text-muted uppercase tracking-wider text-[10px]">Discount Type</label>
+                        <select
+                          value={editForm.bundleDiscountType}
+                          onChange={(e) => setEditForm({ ...editForm, bundleDiscountType: e.target.value })}
+                          className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-heading focus:outline-none"
+                        >
+                          <option value="NONE">None</option>
+                          <option value="PERCENTAGE">Percentage (%)</option>
+                          <option value="FLAT">Flat Amount (₹)</option>
+                        </select>
+                      </div>
+                      {editForm.bundleDiscountType !== "NONE" && (
+                        <div className="space-y-1">
+                          <label className="font-bold text-muted uppercase tracking-wider text-[10px]">Discount Value</label>
+                          <input
+                            type="number"
+                            value={editForm.bundleDiscountValue}
+                            onChange={(e) => setEditForm({ ...editForm, bundleDiscountValue: e.target.value })}
+                            placeholder={editForm.bundleDiscountType === "PERCENTAGE" ? "e.g. 10 (for 10%)" : "e.g. 500 (for ₹500 off)"}
+                            className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-heading focus:outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <label className="font-bold text-muted uppercase tracking-wider">Product Description *</label>
@@ -2228,6 +2303,94 @@ export const VendorDashboard = () => {
                     placeholder="Product descriptions... or click ✨ AI Generate"
                     className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2 text-heading focus:outline-none resize-none"
                   />
+                </div>
+
+                {/* Editable SEO Metadata Fields for Edit Modal */}
+                <div className="space-y-4 pt-3 border-t border-orange-500/20 animate-in fade-in duration-300">
+                  {/* Concise Suggested Title Box */}
+                  {aiSeoData?.suggestedTitle && (
+                    <div className="p-3.5 bg-surface rounded-xl border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">💡 AI Recommended Title (Concise for Shop Cards)</span>
+                        <span className="text-xs font-bold text-heading mt-0.5 block">{aiSeoData.suggestedTitle}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEditForm({ ...editForm, name: aiSeoData.suggestedTitle })}
+                        className="px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-white rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer"
+                      >
+                        ✨ Apply to Item Name
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Editable SEO Metadata Fields */}
+                  <div className="p-4 bg-surface rounded-2xl border border-border space-y-3">
+                    <h4 className="text-xs font-bold text-heading uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🔍 Editable SEO Metadata Fields</span>
+                      <span className="text-[10px] text-muted font-normal">(Can be auto-filled by AI)</span>
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">SEO Meta Title Tag (Max 60 chars)</label>
+                        <input
+                          type="text"
+                          value={editForm.seoTitle ?? ""}
+                          onChange={(e) => setEditForm({ ...editForm, seoTitle: e.target.value })}
+                          placeholder="e.g. Pure Copper Hammered Bottle | 1L Ayurvedic | StopShop"
+                          className="w-full bg-surface-card border border-border focus:border-orange-500 rounded-xl px-3 py-2 text-heading text-xs focus:outline-none"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">SEO Meta Description (Max 160 chars)</label>
+                        <textarea
+                          rows={2}
+                          value={editForm.seoDescription ?? ""}
+                          onChange={(e) => setEditForm({ ...editForm, seoDescription: e.target.value })}
+                          placeholder="Brief summary optimized for search clicks..."
+                          className="w-full bg-surface-card border border-border focus:border-orange-500 rounded-xl px-3 py-2 text-heading text-xs focus:outline-none resize-none"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">Target Keywords (Comma separated)</label>
+                        <input
+                          type="text"
+                          value={editForm.seoKeywords ?? ""}
+                          onChange={(e) => setEditForm({ ...editForm, seoKeywords: e.target.value })}
+                          placeholder="e.g. copper bottle, ayurvedic vessel, hammered water dispenser"
+                          className="w-full bg-surface-card border border-border focus:border-orange-500 rounded-xl px-3 py-2 text-heading text-xs focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Google Search Result Live Preview Card */}
+                  <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-border/80 shadow-sm space-y-1.5">
+                    <div className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Live Google Search Preview</div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                      <span className="font-semibold text-zinc-700 dark:text-zinc-300">stopshops.com</span>
+                      <span>›</span>
+                      <span>product</span>
+                      <span>›</span>
+                      <span className="truncate max-w-[150px]">{editForm.name?.toLowerCase().replace(/\s+/g, "-") || "item-slug"}</span>
+                    </div>
+                    <h4 className="text-base sm:text-lg font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer truncate">
+                      {editForm.seoTitle || editForm.name || "StopShop Product Title"}
+                    </h4>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-300 line-clamp-2 leading-relaxed">
+                      {editForm.seoDescription || editForm.description || "Product description preview on search engine results."}
+                    </p>
+                    {editForm.seoKeywords && (
+                      <div className="pt-2 flex flex-wrap gap-1.5 items-center">
+                        <span className="text-[10px] font-bold text-muted">🏷️ Target Keywords:</span>
+                        {editForm.seoKeywords.split(",").map((kw: string, idx: number) => (
+                          <span key={idx} className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded text-[10px]">
+                            {kw.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -2441,7 +2604,7 @@ export const VendorDashboard = () => {
                         onChange={(e) => setEditForm({ ...editForm, categoryName: e.target.value })}
                         className="w-full bg-surface border border-border rounded-xl px-4 py-2 text-heading font-semibold focus:outline-none cursor-pointer appearance-none pr-8 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ea580c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.6rem_auto] bg-[right_0.75rem_center] bg-no-repeat"
                       >
-                        {dbCategories.filter(cat => !vendor?.allowedCategories || vendor.allowedCategories.split(',').map((c:string)=>c.trim()).includes(cat.slug)).map((cat) => (
+                        {dbCategories.filter((cat: any) => !vendor?.allowedCategories || vendor.allowedCategories.split(',').map((c:string)=>c.trim()).includes(cat.slug)).map((cat: any) => (
                           <option key={cat.slug} value={cat.slug}>
                             {cat.name}
                           </option>
@@ -2535,7 +2698,7 @@ export const VendorDashboard = () => {
             <div className="p-6 space-y-4">
               <div className="space-y-1">
                 <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Payment ID</span>
-                <p className="font-mono text-sm bg-surface p-2 rounded-lg border border-border break-all">{modalTransaction.paymentId}</p>
+                <p className="font-mono text-sm bg-surface p-2 rounded-lg border border-border break-all">{modalTransaction.razorpayPaymentId || modalTransaction.paymentOrderId || modalTransaction.id || "N/A"}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -2551,7 +2714,7 @@ export const VendorDashboard = () => {
               </div>
               <div className="space-y-1">
                 <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Total Amount Paid</span>
-                <p className="font-bold text-heading text-lg">₹{((modalTransaction.totalPaise || 0) / 100).toLocaleString()}</p>
+                <p className="font-bold text-heading text-lg">₹{((modalTransaction.totalPaise || 0) / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             </div>
           </div>
@@ -2582,7 +2745,7 @@ export const VendorDashboard = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-heading text-lg">{modalShipping.shippingName}</h4>
-                  <p className="text-xs text-muted">Order ID: {modalShipping.id}</p>
+                  <p className="text-xs text-muted">Order ID: {modalShipping.orderNumber || modalShipping.id}</p>
                 </div>
               </div>
               
@@ -2622,7 +2785,7 @@ export const VendorDashboard = () => {
                       <!DOCTYPE html>
                       <html>
                       <head>
-                        <title>Shipping Label - ${modalShipping.id}</title>
+                        <title>Shipping Label - ${modalShipping.orderNumber || modalShipping.id}</title>
                         <style>
                           body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; margin: 0; color: #000; }
                           .label-container { border: 2px solid #000; padding: 20px; max-width: 600px; margin: 0 auto; }
@@ -2642,7 +2805,7 @@ export const VendorDashboard = () => {
                           <div class="header">
                             <div>
                               <h1 class="title">SHIPPING LABEL</h1>
-                              <div class="order-id">Order ID: ${modalShipping.id}</div>
+                              <div class="order-id">Order ID: ${modalShipping.orderNumber || modalShipping.id}</div>
                               <div class="order-id">Date: ${new Date(modalShipping.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}</div>
                             </div>
                             <img src="${qrUrl}" class="qr-code" alt="QR Code" />
@@ -2737,102 +2900,32 @@ export const VendorDashboard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               {/* Original Dispatch Photos */}
-               <div>
-                  <div className="flex justify-between items-end mb-3">
-                    <span className="text-xs font-bold text-heading">Your Original Dispatch Photos</span>
-                    <span className="text-[10px] text-muted">What you packed</span>
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {(() => {
-                      const dispatchImgs = (() => {
-                        const images: string[] = [];
-                        const retItems = reviewReturnOrder.returnRequest?.returnItems || [];
-                        const orderItems = reviewReturnOrder.items || [];
-                        
-                        retItems.forEach((retItem: any) => {
-                          const orderItem = orderItems.find((oi: any) => oi.id === retItem.orderItemId);
-                          if (orderItem && orderItem.dispatchImages) {
-                            let itemImgs: string[] = [];
-                            if (typeof orderItem.dispatchImages === "string") {
-                              try { itemImgs = JSON.parse(orderItem.dispatchImages); } catch(e) {}
-                            } else if (Array.isArray(orderItem.dispatchImages)) {
-                              itemImgs = orderItem.dispatchImages;
-                            }
-                            images.push(...itemImgs);
-                          }
-                        });
-                        
-                        // Fallback to checking the first order item directly if returnItems is empty
-                        if (images.length === 0 && orderItems.length > 0) {
-                          const firstItem = orderItems[0];
-                          if (firstItem && firstItem.dispatchImages) {
-                            if (typeof firstItem.dispatchImages === "string") {
-                              try { return JSON.parse(firstItem.dispatchImages); } catch(e) {}
-                            } else if (Array.isArray(firstItem.dispatchImages)) {
-                              return firstItem.dispatchImages;
-                            }
-                          }
-                        }
-                        return images;
-                      })();
-
-                      if (dispatchImgs.length > 0) {
-                        return dispatchImgs.map((url: string, i: number) => (
-                          <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-xl overflow-hidden border border-border hover:border-orange-500 transition-colors block relative group">
-                             <img src={url} alt="Dispatch Proof" className="w-full h-full object-cover" />
-                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
-                                <span className="text-white opacity-0 group-hover:opacity-100 text-[10px] font-bold">VIEW</span>
-                             </div>
-                          </a>
-                        ));
-                      }
-                      return <span className="text-xs text-muted col-span-3">No dispatch photos recorded.</span>;
-                    })()}
-                  </div>
-               </div>
-
-               {/* User's Return Photos */}
-               <div>
-                  <div className="flex justify-between items-end mb-3">
-                    <span className="text-xs font-bold text-heading">User's Return Photos</span>
-                    <span className="text-[10px] text-muted">What the user claims</span>
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {(reviewReturnOrder.returnRequest.returnImages as string[]).map((url, i) => (
-                       <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-xl overflow-hidden border border-border hover:border-orange-500 transition-colors block relative group">
-                          <img src={url} alt="Return Proof" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
-                             <span className="text-white opacity-0 group-hover:opacity-100 text-[10px] font-bold">VIEW</span>
-                          </div>
-                       </a>
-                    ))}
-                  </div>
-               </div>
-            </div>
-
             {reviewReturnOrder.returnRequest.status === "RECEIVED_AT_WAREHOUSE" ? (
                 <div className="pt-4 border-t border-border p-4 bg-red-500/5 border border-red-500/10 rounded-xl text-center">
                    <p className="text-xs font-bold text-red-600 uppercase tracking-wider">Dispute Raised Successfully</p>
                    <p className="text-[10px] text-muted mt-1 leading-relaxed">Our admin team is currently reviewing your dispute. No further action is required from your end.</p>
                 </div>
-             ) : !isDisputing ? (
-                <div className="pt-4 border-t border-border flex flex-col items-center gap-3">
-                   <button onClick={() => setIsDisputing(true)} className="w-full py-3 bg-surface border border-red-500/30 text-red-500 hover:bg-red-500/10 font-bold rounded-xl transition-colors text-sm">
-                      Report Issue to Admin (Fake / Damaged)
-                   </button>
-                   <p className="text-[10px] text-muted text-center max-w-xs">
-                      If the returned product is perfectly fine, you do not need to do anything! The system will automatically refund the user after your SLA window expires.
-                   </p>
-                </div>
-             ) : (
+             ) : (() => {
+               const deliveredTime = reviewReturnOrder.returnRequest?.vendorDeliveredAt 
+                 ? new Date(reviewReturnOrder.returnRequest.vendorDeliveredAt).getTime() 
+                 : new Date(reviewReturnOrder.updatedAt || reviewReturnOrder.createdAt).getTime();
+               const deadline = deliveredTime + (slaHours || 24) * 60 * 60 * 1000;
+               const isExpired = deadline - (currentTime ? currentTime.getTime() : Date.now()) <= 0;
+               if (isExpired) {
+                 return (
+                   <div className="pt-4 border-t border-border p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-center">
+                      <p className="text-xs font-bold text-red-600 uppercase tracking-wider">⏰ SLA Window Expired</p>
+                      <p className="text-[10px] text-muted mt-1 leading-relaxed">The {slaHours || 24}-hour SLA window for raising a QC dispute has expired. The system will process the refund automatically.</p>
+                   </div>
+                 );
+               }
+               return (
                <div className="pt-4 border-t border-border space-y-4 animate-in fade-in slide-in-from-bottom-4">
                   <div className="flex justify-between items-center">
-                     <h3 className="text-sm font-bold text-red-500">Raise Dispute</h3>
-                     <button onClick={() => setIsDisputing(false)} className="text-[10px] text-muted hover:text-heading hover:underline font-bold">Cancel Dispute</button>
+                     <h3 className="text-sm font-bold text-red-500">Raise Dispute / Report Issue</h3>
+                     <span className="text-[10px] text-muted font-semibold">Min 5 Photos Required</span>
                   </div>
-                  <p className="text-xs text-muted">Upload photos showing the fake, wrong, or damaged item you received. Our admin will review both your dispatch photos and these QC photos to make a final decision.</p>
+                  <p className="text-xs text-muted">If the returned product is fake, wrong, or damaged, upload photos below and submit to admin. <strong className="text-heading">If the product is fine, close this window (auto-refund will process after SLA expires).</strong></p>
                   
                   <textarea 
                      placeholder="Describe what is wrong with the returned product..."
@@ -2888,7 +2981,8 @@ export const VendorDashboard = () => {
                      {submittingQc && <Loader2 size={16} className="animate-spin" />} Submit Dispute to Admin
                   </button>
                </div>
-            )}
+               );
+            })()}
           </div>
         </div>
       )}

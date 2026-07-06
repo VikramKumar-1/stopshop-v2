@@ -193,6 +193,7 @@ export default function HistoryTab({
                     <td className="p-4">
                       <div className="flex flex-col gap-1.5 max-w-[200px] min-w-[150px] opacity-80">
                         <div>
+                          <span className="font-mono font-bold text-[11px] text-orange-500 block mb-0.5">{order.orderNumber || order.id}</span>
                           <span className="font-bold text-heading text-xs tracking-tight block">{order.shippingName}</span>
                           <span className="text-[10px] text-muted font-medium">📍 {order.shippingCity}, {order.shippingState}</span>
                         </div>
@@ -274,7 +275,7 @@ export default function HistoryTab({
                       </div>
                     </td>
                     <td className="p-4 text-center font-bold text-heading">
-                      ₹{((order.totalPaise || 0) / 100).toLocaleString()}
+                      ₹{((order.totalPaise || 0) / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="p-4 text-right whitespace-nowrap space-x-1.5">
                     </td>

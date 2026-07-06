@@ -15,6 +15,7 @@ import {
   ShoppingCart
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useRegion } from "@/context/RegionContext";
 
 const categories = [
   {
@@ -95,6 +96,7 @@ export const CategoryStrip = () => {
   const pathname = usePathname();
   if (pathname.startsWith("/vendor") || pathname.startsWith("/admin") || pathname === "/contact" || pathname.startsWith("/product") || pathname.startsWith("/profile") || pathname === "/cart" || pathname.startsWith("/checkout") || pathname.startsWith("/store")) return null;
   const { cartCount } = useCart();
+  const { region } = useRegion();
 
   // Hydration-safe states
   const [scrollingDown, setScrollingDown] = useState(false);
@@ -114,8 +116,84 @@ export const CategoryStrip = () => {
     return () => window.removeEventListener("resize", checkViewport);
   }, []);
 
-  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchExpanded, setSearchExpandedState] = useState(false);
+  const searchExpandedRef = useRef(false);
+  const setSearchExpanded = (val: boolean) => {
+    searchExpandedRef.current = val;
+    setSearchExpandedState(val);
+  };
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("stopshops_recent_searches");
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
+
+  const addToRecentSearches = (term: string) => {
+    if (!term.trim()) return;
+    const cleanTerm = term.trim();
+    const updated = [
+      cleanTerm,
+      ...recentSearches.filter((q) => q.toLowerCase() !== cleanTerm.toLowerCase())
+    ].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem("stopshops_recent_searches", JSON.stringify(updated));
+  };
+
+  const removeRecentSearch = (term: string) => {
+    const updated = recentSearches.filter((q) => q !== term);
+    setRecentSearches(updated);
+    localStorage.setItem("stopshops_recent_searches", JSON.stringify(updated));
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    localStorage.removeItem("stopshops_recent_searches");
+  };
+
+  // Fetch search suggestions
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    setSuggestionsOpen(true);
+
+    const controller = new AbortController();
+    const delayDebounceFn = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(searchQuery)}&take=5`, {
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data);
+        }
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.error("Error fetching suggestions", err);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingSuggestions(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(delayDebounceFn);
+      controller.abort();
+    };
+  }, [searchQuery]);
 
   const rafRef = useRef<number>(0);
   const isScrollingRef = useRef(false);
@@ -161,7 +239,7 @@ export const CategoryStrip = () => {
                   setScrollingDown(true);
                 } else if (currentScrollY <= heroHeight) {
                   setScrollingDown(false);
-                  setSearchExpanded(false);
+                  if (!searchExpandedRef.current) setSearchExpanded(false);
                 }
               }
             }
@@ -172,7 +250,7 @@ export const CategoryStrip = () => {
               setScrollingDown(false);
             } else if (currentScrollY <= 120) {
               setScrollingDown(false);
-              setSearchExpanded(false);
+              if (!searchExpandedRef.current) setSearchExpanded(false);
             } else {
               const diff = currentScrollY - lastScrollY;
               if (Math.abs(diff) > 10) { // 10px threshold to prevent bouncing
@@ -229,6 +307,7 @@ export const CategoryStrip = () => {
   const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      addToRecentSearches(searchQuery);
       window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
     }
   };
@@ -238,7 +317,7 @@ export const CategoryStrip = () => {
       className={`fixed lg:sticky z-40 w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-white/85 dark:bg-[#141414]/85 backdrop-blur-md shadow-sm transition-[transform,opacity] duration-300 ease-out top-[95px] lg:top-[112px] ${
         isMobile
           ? (showMobileStrip ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none")
-          : (scrollingDown ? "-translate-y-[80px]" : "translate-y-0")
+          : ((scrollingDown || searchExpanded) ? "-translate-y-[80px]" : "translate-y-0")
       }`}
     >
 
@@ -253,7 +332,7 @@ export const CategoryStrip = () => {
         <div className={`flex items-center justify-between w-full gap-4 transition-all duration-300 ${scrollingDown && isTabletLandscape ? "py-1" : "py-1 sm:py-2 lg:py-1.5 xl:py-2"}`}>
 
           {/* Left Side: Logo (Instantaneous toggle with optimized animation) */}
-          {scrollingDown && (
+          {(scrollingDown || searchExpanded) && (
             <div className="hidden lg:flex items-center gap-2 flex-shrink-0 overflow-hidden animate-in fade-in slide-in-from-left-4 duration-200">
               <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
                 <img
@@ -269,19 +348,25 @@ export const CategoryStrip = () => {
           )}
 
           {/* Center: Category Scroll Container OR Search Input */}
-          <div className="flex-grow flex justify-center items-center overflow-hidden min-w-0">
-            {searchExpanded && scrollingDown ? (
+          <div className="flex-grow flex justify-center items-center overflow-visible min-w-0 min-h-[48px]">
+            {searchExpanded ? (
               /* Expandable Search Input */
               <form
                 onSubmit={handleSearchSubmit}
                 className="flex items-center gap-2 w-full max-w-[500px] mx-auto animate-in fade-in slide-in-from-top-1 duration-200"
               >
                 <div className="relative flex-grow h-10 flex items-center bg-bronze-500/[0.04] dark:bg-white/[0.02] border border-bronze-500/20 hover:border-bronze-500/40 focus-within:border-bronze-500/80 focus-within:bg-surface-card focus-within:shadow-[0_4px_20px_rgba(217,119,6,0.08)] rounded-full transition-all duration-300">
-                  <Search size={14} className="ml-4 text-bronze-500/70" />
+                  <button type="submit" aria-label="Search" className="ml-4 text-bronze-500/70 hover:text-bronze-600 transition-colors">
+                    <Search size={14} />
+                  </button>
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSuggestionsOpen(true);
+                    }}
+                    onFocus={() => setSuggestionsOpen(true)}
                     placeholder="Search premium bronze, copper & brass..."
                     autoFocus
                     className="w-full h-full pl-2 pr-12 bg-transparent text-heading placeholder-muted text-xs focus:outline-none"
@@ -291,12 +376,168 @@ export const CategoryStrip = () => {
                     onClick={() => {
                       setSearchExpanded(false);
                       setSearchQuery("");
+                      setSuggestionsOpen(false);
                     }}
                     className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full hover:bg-orange-500/10 text-muted hover:text-heading flex items-center justify-center transition-colors"
                     aria-label="Close search"
                   >
                     <X size={14} />
                   </button>
+
+                  {/* Suggestions Dropdown */}
+                  {suggestionsOpen && (
+                    <div className="absolute left-0 right-0 mt-2 top-full bg-[var(--surface)] border border-border dark:border-white/10 rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.15)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.45)] z-50 overflow-hidden">
+                      
+                      {!searchQuery.trim() ? (
+                        <div className="p-4 space-y-4">
+                          {/* Recent Searches section */}
+                          {recentSearches.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-[10px] font-bold text-muted uppercase tracking-wider">
+                                <span>Recent Searches</span>
+                                <button 
+                                  type="button" 
+                                  onClick={clearRecentSearches}
+                                  className="hover:text-orange-500 cursor-pointer text-[10px] font-semibold"
+                                >
+                                  Clear All
+                                </button>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {recentSearches.map((term, idx) => (
+                                  <div 
+                                    key={idx} 
+                                    className="flex items-center gap-1.5 bg-bronze-500/[0.05] hover:bg-bronze-500/10 border border-border rounded-full px-3 py-1 text-[11px] text-heading font-medium shrink-0 cursor-pointer"
+                                    onClick={() => {
+                                      addToRecentSearches(term);
+                                      setSearchQuery(term);
+                                      setSuggestionsOpen(true);
+                                      window.location.href = `/products?search=${encodeURIComponent(term)}`;
+                                    }}
+                                  >
+                                    <span>{term}</span>
+                                    <button 
+                                      type="button" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeRecentSearch(term);
+                                      }}
+                                      className="text-muted hover:text-red-500 text-[12px] font-black cursor-pointer leading-none"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Popular/Trending searches */}
+                          <div className="space-y-2">
+                            <div className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                              🔥 Popular Searches
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {[
+                                { term: "Copper Bottle", category: "copper-products" },
+                                { term: "Bronze Kadai", category: "kitchen-utility" },
+                                { term: "Puja Set", category: "pooja-collection" },
+                                { term: "Dinner Plate", category: "dinner-sets" }
+                              ].map((item, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => {
+                                    addToRecentSearches(item.term);
+                                    setSearchQuery(item.term);
+                                    window.location.href = `/products?search=${encodeURIComponent(item.term)}&category=${item.category}`;
+                                  }}
+                                  className="flex items-center gap-2 p-2.5 rounded-xl border border-border bg-surface hover:bg-orange-500/5 hover:border-orange-500/20 text-left cursor-pointer text-body hover:text-orange-500 font-semibold"
+                                >
+                                  <span className="text-[10px]">🔍</span>
+                                  <span className="font-semibold">{item.term}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          {loadingSuggestions && suggestions.length === 0 && (
+                            <div className="p-4 text-center text-xs text-muted">
+                              <span className="inline-block animate-spin mr-2">⏳</span> Searching...
+                            </div>
+                          )}
+                          
+                          {!loadingSuggestions && suggestions.length === 0 && (
+                            <div className="p-4 text-center text-xs text-muted">
+                              No products found for "{searchQuery}"
+                            </div>
+                          )}
+
+                          {suggestions.length > 0 && (
+                            <div className="p-2 space-y-1">
+                              <div className="px-3 py-1.5 text-[10px] font-semibold text-muted tracking-wider uppercase border-b border-border/50">
+                                Suggested Products
+                              </div>
+                              {suggestions.map((product: any) => (
+                                <button
+                                  type="button"
+                                  key={product.id}
+                                  onClick={() => {
+                                    addToRecentSearches(product.name);
+                                    window.location.href = `/product/${product.slug || product.id}`;
+                                    setSearchExpanded(false);
+                                    setSearchQuery("");
+                                    setSuggestionsOpen(false);
+                                  }}
+                                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface-hover rounded-xl cursor-pointer group"
+                                >
+                                  {product.image || product.images?.[0] ? (
+                                    <img
+                                      src={product.image || product.images[0]}
+                                      alt={product.name}
+                                      className="w-10 h-10 object-cover rounded-lg border border-border bg-white shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-bronze-100 dark:bg-bronze-900/40 rounded-lg flex items-center justify-center text-bronze-500 font-bold text-xs shrink-0">
+                                      SSP
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-xs font-bold text-heading truncate group-hover:text-orange-500">
+                                      {product.name}
+                                    </h4>
+                                    <p className="text-[10px] text-muted truncate">
+                                      in {product.category?.name || product.categoryName?.replace(/-/g, " ") || "General"}
+                                    </p>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <span className="text-xs font-bold text-orange-500 dark:text-orange-400">
+                                      {region === "IN" ? "₹" : "$"} {product.price}
+                                    </span>
+                                  </div>
+                                </button>
+                              ))}
+                              
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  addToRecentSearches(searchQuery);
+                                  window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
+                                  setSearchExpanded(false);
+                                  setSuggestionsOpen(false);
+                                }}
+                                className="w-full text-center py-2.5 text-[11px] font-bold text-orange-500 dark:text-orange-400 hover:bg-orange-500/5 rounded-xl border-t border-border/50 cursor-pointer"
+                              >
+                                See all results for "{searchQuery}"
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </form>
             ) : (
@@ -340,12 +581,17 @@ export const CategoryStrip = () => {
           </div>
 
           {/* Right Side: Controls (Instantaneous toggle with optimized animation) */}
-          {scrollingDown && (
+          {(scrollingDown || searchExpanded) && (
             <div className="hidden lg:flex items-center gap-4 flex-shrink-0 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-200">
               {/* Search Icon Toggle */}
               {!searchExpanded && (
                 <button
-                  onClick={() => setSearchExpanded(true)}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSearchExpanded(true);
+                    setSuggestionsOpen(true);
+                  }}
                   className="p-2 hover:bg-orange-500/10 text-muted hover:text-heading rounded-full transition-colors flex-shrink-0"
                   aria-label="Open search"
                 >

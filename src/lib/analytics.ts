@@ -9,6 +9,16 @@ export function trackProductView(productId: number | string, productName?: strin
         detail: { productId, productName, timestamp: new Date().toISOString() },
       })
     );
+
+    // Track in database for recommendation engine
+    const sessionId = sessionStorage.getItem("guest_session") || "guest_" + Math.random().toString(36).substring(7);
+    sessionStorage.setItem("guest_session", sessionId);
+
+    fetch("/api/products/track-view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId, sessionId })
+    }).catch(e => console.warn("Failed to track view in db", e));
   } catch (error) {
     console.warn("Analytics error:", error);
   }

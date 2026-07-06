@@ -8,7 +8,7 @@ export async function PUT(req: NextRequest) {
     if (admin instanceof NextResponse) return admin;
 
     const body = await req.json();
-    const { homepageSections } = body;
+    const { homepageSections, mobileBanners } = body;
 
     const updated = await prisma.adminSettings.upsert({
       where: { id: 1 },
@@ -26,11 +26,12 @@ export async function PUT(req: NextRequest) {
         shiprocketAutoAssign: true,
         shiprocketCourierPriority: "cheapest",
         homepageSections,
+        mobileBanners,
       },
-      update: { homepageSections },
+      update: { homepageSections, mobileBanners },
     });
 
-    return NextResponse.json({ success: true, homepageSections: updated.homepageSections });
+    return NextResponse.json({ success: true, homepageSections: updated.homepageSections, mobileBanners: updated.mobileBanners });
     } catch (error: any) {
       console.error("Admin homepage settings error:", error);
       return NextResponse.json({ error: "Failed to update homepage settings. Error: " + error.message }, { status: 500 });

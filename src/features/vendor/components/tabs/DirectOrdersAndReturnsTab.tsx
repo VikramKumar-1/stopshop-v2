@@ -26,6 +26,8 @@ interface DirectOrdersAndReturnsTabProps {
   orderPage: number;
   orderTotalPages: number;
   loadMoreRef: any;
+  currentTime?: Date;
+  slaHours?: number;
 }
 
 export default function DirectOrdersAndReturnsTab({
@@ -51,6 +53,8 @@ export default function DirectOrdersAndReturnsTab({
   orderPage,
   orderTotalPages,
   loadMoreRef,
+  currentTime,
+  slaHours,
 }: DirectOrdersAndReturnsTabProps) {
   return (
     <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
@@ -151,6 +155,7 @@ export default function DirectOrdersAndReturnsTab({
                     <td className="p-4">
                       <div className="flex flex-col gap-1.5 max-w-[200px] min-w-[150px]">
                         <div>
+                          <span className="font-mono font-bold text-[11px] text-orange-500 block mb-0.5">{order.orderNumber || order.id}</span>
                           <span className="font-bold text-heading text-xs tracking-tight block">{order.shippingName}</span>
                           <span className="text-[10px] text-muted font-medium">📍 {order.shippingCity}, {order.shippingState}</span>
                         </div>
@@ -210,7 +215,7 @@ export default function DirectOrdersAndReturnsTab({
                     {/* Amount Paid */}
                     <td className="p-4 text-center whitespace-nowrap">
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-heading text-xs">₹{((order.totalPaise || 0) / 100).toLocaleString()}</span>
+                        <span className="font-bold text-heading text-xs">₹{((order.totalPaise || 0) / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         <div className="flex gap-1 items-center mt-1 justify-center">
                           <span className={`border font-bold px-1.5 py-0.5 rounded text-[8px] uppercase ${order.paymentStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
                             {order.paymentStatus || "PAID"}
@@ -237,6 +242,31 @@ export default function DirectOrdersAndReturnsTab({
                            currentStatus === "RETURN_APPROVED" ? "Incoming Return" : 
                            currentStatus === "RETURN_RECEIVED" ? "QC Disputed" : currentStatus}
                         </span>
+
+                        {/* SLA Countdown Timer Badge */}
+                        {(currentStatus === "RETURN_RECEIVED" || (currentStatus === "RETURN_APPROVED" && order.returnRequest?.vendorDeliveredAt)) && (
+                          (() => {
+                            const deliveredTime = order.returnRequest?.vendorDeliveredAt 
+                              ? new Date(order.returnRequest.vendorDeliveredAt).getTime() 
+                              : new Date(order.updatedAt || order.createdAt).getTime();
+                            const deadline = deliveredTime + 24 * 60 * 60 * 1000;
+                            const diffMs = deadline - (currentTime ? currentTime.getTime() : Date.now());
+                            if (diffMs <= 0) {
+                              return (
+                                <span className="text-[9px] bg-red-500/10 text-red-600 dark:text-red-400 font-bold px-2 py-0.5 rounded border border-red-500/30 animate-pulse mt-0.5">
+                                  ⏰ SLA Expired (Auto-Refund)
+                                </span>
+                              );
+                            }
+                            const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+                            const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                            return (
+                              <span className="text-[9px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold px-2 py-0.5 rounded border border-amber-500/30 mt-0.5">
+                                ⏳ SLA: <strong className="text-red-500 font-black">{hoursLeft}h {minutesLeft}m left</strong>
+                              </span>
+                            );
+                          })()
+                        )}
 
                         {/* Progress Stepper for Vendor */}
                         {!currentStatus.includes("RETURN") && currentStatus !== "CANCELLED" && (
@@ -417,29 +447,70 @@ export default function DirectOrdersAndReturnsTab({
                         </div>
                       )}
                       {(currentStatus === "RETURN_RECEIVED" || (currentStatus === "RETURN_APPROVED" && order.returnRequest?.vendorDeliveredAt)) && (
-                        order.returnRequest?.status === "RECEIVED_AT_WAREHOUSE" ? (
-                          <button
-                            type="button"
-                            disabled
-                            className="px-3 py-1.5 text-[10px] text-muted bg-border rounded-xl font-bold cursor-not-allowed"
-                          >
-                            Dispute Under Admin Review
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={savingOrderId === order.id}
-                            onClick={() => {
-                              setIsDisputing(false);
-                              setQcImages([]);
-                              setQcNotes("");
-                              setReviewReturnOrder(order);
-                            }}
-                            className={`px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl font-bold shadow-sm shadow-red-500/10 transition-all duration-200 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            Review Delivered Return (QC)
-                          </button>
-                        )
+                        <div className="flex flex-col items-end gap-2">
+                          {(() => {
+                            const deliveredTime = order.returnRequest?.vendorDeliveredAt 
+                              ? new Date(order.returnRequest.vendorDeliveredAt).getTime() 
+                              : new Date(order.updatedAt || order.createdAt).getTime();
+                            const deadline = deliveredTime + 24 * 60 * 60 * 1000;
+                            const diffMs = deadline - (currentTime ? currentTime.getTime() : Date.now());
+                            if (diffMs <= 0) {
+                              return (
+                                <span className="text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 font-bold px-2.5 py-1 rounded-lg border border-red-500/30 animate-pulse flex items-center gap-1 shadow-sm">
+                                  ⏰ SLA Expired (Auto-Refund Soon)
+                                </span>
+                              );
+                            }
+                            const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+                            const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                            return (
+                              <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold px-2.5 py-1 rounded-lg border border-amber-500/30 flex items-center gap-1 shadow-sm">
+                                ⏳ SLA Time Left: <strong className="text-red-500 font-black">{hoursLeft}h {minutesLeft}m</strong>
+                              </span>
+                            );
+                          })()}
+                          {order.returnRequest?.status === "RECEIVED_AT_WAREHOUSE" ? (
+                            <button
+                              type="button"
+                              disabled
+                              className="px-3 py-1.5 text-[10px] text-muted bg-border rounded-xl font-bold cursor-not-allowed"
+                            >
+                              Dispute Under Admin Review
+                            </button>
+                          ) : (() => {
+                            const deliveredTime = order.returnRequest?.vendorDeliveredAt 
+                              ? new Date(order.returnRequest.vendorDeliveredAt).getTime() 
+                              : new Date(order.updatedAt || order.createdAt).getTime();
+                            const deadline = deliveredTime + (slaHours || 24) * 60 * 60 * 1000;
+                            const isExpired = deadline - (currentTime ? currentTime.getTime() : Date.now()) <= 0;
+                            if (isExpired) {
+                              return (
+                                <button
+                                  type="button"
+                                  disabled
+                                  className="px-3 py-1.5 text-[10px] text-red-500 bg-red-500/10 border border-red-500/20 rounded-xl font-bold cursor-not-allowed"
+                                >
+                                  ⏰ SLA Expired (Dispute Closed)
+                                </button>
+                              );
+                            }
+                            return (
+                              <button
+                                type="button"
+                                disabled={savingOrderId === order.id}
+                                onClick={() => {
+                                  setIsDisputing(false);
+                                  setQcImages([]);
+                                  setQcNotes("");
+                                  setReviewReturnOrder(order);
+                                }}
+                                className={`px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl font-bold shadow-sm shadow-red-500/10 transition-all duration-200 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                Review Delivered Return (QC)
+                              </button>
+                            );
+                          })()}
+                        </div>
                       )}
                     </td>
                   </tr>

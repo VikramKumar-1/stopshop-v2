@@ -173,7 +173,10 @@ exports.Prisma.ProductScalarFieldEnum = {
   newLaunch: 'newLaunch',
   active: 'active',
   createdAt: 'createdAt',
-  vendorId: 'vendorId'
+  vendorId: 'vendorId',
+  crossSellIds: 'crossSellIds',
+  bundleDiscountType: 'bundleDiscountType',
+  bundleDiscountValue: 'bundleDiscountValue'
 };
 
 exports.Prisma.InquiryScalarFieldEnum = {
@@ -348,6 +351,7 @@ exports.Prisma.AdminSettingsScalarFieldEnum = {
   shiprocketAutoAssign: 'shiprocketAutoAssign',
   shiprocketCourierPriority: 'shiprocketCourierPriority',
   homepageSections: 'homepageSections',
+  mobileBanners: 'mobileBanners',
   updatedAt: 'updatedAt'
 };
 
@@ -392,6 +396,7 @@ exports.Prisma.CouponScalarFieldEnum = {
   maxUses: 'maxUses',
   maxUsesPerUser: 'maxUsesPerUser',
   usedCount: 'usedCount',
+  isFirstOrderOnly: 'isFirstOrderOnly',
   isActive: 'isActive',
   isAutoApply: 'isAutoApply',
   startsAt: 'startsAt',
@@ -427,6 +432,37 @@ exports.Prisma.TargetedOfferScalarFieldEnum = {
   isActive: 'isActive',
   isClaimed: 'isClaimed',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.ProductViewScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  productId: 'productId',
+  sessionId: 'sessionId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ProductPairScalarFieldEnum = {
+  id: 'id',
+  productA: 'productA',
+  productB: 'productB',
+  score: 'score'
+};
+
+exports.Prisma.CartScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CartItemScalarFieldEnum = {
+  id: 'id',
+  cartId: 'cartId',
+  productId: 'productId',
+  quantity: 'quantity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -470,7 +506,11 @@ exports.Prisma.ModelName = {
   Review: 'Review',
   Coupon: 'Coupon',
   UserIntent: 'UserIntent',
-  TargetedOffer: 'TargetedOffer'
+  TargetedOffer: 'TargetedOffer',
+  ProductView: 'ProductView',
+  ProductPair: 'ProductPair',
+  Cart: 'Cart',
+  CartItem: 'CartItem'
 };
 
 /**

@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
          return order; // Already verified (maybe webhook hit first)
       }
 
-      // 3. Deduct Stock
+      // 3. Deduct Stock and Track Co-Purchases
       for (const item of order.items) {
         const product = await tx.product.findUnique({ where: { id: item.productId } });
         if (!product || product.stock < item.quantity) {
@@ -54,6 +54,22 @@ export async function POST(req: NextRequest) {
           where: { id: item.productId },
           data: { stock: { decrement: item.quantity } }
         });
+      }
+
+      // Track 'Frequently Bought Together' pairs
+      if (order.items.length > 1) {
+        for (let i = 0; i < order.items.length; i++) {
+          for (let j = i + 1; j < order.items.length; j++) {
+            const pA = Math.min(order.items[i].productId, order.items[j].productId);
+            const pB = Math.max(order.items[i].productId, order.items[j].productId);
+            
+            await tx.productPair.upsert({
+              where: { productA_productB: { productA: pA, productB: pB } },
+              update: { score: { increment: 1 } },
+              create: { productA: pA, productB: pB, score: 1 }
+            });
+          }
+        }
       }
 
       // 4. Calculate Commission

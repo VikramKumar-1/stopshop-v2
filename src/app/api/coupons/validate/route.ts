@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     // Let's allow guest cart validation as well, but limit usage check to authenticated users
     
     const body = await req.json();
-    const { code, cartItems, paymentMethod = "razorpay", country = "IN" } = body;
+    const { code, cartItems, paymentMethod = "razorpay", country = "IN", isBundle } = body;
 
     if (!code || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
       return NextResponse.json({ error: "Code and cartItems are required" }, { status: 400 });
@@ -38,22 +38,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ valid: false, error: "This coupon has reached its usage limit" });
     }
 
-    // Check per-user limit
-    if (user && coupon.maxUsesPerUser) {
-      const userUses = await prisma.order.count({
-        where: {
-          userId: user.userId,
-          couponCode: coupon.code,
-          status: { notIn: ["PENDING", "CANCELLED", "FAILED"] }
+    // Check per-user limits and first order constraint
+    if (user) {
+      if (coupon.isFirstOrderOnly) {
+        const totalSuccessfulOrders = await prisma.order.count({
+          where: {
+            userId: user.userId,
+            status: { notIn: ["PENDING", "CANCELLED", "FAILED"] }
+          }
+        });
+        if (totalSuccessfulOrders > 0) {
+          return NextResponse.json({ valid: false, error: "This coupon is only valid for your first order" });
         }
-      });
-      if (userUses >= coupon.maxUsesPerUser) {
-        return NextResponse.json({ valid: false, error: "You have exceeded the usage limit for this coupon" });
+      }
+
+      if (coupon.maxUsesPerUser) {
+        const userUses = await prisma.order.count({
+          where: {
+            userId: user.userId,
+            couponCode: coupon.code,
+            status: { notIn: ["PENDING", "CANCELLED", "FAILED"] }
+          }
+        });
+        if (userUses >= coupon.maxUsesPerUser) {
+          return NextResponse.json({ valid: false, error: "You have exceeded the usage limit for this coupon" });
+        }
       }
     }
 
     // Let the pricing engine handle the vendor filtering and discount calculation
-    const pricing = await calculateOrderPricing(cartItems, paymentMethod, country, coupon.code);
+    const pricing = await calculateOrderPricing(cartItems, paymentMethod, country, coupon.code, isBundle, user?.userId);
     
     if (!pricing.couponCode) {
       return NextResponse.json({ valid: false, error: "Coupon is not applicable to any items in your cart, or does not meet the minimum order amount." });

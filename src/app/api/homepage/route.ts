@@ -6,13 +6,14 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const settings = await prisma.adminSettings.findFirst({
-      select: { homepageSections: true },
+      select: { homepageSections: true, mobileBanners: true },
     });
 
     const sections = (settings?.homepageSections as any[] | null) || [];
+    const mobileBanners = (settings?.mobileBanners as any[] | null) || [];
 
     if (sections.length === 0) {
-      return NextResponse.json({ sections: [] });
+      return NextResponse.json({ sections: [], mobileBanners });
     }
 
     // Collect all product IDs from all sections
@@ -50,9 +51,9 @@ export async function GET() {
       })
       .filter((sec: any) => sec.products.length > 0);
 
-    return NextResponse.json({ sections: populatedSections });
+    return NextResponse.json({ sections: populatedSections, mobileBanners });
   } catch (error: any) {
     console.error("Homepage sections error:", error);
-    return NextResponse.json({ sections: [] });
+    return NextResponse.json({ sections: [], mobileBanners: [] });
   }
 }

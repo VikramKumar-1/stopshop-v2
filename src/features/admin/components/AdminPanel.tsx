@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store, Loader2, Globe, Eye, History, Tag } from "lucide-react";
 import { currencyDatabase } from "@/context/RegionContext";
 import { jsPDF } from "jspdf";
@@ -114,15 +116,23 @@ export const AdminPanel = () => {
       if (autoRetryRef.current) clearTimeout(autoRetryRef.current);
     };
   }, [fetchError, isLoadingData, autoRetryCount]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [orderStats, setOrderStats] = useState<any[]>([]);
   const [orderPage, setOrderPage] = useState(1);
-  const [orderTotalPages, setOrderTotalPages] = useState(1);
   const [fetchingOrders, setFetchingOrders] = useState(false);
-  const [returns, setReturns] = useState<any[]>([]);
-  const [settlements, setSettlements] = useState<any[]>([]);
-  const [apiGroupedSettlements, setApiGroupedSettlements] = useState<any[]>([]);
-  const [apiSettlementSummary, setApiSettlementSummary] = useState<any>(null);
+
+  const { data: ordersData, mutate: mutateOrders } = useSWR(authorized ? `/api/orders?page=${orderPage}&limit=20&getStats=true` : null, fetcher);
+  const orders = ordersData?.orders || [];
+  const orderStats = ordersData?.stats || [];
+  const orderTotalPages = ordersData?.pagination?.totalPages || 1;
+
+  const { data: returnsData, mutate: mutateReturns } = useSWR(authorized ? '/api/returns' : null, fetcher);
+  const returns = returnsData?.returns || [];
+
+  const { data: settlementsData, mutate: mutateSettlements } = useSWR(authorized ? '/api/admin/settlements' : null, fetcher);
+  const settlements = settlementsData?.settlements || [];
+  const apiGroupedSettlements = settlementsData?.groupedSettlements || [];
+  const apiSettlementSummary = settlementsData?.summary || null;
+
+  const { data: statsData, mutate: mutateStats } = useSWR(null, fetcher);
 
   const { groupedSettlements, settlementSummary } = useMemo(() => {
      if (!apiGroupedSettlements || apiGroupedSettlements.length === 0) return { groupedSettlements: [], settlementSummary: null };
@@ -179,13 +189,19 @@ export const AdminPanel = () => {
   const [settings, setSettings] = useState<any>(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const [inquiries, setInquiries] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [dbCategories, setDbCategories] = useState<any[]>([]);
-  const [vendors, setVendors] = useState<any[]>([]);
+  const { data: productsData, mutate: mutateProducts } = useSWR(authorized ? '/api/products' : null, fetcher);
+  const products = productsData || [];
+  
+  const { data: categoriesData, mutate: mutateCategories } = useSWR(authorized ? '/api/categories' : null, fetcher);
+  const dbCategories = categoriesData || [];
+  
+  const { data: vendorsData, mutate: mutateVendors } = useSWR(authorized ? '/api/admin/vendors' : null, fetcher);
+  const vendors = vendorsData?.vendors || [];
   const [selectedInquiryMessage, setSelectedInquiryMessage] = useState<string | null>(null);
   
   // Homepage CMS State
   const [homepageSections, setHomepageSections] = useState<{ slug: string, title?: string, productIds: number[] }[]>([]);
+  const [mobileBanners, setMobileBanners] = useState<any[]>([]);
   const [editingSectionSlug, setEditingSectionSlug] = useState<string | null>(null);
   const [cmsProductSearch, setCmsProductSearch] = useState("");
   const [savingHomepage, setSavingHomepage] = useState(false);
@@ -337,37 +353,13 @@ export const AdminPanel = () => {
   };
 
   const fetchOrders = async (page: number) => {
-    setFetchingOrders(true);
-    const controller = new AbortController();
-    // 15s timeout — prevents infinite skeleton when server just restarted
-    const abortTimer = setTimeout(() => controller.abort(), 15000);
-    try {
-      const getStatsQuery = page === 1 ? "&getStats=true" : "";
-      const res = await fetch(`/api/orders?page=${page}&limit=10&t=${Date.now()}${getStatsQuery}`, { signal: controller.signal });
-      if (res.ok) {
-        const data = await res.json();
-        setOrders(prev => page === 1 ? (data.orders || []) : [...prev, ...(data.orders || [])]);
-        if (page === 1 && data.stats) {
-          setOrderStats(data.stats);
-        }
-        if (data.pagination) setOrderTotalPages(data.pagination.totalPages || 1);
-        setFetchError(false); // clear error on success
-        setAutoRetryCount(0); // reset retry counter
-      } else {
-        setFetchError(true);
-      }
-    } catch (err) {
-      console.error("[fetchOrders] Failed or timed out:", err);
-      setFetchError(true);
-    } finally {
-      clearTimeout(abortTimer);
-      setFetchingOrders(false);
-    }
+    setOrderPage(page);
+    mutateOrders();
   };
 
   useEffect(() => {
     if (authorized) {
-      fetchOrders(orderPage);
+      mutateOrders();
     }
   }, [orderPage, authorized]);
 
@@ -385,45 +377,15 @@ export const AdminPanel = () => {
   }, [fetchingOrders, orderPage, orderTotalPages]);
 
   // Targeted refresh functions — only reload what changed
-  const fetchVendors = async () => {
-    try {
-      const res = await fetch(`/api/admin/vendors?t=${Date.now()}`);
-      if (res.ok) setVendors((await res.json()).vendors || []);
-    } catch (e) { console.error("Failed to load vendors", e); }
-  };
-
-  const fetchProducts = async () => {
-    try {
-      const res = await fetch(`/api/products?t=${Date.now()}`);
-      if (res.ok) setProducts(await res.json());
-    } catch (e) { console.error("Failed to load products", e); }
-  };
-
-  const fetchSettlements = async () => {
-    try {
-      const res = await fetch(`/api/admin/settlements?t=${Date.now()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSettlements(data.settlements || []);
-        setApiGroupedSettlements(data.groupedSettlements || []);
-        setApiSettlementSummary(data.summary);
-      }
-    } catch (e) { console.error("Failed to load settlements", e); }
-  };
-
-  const fetchReturns = async () => {
-    try {
-      const res = await fetch(`/api/returns?t=${Date.now()}`);
-      if (res.ok) setReturns((await res.json()).returns || []);
-    } catch (e) { console.error("Failed to load returns", e); }
-  };
+  const fetchVendors = async () => mutateVendors();
+  const fetchProducts = async () => mutateProducts();
+  const fetchSettlements = async () => mutateSettlements();
+  const fetchReturns = async () => mutateReturns();
 
   const fetchData = async (silent = false) => {
     if (!silent) setIsLoadingData(true);
     const controller = new AbortController();
     const signal = controller.signal;
-    // Long timeout — dev server needs time to compile routes on cold start.
-    // Don't abort too early or we'll miss a successful compile finishing.
     const abortTimer = setTimeout(() => controller.abort(), 60000);
     try {
       const fetchWithSignal = (url: string) => {
@@ -431,68 +393,44 @@ export const AdminPanel = () => {
          return fetch(`${url}${symbol}t=${Date.now()}`, { signal });
       };
 
-      // allSettled — one slow/failing API never blocks the rest
       const results = await Promise.allSettled([
-         fetchWithSignal("/api/returns"),
-         fetchWithSignal("/api/admin/settlements"),
          fetchWithSignal("/api/admin/settings"),
-         fetchWithSignal("/api/inquiries"),
-         fetchWithSignal("/api/products"),
-         fetchWithSignal("/api/categories"),
-         fetchWithSignal("/api/admin/vendors")
+         fetchWithSignal("/api/inquiries")
       ]);
 
       const getRes = (i: number) => results[i].status === "fulfilled" ? (results[i] as PromiseFulfilledResult<Response>).value : null;
-      const rRes = getRes(0);
-      const sRes = getRes(1);
-      const setRes = getRes(2);
-      const inqRes = getRes(3);
-      const prodRes = getRes(4);
-      const catRes = getRes(5);
-      const vRes = getRes(6);
+      const setRes = getRes(0);
+      const inqRes = getRes(1);
 
       const anySuccess = results.some(r => r.status === "fulfilled" && (r as PromiseFulfilledResult<Response>).value?.ok);
 
-      if (rRes?.ok) setReturns((await rRes.json()).returns || []);
-      if (sRes?.ok) {
-         const data = await sRes.json();
-         setSettlements(data.settlements || []);
-         const freshGrouped = data.groupedSettlements || [];
-         setApiGroupedSettlements(freshGrouped);
-         setApiSettlementSummary(data.summary);
-         
-         setSelectedVendorSettlement((prev: any) => {
-            if (!prev) return null;
-            const freshVendorData = freshGrouped.find((g: any) => g.vendor.id === prev.vendor.id);
-            return freshVendorData || prev;
-         });
-      }
       if (setRes?.ok) {
          const settingsData = (await setRes.json()).settings;
          setSettings(settingsData);
          if (settingsData?.homepageSections) {
            setHomepageSections(settingsData.homepageSections);
          }
+         if (settingsData?.mobileBanners) {
+           setMobileBanners(settingsData.mobileBanners);
+         }
       }
       if (inqRes?.ok) setInquiries(await inqRes.json());
-      if (prodRes?.ok) setProducts(await prodRes.json());
-      if (catRes?.ok) {
-         const data = await catRes.json();
-         setDbCategories(data);
-         if (data.length > 0) setSelectedCategorySlug(data[0].slug);
-         setLoadingCategories(false);
-      }
-      if (vRes?.ok) setVendors((await vRes.json()).vendors || []);
 
       if (anySuccess) {
         setFetchError(false);
         setAutoRetryCount(0);
       } else {
-        // All APIs failed — server may be down or still compiling past 60s
         setFetchError(true);
       }
+
+      mutateOrders();
+      mutateReturns();
+      mutateSettlements();
+      mutateProducts();
+      mutateCategories();
+      mutateVendors();
+      mutateStats();
     } catch (e: any) {
-      // AbortError = timeout (60s safety net hit) — treat as retryable
       if (e?.name === 'AbortError') {
         setFetchError(true);
       } else {
@@ -559,7 +497,7 @@ export const AdminPanel = () => {
   };
 
   const generateInvoice = (s: any) => {
-    const vendorObj = vendors.find(v => v.id === s.vendorId);
+    const vendorObj = vendors.find((v: any) => v.id === s.vendorId);
     const doc = new jsPDF();
     
     // Header Style - Brand Banner
@@ -569,7 +507,7 @@ export const AdminPanel = () => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(255, 255, 255);
-    doc.text("STOPSHOPS B2B MARKETPLACE", 20, 20);
+    doc.text("STOPSHOP B2B MARKETPLACE", 20, 20);
     
     // Title & Invoice Info
     doc.setTextColor(0, 0, 0);
@@ -584,13 +522,13 @@ export const AdminPanel = () => {
     doc.line(15, 46, 195, 46);
     
     // B2B Details Grid
-    // Column 1: Provider (StopShops)
+    // Column 1: Provider (StopShop)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("Service Provider Details (StopShops):", 15, 54);
+    doc.text("Service Provider Details (StopShop):", 15, 54);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    const cName = settings?.companyName || "StopShops Private Limited";
+    const cName = settings?.companyName || "StopShop Private Limited";
     const cAddress = settings?.companyAddress || "Sector 62, Noida, Uttar Pradesh, India - 201301";
     const cGstin = settings?.companyGstin || "09AAECS8721M1Z5";
     const cPan = settings?.companyPan || "AAECS8721M";
@@ -696,7 +634,7 @@ export const AdminPanel = () => {
     doc.line(15, contentStartY + 92, 195, contentStartY + 92);
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
-    doc.text("Thank you for partnering with StopShops Marketplace.", 105, contentStartY + 98, { align: "center" });
+    doc.text("Thank you for partnering with StopShop Marketplace.", 105, contentStartY + 98, { align: "center" });
     
     doc.save(`Commission_Invoice_${s.order.orderNumber}.pdf`);
   };
@@ -750,7 +688,7 @@ export const AdminPanel = () => {
       });
       if (res.ok) {
         // Optimistic update locally first, then sync from server
-        setProducts(prev => prev.map(p => p.id === id ? { ...p, active: !currentActive } : p));
+        mutateProducts(products.map((p: any) => p.id === id ? { ...p, active: !currentActive } : p), false);
         showToast(`Product ${action}d successfully.`, "success");
       } else {
         showToast(`Failed to ${action} product.`, "error");
@@ -765,8 +703,8 @@ export const AdminPanel = () => {
     try {
       // Validation: Ensure all selected products belong to the selected category
       const invalidProducts = selectedProducts
-        .map(id => products.find(p => p.id === id))
-        .filter(p => p && p.categoryName !== selectedCategorySlug);
+        .map((id: number) => products.find((p: any) => p.id === id))
+        .filter((p: any) => p && p.categoryName !== selectedCategorySlug);
 
       if (invalidProducts.length > 0) {
         showToast(`Cannot assign! You selected ${invalidProducts.length} product(s) that belong to a different category than the target section. Please only assign products that match the section's category.`, "error");
@@ -774,7 +712,7 @@ export const AdminPanel = () => {
       }
 
       const secIdx = homepageSections.findIndex((s:any) => s.slug === selectedCategorySlug);
-      const cat = dbCategories.find(c => c.slug === selectedCategorySlug);
+      const cat = dbCategories.find((c: any) => c.slug === selectedCategorySlug);
       let newSections = [...homepageSections];
       
       if (secIdx > -1) {
@@ -819,11 +757,11 @@ export const AdminPanel = () => {
     setAutoRetryCount(0); // reset auto-retry counter so it can retry again if this also fails
     showToast(`Refreshing ${activeTab}...`, "success");
     try {
-      if (activeTab === "orders") await fetchOrders(1);
-      else if (activeTab === "returns") await fetchReturns();
-      else if (activeTab === "settlements") await fetchSettlements();
-      else if (activeTab === "vendors") await fetchVendors();
-      else if (activeTab === "products") await fetchProducts();
+      if (activeTab === "orders") await mutateOrders();
+      else if (activeTab === "returns") await mutateReturns();
+      else if (activeTab === "settlements") await mutateSettlements();
+      else if (activeTab === "vendors") await mutateVendors();
+      else if (activeTab === "products") await mutateProducts();
       else await fetchData(); // Fallback for settings, homepage, inquiries
     } finally {
       setIsLoadingData(false);
@@ -905,7 +843,7 @@ export const AdminPanel = () => {
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold">StopShops Admin</h1>
+            <h1 className="text-2xl font-display font-bold">StopShop Admin</h1>
             <p className="text-xs text-slate-300 mt-1">Master Dashboard</p>
           </div>
           <button onClick={handleLogout} className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">
@@ -1106,6 +1044,8 @@ export const AdminPanel = () => {
             <HomepageTab
               homepageSections={homepageSections}
               setHomepageSections={setHomepageSections}
+              mobileBanners={mobileBanners}
+              setMobileBanners={setMobileBanners}
               dbCategories={dbCategories}
               products={products}
               editingSectionSlug={editingSectionSlug}
@@ -1194,7 +1134,7 @@ export const AdminPanel = () => {
                   <h2 className="text-2xl font-black text-heading leading-tight mb-2">{modalProduct.name}</h2>
                   <div className="mb-4">
                     <p className="text-sm font-bold text-blue-500">
-                      Seller: <span className="text-muted">{vendors.find(v => String(v.id) === String(modalProduct.vendorId))?.name || "Admin"}</span>
+                      Seller: <span className="text-muted">{vendors.find((v: any) => String(v.id) === String(modalProduct.vendorId))?.name || "Admin"}</span>
                     </p>
                   </div>
                   
@@ -1253,7 +1193,7 @@ export const AdminPanel = () => {
       {/* VENDOR PROFILE MODAL */}
       {vendorProfileModal && (() => {
         const v = vendorProfileModal;
-        const vProductsCount = products.filter(p => p.vendorId === v.id).length;
+        const vProductsCount = products.filter((p: any) => p.vendorId === v.id).length;
         
         return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in">
@@ -1328,7 +1268,7 @@ export const AdminPanel = () => {
                             const newValue = !v.payoutsPaused;
                             const updatedVendorOptimistic = { ...v, payoutsPaused: newValue };
                             setVendorProfileModal(updatedVendorOptimistic);
-                            setVendors(vendors.map(vendor => vendor.id === v.id ? updatedVendorOptimistic : vendor));
+                            mutateVendors({ ...vendorsData, vendors: vendors.map((vendor: any) => vendor.id === v.id ? updatedVendorOptimistic : vendor) }, false);
                             
                             try {
                                await fetch(`/api/admin/vendors/${v.id}/hold-payouts`, {
@@ -1387,7 +1327,7 @@ export const AdminPanel = () => {
                       onClick={async () => {
                         const updatedVendorOptimistic = { ...v, allowedCategories: null };
                         setVendorProfileModal(updatedVendorOptimistic);
-                        setVendors(vendors.map(vendor => vendor.id === v.id ? updatedVendorOptimistic : vendor));
+                        mutateVendors({ ...vendorsData, vendors: vendors.map((vendor: any) => vendor.id === v.id ? updatedVendorOptimistic : vendor) }, false);
                         
                         await fetch(`/api/admin/vendors/${v.id}/permissions`, {
                           method: "PUT",
@@ -1401,7 +1341,7 @@ export const AdminPanel = () => {
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {dbCategories.map(cat => {
+                    {dbCategories.map((cat: any) => {
                       const allowedList = v.allowedCategories ? v.allowedCategories.split(',').map((c:string) => c.trim()).filter(Boolean) : [];
                       const isAllowed = v.allowedCategories === null || allowedList.includes(cat.slug);
                       return (
@@ -1414,14 +1354,14 @@ export const AdminPanel = () => {
                               
                               let currentList: string[] = v.allowedCategories ? v.allowedCategories.split(',').map((c:string) => c.trim()).filter(Boolean) : [];
                               if (v.allowedCategories === null) {
-                                currentList = dbCategories.map(c => c.slug);
+                                currentList = dbCategories.map((c: any) => c.slug);
                               }
                               
                               let newList;
                               if (checked) {
                                 newList = [...currentList, cat.slug];
                               } else {
-                                newList = currentList.filter(slug => slug !== cat.slug);
+                                newList = currentList.filter((c: string) => c !== cat.slug);
                               }
                               
                               // If they deselected everything, it should be an empty string, NOT null (null means allow all).
@@ -1431,7 +1371,7 @@ export const AdminPanel = () => {
                               // Optimistic Update
                               const updatedVendorOptimistic = { ...v, allowedCategories: allowedStr };
                               setVendorProfileModal(updatedVendorOptimistic);
-                              setVendors(vendors.map(vendor => vendor.id === v.id ? updatedVendorOptimistic : vendor));
+                              mutateVendors({ ...vendorsData, vendors: vendors.map((vendor: any) => vendor.id === v.id ? updatedVendorOptimistic : vendor) }, false);
 
                               const res = await fetch(`/api/admin/vendors/${v.id}/permissions`, {
                                 method: "PUT",
@@ -1441,7 +1381,7 @@ export const AdminPanel = () => {
                               if (!res.ok) {
                                 // Revert on failure
                                 setVendorProfileModal(v);
-                                setVendors(vendors.map(vendor => vendor.id === v.id ? v : vendor));
+                                mutateVendors({ ...vendorsData, vendors: vendors.map((vendor: any) => vendor.id === v.id ? v : vendor) }, false);
                                 showToast("Failed to update permission", "error");
                               }
                             }}

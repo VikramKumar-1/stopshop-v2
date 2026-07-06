@@ -2,7 +2,7 @@
 import React, { useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { AlertCircle, RefreshCcw, ArrowLeft, ShieldAlert } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 function CheckoutFailureContent() {
@@ -14,86 +14,106 @@ function CheckoutFailureContent() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-surface flex items-center justify-center p-4 pt-[16px] md:pt-[120px] pb-28 sm:pb-16">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-red-500/15 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
+    <div className="min-h-screen w-full bg-[#101012] flex items-center justify-center p-4 pt-28 sm:pt-32 pb-12 overflow-x-hidden relative font-sans">
+      {/* Subtle ambient luxury glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-rose-500/5 rounded-full blur-[140px] pointer-events-none" />
       
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.96, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-md w-full bg-surface-card border border-border rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_60px_rgba(239,68,68,0.12)] relative backdrop-blur-xl flex flex-col overflow-hidden"
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-md w-full bg-[#1c1c1e] border border-zinc-800/80 rounded-[28px] p-6 sm:p-8 shadow-2xl relative flex flex-col overflow-hidden transform-gpu"
       >
-        {/* Top Full Red Div */}
-        <div className="bg-gradient-to-tr from-[#3b070c] via-[#5b0e12] to-[#450a0d] px-4 py-6 text-center relative z-10 shrink-0">
+        {/* Top Alert Icon */}
+        <div className="relative w-16 h-16 mx-auto mb-5 flex items-center justify-center z-10 shrink-0">
           <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-950/40 text-red-400 border border-red-500/30 flex items-center justify-center mx-auto shadow-xl mb-3 sm:mb-4"
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 220, damping: 15, delay: 0.1 }}
+            className="w-16 h-16 rounded-full bg-[#3a1018] border border-rose-500/30 flex items-center justify-center shadow-[0_0_25px_rgba(244,63,94,0.25)] relative z-10 transform-gpu"
           >
             <motion.div
               animate={{ rotate: [-5, 5, -5, 5, 0] }}
-              transition={{ duration: 0.5, delay: 0.5 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <AlertCircle size={28} className="sm:w-8 sm:h-8 text-red-400" strokeWidth={3} />
+              <AlertCircle size={32} strokeWidth={3} className="text-[#f43f5e]" />
             </motion.div>
           </motion.div>
-          
-          <h1 className="text-xl sm:text-2xl font-display font-extrabold text-white tracking-tight mb-1 drop-shadow-sm">
-            Payment Failed
-          </h1>
-          <p className="text-[10px] sm:text-xs text-rose-100/90 max-w-sm mx-auto font-medium leading-relaxed">
-            We couldn't process your payment. Don't worry, no charges were made.
-          </p>
         </div>
+        
+        {/* Title & Subtitle */}
+        <motion.div 
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center relative z-10 shrink-0"
+        >
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Payment failed
+          </h1>
+          <p className="text-sm text-zinc-400 font-medium mt-1.5 mb-6">
+            Don&apos;t worry, no charges were made
+          </p>
+        </motion.div>
 
-        {/* Error Details Card */}
-        <div className="p-4 sm:p-5 relative z-10 flex-grow bg-surface-card flex flex-col justify-between">
+        {/* Error Details Body */}
+        <div className="relative z-10 flex-grow flex flex-col justify-between">
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="space-y-4"
+            className="space-y-5"
           >
-            {/* Reason Box */}
-            <div className="flex gap-2 bg-red-500/5 border border-red-500/10 p-3 rounded-xl">
-              <ShieldAlert className="text-red-500 shrink-0 mt-0.5" size={14} />
-              <div className="min-w-0">
-                <p className="text-[10px] sm:text-xs font-extrabold text-heading">Error Reason</p>
-                <p className="text-[9px] sm:text-[10px] text-red-600 dark:text-red-400 mt-0.5 leading-snug capitalize font-semibold">
+            {/* Dark Error Summary Box */}
+            <div className="bg-[#121214] border border-zinc-800/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-inner">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-zinc-400 font-medium">Status</span>
+                <span className="font-bold text-rose-500 tracking-wide uppercase">
+                  Declined / Failed
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-zinc-400 font-medium">Error reason</span>
+                <span className="font-bold text-white capitalize text-right">
                   {reason.replace(/_/g, ' ')}
-                </p>
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-zinc-400 font-medium">Refund guarantee</span>
+                <span className="font-bold text-emerald-400 text-right">
+                  100% Auto-Refund if debited
+                </span>
               </div>
             </div>
 
-            <div className="text-center">
-              <p className="text-[9px] sm:text-[10px] text-body font-semibold">
-                Please try again with a different payment method, or contact your bank if the issue persists.
-              </p>
-            </div>
+            {/* Subtle Divider Line */}
+            <div className="h-px bg-zinc-800/80 w-full" />
+
+            <p className="text-xs text-center text-zinc-500 font-medium leading-relaxed px-2">
+              Please try again using a different payment method or check your UPI app / bank balance.
+            </p>
           </motion.div>
           
-          {/* Action Buttons */}
+          {/* Stacked Apple/Shopify Action Buttons */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex gap-2 pt-4 mt-auto border-t border-border/60 shrink-0"
+            transition={{ delay: 0.4 }}
+            className="pt-6 shrink-0 space-y-2.5"
           >
             <Link
-              href="/cart"
-              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 sm:py-3 bg-surface border-2 border-border hover:border-red-500 hover:text-red-600 text-heading font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg transition-all"
+              href="/checkout"
+              className="w-full py-3.5 bg-white hover:bg-zinc-100 text-black font-bold text-sm rounded-2xl shadow-sm transition-all text-center block active:scale-[0.99] transform-gpu"
             >
-              <ArrowLeft size={14} />
-              Return
+              Try again
             </Link>
             <Link
-              href="/checkout"
-              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 sm:py-3 bg-red-500 hover:bg-red-600 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg shadow-sm shadow-red-500/20 transition-all group"
+              href="/cart"
+              className="w-full py-3.5 bg-[#121214]/80 hover:bg-[#121214] border border-zinc-800 text-white font-bold text-sm rounded-2xl transition-all text-center block active:scale-[0.99] transform-gpu"
             >
-              <RefreshCcw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
-              Try Again
+              Return to cart
             </Link>
           </motion.div>
         </div>
@@ -105,8 +125,8 @@ function CheckoutFailureContent() {
 export default function CheckoutFailurePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#101012] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-rose-500/20 border-t-rose-500 rounded-full animate-spin" />
       </div>
     }>
       <CheckoutFailureContent />

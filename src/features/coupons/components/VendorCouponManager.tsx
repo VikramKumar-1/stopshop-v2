@@ -17,8 +17,10 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
     minOrderPaise: "",
     maxDiscountPaise: "",
     maxUses: "",
-    maxUsesPerUser: "1"
+    maxUsesPerUser: "1",
+    expiresAt: ""
   });
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -41,6 +43,24 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
       if (!silent) setLoading(false);
     }
   };
+
+  const handleEdit = (coupon: any) => {
+    setFormData({
+      code: coupon.code,
+      description: coupon.description || "",
+      discountType: coupon.discountType,
+      discountValue: coupon.discountType === "FLAT" ? (coupon.discountValue * 100).toString() : coupon.discountValue.toString(),
+      minOrderPaise: coupon.minOrderPaise ? (coupon.minOrderPaise / 100).toString() : "",
+      maxDiscountPaise: coupon.maxDiscountPaise ? (coupon.maxDiscountPaise / 100).toString() : "",
+      maxUses: coupon.maxUses ? coupon.maxUses.toString() : "",
+      maxUsesPerUser: coupon.maxUsesPerUser ? coupon.maxUsesPerUser.toString() : "1",
+      expiresAt: coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().slice(0, 16) : ""
+    });
+    setEditingId(coupon.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,8 +86,8 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
         maxDiscountPaise: formData.maxDiscountPaise ? parseInt(formData.maxDiscountPaise) * 100 : null
       };
       
-      const res = await fetch("/api/coupons", {
-        method: "POST",
+      const res = await fetch(editingId ? `/api/coupons/${editingId}` : "/api/coupons", {
+        method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
@@ -75,7 +95,8 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
       const data = await res.json();
       if (data.success) {
         setShowForm(false);
-        setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1" });
+        setEditingId(null);
+        setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1", expiresAt: "" });
         fetchCoupons(true);
       } else {
         setError(data.error);
@@ -139,7 +160,13 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
           <p className="text-sm text-muted mt-1">Create store-specific coupons or join StopShop campaigns.</p>
         </div>
         <button 
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            if (!showForm) {
+              setEditingId(null);
+              setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1", expiresAt: "" });
+            }
+          }}
           className="px-4 py-2 bg-heading text-surface rounded-xl text-sm font-bold hover:bg-orange-500 transition-colors flex items-center gap-2"
         >
           {showForm ? "Cancel" : <><Plus size={16} /> Create Promo</>}
@@ -177,10 +204,14 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
               <label className="block text-xs font-bold text-muted mb-1 uppercase">Min Order Amount (₹)</label>
               <input type="number" value={formData.minOrderPaise} onChange={e => setFormData({...formData, minOrderPaise: e.target.value})} placeholder="0 for no minimum" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
             </div>
+            <div>
+              <label className="block text-xs font-bold text-muted mb-1 uppercase">Expiry Date (Optional)</label>
+              <input type="datetime-local" value={formData.expiresAt} onChange={e => setFormData({...formData, expiresAt: e.target.value})} className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold focus:border-orange-500 focus:outline-none" />
+            </div>
           </div>
           <div className="flex justify-end pt-2">
             <button disabled={submitting} type="submit" className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold flex items-center gap-2">
-              {submitting ? <Loader2 size={16} className="animate-spin" /> : "Save Promo"}
+              {submitting ? <Loader2 size={16} className="animate-spin" /> : editingId ? "Update Promo" : "Save Promo"}
             </button>
           </div>
         </form>
@@ -197,7 +228,10 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
                   <h3 className="text-lg font-black text-heading uppercase tracking-widest">{c.code}</h3>
                   <div className="flex gap-2">
                     {c.creatorRole === "VENDOR" && (
-                      <button onClick={() => handleDelete(c.id)} className="text-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
+                      <>
+                        <button onClick={() => handleEdit(c)} className="text-muted hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 size={16} /></button>
+                        <button onClick={() => handleDelete(c.id)} className="text-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -210,6 +244,8 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
                 <div className="space-y-1 text-xs text-muted font-medium">
                   <p>Uses: {c.usedCount} / {c.maxUses || "∞"}</p>
                   <p>Status: <span className="font-bold text-heading">{c.vendorStatus || "ACTIVE"}</span></p>
+                  {c.expiresAt && <p>Expires: <span className="font-bold text-orange-500">{new Date(c.expiresAt).toLocaleDateString()}</span></p>}
+                  {c.expiresAt && new Date(c.expiresAt) < new Date() && <p className="text-red-500 font-bold">⚠️ EXPIRED</p>}
                   {c.isAutoApply && <p className="text-orange-500 font-bold">★ Auto-Applies to cart</p>}
                 </div>
               </div>

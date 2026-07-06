@@ -38,31 +38,39 @@ export async function POST(req: NextRequest) {
       data: { dispatchImages }
     });
 
-    // Check if all items in this order have dispatch images uploaded
-    // If so, we can optionally mark the order as PACKED automatically
+    // Check if any item or all items in this order have dispatch images uploaded
     const allItems = await prisma.orderItem.findMany({
        where: { orderId: orderItem.orderId }
     });
     
+    const anyPacked = allItems.some(item => {
+       let imgs = item.dispatchImages;
+       if (typeof imgs === 'string') {
+          try { imgs = JSON.parse(imgs as string); } catch(e) {}
+       }
+       return imgs && (Array.isArray(imgs) ? imgs.length > 0 : true);
+    });
+
     const allPacked = allItems.every(item => {
        let imgs = item.dispatchImages;
        if (typeof imgs === 'string') {
           try { imgs = JSON.parse(imgs as string); } catch(e) {}
        }
-       const isPacked = imgs && Array.isArray(imgs) && imgs.length >= 5;
-       console.log(`[Dispatch Check] Item ${item.id}: isPacked=${isPacked}, vendorId=${item.vendorId}, imgsLength=${Array.isArray(imgs) ? imgs.length : 'not_array'}`);
-       return isPacked;
+       return imgs && (Array.isArray(imgs) ? imgs.length > 0 : true);
     });
 
-    console.log(`[Dispatch Result] orderId=${orderItem.orderId}, allPacked=${allPacked}`);
+    console.log(`[Dispatch Result] orderId=${orderItem.orderId}, anyPacked=${anyPacked}, allPacked=${allPacked}`);
 
-    if (allPacked && (orderItem.order.status === "CONFIRMED" || orderItem.order.status === "PENDING")) {
+    // Update order status to PACKED immediately as soon as vendor packs any item!
+    if (anyPacked && (orderItem.order.status === "CONFIRMED" || orderItem.order.status === "PENDING")) {
        await prisma.order.update({
           where: { id: orderItem.orderId },
           data: { status: "PACKED" }
        });
+    }
 
-       // Trigger auto-shiprocket integration asynchronously
+    if (allPacked) {
+       // Trigger auto-shiprocket integration asynchronously when all items are packed
        fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/shiprocket/create-shipment`, {
            method: "POST",
            headers: { "Content-Type": "application/json" },
@@ -70,7 +78,7 @@ export async function POST(req: NextRequest) {
        }).catch(e => console.error("Auto-ship trigger failed on packing completion", e));
     }
 
-    return NextResponse.json({ success: true, message: "Dispatch photos uploaded successfully", allPacked });
+    return NextResponse.json({ success: true, message: "Dispatch photos uploaded successfully", anyPacked, allPacked });
   } catch (error: any) {
     console.error("Vendor dispatch upload error:", error);
     return NextResponse.json(

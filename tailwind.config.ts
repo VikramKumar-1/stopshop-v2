@@ -45,6 +45,10 @@ const config: Config = {
         float: "float 6s ease-in-out infinite",
         glow: "glow 2s ease-in-out infinite alternate",
         shimmer: "shimmer 2s linear infinite",
+        "gradient-shift": "gradient-shift 4s ease infinite",
+        "border-glow": "border-glow 3s ease-in-out infinite alternate",
+        "fade-in-up": "fade-in-up 0.5s ease-out forwards",
+        "scale-in": "scale-in 0.3s ease-out forwards",
       },
       keyframes: {
         float: {
@@ -62,7 +66,23 @@ const config: Config = {
         shrink: {
           "0%": { width: "100%" },
           "100%": { width: "0%" },
-        }
+        },
+        "gradient-shift": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        "border-glow": {
+          "0%": { borderColor: "rgba(249, 115, 22, 0.2)" },
+          "100%": { borderColor: "rgba(249, 115, 22, 0.5)" },
+        },
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
       },
     },
   },

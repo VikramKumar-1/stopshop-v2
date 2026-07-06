@@ -26,6 +26,7 @@ interface AddProductTabProps {
   dbCategories: any[];
   listingProduct: boolean;
   aiSeoData?: any;
+  products: any[];
 }
 
 export default function AddProductTab({
@@ -51,7 +52,10 @@ export default function AddProductTab({
   dbCategories,
   listingProduct,
   aiSeoData,
+  products,
 }: AddProductTabProps) {
+  const [bundleSearch, setBundleSearch] = React.useState("");
+
   return (
     <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
       {vendor?.vendorStatus !== "APPROVED" ? (
@@ -615,6 +619,89 @@ export default function AddProductTab({
                     className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-heading focus:outline-none"
                   />
                 </div>
+
+              </div>
+
+              {/* Bundle / Cross-Sell Configuration */}
+              <div className="p-4 bg-surface border border-bronze-500/20 rounded-2xl space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🎁</span>
+                  <div>
+                    <h3 className="font-bold text-heading">Bundle Configuration (Optional)</h3>
+                    <p className="text-[10px] text-muted">Select products to bundle with this item to offer a discount.</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center gap-2">
+                    <label className="font-bold text-muted uppercase tracking-wider text-[10px]">Select Bundle Items</label>
+                    <input 
+                      type="text" 
+                      placeholder="Search products..." 
+                      value={bundleSearch}
+                      onChange={(e) => setBundleSearch(e.target.value)}
+                      className="text-xs bg-surface border border-border rounded-lg px-3 py-1.5 focus:outline-none focus:border-orange-500 w-48"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                    {products.length === 0 && <span className="text-xs text-muted">No other products available.</span>}
+                    {products
+                      .filter((p: any) => p.name !== productForm.name && p.name.toLowerCase().includes(bundleSearch.toLowerCase()))
+                      .map((p: any) => {
+                      const isSelected = productForm.crossSellIds.includes(p.id);
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setProductForm((prev: any) => {
+                              const newIds = isSelected
+                                ? prev.crossSellIds.filter((id: number) => id !== p.id)
+                                : [...prev.crossSellIds, p.id];
+                              return { ...prev, crossSellIds: newIds };
+                            });
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                            isSelected
+                              ? "bg-bronze-500/10 border-bronze-500 text-bronze-700 dark:text-bronze-300"
+                              : "bg-surface-card border-border hover:border-bronze-500/40 text-muted hover:text-heading"
+                          }`}
+                        >
+                          {isSelected ? "✓ " : "+ "}{p.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {productForm.crossSellIds.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div className="space-y-1">
+                      <label className="font-bold text-muted uppercase tracking-wider text-[10px]">Discount Type</label>
+                      <select
+                        value={productForm.bundleDiscountType}
+                        onChange={(e) => setProductForm({ ...productForm, bundleDiscountType: e.target.value })}
+                        className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-heading focus:outline-none"
+                      >
+                        <option value="NONE">None</option>
+                        <option value="PERCENTAGE">Percentage (%)</option>
+                        <option value="FLAT">Flat Amount (₹)</option>
+                      </select>
+                    </div>
+                    {productForm.bundleDiscountType !== "NONE" && (
+                      <div className="space-y-1">
+                        <label className="font-bold text-muted uppercase tracking-wider text-[10px]">Discount Value</label>
+                        <input
+                          type="number"
+                          value={productForm.bundleDiscountValue}
+                          onChange={(e) => setProductForm({ ...productForm, bundleDiscountValue: e.target.value })}
+                          placeholder={productForm.bundleDiscountType === "PERCENTAGE" ? "e.g. 10 (for 10%)" : "e.g. 500 (for ₹500 off)"}
+                          className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-heading focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* ✨ Step 2: AI Assistant — Generate Copy & Google SEO Package */}
@@ -670,7 +757,7 @@ export default function AddProductTab({
                           <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">SEO Meta Title Tag (Max 60 chars)</label>
                           <input
                             type="text"
-                            value={productForm.seoTitle || aiSeoData.seoTitle || ""}
+                            value={productForm.seoTitle ?? ""}
                             onChange={(e) => setProductForm({ ...productForm, seoTitle: e.target.value })}
                             placeholder="e.g. Pure Copper Hammered Bottle | 1L Ayurvedic | StopShop"
                             className="w-full bg-surface-card border border-border focus:border-orange-500 rounded-xl px-3 py-2 text-heading text-xs focus:outline-none"
@@ -680,7 +767,7 @@ export default function AddProductTab({
                           <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">SEO Meta Description (Max 160 chars)</label>
                           <textarea
                             rows={2}
-                            value={productForm.seoDescription || aiSeoData.seoDescription || ""}
+                            value={productForm.seoDescription ?? ""}
                             onChange={(e) => setProductForm({ ...productForm, seoDescription: e.target.value })}
                             placeholder="Brief summary optimized for search clicks..."
                             className="w-full bg-surface-card border border-border focus:border-orange-500 rounded-xl px-3 py-2 text-heading text-xs focus:outline-none resize-none"
@@ -690,7 +777,7 @@ export default function AddProductTab({
                           <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">Target Keywords (Comma separated)</label>
                           <input
                             type="text"
-                            value={productForm.seoKeywords || aiSeoData.seoKeywords || ""}
+                            value={productForm.seoKeywords ?? ""}
                             onChange={(e) => setProductForm({ ...productForm, seoKeywords: e.target.value })}
                             placeholder="e.g. copper bottle, ayurvedic vessel, hammered water dispenser"
                             className="w-full bg-surface-card border border-border focus:border-orange-500 rounded-xl px-3 py-2 text-heading text-xs focus:outline-none"
@@ -710,15 +797,15 @@ export default function AddProductTab({
                         <span className="truncate max-w-[150px]">{productForm.name?.toLowerCase().replace(/\s+/g, "-") || "item-slug"}</span>
                       </div>
                       <h4 className="text-base sm:text-lg font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer truncate">
-                        {productForm.seoTitle || aiSeoData.seoTitle || productForm.name || "StopShop Product Title"}
+                        {productForm.seoTitle || productForm.name || "StopShop Product Title"}
                       </h4>
                       <p className="text-xs text-zinc-600 dark:text-zinc-300 line-clamp-2 leading-relaxed">
-                        {productForm.seoDescription || aiSeoData.seoDescription || productForm.description || "Product description preview on search engine results."}
+                        {productForm.seoDescription || productForm.description || "Product description preview on search engine results."}
                       </p>
-                      {(productForm.seoKeywords || aiSeoData.seoKeywords) && (
+                      {productForm.seoKeywords && (
                         <div className="pt-2 flex flex-wrap gap-1.5 items-center">
                           <span className="text-[10px] font-bold text-muted">🏷️ Target Keywords:</span>
-                          {(productForm.seoKeywords || aiSeoData.seoKeywords).split(",").map((kw: string, idx: number) => (
+                          {productForm.seoKeywords.split(",").map((kw: string, idx: number) => (
                             <span key={idx} className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded text-[10px]">
                               {kw.trim()}
                             </span>

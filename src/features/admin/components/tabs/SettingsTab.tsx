@@ -151,7 +151,7 @@ export function SettingsTab({
                                   type="text" 
                                   value={settings.companyName || ""} 
                                   onChange={e => setSettings({...settings, companyName: e.target.value})} 
-                                  placeholder="e.g. StopShops Private Limited"
+                                  placeholder="e.g. StopShop Private Limited"
                                   className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-heading"
                                />
                             </div>

@@ -18,10 +18,29 @@ const outfit = Outfit({
   variable: "--font-outfit",
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: "StopShop — Premium Bronze & Bartan Export",
   description:
     "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
+  keywords: "bronze cookware, bartan, export, premium kitchenware, handmade, copper, brass, StopShop",
+  authors: [{ name: "StopShop" }],
+  publisher: "StopShop",
+  robots: "index, follow",
+  alternates: {
+    canonical: baseUrl,
+  },
+  openGraph: {
+    title: "StopShop — Premium Bronze & Bartan Export",
+    description: "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
+    url: baseUrl,
+    siteName: "StopShop",
+    locale: "en_US",
+    type: "website",
+  },
 };
 
 import { MainLayout } from "@/features/core/components/MainLayout";

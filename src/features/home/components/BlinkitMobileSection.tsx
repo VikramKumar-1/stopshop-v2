@@ -15,7 +15,15 @@ import {
   Sparkles,
   Package,
   Globe,
+  Star,
+  Heart,
+  Zap,
+  Gift,
 } from "lucide-react";
+
+const ICON_MAP: Record<string, any> = {
+  Flame, Sparkles, Package, Globe, Star, Heart, Zap, Gift
+};
 
 /* ─── Category Data ─── */
 const mobileCategories = [
@@ -85,59 +93,65 @@ const mobileCategories = [
   },
 ];
 
-/* ─── Banner Data ─── */
-const banners = [
+/* ─── Default Banner Data ─── */
+const defaultBanners = [
   {
     id: 1,
+    type: "text",
     title: "Summer Sale",
     subtitle: "Up to 40% Off",
     desc: "Premium bronze & copper cookware",
     cta: "Shop Now",
     href: "/products",
     gradient: "from-orange-500 via-amber-500 to-yellow-400",
-    icon: Flame,
+    icon: "Flame",
   },
   {
     id: 2,
+    type: "text",
     title: "New Arrivals",
     subtitle: "Fresh Collection",
     desc: "Handcrafted brass dinner sets",
     cta: "Explore",
     href: "/products?category=dinner-sets",
     gradient: "from-rose-500 via-pink-500 to-fuchsia-500",
-    icon: Sparkles,
+    icon: "Sparkles",
   },
   {
     id: 3,
+    type: "text",
     title: "Export Quality",
     subtitle: "Global Standards",
     desc: "Certified for international markets",
     cta: "Learn More",
     href: "/about",
     gradient: "from-emerald-500 via-teal-500 to-cyan-500",
-    icon: Globe,
+    icon: "Globe",
   },
   {
     id: 4,
+    type: "text",
     title: "Bulk Orders",
     subtitle: "Best Wholesale Prices",
     desc: "Free shipping on large orders",
     cta: "Get Quote",
     href: "/contact",
     gradient: "from-violet-500 via-purple-500 to-indigo-500",
-    icon: Package,
+    icon: "Package",
   },
 ];
 
 /* ─── Component ─── */
-export const BlinkitMobileSection = () => {
+export const BlinkitMobileSection = ({ banners: customBanners = [] }: { banners?: any[] }) => {
   const [current, setCurrent] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const next = useCallback(() => setCurrent((p) => (p + 1) % banners.length), []);
-  const prev = useCallback(() => setCurrent((p) => (p - 1 + banners.length) % banners.length), []);
+  const activeBanners = customBanners.length > 0 ? customBanners : defaultBanners;
+
+  const next = useCallback(() => setCurrent((p) => (p + 1) % activeBanners.length), [activeBanners.length]);
+  const prev = useCallback(() => setCurrent((p) => (p - 1 + activeBanners.length) % activeBanners.length), [activeBanners.length]);
 
   /* Auto-play */
   useEffect(() => {
@@ -201,50 +215,62 @@ export const BlinkitMobileSection = () => {
           <div
             className="flex will-change-transform"
             style={{
-              width: `${banners.length * 100}%`,
-              transform: `translateX(-${current * (100 / banners.length)}%)`,
+              width: `${activeBanners.length * 100}%`,
+              transform: `translateX(-${current * (100 / activeBanners.length)}%)`,
               transition: "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
             }}
           >
-            {banners.map((b) => {
-              const Icon = b.icon;
+            {activeBanners.map((b: any, idx: number) => {
+              const isImage = b.type === "image";
+              const Icon = ICON_MAP[b.icon] || Sparkles;
+
               return (
                 <Link
-                  key={b.id}
-                  href={b.href}
+                  key={b.id || idx}
+                  href={b.href || "#"}
                   className="block flex-shrink-0"
-                  style={{ width: `${100 / banners.length}%` }}
+                  style={{ width: `${100 / activeBanners.length}%` }}
                 >
-                  <div
-                    className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${b.gradient} p-5 min-h-[130px] flex items-center`}
-                  >
-                    {/* Decorative */}
-                    <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10" />
-                    <div className="absolute -right-2 -bottom-4 w-20 h-20 rounded-full bg-white/[0.07]" />
+                  {isImage ? (
+                    <div className="relative overflow-hidden rounded-2xl w-full min-h-[130px] flex items-center bg-black/5">
+                      {b.imageUrl ? (
+                        <img src={b.imageUrl} alt="Banner" className="w-full h-full object-cover aspect-[21/9]" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-muted">No Image</div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${b.gradient} p-5 min-h-[130px] flex items-center`}
+                    >
+                      {/* Decorative */}
+                      <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10" />
+                      <div className="absolute -right-2 -bottom-4 w-20 h-20 rounded-full bg-white/[0.07]" />
 
-                    {/* Content */}
-                    <div className="relative z-10 flex-1">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Icon size={13} className="text-white/80" strokeWidth={2.5} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
-                          {b.title}
+                      {/* Content */}
+                      <div className="relative z-10 flex-1">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Icon size={13} className="text-white/80" strokeWidth={2.5} />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+                            {b.title}
+                          </span>
+                        </div>
+                        <h3 className="text-xl font-display font-bold text-white leading-tight mb-0.5">
+                          {b.subtitle}
+                        </h3>
+                        <p className="text-xs text-white/75 mb-3">{b.desc}</p>
+                        <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 rounded-full text-[11px] font-bold text-white border border-white/20">
+                          {b.cta}
+                          <ChevronRight size={12} />
                         </span>
                       </div>
-                      <h3 className="text-xl font-display font-bold text-white leading-tight mb-0.5">
-                        {b.subtitle}
-                      </h3>
-                      <p className="text-xs text-white/75 mb-3">{b.desc}</p>
-                      <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 rounded-full text-[11px] font-bold text-white border border-white/20">
-                        {b.cta}
-                        <ChevronRight size={12} />
-                      </span>
-                    </div>
 
-                    {/* Big background icon */}
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.1]">
-                      <Icon size={80} strokeWidth={1} className="text-white" />
+                      {/* Big background icon */}
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.1]">
+                        <Icon size={80} strokeWidth={1} className="text-white" />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </Link>
               );
             })}
@@ -252,7 +278,7 @@ export const BlinkitMobileSection = () => {
 
           {/* Dots */}
           <div className="flex justify-center gap-1.5 mt-3">
-            {banners.map((_, i) => (
+            {activeBanners.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrent(i)}

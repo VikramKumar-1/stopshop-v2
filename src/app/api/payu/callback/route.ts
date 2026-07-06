@@ -45,12 +45,28 @@ export async function POST(req: NextRequest) {
       if (!order) throw new Error("Order not found");
       if (order.status !== "PENDING" && order.paymentStatus === "PAID") return; // Already processed
 
-      // Deduct Stock
+      // Deduct Stock and Track Co-Purchases
       for (const item of order.items) {
         await tx.product.update({
           where: { id: item.productId },
           data: { stock: { decrement: item.quantity } }
         });
+      }
+
+      // Track 'Frequently Bought Together' pairs
+      if (order.items.length > 1) {
+        for (let i = 0; i < order.items.length; i++) {
+          for (let j = i + 1; j < order.items.length; j++) {
+            const pA = Math.min(order.items[i].productId, order.items[j].productId);
+            const pB = Math.max(order.items[i].productId, order.items[j].productId);
+            
+            await tx.productPair.upsert({
+              where: { productA_productB: { productA: pA, productB: pB } },
+              update: { score: { increment: 1 } },
+              create: { productA: pA, productB: pB, score: 1 }
+            });
+          }
+        }
       }
 
       // Calculate Commission

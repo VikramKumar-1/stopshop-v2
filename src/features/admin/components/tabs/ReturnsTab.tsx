@@ -21,9 +21,10 @@ export function ReturnsTab({
   showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void;
   setConfirmModal: (val: any) => void;
 }) {
+  const [expandedAuditId, setExpandedAuditId] = React.useState<string | null>(null);
   return (
               <div className="space-y-6">
-                 {returns.filter(r => r.status === "PENDING" || r.status === "RECEIVED_AT_WAREHOUSE" || (r.status === "APPROVED" && r.vendorDeliveredAt)).length === 0 ? <p className="text-center p-8 bg-surface-card rounded-2xl text-muted text-sm">No return requests.</p> : null}
+                 {returns.filter(r => r.status === "PENDING" || r.status === "RECEIVED_AT_WAREHOUSE" || (r.status === "APPROVED" && r.vendorDeliveredAt)).length === 0 ? <p className="text-center p-8 bg-surface-card rounded-2xl text-muted text-sm">No active return requests.</p> : null}
                  
                  {/* PRE-PICKUP APPROVALS */}
                  {returns.filter(r => r.status === "PENDING").length > 0 && <h3 className="text-sm font-bold text-heading mt-4 border-b border-border pb-2">New Return Requests (Needs Pickup Approval)</h3>}
@@ -256,8 +257,113 @@ export function ReturnsTab({
                              </div>
                           </div>
                        </div>
-                    </div>
-                 ))}
-              </div>
+                     </div>
+                  ))}
+
+                  {/* RESOLVED / RETURN HISTORY (AUDIT TRAIL) */}
+                  {returns.filter(r => r.status === "REFUNDED" || r.status === "REJECTED" || r.status === "COMPLETED").length > 0 && (
+                   <div className="space-y-4 mt-8 pt-6 border-t-2 border-dashed border-border">
+                      <div className="flex justify-between items-center">
+                         <div>
+                            <h3 className="text-sm font-bold text-heading">📜 Resolved / Return History (Audit Trail)</h3>
+                            <p className="text-[10px] text-muted">Retained for 60-day customer care compliance and audit reviews</p>
+                         </div>
+                         <span className="text-[10px] bg-surface px-2.5 py-1 rounded-lg border border-border font-bold text-muted">
+                            {returns.filter(r => r.status === "REFUNDED" || r.status === "REJECTED" || r.status === "COMPLETED").length} Resolved
+                         </span>
+                      </div>
+
+                      {returns.filter(r => r.status === "REFUNDED" || r.status === "REJECTED" || r.status === "COMPLETED").map(r => (
+                         <div key={r.id} className="bg-surface-card/60 border border-border/80 rounded-2xl p-5 shadow-sm transition-all">
+                            <div className="flex flex-wrap gap-3 items-center justify-between mb-3">
+                               <div className="flex gap-3 items-center">
+                                  <img src={getReturnThumb(r)} alt="Product" className="w-9 h-9 object-cover rounded-lg border border-border bg-surface shrink-0" />
+                                  <div>
+                                     <span className="font-bold text-heading text-xs">Return #{r.id}</span>
+                                     <span className="text-[10px] text-muted block">Order #{r.order?.orderNumber || "N/A"}</span>
+                                  </div>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border ${
+                                    r.status === "REFUNDED" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"
+                                  }`}>
+                                     {r.status === "REFUNDED" ? "REFUNDED (Sided with User)" : "REJECTED (Sided with Vendor)"}
+                                  </span>
+                                  <button
+                                     onClick={() => setExpandedAuditId(expandedAuditId === r.id ? null : r.id)}
+                                     className="px-3 py-1 text-[10px] font-bold bg-surface hover:bg-border/50 text-heading rounded-lg border border-border transition-colors"
+                                  >
+                                     {expandedAuditId === r.id ? "Hide Audit Proofs" : "View Audit Proofs"}
+                                  </button>
+                               </div>
+                            </div>
+
+                            {r.adminNotes && (
+                               <div className="bg-surface p-3 rounded-xl border border-border/60 text-xs text-muted mb-2">
+                                  <strong className="text-heading font-semibold">Admin Resolution Note:</strong> {r.adminNotes}
+                               </div>
+                            )}
+
+                            {expandedAuditId === r.id && (
+                               <div className="mt-4 pt-4 border-t border-border/60 grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in fade-in duration-200">
+                                  {/* Dispatch Proofs */}
+                                  <div className="bg-surface p-3 rounded-xl border border-border/60">
+                                     <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block mb-2">1. Dispatch Proof</span>
+                                     <div className="flex flex-wrap gap-2">
+                                        {(() => {
+                                           const imgs = r.order?.items?.flatMap((i:any) => {
+                                              const d = i.dispatchImages;
+                                              if (!d) return [];
+                                              if (typeof d === "string") { try { return JSON.parse(d); } catch(e) { return []; } }
+                                              return Array.isArray(d) ? d : [];
+                                           }) || [];
+                                           if (imgs.length === 0) return <span className="text-[10px] text-muted italic">No photos recorded</span>;
+                                           return imgs.map((img:string, i:number) => (
+                                              <a key={i} href={img} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-lg overflow-hidden border border-border block">
+                                                 <img src={img} alt="Dispatch" className="w-full h-full object-cover" />
+                                              </a>
+                                           ));
+                                        })()}
+                                     </div>
+                                  </div>
+
+                                  {/* User Claim Proofs */}
+                                  <div className="bg-surface p-3 rounded-xl border border-border/60">
+                                     <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider block mb-2">2. User Claim Proof</span>
+                                     <div className="flex flex-wrap gap-2">
+                                        {(r.returnImages as string[] || []).length === 0 ? (
+                                           <span className="text-[10px] text-muted italic">No photos recorded</span>
+                                        ) : (
+                                           (r.returnImages as string[]).map((img, i) => (
+                                              <a key={i} href={img} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-lg overflow-hidden border border-border block">
+                                                 <img src={img} alt="Claim" className="w-full h-full object-cover" />
+                                              </a>
+                                           ))
+                                        )}
+                                     </div>
+                                  </div>
+
+                                  {/* Vendor QC Proofs */}
+                                  <div className="bg-surface p-3 rounded-xl border border-border/60">
+                                     <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider block mb-2">3. Vendor QC Proof</span>
+                                     <div className="flex flex-wrap gap-2">
+                                        {(r.qcImages as string[] || []).length === 0 ? (
+                                           <span className="text-[10px] text-muted italic">No QC dispute photos</span>
+                                        ) : (
+                                           (r.qcImages as string[]).map((img, i) => (
+                                              <a key={i} href={img} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-lg overflow-hidden border border-border block">
+                                                 <img src={img} alt="QC" className="w-full h-full object-cover" />
+                                              </a>
+                                           ))
+                                        )}
+                                     </div>
+                                  </div>
+                               </div>
+                            )}
+                         </div>
+                      ))}
+                   </div>
+                  )}
+               </div>
   );
 }

@@ -1,23 +1,32 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { ShoppingCart, Heart, Check, ShieldAlert } from "lucide-react";
+import { ShoppingCart, Heart, Check, ShieldAlert, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useRegion } from "@/context/RegionContext";
 
 interface ProductClientActionsProps {
   product: any;
   allImages: string[];
+  bundleProducts?: any[];
 }
 
-export default function ProductClientActions({ product, allImages }: ProductClientActionsProps) {
+export default function ProductClientActions({ product, allImages, bundleProducts = [] }: ProductClientActionsProps) {
+  const { convertPrice } = useRegion();
   const [selectedImage, setSelectedImage] = useState(allImages[0]);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   
-  const { addToCart } = useCart();
+  const { addToCart, addBundleToCart } = useCart();
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleAddBundleToCart = () => {
+    addBundleToCart([product, ...bundleProducts], quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -107,37 +116,52 @@ export default function ProductClientActions({ product, allImages }: ProductClie
             </div>
 
             {/* Actions Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:flex-1">
-              <button
-                onClick={() => {
-                  window.location.href = `/checkout?productId=${product.id}&qty=${quantity}`;
-                }}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-black shadow-md hover:shadow-lg transition-all duration-300 text-sm active:scale-[0.98]"
-              >
-                Buy Now
-              </button>
+            <div className="flex flex-col xl:flex-row items-stretch gap-2 w-full sm:flex-1">
+              <div className="flex flex-row gap-2 w-full xl:w-auto xl:flex-1">
+                <button
+                  onClick={() => {
+                    window.location.href = `/checkout?productId=${product.id}&qty=${quantity}`;
+                  }}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-black shadow-md hover:shadow-lg transition-all duration-300 text-[11px] sm:text-xs active:scale-[0.98] whitespace-nowrap"
+                >
+                  Buy Now
+                </button>
 
-              <button
-                onClick={handleAddToCart}
-                disabled={product.stock <= 0}
-                className="flex-1 group/btn inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold shadow-md shadow-bronze-500/10 hover:shadow-lg hover:shadow-bronze-500/25 transition-all duration-300 text-sm active:scale-[0.98]"
-              >
-                {added ? (
-                  <>
-                    <Check size={16} />
-                    Added to Cart!
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart size={16} />
-                    Add to Cart
-                  </>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.stock <= 0}
+                  className="flex-1 group/btn inline-flex items-center justify-center gap-1.5 px-3 py-3.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold shadow-md hover:shadow-lg transition-all duration-300 text-[11px] sm:text-xs active:scale-[0.98] whitespace-nowrap"
+                >
+                  {added ? (
+                    <>
+                      <Check size={14} />
+                      Added!
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={14} />
+                      Add to Cart
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="flex flex-row gap-2 w-full xl:w-auto">
+                {product.vendor && (
+                  <button
+                    onClick={() => {
+                      window.location.href = `/store/${product.vendor.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || product.vendor.id}`;
+                    }}
+                    className="flex-1 xl:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-3.5 rounded-xl border-2 border-purple-600 dark:border-purple-400 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-400 dark:hover:text-black font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
+                  >
+                    Shop by Vendor
+                  </button>
                 )}
-              </button>
 
-              <button className="p-3.5 border border-border hover:border-red-500 hover:text-red-500 text-muted rounded-xl bg-surface-card hover:bg-red-500/5 transition-all duration-300 flex items-center justify-center shrink-0">
-                <Heart size={18} />
-              </button>
+                <button className="p-3.5 border border-border hover:border-red-500 hover:text-red-500 text-muted rounded-xl bg-surface-card hover:bg-red-500/5 transition-all duration-300 flex items-center justify-center shrink-0">
+                  <Heart size={16} />
+                </button>
+              </div>
             </div>
           </div>
         )}

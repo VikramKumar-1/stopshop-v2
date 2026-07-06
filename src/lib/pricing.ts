@@ -24,7 +24,9 @@ export async function calculateOrderPricing(
   cartItems: { productId: number; quantity: number }[],
   paymentMethod: "razorpay" | "payu" | "cod",
   country: string = "IN",
-  couponCode?: string
+  couponCode?: string,
+  isBundle?: boolean,
+  userId?: number
 ): Promise<PricingResult> {
   // Normalize country to handle "India", "INDIA", "in", "IN" as domestic
   const normCountry = (country || "IN").trim().toUpperCase();
@@ -83,6 +85,9 @@ export async function calculateOrderPricing(
       productMaterial: product.material,
       categoryName: product.categoryName,
       vendorId: product.vendorId,
+      bundleDiscountType: product.bundleDiscountType,
+      bundleDiscountValue: product.bundleDiscountValue,
+      crossSellIds: product.crossSellIds,
     });
   }
 
@@ -106,8 +111,40 @@ export async function calculateOrderPricing(
   const taxRate = settings.taxRate || 0;
   const taxPaise = Math.round(subtotalPaise * (taxRate / 100));
 
+  // 5.5 Handle Bundle Discount (Secure Backend Validation)
+  let bundleDiscountPaise = 0;
+  if (isBundle && processedItems.length > 1) {
+    const mainProduct = processedItems[0];
+    
+    let validComboIds: number[] = [];
+    if (Array.isArray(mainProduct.crossSellIds)) {
+       validComboIds = mainProduct.crossSellIds.map((id: any) => Number(id));
+    } else if (typeof mainProduct.crossSellIds === "string") {
+       try { validComboIds = JSON.parse(mainProduct.crossSellIds).map(Number); } catch (e) {}
+    }
+    
+    // Ensure the cart actually contains valid combo items to prevent malicious payload exploitation
+    const hasValidComboItem = processedItems.some(item => item.productId !== mainProduct.productId && validComboIds.includes(item.productId));
+    
+    if (hasValidComboItem) {
+      let validComboSubtotalPaise = 0;
+      for (const item of processedItems) {
+         if (item.productId === mainProduct.productId || validComboIds.includes(item.productId)) {
+            validComboSubtotalPaise += item.totalPaise;
+         }
+      }
+      
+      if (mainProduct.bundleDiscountType === "PERCENTAGE") {
+         bundleDiscountPaise = Math.round(validComboSubtotalPaise * (mainProduct.bundleDiscountValue || 0) / 100);
+      } else if (mainProduct.bundleDiscountType === "FLAT") {
+         bundleDiscountPaise = (mainProduct.bundleDiscountValue || 0) * mainProduct.quantity * 100;
+         if (bundleDiscountPaise > validComboSubtotalPaise) bundleDiscountPaise = validComboSubtotalPaise;
+      }
+    }
+  }
+
   // 6. Handle Coupon Discount
-  let discountPaise = 0;
+  let discountPaise = bundleDiscountPaise;
   let appliedCouponCode: string | null = null;
   
   if (couponCode) {
@@ -119,7 +156,36 @@ export async function calculateOrderPricing(
       if (coupon.startsAt <= now && (!coupon.expiresAt || coupon.expiresAt > now)) {
         if (!coupon.maxUses || coupon.usedCount < coupon.maxUses) {
           
-          // Determine eligible subtotal based on vendorId, applicableCategories, and applicableMaterials
+          let canUse = true;
+          if (userId) {
+            if (coupon.isFirstOrderOnly) {
+              const totalSuccessfulOrders = await prisma.order.count({
+                where: {
+                  userId,
+                  status: { notIn: ["PENDING", "CANCELLED", "FAILED"] }
+                }
+              });
+              if (totalSuccessfulOrders > 0) {
+                canUse = false;
+              }
+            }
+
+            if (canUse && coupon.maxUsesPerUser) {
+              const userUses = await prisma.order.count({
+                where: {
+                  userId,
+                  couponCode: coupon.code,
+                  status: { notIn: ["PENDING", "CANCELLED", "FAILED"] }
+                }
+              });
+              if (userUses >= coupon.maxUsesPerUser) {
+                canUse = false;
+              }
+            }
+          }
+
+          if (canUse) {
+            // Determine eligible subtotal based on vendorId, applicableCategories, and applicableMaterials
           let eligibleItems = processedItems;
           if (coupon.vendorId) {
             eligibleItems = eligibleItems.filter(item => item.vendorId === coupon.vendorId);
@@ -140,15 +206,17 @@ export async function calculateOrderPricing(
 
           if (eligibleSubtotalPaise > 0 && eligibleSubtotalPaise >= coupon.minOrderPaise) {
             if (coupon.discountType === "PERCENTAGE") {
-              discountPaise = Math.round(eligibleSubtotalPaise * (coupon.discountValue / 100));
-              if (coupon.maxDiscountPaise && discountPaise > coupon.maxDiscountPaise) {
-                discountPaise = coupon.maxDiscountPaise;
+              let cDiscount = Math.round(eligibleSubtotalPaise * (coupon.discountValue / 100));
+              if (coupon.maxDiscountPaise && cDiscount > coupon.maxDiscountPaise) {
+                cDiscount = coupon.maxDiscountPaise;
               }
+              discountPaise += cDiscount;
             } else if (coupon.discountType === "FLAT") {
-              discountPaise = coupon.discountValue * 100;
+              discountPaise += coupon.discountValue * 100;
             }
-            if (discountPaise > eligibleSubtotalPaise) discountPaise = eligibleSubtotalPaise;
+            if (discountPaise > subtotalPaise) discountPaise = subtotalPaise;
             appliedCouponCode = code;
+          }
           }
         }
       }

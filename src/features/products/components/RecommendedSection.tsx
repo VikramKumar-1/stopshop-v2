@@ -9,6 +9,8 @@ interface RecommendedSectionProps {
   productId: number;
   category?: string;
   material?: string;
+  productSlug?: string;
+  productName?: string;
 }
 
 export const RecommendedSection: React.FC<RecommendedSectionProps> = ({
@@ -102,7 +104,7 @@ export const RecommendedSection: React.FC<RecommendedSectionProps> = ({
             <Link
               key={item.id}
               href={`/product/${item.slug || item.id}`}
-              className="group shrink-0 snap-start w-[240px] sm:w-[260px] md:w-[280px] bg-surface border border-border rounded-2xl overflow-hidden hover:border-orange-500/50 hover:shadow-lg transition-all flex flex-col justify-between"
+              className="group shrink-0 snap-start w-[240px] sm:w-[260px] md:w-[280px] bg-surface border border-border rounded-2xl overflow-hidden hover:border-orange-500/50 hover:shadow-sm transition-all flex flex-col justify-between"
             >
               <div className="relative aspect-square w-full bg-surface-card overflow-hidden">
                 <Image
@@ -113,7 +115,7 @@ export const RecommendedSection: React.FC<RecommendedSectionProps> = ({
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 {item.categoryName && (
-                  <span className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  <span className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
                     {item.categoryName}
                   </span>
                 )}

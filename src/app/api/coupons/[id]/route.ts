@@ -9,7 +9,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     const couponId = parseInt(params.id);
     const body = await req.json();
-    const { isActive, vendorStatus, isAutoApply, description, expiresAt, maxUses, startsAt, applicableCategories, applicableMaterials } = body;
+    const { isActive, vendorStatus, isAutoApply, isFirstOrderOnly, description, expiresAt, maxUses, startsAt, applicableCategories, applicableMaterials } = body;
 
     const coupon = await prisma.coupon.findUnique({ where: { id: couponId } });
     if (!coupon) {
@@ -44,8 +44,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     // Admin updates
-    if (user.role === "admin" && isAutoApply !== undefined) {
-      updateData.isAutoApply = isAutoApply;
+    if (user.role === "admin") {
+      if (isAutoApply !== undefined) updateData.isAutoApply = isAutoApply;
+      if (isFirstOrderOnly !== undefined) updateData.isFirstOrderOnly = isFirstOrderOnly;
     }
 
     const updatedCoupon = await prisma.coupon.update({

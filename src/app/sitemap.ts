@@ -2,7 +2,8 @@ import { MetadataRoute } from "next";
 import { getProductsForSitemap } from "@/features/products/services/product";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://stopshop.com"; // Replace with your production domain name
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
   // Static routes
   const routes = ["", "/products", "/contact", "/about"].map((route) => ({
@@ -16,8 +17,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Dynamic product routes from service
     const products = await getProductsForSitemap();
 
-    const productRoutes = products.map((prod) => ({
-      url: `${baseUrl}/product/${prod.id}`,
+    const productRoutes = products.map((prod: any) => ({
+      url: `${baseUrl}/product/${prod.slug || prod.id}`,
       lastModified: prod.createdAt.toISOString(),
       changeFrequency: "monthly" as const,
       priority: 0.6,

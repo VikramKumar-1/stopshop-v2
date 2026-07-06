@@ -8,8 +8,21 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { cartItems } = body;
 
+    const totalUserOrders = user ? await prisma.order.count({
+      where: {
+        userId: user.userId,
+        status: { notIn: ["PENDING", "CANCELLED", "FAILED"] }
+      }
+    }) : 0;
+
+    const settings = await prisma.adminSettings.findFirst();
+    const shippingSettings = {
+      shippingFreeAbove: settings?.shippingFreeAbove ?? 99900,
+      shippingChargePaise: settings?.shippingChargePaise ?? 4900
+    };
+
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
-      return NextResponse.json({ success: true, coupons: [] }); // No items, no coupons
+      return NextResponse.json({ success: true, coupons: [], userOrderCount: totalUserOrders, shippingSettings }); // No items, no coupons
     }
 
     // Get unique vendor IDs from cart items
@@ -52,6 +65,22 @@ export async function POST(req: NextRequest) {
       // Skip if global usage limit reached
       if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) continue;
       
+      // If user has already placed an order, do NOT show "first order" or welcome coupons!
+      if (totalUserOrders > 0) {
+        const codeUpper = coupon.code.toUpperCase();
+        const descLower = (coupon.description || "").toLowerCase();
+        if (
+          codeUpper.includes("WELCOME") ||
+          codeUpper.includes("FIRST") ||
+          codeUpper.includes("NEW") ||
+          descLower.includes("first order") ||
+          descLower.includes("first purchase") ||
+          descLower.includes("new user")
+        ) {
+          continue;
+        }
+      }
+
       let userEligible = true;
       if (user && coupon.maxUsesPerUser) {
         const userUses = await prisma.order.count({
@@ -78,7 +107,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, coupons: availableCoupons });
+    return NextResponse.json({ success: true, coupons: availableCoupons, userOrderCount: totalUserOrders, shippingSettings });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to fetch available coupons" }, { status: 500 });
   }

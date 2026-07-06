@@ -242,24 +242,25 @@ export default function OrdersPage() {
              <div className="text-center py-16 bg-surface-card border border-border rounded-3xl"><p className="text-sm text-muted">No orders found.</p></div>
           ) : (
             (activeTab === "active" ? activeOrders : archiveOrders).map((order) => (
-              <div key={order.id} className="bg-surface-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
-                 {/* Header */}
-                 <div className="flex justify-between items-center flex-wrap gap-4 pb-4 border-b border-border text-xs">
-                    <div>
-                      <span className="font-bold text-muted uppercase">Order:</span>
-                      <span className="font-bold text-heading ml-1.5">{order.orderNumber}</span>
-                      <span className={`ml-2 px-2 py-0.5 rounded font-bold uppercase text-[9px] ${order.paymentMethod === 'cod' ? 'bg-blue-500/10 text-blue-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
-                         {order.paymentMethod}
+              <div key={order.id} className="bg-white dark:bg-[#18181b] border-2 border-zinc-200/90 dark:border-zinc-800 rounded-[28px] p-5 sm:p-7 shadow-[0_10px_35px_rgba(0,0,0,0.06)] dark:shadow-[0_10px_35px_rgba(0,0,0,0.4)] space-y-6 transition-all overflow-hidden">
+                 {/* Tinted Premium Header Box */}
+                 <div className="bg-zinc-100/90 dark:bg-zinc-900/90 p-4 sm:p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 flex justify-between items-center flex-wrap gap-3 text-xs">
+                    <div className="flex items-center flex-wrap gap-2">
+                      <span className="font-extrabold text-zinc-500 uppercase tracking-wider text-[11px]">ORDER ID:</span>
+                      <span className="font-black text-zinc-900 dark:text-white text-sm sm:text-base">{order.orderNumber}</span>
+                      <span className={`px-2.5 py-1 rounded-lg font-black uppercase text-[10px] border ${order.paymentMethod === 'cod' ? 'bg-blue-500/15 border-blue-500/30 text-blue-600 dark:text-blue-400' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'}`}>
+                         {order.paymentMethod || 'ONLINE'}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                       <span className="text-muted">Date: <span className="font-bold text-heading">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span></span>
-                       <button onClick={() => handleDownloadInvoice(order.id, order.orderNumber)} className="flex items-center gap-1 text-orange-500 hover:text-orange-600 font-bold">
+                       <span className="text-zinc-500 font-medium">Date: <strong className="text-zinc-900 dark:text-white font-bold">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong></span>
+                       <button onClick={() => handleDownloadInvoice(order.id, order.orderNumber)} className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold px-3.5 py-1.5 rounded-xl shadow-md transition-all active:scale-[0.98]">
                           <Download size={14} /> Invoice
                        </button>
                     </div>
                  </div>
-                 {/* Shipping Status Stepper & Delivery Date */}
+
+                 {/* Shipping Status Stepper & Delivery Date (High Contrast Orange Gradient Box) */}
                  {(() => {
                     const isCancelled = order.status === "CANCELLED";
                     const isRto = order.status.startsWith("RTO");
@@ -267,14 +268,13 @@ export default function OrdersPage() {
                     
                     if (isCancelled || isRto) {
                       return (
-                         <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 flex items-center gap-2 text-xs font-bold text-red-600">
-                            <AlertTriangle size={16} />
+                         <div className="bg-red-500/10 border-2 border-red-500/20 rounded-2xl p-4 flex items-center gap-2.5 text-xs font-extrabold text-red-600 dark:text-red-400">
+                            <AlertTriangle size={18} className="shrink-0" />
                             <span>Order Cancelled or Returned to Origin</span>
                          </div>
                       );
                     }
                     
-                    // Stepper configuration
                     const stages = [
                       { label: "Ordered", statusKeys: ["PENDING", "CONFIRMED"] },
                       { label: "Packed", statusKeys: ["PACKED"] },
@@ -282,50 +282,58 @@ export default function OrdersPage() {
                       { label: "Delivered", statusKeys: ["DELIVERED", "RETURNED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REJECTED"] }
                     ];
 
-                    // Determine active index
                     let currentIndex = 0;
                     const status = order.status.toUpperCase();
-                    if (status === "PACKED") {
-                       currentIndex = 1;
-                    } else if (status === "DISPATCHED") {
-                       currentIndex = 2;
-                    } else if (["DELIVERED", "RETURNED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REJECTED"].includes(status)) {
-                       currentIndex = 3;
-                    }
+                    const hasPackedItems = order.items?.some((i: any) => {
+                       let imgs = i.dispatchImages;
+                       if (typeof imgs === 'string') {
+                          try { imgs = JSON.parse(imgs as string); } catch(e) {}
+                       }
+                       return imgs && (Array.isArray(imgs) ? imgs.length > 0 : true);
+                    });
+                    
+                    if (status === "PACKED" || hasPackedItems) currentIndex = 1;
+                    if (status === "DISPATCHED") currentIndex = 2;
+                    else if (["DELIVERED", "RETURNED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REJECTED"].includes(status)) currentIndex = 3;
 
                     return (
-                       <div className="space-y-4 my-2">
+                       <div className="bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border-2 border-orange-500/20 dark:border-orange-500/30 rounded-2xl p-4 sm:p-5 space-y-4">
                           {/* Delivery info banner */}
                           {isReturn ? (
-                             <div className="flex items-center gap-2 text-xs font-bold text-amber-600 bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10">
+                             <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
                                 <RefreshCcw size={16} />
                                 <span>Return Status: {order.status.replace(/_/g, ' ')}</span>
                              </div>
                           ) : status === "DELIVERED" && order.deliveredAt ? (
-                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10">
+                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20">
                                 <Package size={16} />
                                 <span>Delivered on {new Date(order.deliveredAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
                              </div>
                           ) : status === "DELIVERED" && !order.deliveredAt ? (
-                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10">
+                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20">
                                 <Package size={16} />
                                 <span>Delivered successfully</span>
                              </div>
                           ) : order.deliveryDate ? (
-                             <div className="flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-500/5 p-3 rounded-2xl border border-orange-500/10">
+                             <div className="flex items-center gap-2 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 p-3 rounded-xl border border-orange-500/20">
                                 <Truck size={16} />
-                                <span>Estimated Delivery: {new Date(order.deliveryDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
+                                <span>⚡ Estimated Delivery: {new Date(order.deliveryDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })} {(status === "PACKED" || hasPackedItems) ? "• Order Packed" : ""}</span>
+                             </div>
+                          ) : status === "PACKED" || hasPackedItems ? (
+                             <div className="flex items-center gap-2 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 p-3 rounded-xl border border-orange-500/20">
+                                <Truck size={16} />
+                                <span>⚡ Status: Order Packed - Ready for Dispatch</span>
                              </div>
                           ) : (
-                             <div className="flex items-center gap-2 text-xs font-bold text-muted bg-surface p-3 rounded-2xl border border-border">
-                                <Truck size={16} className="opacity-50" />
-                                <span>Estimated Delivery: Preparing shipment</span>
+                             <div className="flex items-center gap-2 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 p-3 rounded-xl border border-orange-500/20">
+                                <Truck size={16} />
+                                <span>⚡ Estimated Delivery: Preparing shipment</span>
                              </div>
                           )}
 
                           {/* Progress Stepper Line */}
                           {!isReturn && (
-                             <div className="w-full py-4 border border-border/60 bg-surface/30 px-5 rounded-2xl">
+                             <div className="w-full pt-2 px-2 sm:px-6">
                                 <div className="flex items-center">
                                    {stages.map((stage, idx) => {
                                       const isCompleted = idx <= currentIndex;
@@ -333,25 +341,23 @@ export default function OrdersPage() {
                                       
                                       return (
                                          <React.Fragment key={stage.label}>
-                                            {/* Step column */}
-                                            <div className="flex flex-col items-center">
-                                               <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] transition-all duration-300 border-2 ${
+                                            <div className="flex flex-col items-center relative z-10">
+                                               <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300 border-2 ${
                                                   isCompleted 
-                                                     ? "bg-orange-500 border-orange-500 text-white shadow-sm shadow-orange-500/20" 
-                                                     : "bg-surface border-border text-muted"
+                                                     ? "bg-orange-500 border-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]" 
+                                                     : "bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-400"
                                                }`}>
                                                   {idx + 1}
                                                </div>
-                                               <span className={`text-[9px] font-bold mt-1.5 transition-colors duration-300 ${
-                                                  isActive ? "text-orange-500" : isCompleted ? "text-heading" : "text-muted"
+                                               <span className={`text-[10px] font-extrabold mt-2 transition-colors duration-300 ${
+                                                  isActive ? "text-orange-600 dark:text-orange-400" : isCompleted ? "text-zinc-900 dark:text-white" : "text-zinc-400"
                                                }`}>
                                                   {stage.label}
                                                </span>
                                             </div>
                                             
-                                            {/* Connector line */}
                                             {idx < stages.length - 1 && (
-                                               <div className="flex-1 h-[2px] bg-border mx-2 -mt-4">
+                                               <div className="flex-1 h-[3px] bg-zinc-200 dark:bg-zinc-800 mx-2 -mt-5">
                                                   <div className={`h-full transition-all duration-500 ${
                                                      idx < currentIndex ? "bg-orange-500" : "bg-transparent"
                                                   }`} />
@@ -367,39 +373,77 @@ export default function OrdersPage() {
                     );
                  })()}
 
-                 {/* Items */}
-                 <div className="space-y-4">
+                 {/* Items List inside Crisp Box */}
+                 <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3">
+                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider pb-1 border-b border-zinc-200 dark:border-zinc-800">Order Items</h4>
                     {order.items.map((item: any) => (
-                       <div key={item.id} className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-lg bg-surface border border-border overflow-hidden shrink-0">
+                       <div key={item.id} className="flex items-center gap-3.5 pt-1">
+                          <div className="w-14 h-14 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 overflow-hidden shrink-0 shadow-sm flex items-center justify-center">
                              <img src={item.productImage || "/logo4.jpg"} alt={item.productName} className="w-full h-full object-cover" />
                           </div>
-                          <div className="flex-1">
-                             <h4 className="font-bold text-heading text-xs">{item.productName}</h4>
-                             <p className="text-[10px] text-muted">Qty: {item.quantity}</p>
+                          <div className="flex-1 min-w-0">
+                             <h4 className="font-extrabold text-zinc-900 dark:text-white text-sm sm:text-base truncate">{item.productName}</h4>
+                             <p className="text-xs text-zinc-500 font-medium mt-0.5">Quantity: <strong className="text-zinc-700 dark:text-zinc-300">{item.quantity}</strong></p>
                              {order.status === "DELIVERED" && (
                                <InlineReviewStars productId={item.productId} orderId={order.id} />
                              )}
                           </div>
-                          <div className="font-bold text-heading text-sm">
-                             ₹{(item.totalPaise / 100).toLocaleString()}
+                          <div className="font-black text-zinc-900 dark:text-white text-sm sm:text-base whitespace-nowrap">
+                             ₹{(item.totalPaise / 100).toLocaleString("en-IN")}
                           </div>
                        </div>
                     ))}
                  </div>
 
+                 {/* Dark Luxury Financial Receipt Breakdown Box (Stops everything from blending into white!) */}
+                 <div className="bg-[#121214] text-white p-4 sm:p-5 rounded-2xl border border-zinc-800 shadow-xl space-y-2 text-xs">
+                    <div className="flex justify-between items-center text-zinc-400">
+                       <span>Item Subtotal</span>
+                       <span className="font-medium text-white">₹{((order.subtotalPaise || order.totalPaise) / 100).toLocaleString("en-IN")}</span>
+                    </div>
+
+                    {order.discountPaise > 0 && (
+                       <div className="flex justify-between items-center font-bold text-[#22c55e] bg-[#0a2e1a]/80 px-3 py-1.5 rounded-xl border border-[#22c55e]/30">
+                          <span>🎉 Coupon Saved {order.couponCode ? `(${order.couponCode})` : ""}</span>
+                          <span>-₹{(order.discountPaise / 100).toLocaleString("en-IN")}</span>
+                       </div>
+                    )}
+
+                    {order.shippingPaise > 0 && (
+                       <div className="flex justify-between items-center text-zinc-400">
+                          <span>Delivery Charges</span>
+                          <span className="font-medium text-white">+₹{(order.shippingPaise / 100).toLocaleString("en-IN")}</span>
+                       </div>
+                    )}
+                    {order.codChargePaise > 0 && (
+                       <div className="flex justify-between items-center text-zinc-400">
+                          <span>COD Surcharge</span>
+                          <span className="font-medium text-white">+₹{(order.codChargePaise / 100).toLocaleString("en-IN")}</span>
+                       </div>
+                    )}
+
+                    <div className="h-px bg-zinc-800/80 my-2" />
+
+                    <div className="flex justify-between items-baseline pt-1">
+                       <span className="text-zinc-200 font-extrabold text-sm">Total Paid / Payable</span>
+                       <span className="font-black text-[#22c55e] text-base sm:text-lg">
+                          ₹{(order.totalPaise / 100).toLocaleString("en-IN")}
+                       </span>
+                    </div>
+                 </div>
+
                  {/* Status Footer */}
-                 <div className="flex justify-between items-center pt-4 border-t border-border">
+                 <div className="flex justify-between items-center pt-2 border-t border-zinc-200/80 dark:border-zinc-800 flex-wrap gap-3">
                     <div className="flex items-center gap-2">
-                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border ${
-                          ['DELIVERED', 'RETURNED'].includes(order.status) ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' :
-                          order.status.includes('RETURN') ? 'bg-amber-500/10 border-amber-500/20 text-amber-600' :
-                          'bg-blue-500/10 border-blue-500/20 text-blue-600'
+                       <span className={`px-3 py-1.5 rounded-xl text-[11px] font-black uppercase border shadow-sm ${
+                          ['DELIVERED', 'RETURNED'].includes(order.status) ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' :
+                          order.status.includes('RETURN') ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400' :
+                          'bg-blue-500/15 border-blue-500/30 text-blue-600 dark:text-blue-400'
                        }`}>
                           {order.status.replace(/_/g, ' ')}
                        </span>
                        {order.awbCode && (
-                          <span className="text-[10px] text-muted">Tracking: <strong>{order.awbCode}</strong> ({order.courierName})</span>
+                          <span className="text-xs text-zinc-500">Tracking: <strong className="text-zinc-900 dark:text-white">{order.awbCode}</strong> ({order.courierName})</span>
                        )}
                     </div>
 
@@ -409,11 +453,11 @@ export default function OrdersPage() {
                         const isWithinReturnWindow = (Date.now() - deliveredTimestamp) <= returnWindowMs;
 
                         return isWithinReturnWindow ? (
-                           <button onClick={() => openReturnModal(order)} className="text-xs font-bold text-red-500 hover:text-red-600 border border-red-500/20 bg-red-500/5 px-4 py-1.5 rounded-lg transition-colors">
+                           <button onClick={() => openReturnModal(order)} className="text-xs font-bold text-red-600 hover:text-red-700 border-2 border-red-500/30 bg-red-500/10 px-4 py-2 rounded-xl transition-all shadow-sm">
                               Return Product
                            </button>
                         ) : (
-                           <span className="text-[10px] font-medium text-muted border border-border px-3 py-1.5 rounded-lg bg-surface/50">
+                           <span className="text-xs font-semibold text-zinc-400 border border-zinc-200 dark:border-zinc-800 px-3.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-900">
                               Return window closed (7 Days)
                            </span>
                         );
@@ -422,16 +466,16 @@ export default function OrdersPage() {
 
                  {/* Return Notes/Dispute Details */}
                  {order.returnRequest && (order.returnRequest.rejectionReason || order.returnRequest.adminNotes) && (
-                    <div className="mt-4 p-3 bg-red-500/5 border border-red-500/20 rounded-xl">
-                       <h5 className="text-[10px] font-bold text-red-600 mb-1 flex items-center gap-1">
-                          <AlertTriangle size={12} />
+                    <div className="p-3.5 bg-red-500/10 border-2 border-red-500/20 rounded-2xl space-y-1 text-xs">
+                       <h5 className="font-extrabold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                          <AlertTriangle size={14} />
                           Support Notes
                        </h5>
                        {order.returnRequest.rejectionReason && (
-                          <p className="text-[10px] text-muted mt-1"><span className="font-semibold text-heading">Update:</span> {order.returnRequest.rejectionReason}</p>
+                          <p className="text-zinc-600 dark:text-zinc-300"><span className="font-bold text-zinc-900 dark:text-white">Update:</span> {order.returnRequest.rejectionReason}</p>
                        )}
                        {order.returnRequest.adminNotes && (
-                          <p className="text-[10px] text-muted mt-1"><span className="font-semibold text-heading">Notes:</span> {order.returnRequest.adminNotes}</p>
+                          <p className="text-zinc-600 dark:text-zinc-300"><span className="font-bold text-zinc-900 dark:text-white">Notes:</span> {order.returnRequest.adminNotes}</p>
                        )}
                     </div>
                  )}

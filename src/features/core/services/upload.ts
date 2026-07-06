@@ -46,7 +46,13 @@ export async function uploadFile(file: File): Promise<string> {
   // Fallback to Cloudinary (Default)
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: 'stopshops_products' },
+      { 
+        folder: 'stopshops_products',
+        quality: 'auto',
+        fetch_format: 'auto',
+        width: 1600,
+        crop: 'limit'
+      },
       (error, result) => {
         if (error) {
           console.error("Cloudinary upload error:", error);

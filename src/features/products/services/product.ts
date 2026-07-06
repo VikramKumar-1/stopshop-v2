@@ -59,6 +59,26 @@ function calculateRelevanceScore(product: any, query: string, tokens: string[]):
   return score;
 }
 
+// Mathematical function to calculate character differences (typos) between two words
+function levenshtein(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+  for (let i = 0; i <= a.length; i += 1) matrix[0][i] = i;
+  for (let j = 0; j <= b.length; j += 1) matrix[j][0] = j;
+  for (let j = 1; j <= b.length; j += 1) {
+    for (let i = 1; i <= a.length; i += 1) {
+      const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j][i - 1] + 1, // deletion
+        matrix[j - 1][i] + 1, // insertion
+        matrix[j - 1][i - 1] + indicator // substitution
+      );
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
 export async function getProducts(filters: ProductFilters) {
   const whereClause: any = {};
 
@@ -68,9 +88,67 @@ export async function getProducts(filters: ProductFilters) {
 
   let hasSearch = false;
   let searchTokens: string[] = [];
+  
+  // Smart Search Dictionary for Typo Tolerance & Synonyms (Indian Kitchenware Focus)
+  const smartSynonyms: Record<string, string[]> = {
+    // Typos & Variations
+    "cooper": ["copper"],
+    "coppier": ["copper"],
+    "coper": ["copper"],
+    "bras": ["brass"],
+    "braas": ["brass"],
+    "steeel": ["steel"],
+    "stel": ["steel"],
+    "kadi": ["kadai"],
+    "kadhai": ["kadai"],
+    "puja": ["pooja"],
+    "pOOja": ["pooja"],
+    
+    // Contextual Synonyms (English <-> Hindi/Desi terms)
+    "bottle": ["flask"],
+    "flask": ["bottle"],
+    "glass": ["tumbler"],
+    "tumbler": ["glass"],
+    "bowl": ["katori"],
+    "katori": ["bowl"],
+    "plate": ["thali"],
+    "thali": ["plate"],
+    "spoon": ["chamach"],
+    "jug": ["pitcher"],
+    "pitcher": ["jug"],
+    "pot": ["handi"],
+    "handi": ["pot"],
+    "box": ["dabba"],
+    "dabba": ["box"],
+    "tiffin": ["lunchbox"],
+    "lunchbox": ["tiffin"],
+    "masala": ["spice"],
+    "spice": ["masala"],
+    "ghee": ["oil"],
+    "oil": ["ghee"],
+    "lota": ["kalash"],
+    "kalash": ["lota"],
+    "diya": ["lamp"],
+    "lamp": ["diya"],
+    "pan": ["tawa"],
+    "tawa": ["pan"],
+  };
+
   if (filters.search) {
     const cleanSearch = filters.search.trim().toLowerCase();
-    searchTokens = cleanSearch.split(/\s+/).filter(Boolean);
+    const rawTokens = cleanSearch.split(/\s+/).filter(Boolean);
+    
+    // Expand tokens with smart synonyms
+    const expandedTokens = new Set<string>();
+    for (const t of rawTokens) {
+      expandedTokens.add(t);
+      if (smartSynonyms[t]) {
+        smartSynonyms[t].forEach(syn => expandedTokens.add(syn));
+      }
+    }
+    
+    searchTokens = Array.from(expandedTokens);
+
     if (searchTokens.length > 0) {
       hasSearch = true;
       whereClause.OR = searchTokens.flatMap(token => [
@@ -114,8 +192,7 @@ export async function getProducts(filters: ProductFilters) {
     orderBy = { reviews: "desc" };
   }
 
-  // If we have search, we fetch all matched records (without skip/take) and order them in memory
-  // to apply relevance scoring before paginating.
+  // 1. Initial Fast Query (Uses Database Indexes & Smart Dictionary)
   let products = await prisma.product.findMany({
     where: whereClause,
     orderBy: hasSearch ? undefined : orderBy,
@@ -130,7 +207,69 @@ export async function getProducts(filters: ProductFilters) {
   });
 
   if (hasSearch) {
-    // Sort in memory
+    // 2. Hybrid Fuzzy Fallback: If DB query fails to find enough products, it's a severe typo.
+    // In the future, you can replace this block with an AI Vector Search (Pinecone/OpenAI).
+    if (products.length < 3) {
+      const allActiveLightweight = await prisma.product.findMany({
+        where: { active: true },
+        select: { id: true, name: true, categoryName: true, material: true },
+      });
+
+      const fuzzyMatchedIds = new Set<number>();
+      
+      for (const prod of allActiveLightweight) {
+        const prodTokens = [
+          ...(prod.name?.toLowerCase().split(/\s+/) || []),
+          prod.categoryName?.toLowerCase(),
+          prod.material?.toLowerCase()
+        ].filter(Boolean) as string[];
+
+        let isMatch = false;
+        // Check if any search token is very close to any product token
+        for (const sToken of searchTokens) {
+          if (sToken.length < 4) continue; // Skip very short words for fuzzy matching
+          for (const pToken of prodTokens) {
+            // If the word length difference is large, skip
+            if (Math.abs(sToken.length - pToken.length) > 2) continue;
+            
+            const distance = levenshtein(sToken, pToken);
+            // Allow 1 typo for 4-5 letter words, 2 typos for 6+ letter words
+            const maxTypos = sToken.length > 5 ? 2 : 1;
+            
+            if (distance <= maxTypos) {
+              isMatch = true;
+              break;
+            }
+          }
+          if (isMatch) break;
+        }
+
+        if (isMatch) {
+          fuzzyMatchedIds.add(prod.id);
+        }
+      }
+
+      if (fuzzyMatchedIds.size > 0) {
+        // Fetch full data for the fuzzy matched IDs
+        const existingIds = new Set(products.map(p => p.id));
+        const newIdsToFetch = Array.from(fuzzyMatchedIds).filter(id => !existingIds.has(id));
+        
+        if (newIdsToFetch.length > 0) {
+          const fuzzyProducts = await prisma.product.findMany({
+            where: { id: { in: newIdsToFetch } },
+            include: {
+              category: true,
+              vendor: {
+                select: { id: true, name: true, location: true, allowedCategories: true, createdAt: true },
+              },
+            },
+          });
+          products = [...products, ...fuzzyProducts];
+        }
+      }
+    }
+
+    // 3. Sort in memory (Relevance Ranking)
     if (filters.sort === "price-low-high") {
       products.sort((a, b) => a.price - b.price);
     } else if (filters.sort === "price-high-low") {
@@ -157,7 +296,7 @@ export async function getProducts(filters: ProductFilters) {
       });
     }
 
-    // Apply pagination in memory after sorting
+    // 4. Apply pagination in memory after sorting
     if (filters.skip !== undefined || filters.take !== undefined) {
       const start = filters.skip || 0;
       const end = filters.take !== undefined ? start + filters.take : undefined;
@@ -283,7 +422,10 @@ export async function createProduct(body: any, session: TokenPayload) {
       newLaunch: !!newLaunch,
       // Products are active by default. Admin can hide inappropriate products manually.
       active: active !== undefined ? !!active : true,
-      vendorId: session.role === "vendor" ? session.userId : (body.vendorId ? parseInt(body.vendorId) : null)
+      vendorId: session.role === "vendor" ? session.userId : (body.vendorId ? parseInt(body.vendorId) : null),
+      crossSellIds: body.crossSellIds ? body.crossSellIds : [],
+      bundleDiscountType: body.bundleDiscountType || "NONE",
+      bundleDiscountValue: body.bundleDiscountValue !== undefined ? parseFloat(body.bundleDiscountValue) || null : null,
     },
   });
 }
@@ -409,12 +551,17 @@ export async function updateProduct(id: number, body: any, session: TokenPayload
   const allowedFields = [
     "name", "slug", "description", "specs", "image", "images",
     "prices", "price", "mrp", "discount", "material", "stock",
-    "featured", "newLaunch", "active"
+    "featured", "newLaunch", "active", "crossSellIds", 
+    "bundleDiscountType", "bundleDiscountValue"
   ];
 
   for (const field of allowedFields) {
     if (body[field] !== undefined) {
-      updateData[field] = body[field];
+      if (field === "bundleDiscountValue" && body[field] !== null) {
+        updateData[field] = parseFloat(body[field]) || null;
+      } else {
+        updateData[field] = body[field];
+      }
     }
   }
 

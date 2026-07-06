@@ -362,7 +362,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
   };
 
   return (
-    <div className="min-h-screen bg-surface pt-0 pb-16">
+    <div className="min-h-screen bg-surface pt-0 lg:pt-8 pb-16">
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-bronze-950 via-bronze-900 to-bronze-950 text-white py-5 px-4 sm:px-6 lg:px-8 border-b border-bronze-800">
         <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

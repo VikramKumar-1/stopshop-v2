@@ -39,7 +39,8 @@ export const AdminCouponManager = () => {
     expiresAt: "",
     applicableCategories: "",
     applicableMaterials: "",
-    isAutoApply: false
+    isAutoApply: false,
+    isFirstOrderOnly: false
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -106,6 +107,7 @@ export const AdminCouponManager = () => {
         applicableCategories: formData.applicableCategories || null,
         applicableMaterials: formData.applicableMaterials || null,
         isAutoApply: formData.isAutoApply,
+        isFirstOrderOnly: formData.isFirstOrderOnly,
         minOrderPaise: formData.minOrderPaise ? parseInt(formData.minOrderPaise) * 100 : 0,
         maxDiscountPaise: formData.maxDiscountPaise ? parseInt(formData.maxDiscountPaise) * 100 : null
       };
@@ -122,7 +124,7 @@ export const AdminCouponManager = () => {
         setFormData({
           code: "", description: "", discountType: "PERCENTAGE", discountValue: "",
           minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1",
-          vendorId: "", startsAt: "", expiresAt: "", applicableCategories: "", applicableMaterials: "", isAutoApply: false
+          vendorId: "", startsAt: "", expiresAt: "", applicableCategories: "", applicableMaterials: "", isAutoApply: false, isFirstOrderOnly: false
         });
         fetchAllData(true);
       } else {
@@ -413,12 +415,21 @@ export const AdminCouponManager = () => {
                 ))}
               </select>
             </div>
-            <div className="md:col-span-2 lg:col-span-3 flex items-center gap-3 bg-orange-500/5 p-4 rounded-xl border border-orange-500/20">
-              <input type="checkbox" id="autoApply" checked={formData.isAutoApply} onChange={e => setFormData({...formData, isAutoApply: e.target.checked})} className="w-5 h-5 accent-orange-500" />
-              <label htmlFor="autoApply" className="text-sm font-bold text-heading cursor-pointer">
-                Auto-Apply this coupon at checkout
-                <span className="block text-xs text-muted font-medium mt-0.5">If checked, this coupon will automatically apply at checkout without the user needing to click it.</span>
-              </label>
+            <div className="md:col-span-2 lg:col-span-3 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex-1 flex items-center gap-3 bg-orange-500/5 p-4 rounded-xl border border-orange-500/20">
+                <input type="checkbox" id="autoApply" checked={formData.isAutoApply} onChange={e => setFormData({...formData, isAutoApply: e.target.checked})} className="w-5 h-5 accent-orange-500" />
+                <label htmlFor="autoApply" className="text-sm font-bold text-heading cursor-pointer">
+                  Auto-Apply this coupon at checkout
+                  <span className="block text-xs text-muted font-medium mt-0.5">If checked, this coupon will automatically apply at checkout without the user needing to click it.</span>
+                </label>
+              </div>
+              <div className="flex-1 flex items-center gap-3 bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/20">
+                <input type="checkbox" id="firstOrderOnly" checked={formData.isFirstOrderOnly} onChange={e => setFormData({...formData, isFirstOrderOnly: e.target.checked})} className="w-5 h-5 accent-emerald-500" />
+                <label htmlFor="firstOrderOnly" className="text-sm font-bold text-heading cursor-pointer">
+                  First Order Only
+                  <span className="block text-xs text-muted font-medium mt-0.5">If checked, this coupon can only be used by users making their very first successful order on the platform.</span>
+                </label>
+              </div>
             </div>
           </div>
           <div className="flex justify-end pt-2">
@@ -531,6 +542,7 @@ export const AdminCouponManager = () => {
                         <Clock size={12} />
                         Expires: {c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : "Never"}
                       </p>
+                      {c.isFirstOrderOnly && <p className="text-emerald-500 font-bold mt-1 text-[11px]">★ FIRST ORDER ONLY</p>}
                     </div>
                   </div>
                   

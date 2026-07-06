@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
-import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, Clock, Lock } from "lucide-react";
+import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, Clock, Lock, Zap, Sparkles } from "lucide-react";
 import { useRegion } from "@/context/RegionContext";
 
 // Helper component for Countdown
@@ -28,17 +28,17 @@ const CountdownTimer = ({ expiresAt }: { expiresAt: string }) => {
     return () => clearInterval(timer);
   }, [expiresAt]);
 
-  if (!timeLeft) return <span className="text-red-500 font-bold text-[10px]">Expired</span>;
+  if (!timeLeft) return <span className="text-red-300 font-bold text-[10px]">Expired</span>;
   return (
-    <span className="text-orange-600 font-bold text-[10px] flex items-center gap-1">
-      <Clock size={10} />
-      {timeLeft.h}h {timeLeft.m}m {timeLeft.s}s
+    <span className="text-white font-mono font-extrabold text-[11px] flex items-center gap-1">
+      <Clock size={11} className="text-yellow-300 animate-pulse" />
+      {String(timeLeft.h).padStart(2, '0')}h : {String(timeLeft.m).padStart(2, '0')}m : {String(timeLeft.s).padStart(2, '0')}s
     </span>
   );
 };
 
 export const CartPage = () => {
-  const { cart, updateQuantity, removeFromCart, clearCart, cartCount, cartTotal, loaded } = useCart();
+  const { cart, updateQuantity, removeFromCart, clearCart, cartCount, cartTotal, bundleDiscount, loaded } = useCart();
   const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
 
   // Wait for cart to hydrate from localStorage before rendering
@@ -178,6 +178,31 @@ export const CartPage = () => {
     );
   }
 
+  // Calculate total raw price and targeted offer discount across cart items
+  let totalRawPrice = 0;
+  let totalTargetedDiscount = 0;
+
+  cart.forEach(item => {
+    const rawPrice = getRawPrice(item.price, item, false);
+    totalRawPrice += rawPrice * item.quantity;
+
+    const offer = targetedOffers.find(o => 
+      (o.productId === item.id || (!o.productId && o.vendorId === item.vendorId)) &&
+      new Date(o.expiresAt) > new Date()
+    );
+
+    if (offer) {
+      let itemDiscount = 0;
+      if (offer.discountPct) itemDiscount = rawPrice * (offer.discountPct / 100);
+      if (offer.discountAmt) itemDiscount = Math.min(rawPrice, offer.discountAmt * 100); // Caps at item price
+      
+      const discountQuantity = offer.productId ? 1 : item.quantity;
+      totalTargetedDiscount += itemDiscount * discountQuantity;
+    }
+  });
+
+  const finalEstimatedValue = Math.max(0, totalRawPrice - bundleDiscount - totalTargetedDiscount);
+
   return (
     <div className="min-h-screen bg-surface py-8 sm:py-16 relative overflow-hidden">
       {/* Decorative background glow */}
@@ -277,27 +302,51 @@ export const CartPage = () => {
                     <p className="text-xs text-muted font-medium">Specs: {convertWeight(item.specs)}</p>
                     
                     {offer && (
-                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-orange-500/10 rounded-md border border-orange-500/20 mb-1">
-                        <span className="text-[10px] font-bold text-orange-600">Personalized Discount Applied</span>
-                        <CountdownTimer expiresAt={offer.expiresAt} />
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 rounded-full shadow-md text-white mb-2 border border-white/25 transform transition-transform hover:scale-[1.02]">
+                        <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-yellow-100">
+                          <Zap size={11} className="fill-yellow-300 text-yellow-300 animate-bounce" /> Personalized Offer
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-white/60" />
+                        <div className="flex items-center bg-black/25 px-2 py-0.5 rounded-full backdrop-blur-sm shadow-inner">
+                          <CountdownTimer expiresAt={offer.expiresAt} />
+                        </div>
                       </div>
                     )}
 
                     {/* Price and Category */}
-                    <div className="flex flex-col">
+                    <div className="flex flex-col w-full">
                       <span className="text-xs font-bold text-orange-500/80 mb-1 tracking-wide">{item.categoryName || "Product"}</span>
-                      <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-                        {offer ? (
-                          <>
-                            <span className="text-sm font-black text-heading">{convertPrice(discountedPrice, item, false)}</span>
-                            <span className="text-[10px] text-muted line-through opacity-70">{convertPrice(item.mrp > item.price ? item.mrp : item.price, item, true)}</span>
-                            {offer.productId && item.quantity > 1 && (
-                              <span className="text-[9px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-bold ml-1">
-                                Discount applies to 1 unit
-                              </span>
-                            )}
-                          </>
-                        ) : (
+                      <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start w-full">
+                        {offer ? (() => {
+                          const regPrice = item.mrp > item.price ? item.mrp : item.price;
+                          const savings = regPrice - discountedPrice;
+                          return (
+                            <div className="mt-1 bg-gradient-to-r from-orange-50/90 to-amber-50/90 dark:from-orange-950/40 dark:to-amber-950/40 p-3 rounded-xl border border-orange-500/30 w-full max-w-md shadow-sm">
+                              <div className="flex items-center justify-between gap-2 flex-wrap mb-1 text-xs">
+                                <span className="font-semibold text-muted">Regular Store Price:</span>
+                                <span className="text-muted line-through font-bold text-sm">{convertPrice(regPrice, item, true)}</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-2 flex-wrap border-t border-orange-500/20 pt-2 mt-1 text-xs">
+                                <span className="font-extrabold text-orange-600 dark:text-orange-400 flex items-center gap-1">
+                                  ⚡ Exclusive Offer Price:
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-lg font-black text-heading text-emerald-600 dark:text-emerald-400">{convertPrice(discountedPrice, item, false)}</span>
+                                  {savings > 0 && (
+                                    <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2 py-0.5 rounded-full shadow-sm animate-pulse-subtle">
+                                      Save {convertPrice(savings, item, false)}!
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {offer.productId && item.quantity > 1 && (
+                                <p className="text-[10px] text-amber-700 dark:text-amber-300 font-bold mt-2 bg-amber-500/15 px-2 py-1 rounded border border-amber-500/20">
+                                  ℹ️ Note: Exclusive rate applies to 1st unit only.
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })() : (
                           <>
                             <span className="text-sm font-black text-heading">{convertPrice(item.price, item, false)}</span>
                             {item.mrp > item.price && (
@@ -358,12 +407,45 @@ export const CartPage = () => {
                   <span className="text-muted font-medium">Total Quantity:</span>
                   <span className="font-bold text-heading">{cartCount} items</span>
                 </div>
-                <div className="flex justify-between items-baseline">
+                {totalTargetedDiscount > 0 && (
+                  <div className="flex justify-between text-xs text-orange-500 font-semibold">
+                    <span className="flex items-center gap-1"><Sparkles size={12}/> Personalized Savings:</span>
+                    <span>-{formatPrice(totalTargetedDiscount)}</span>
+                  </div>
+                )}
+                {bundleDiscount > 0 && (
+                  <div className="flex justify-between text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span>🎁 Bundle Savings:</span>
+                    <span>-{formatPrice(bundleDiscount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-baseline pt-1 border-t border-border/40">
                   <span className="text-xs text-muted font-medium">Estimated Value:</span>
                   <div className="text-right">
-                    <span className="text-lg font-black text-heading">
-                      {formatPrice(cart.reduce((sum, i) => sum + getRawPrice(i.price, i, false) * i.quantity, 0))}
-                    </span>
+                    {(bundleDiscount > 0 || totalTargetedDiscount > 0) ? (
+                      <>
+                        <span className="text-sm font-medium text-muted line-through mr-2">
+                          {formatPrice(totalRawPrice)}
+                        </span>
+                        <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                          {formatPrice(finalEstimatedValue)}
+                        </span>
+                        {bundleDiscount > 0 && (
+                          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">
+                            🎁 Bundle Combo Discount Applied!
+                          </div>
+                        )}
+                        {totalTargetedDiscount > 0 && (
+                          <div className="text-[10px] text-orange-500 font-bold mt-0.5 flex items-center justify-end gap-1">
+                            ⚡ Personalized Offer Applied!
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-lg font-black text-heading">
+                        {formatPrice(totalRawPrice)}
+                      </span>
+                    )}
                     <p className="text-[10px] text-muted/70 mt-0.5">* Excluding shipping & export duties</p>
                   </div>
                 </div>
