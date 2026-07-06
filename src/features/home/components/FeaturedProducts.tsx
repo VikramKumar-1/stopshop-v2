@@ -137,7 +137,8 @@ const products = [
   },
 ];
 
-export const FeaturedProducts = () => {
+export const FeaturedProducts = ({ products: propProducts }: { products?: any[] }) => {
+  const displayProducts = (propProducts && propProducts.length > 0) ? propProducts : products;
   const scrollRef = useRef<HTMLDivElement>(null);
   const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
   const { addToCart } = useCart();
@@ -238,7 +239,10 @@ export const FeaturedProducts = () => {
               msOverflowStyle: "none"
             }}
           >
-            {products.map((product) => (
+            {displayProducts.map((product: any) => {
+              const discountVal = product.discount || Math.round(((product.mrp - product.price) / (product.mrp || 1)) * 100) || 0;
+              const catName = product.categoryName || product.category || "Best Seller";
+              return (
               <Link
                 key={product.id}
                 href={`/product/${product.slug || product.id}`}
@@ -248,12 +252,14 @@ export const FeaturedProducts = () => {
                 {/* Product Image */}
                 <div className="relative aspect-square w-full overflow-hidden bg-orange-50 dark:bg-white/5">
                   {/* Discount badge */}
-                  <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
-                    {product.discount}% OFF
-                  </div>
+                  {discountVal > 0 && (
+                    <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                      {discountVal}% OFF
+                    </div>
+                  )}
                   <Image
-                    src={product.image}
-                    alt={product.name}
+                    src={product.image || "/bronze-kadai.png"}
+                    alt={product.name || "Product"}
                     fill
                     sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 280px"
                     loading="lazy"
@@ -267,12 +273,12 @@ export const FeaturedProducts = () => {
                     {/* Rating */}
                     <div className="flex items-center gap-1.5 text-[9px] sm:text-[11px]">
                       <div className="flex items-center gap-0.5 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold">
-                        <span>{product.rating}</span>
+                        <span>{product.rating || 5.0}</span>
                         <Star size={8} fill="currentColor" className="stroke-none" />
                       </div>
-                      <span className="text-muted">({product.reviews})</span>
+                      <span className="text-muted">({product.reviews || 0})</span>
                       <span className="text-[9px] text-muted">•</span>
-                      <span className="text-[9px] text-muted font-medium">{product.category}</span>
+                      <span className="text-[9px] text-muted font-medium">{catName}</span>
                     </div>
 
                     {/* Name with line-clamp-2 - height scales naturally */}
@@ -292,7 +298,7 @@ export const FeaturedProducts = () => {
                     {/* Specs scroll list */}
                     <div className="flex gap-1 overflow-x-auto scrollbar-none py-0.5 no-scrollbar max-w-full">
                       {product.specs ? (
-                        product.specs.split(" | ").map((spec, i) => (
+                        String(product.specs).split(" | ").map((spec: string, i: number) => (
                           <span key={i} className="whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-orange-500/5 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 text-[8px] sm:text-[10px] font-bold border border-orange-500/10">
                             {spec.toLowerCase().includes("kg") || spec.toLowerCase().includes("gm") || spec.toLowerCase().includes("lbs")
                               ? convertWeight(spec)
@@ -335,7 +341,8 @@ export const FeaturedProducts = () => {
                   </div>
                 </div>
               </Link>
-            ))}
+            );
+          })}
           </div>
 
           {/* Right Arrow */}

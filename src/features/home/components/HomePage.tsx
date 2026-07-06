@@ -98,6 +98,20 @@ export const HomePage = () => {
     });
   };
 
+  // Compute Best Seller products (Admin controlled + auto-fill up to 15)
+  const bestSellerSection = homepageSections.find((s: any) => s.slug === "best-sellers");
+  const manualBestSellers = bestSellerSection?.products || [];
+  const manualIds = new Set(manualBestSellers.map((p: any) => p.id));
+  
+  let autoBestSellers: any[] = [];
+  if (manualBestSellers.length < 15 && allProducts) {
+    autoBestSellers = (allProducts || [])
+      .filter((p: any) => !manualIds.has(p.id))
+      .sort((a: any, b: any) => (b.rating || 5) - (a.rating || 5))
+      .slice(0, 15 - manualBestSellers.length);
+  }
+  const bestSellerProducts = [...manualBestSellers, ...autoBestSellers];
+
   return (
     <>
       {/* Blinkit-style mobile section (category grid + banners) — mobile only */}
@@ -110,7 +124,7 @@ export const HomePage = () => {
       <ShopByCollections />
 
       {/* 3. Best Sellers */}
-      <FeaturedProducts />
+      <FeaturedProducts products={bestSellerProducts.length > 0 ? bestSellerProducts : undefined} />
 
       {/* 4. Shop by Material */}
       <ShopByMaterial />
@@ -173,11 +187,8 @@ export const HomePage = () => {
           return { accentColor: "bronze", tagLine: "Premium Workshop Crafts" };
         };
 
-        // Ensure best-sellers is first if not configured
-        const hasBestSellers = homepageSections.some((s: any) => s.slug === "best-sellers");
-        const sectionsToRender = hasBestSellers
-          ? homepageSections
-          : [{ slug: "best-sellers", title: "🔥 Best Sellers / Top Rated", products: [] }, ...homepageSections];
+        // Filter out best-sellers since it is already rendered in <FeaturedProducts /> above
+        const sectionsToRender = homepageSections.filter((s: any) => s.slug !== "best-sellers");
 
         // Track which category slugs admin has configured
         const adminConfiguredSlugs = new Set(sectionsToRender.map((s: any) => s.slug));
