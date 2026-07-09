@@ -334,6 +334,7 @@ exports.Prisma.AdminSettingsScalarFieldEnum = {
   companyCountry: 'companyCountry',
   companyPincode: 'companyPincode',
   invoiceTemplate: 'invoiceTemplate',
+  lockdownMode: 'lockdownMode',
   shippingFreeAbove: 'shippingFreeAbove',
   shippingChargePaise: 'shippingChargePaise',
   codShippingChargePaise: 'codShippingChargePaise',
@@ -365,6 +366,16 @@ exports.Prisma.CustomPayoutScalarFieldEnum = {
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SystemLogScalarFieldEnum = {
+  id: 'id',
+  level: 'level',
+  category: 'category',
+  message: 'message',
+  details: 'details',
+  resolved: 'resolved',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ReviewScalarFieldEnum = {
@@ -465,6 +476,13 @@ exports.Prisma.CartItemScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.IPBlacklistScalarFieldEnum = {
+  id: 'id',
+  ip: 'ip',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -503,6 +521,7 @@ exports.Prisma.ModelName = {
   Address: 'Address',
   AdminSettings: 'AdminSettings',
   CustomPayout: 'CustomPayout',
+  SystemLog: 'SystemLog',
   Review: 'Review',
   Coupon: 'Coupon',
   UserIntent: 'UserIntent',
@@ -510,7 +529,8 @@ exports.Prisma.ModelName = {
   ProductView: 'ProductView',
   ProductPair: 'ProductPair',
   Cart: 'Cart',
-  CartItem: 'CartItem'
+  CartItem: 'CartItem',
+  IPBlacklist: 'IPBlacklist'
 };
 
 /**

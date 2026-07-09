@@ -10,61 +10,67 @@ const categoryStylePresets: Record<string, { bgClass: string; fadeClass: string;
     bgClass: "from-[#121E15] to-[#070D09]", // forest green
     fadeClass: "from-[#121E15] to-transparent",
     textColor: "text-emerald-200",
-    fallbackImage: "/bronze-kadai.png",
+    fallbackImage: "/cat-kitchen-utility.png",
   },
   "brass-cookware": {
     bgClass: "from-[#251805] to-[#110A01]", // deep bronze
     fadeClass: "from-[#251805] to-transparent",
     textColor: "text-amber-200",
-    fallbackImage: "/bronze-hero.png",
+    fallbackImage: "/cat-brass-cookware.png",
   },
   "copper-products": {
     bgClass: "from-[#2A1005] to-[#110501]", // deep copper
     fadeClass: "from-[#2A1005] to-transparent",
     textColor: "text-orange-200",
-    fallbackImage: "/bronze-lota.png",
+    fallbackImage: "/cat-copper-products.png",
   },
   "steel-essentials": {
     bgClass: "from-[#1F2229] to-[#0E1013]", // slate steel
     fadeClass: "from-[#1F2229] to-transparent",
     textColor: "text-zinc-300",
-    fallbackImage: "/collection-tableware.png",
+    fallbackImage: "/cat-steel-essentials.png",
   },
   "home-living": {
     bgClass: "from-[#24170A] to-[#100903]", // earthy brown
     fadeClass: "from-[#24170A] to-transparent",
     textColor: "text-amber-200/90",
-    fallbackImage: "/bronze-hero.png",
+    fallbackImage: "/cat-home-living.png",
   },
   "bedroom-essentials": {
     bgClass: "from-[#0F1626] to-[#070B14]", // indigo
     fadeClass: "from-[#0F1626] to-transparent",
     textColor: "text-indigo-200",
-    fallbackImage: "/collection-tableware.png",
+    fallbackImage: "/cat-home-living.png",
   },
   "living-room": {
     bgClass: "from-[#261016] to-[#110408]", // warm burgundy
     fadeClass: "from-[#261016] to-transparent",
     textColor: "text-rose-200",
-    fallbackImage: "/bronze-hero.png",
+    fallbackImage: "/cat-living-room.png",
   },
   "handicrafts": {
     bgClass: "from-[#1D1026] to-[#0D0412]", // deep purple
     fadeClass: "from-[#1D1026] to-transparent",
     textColor: "text-purple-200",
-    fallbackImage: "/bronze-kadai.png",
+    fallbackImage: "/cat-handicrafts.png",
   },
   "pooja-collection": {
     bgClass: "from-[#2B0E0E] to-[#130303]", // crimson red
     fadeClass: "from-[#2B0E0E] to-transparent",
     textColor: "text-red-200",
-    fallbackImage: "/collection-pooja.png",
+    fallbackImage: "/cat-pooja-collection.png",
   },
   "kitchen-racks": {
     bgClass: "from-[#0D1F1D] to-[#040C0B]", // teal
     fadeClass: "from-[#0D1F1D] to-transparent",
     textColor: "text-teal-200",
-    fallbackImage: "/bronze-hero.png",
+    fallbackImage: "/cat-kitchen-racks.png",
+  },
+  "dinner-sets": {
+    bgClass: "from-[#2A1005] to-[#110501]", // deep copper/bronze
+    fadeClass: "from-[#2A1005] to-transparent",
+    textColor: "text-amber-200",
+    fallbackImage: "/cat-dinner-sets.png", 
   },
 };
 
@@ -86,14 +92,26 @@ export const ShopByCollections = () => {
         if (res.ok) {
           const data = await res.json();
           // Map API data and attach corresponding styling presets
-          const formatted = data
+            const formatted = data
             .filter((cat: any) => cat.slug !== "bedroom-essentials")
             .map((cat: any) => {
               const preset = categoryStylePresets[cat.slug] || defaultCategoryStyle;
+              
+              // If the database has one of the old generic images, forcefully upgrade it to our new AI image
+              const oldGenericImages = [
+                "/bronze-kadai.png", "/bronze-hero.png", "/bronze-lota.png", 
+                "/collection-tableware.png", "/collection-pooja.png", "/logo4.jpg"
+              ];
+              
+              let finalImage = cat.image;
+              if (!finalImage || oldGenericImages.includes(finalImage)) {
+                finalImage = preset.fallbackImage;
+              }
+
               return {
                 id: cat.slug,
                 name: cat.name,
-                image: cat.image || preset.fallbackImage,
+                image: finalImage,
                 bgClass: preset.bgClass,
                 fadeClass: preset.fadeClass,
                 textColor: preset.textColor,

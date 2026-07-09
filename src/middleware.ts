@@ -26,8 +26,56 @@ async function verifyTokenEdge(token: string): Promise<{ userId: number; email: 
   }
 }
 
+const SUSPICIOUS_PATTERNS = [
+  /<script/gi,
+  /javascript:/gi,
+  /UNION\s+SELECT/gi,
+  /DROP\s+TABLE/gi,
+  /EXEC\s*\(/gi,
+];
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const urlString = decodeURIComponent(request.url);
+
+  const baseUrl = request.nextUrl.origin;
+  const ip = request.ip || request.headers.get('x-forwarded-for') || 'Unknown IP';
+
+  // 1. IP BLACKLIST SHIELD (Check if this IP is banned)
+  // We don't want to block the telemetry or internal health APIs from running
+  if (!path.startsWith('/api/telemetry') && !path.startsWith('/api/security')) {
+    try {
+      const banRes = await fetch(`${baseUrl}/api/security/banned-ips`, { next: { revalidate: 60 } });
+      if (banRes.ok) {
+        const bannedIps: string[] = await banRes.json();
+        if (bannedIps.includes(ip)) {
+          return NextResponse.json({ error: '403 Forbidden. Your IP has been blocked for malicious activity.' }, { status: 403 });
+        }
+      }
+    } catch (e) {
+      // Fail open: If the ban list API fails, allow the request to prevent locking out normal users during a crash
+    }
+  }
+
+  // 2. WAF: Check for malicious payloads in URL (XSS / SQLi)
+  for (const pattern of SUSPICIOUS_PATTERNS) {
+    if (pattern.test(urlString)) {
+      
+      // Fire and forget teleport log (will trigger auto-ban in telemetry API)
+      fetch(`${baseUrl}/api/telemetry`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: 'MALICIOUS_PAYLOAD',
+          level: 'CRITICAL',
+          message: `Malicious WAF Payload Detected: ${pattern.toString()}`,
+          details: { ip, url: request.url, pattern: pattern.toString() }
+        })
+      }).catch(() => {});
+      
+      return NextResponse.json({ error: 'Blocked by Web Application Firewall (WAF)' }, { status: 403 });
+    }
+  }
   
   if (path.startsWith('/admin') || path.startsWith('/vendor')) {
     const token = request.cookies.get('stopshop_token')?.value;
@@ -88,5 +136,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/vendor/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/telemetry (to avoid infinite loops)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api/telemetry|_next/static|_next/image|favicon.ico).*)',
+  ],
 };

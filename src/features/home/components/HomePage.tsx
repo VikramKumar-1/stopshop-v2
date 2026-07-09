@@ -277,7 +277,7 @@ export const HomePage = () => {
       })()}
 
       {/* 10. Heritage + Artisan Story */}
-      <HeritageStory />
+      <HeritageStory vendorCount={hpData?.vendorCount || 0} />
 
       {/* 11. Export Program */}
       <ExportProgram />

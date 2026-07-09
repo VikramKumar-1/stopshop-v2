@@ -4,10 +4,12 @@ import { ArrowRight, Heart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-export const HeritageStory = () => {
+export const HeritageStory = ({ vendorCount = 0 }: { vendorCount?: number }) => {
+  // If vendorCount is 0 (still loading) or less than 12, just say 12+ as a fallback/minimum
+  const displayCount = vendorCount > 12 ? vendorCount : 12;
+
   return (
     <section className="lazy-scroll-section py-8 md:py-10 relative overflow-hidden bg-[#1A0F05] border-y border-orange-900/30">
-
 
       {/* Subtle pattern overlay */}
       <div
@@ -40,7 +42,7 @@ export const HeritageStory = () => {
             <div
               className="absolute -bottom-4 -right-2 sm:-bottom-6 sm:-right-6 bg-[#2D1A08] border border-orange-800/40 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-6 sm:py-4 shadow-2xl z-20"
             >
-              <p className="text-2xl sm:text-3xl font-display font-bold text-amber-400">200+</p>
+              <p className="text-2xl sm:text-3xl font-display font-bold text-amber-400">{displayCount}+</p>
               <p className="text-[10px] sm:text-xs text-orange-300/80 font-medium">Artisan Partners</p>
             </div>
           </div>
@@ -78,7 +80,7 @@ export const HeritageStory = () => {
             </div>
 
             <Link
-              href="/about"
+              href="/makers"
               className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold shadow-xl shadow-orange-900/30 hover:shadow-orange-800/40 text-sm"
             >
               Meet Our Makers

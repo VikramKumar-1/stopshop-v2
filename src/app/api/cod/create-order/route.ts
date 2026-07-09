@@ -26,6 +26,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "COD is currently disabled" }, { status: 400 });
     }
 
+    // SECURITY: Graceful Lockdown Check
+    if (settings?.lockdownMode) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "System is currently under maintenance. New checkouts are temporarily paused. Please try again in a few minutes." 
+      }, { status: 503 });
+    }
+
     // 2. Pricing
     const pricing = await calculateOrderPricing(cartItems, "cod", shippingInfo.country, couponCode);
 

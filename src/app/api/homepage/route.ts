@@ -51,7 +51,12 @@ export async function GET() {
       })
       .filter((sec: any) => sec.products.length > 0);
 
-    return NextResponse.json({ sections: populatedSections, mobileBanners });
+    // Get accurate count of approved vendors
+    const vendorCount = await prisma.user.count({
+      where: { role: "vendor", vendorStatus: "APPROVED" }
+    });
+
+    return NextResponse.json({ sections: populatedSections, mobileBanners, vendorCount });
   } catch (error: any) {
     console.error("Homepage sections error:", error);
     return NextResponse.json({ sections: [], mobileBanners: [] });

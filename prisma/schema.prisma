@@ -354,6 +354,9 @@ model AdminSettings {
   
   // Invoice Customization
   invoiceTemplate       String   @default("CLASSIC") // "CLASSIC" | "MODERN_MINIMAL" | "BRAND_PREMIUM"
+  
+  // Security & Panic Button
+  lockdownMode          Boolean  @default(false)
 
   
   // Shipping (admin manipulates these)
@@ -406,6 +409,22 @@ model CustomPayout {
   
   @@index([vendorId])
   @@index([productId])
+}
+
+// ==================== TELEMETRY & SECURITY LOGS ====================
+
+model SystemLog {
+  id          Int      @id @default(autoincrement())
+  level       String   @default("INFO") // INFO, WARNING, ERROR, CRITICAL
+  category    String   // "FRONTEND_CRASH", "API_CRASH", "BRUTE_FORCE", "404_SCAN"
+  message     String   @db.Text
+  details     Json?    // Stack trace, request body, IP address
+  resolved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+  @@index([resolved])
+  @@index([createdAt])
 }
 
 // ==================== REVIEWS & RATINGS ====================
@@ -572,4 +591,15 @@ model CartItem {
   @@unique([cartId, productId])
   @@index([cartId])
   @@index([productId])
+}
+
+// ==================== SECURITY ====================
+
+model IPBlacklist {
+  id        Int      @id @default(autoincrement())
+  ip        String   @unique
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([ip])
 }

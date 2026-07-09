@@ -46,6 +46,7 @@ export const metadata: Metadata = {
 import { MainLayout } from "@/features/core/components/MainLayout";
 import { RegionProvider } from "@/context/RegionContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { headers, cookies } from "next/headers";
 
 export default function RootLayout({
@@ -103,7 +104,9 @@ export default function RootLayout({
                 <SmoothScroll>
                   <Navbar />
                   <CategoryStrip />
-                  <MainLayout>{children}</MainLayout>
+                  <ErrorBoundary>
+                    <MainLayout>{children}</MainLayout>
+                  </ErrorBoundary>
                   <Footer />
                 </SmoothScroll>
               </WishlistProvider>

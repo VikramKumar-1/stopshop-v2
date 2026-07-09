@@ -15,6 +15,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Razorpay is not configured" }, { status: 500 });
     }
 
+    // SECURITY: Graceful Lockdown Check
+    const settings = await prisma.adminSettings.findUnique({ where: { id: 1 } });
+    if (settings?.lockdownMode) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "System is currently under maintenance. New checkouts are temporarily paused. Please try again in a few minutes." 
+      }, { status: 503 });
+    }
+
     const body = await req.json();
     const { cartItems, shippingInfo, couponCode, isBundle } = body;
 
