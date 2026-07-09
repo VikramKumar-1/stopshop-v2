@@ -17,9 +17,20 @@ async function main() {
   await prisma.address.deleteMany({});
   await prisma.user.deleteMany({});
 
+  // SECURITY: Require explicit credentials in environment variables
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const vendorPassword = process.env.VENDOR_PASSWORD;
+
+  if (!adminEmail || !adminPassword || !vendorPassword) {
+    console.error(
+      "\n❌ ADMIN_EMAIL, ADMIN_PASSWORD, and VENDOR_PASSWORD must be set in your .env file prior to seeding.\n" +
+      "   No default credentials are used for security reasons.\n"
+    );
+    process.exit(1);
+  }
+
   // Seed Admin User
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@stopshop.com";
-  const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
   const hashedAdminPassword = await bcrypt.hash(adminPassword, 10);
   const admin = await prisma.user.create({
     data: {
@@ -32,7 +43,7 @@ async function main() {
   console.log(`Admin seeded (${adminEmail})`);
 
   // Seed Vendor User
-  const hashedVendorPassword = await bcrypt.hash("vendor123", 10);
+  const hashedVendorPassword = await bcrypt.hash(vendorPassword, 10);
   const vendor = await prisma.user.create({
     data: {
       name: "Moradabad Artisans Hub",

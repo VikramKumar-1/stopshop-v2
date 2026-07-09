@@ -44,7 +44,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
        // Trigger Reverse Pickup asynchronously
        fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/shiprocket/return-pickup`, {
            method: "POST",
-           headers: { "Content-Type": "application/json" },
+           headers: { 
+             "Content-Type": "application/json",
+             "x-internal-secret": process.env.JWT_SECRET || "internal",
+             "Cookie": req.headers.get("cookie") || ""
+           },
            body: JSON.stringify({ orderId: returnReq.orderId, returnRequestId: returnId })
        }).catch(e => console.error("Auto reverse-pickup trigger failed", e));
 

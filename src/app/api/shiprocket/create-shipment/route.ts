@@ -5,9 +5,14 @@ import { requireRole } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    // Only internal calls or Admin/Vendor can hit this
-    // We'll skip strict auth if it's hitting from localhost for auto-ship, 
-    // but in production we'd want a webhook secret.
+    const authHeader = req.headers.get("x-internal-secret");
+    const isInternal = authHeader && authHeader === (process.env.JWT_SECRET || "internal");
+    
+    let user: any = null;
+    if (!isInternal) {
+      user = requireRole(req, ["admin", "vendor"]);
+      if (user instanceof NextResponse) return user;
+    }
     
     const body = await req.json();
     const { orderId } = body;
@@ -23,6 +28,13 @@ export async function POST(req: NextRequest) {
 
     if (!order) {
       return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
+    }
+
+    if (!isInternal && user && user.role === "vendor") {
+      const ownsItem = order.items.some((item: any) => item.vendorId === user.userId);
+      if (!ownsItem) {
+        return NextResponse.json({ success: false, error: "Unauthorized: You do not own items in this order" }, { status: 403 });
+      }
     }
 
     if (order.status !== "CONFIRMED" && order.status !== "PACKED") {

@@ -233,7 +233,7 @@ export const FeaturedProducts = ({ products: propProducts }: { products?: any[] 
             onMouseDown={handleDragStart}
             onTouchMove={handleDragMove}
             onMouseMove={handleDragMove}
-            className="flex overflow-x-auto gap-4 sm:gap-5 pb-6 pt-2 scrollbar-none"
+            className="flex items-stretch overflow-x-auto gap-4 sm:gap-5 pb-6 pt-2 scrollbar-none"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none"
@@ -247,10 +247,10 @@ export const FeaturedProducts = ({ products: propProducts }: { products?: any[] 
                 key={product.id}
                 href={`/product/${product.slug || product.id}`}
                 onClickCapture={handleLinkClick}
-                className="group shrink-0 w-[200px] sm:w-[230px] lg:w-[250px] h-[365px] sm:h-[415px] lg:h-[450px] flex flex-col justify-between bg-surface-card border border-bronze-500/[0.12] rounded-2xl overflow-hidden shadow-sm cursor-pointer"
+                className="group shrink-0 w-[200px] sm:w-[230px] lg:w-[250px] min-h-[365px] sm:min-h-[415px] lg:min-h-[450px] h-auto flex flex-col justify-between bg-surface-card border border-bronze-500/[0.12] rounded-2xl overflow-hidden shadow-sm cursor-pointer"
               >
                 {/* Product Image */}
-                <div className="relative aspect-square w-full overflow-hidden bg-orange-50 dark:bg-white/5">
+                <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-orange-50 dark:bg-white/5">
                   {/* Discount badge */}
                   {discountVal > 0 && (
                     <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">

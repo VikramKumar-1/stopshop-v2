@@ -125,6 +125,7 @@ export const ProductsTab = ({
                 className="bg-white text-slate-800 text-xs px-3 py-1.5 rounded-lg outline-none font-bold"
               >
                 <option value="" disabled>Select Section...</option>
+                <option value="best-sellers">🔥 Best Sellers / Top Rated</option>
                 {dbCategories.map((cat: any) => (
                   <option key={cat.slug} value={cat.slug}>{cat.name}</option>
                 ))}

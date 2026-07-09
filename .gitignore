@@ -19,8 +19,17 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env.*
 .env*.local
 .env
+!.env.example
+
+# Database backups and dumps
+*.sql
+*.dump
+*.bak
+backup*.json
+scratch/
 
 # Vercel
 .vercel
@@ -28,4 +37,32 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-.vercel
+# OS metadata
+.DS_Store
+Thumbs.db
+*.swp
+
+# Editor directories
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+
+# Prisma
+*.db
+*.db-journal
+src/generated/client/
+prisma/*.db
+prisma/*.db-journal
+
+# Linter caches
+.eslintcache
+.stylelintcache
+
+# Temporary/Cache files
+.temp/
+.tmp/
+tmp/
+*.log

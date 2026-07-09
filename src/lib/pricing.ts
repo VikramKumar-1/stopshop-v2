@@ -63,9 +63,27 @@ export async function calculateOrderPricing(
     // Determine price based on country (fallback to default price)
     let unitPrice = product.price; // Default price in INR
     if (finalCountry !== "IN" && product.prices) {
-      const pricesConfig = product.prices as Record<string, any>;
-      if (pricesConfig[finalCountry] && pricesConfig[finalCountry].price) {
-         unitPrice = pricesConfig[finalCountry].price;
+      const pricesConfig = typeof product.prices === 'string' ? JSON.parse(product.prices) : (product.prices as Record<string, any>);
+      if (pricesConfig[finalCountry] && pricesConfig[finalCountry].mrp !== undefined) {
+         const customMrp = parseFloat(pricesConfig[finalCountry].mrp);
+         const customDiscount = parseFloat(pricesConfig[finalCountry].discount) || 0;
+         if (!isNaN(customMrp)) {
+           // This is the price in the foreign currency (e.g., USD)
+           const foreignPrice = customMrp - (customMrp * customDiscount / 100);
+           
+           // Convert back to INR since the payment gateway processes in INR
+           // We use a hardcoded default rate for safety. 
+           // In a perfect world, we would fetch live rates or share the database.
+           const defaultRates: Record<string, number> = {
+             US: 83.5, GB: 105.0, EU: 90.0, AE: 22.7, CA: 61.0, 
+             AU: 55.0, SA: 22.2, SG: 61.5, JP: 0.53
+           };
+           
+           // If the country code isn't perfectly matched, fallback to USD (83.5)
+           const conversionRate = defaultRates[finalCountry] || 83.5;
+           
+           unitPrice = foreignPrice * conversionRate;
+         }
       }
     }
 

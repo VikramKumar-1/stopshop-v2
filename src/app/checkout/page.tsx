@@ -448,8 +448,10 @@ function CheckoutPageInner() {
   }, [cart, router, loaded, buyNowProductId, buyNowBundleIds, buyNowQty]);
 
   const activeAddress = addresses.find(a => a.id === selectedAddressId);
-  const country = activeAddress?.country || "India";
-  const isInternational = country.toLowerCase() !== "india" && country.toLowerCase() !== "in";
+  const countryName = activeAddress?.country || "India";
+  const countryCodeObj = countries.find(c => c.name.toLowerCase() === countryName.toLowerCase());
+  const countryCode = countryCodeObj ? countryCodeObj.code : "IN";
+  const isInternational = countryCode !== "IN";
 
   // Auto-switch payment method based on country of selected address
   useEffect(() => {
@@ -471,7 +473,8 @@ function CheckoutPageInner() {
     let subtotal = 0;
 
     checkoutItems.forEach(item => {
-       const rawPrice = getRawPrice(item.price, item, false);
+       // Pass countryCode to getRawPrice so it perfectly mirrors the backend shipping country price
+       const rawPrice = getRawPrice(item.price, item, false, countryCode);
        subtotal += rawPrice * item.quantity;
     });
 
@@ -525,7 +528,7 @@ function CheckoutPageInner() {
        total: Math.max(0, subtotal + shipping + codSurcharge + tax - discount)
     });
 
-  }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice, isInternational, couponApplied, targetedOffers, buyNowBundleIds]);
+  }, [checkoutItems, paymentMethod, selectedAddressId, addresses, settings, getRawPrice, isInternational, couponApplied, targetedOffers, buyNowBundleIds, countryCode]);
 
   // Check if any targeted discounts apply to disable regular coupons
   const hasTargetedDiscounts = checkoutItems.some(item => 
@@ -1021,7 +1024,7 @@ function CheckoutPageInner() {
                        (o.productId === item.id || (!o.productId && o.vendorId === item.vendorId)) &&
                        new Date(o.expiresAt) > new Date()
                      ) : undefined;
-                     const rawPrice = getRawPrice(item.price, item, false);
+                     const rawPrice = getRawPrice(item.price, item, false, countryCode);
                      let itemDiscount = 0;
                      if (offer) {
                        if (offer.discountPct) itemDiscount = rawPrice * (offer.discountPct / 100);
@@ -1093,13 +1096,13 @@ function CheckoutPageInner() {
                               <div className="text-right">
                                  {offer && totalDiscount > 0 ? (
                                    <div>
-                                     <span className="text-[10px] text-muted line-through mr-1 font-medium">{formatPrice(rawPrice * item.quantity)}</span>
-                                     <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">{formatPrice(finalItemTotal)}</span>
-                                     <span className="text-[8px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-extrabold px-1 py-0.5 rounded ml-1">Save {formatPrice(totalDiscount)}</span>
+                                     <span className="text-[10px] text-muted line-through mr-1 font-medium">{formatPrice(rawPrice * item.quantity, countryCode)}</span>
+                                     <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">{formatPrice(finalItemTotal, countryCode)}</span>
+                                     <span className="text-[8px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-extrabold px-1 py-0.5 rounded ml-1">Save {formatPrice(totalDiscount, countryCode)}</span>
                                    </div>
                                  ) : (
                                    <div className="text-xs font-black text-heading">
-                                      {formatPrice(rawPrice * item.quantity)}
+                                      {formatPrice(rawPrice * item.quantity, countryCode)}
                                    </div>
                                  )}
                               </div>
@@ -1126,32 +1129,32 @@ function CheckoutPageInner() {
                <div className="space-y-2.5 text-xs">
                   <div className="flex justify-between text-muted">
                      <span>Item Total (Subtotal)</span>
-                     <span className="text-heading font-medium">{formatPrice(pricing.subtotal)}</span>
+                     <span className="text-heading font-medium">{formatPrice(pricing.subtotal, countryCode)}</span>
                   </div>
                    {pricing.discount > 0 && (
                       <div className="flex justify-between text-emerald-500 font-medium">
                          <span className="flex items-center gap-1">
                            <Tag size={12} /> Discount {couponApplied?.code ? `(${couponApplied.code})` : ""}
                          </span>
-                         <span>-{formatPrice(pricing.discount)}</span>
+                         <span>-{formatPrice(pricing.discount, countryCode)}</span>
                       </div>
                    )}
                   <div className="flex justify-between text-muted">
                      <span>Delivery Charges</span>
                      <span className="text-emerald-500 font-medium">
-                       {pricing.shipping === 0 ? "FREE" : formatPrice(pricing.shipping)}
+                       {pricing.shipping === 0 ? "FREE" : formatPrice(pricing.shipping, countryCode)}
                      </span>
                   </div>
                   {pricing.codSurcharge > 0 && (
                      <div className="flex justify-between text-muted">
                         <span>COD Surcharge</span>
-                        <span className="text-heading font-medium">{formatPrice(pricing.codSurcharge)}</span>
+                        <span className="text-heading font-medium">{formatPrice(pricing.codSurcharge, countryCode)}</span>
                      </div>
                   )}
                   {pricing.tax > 0 && (
                      <div className="flex justify-between text-muted">
                         <span>Estimated Taxes ({settings.taxRate}%)</span>
-                        <span className="text-heading font-medium">{formatPrice(pricing.tax)}</span>
+                        <span className="text-heading font-medium">{formatPrice(pricing.tax, countryCode)}</span>
                      </div>
                   )}
                </div>
@@ -1230,11 +1233,11 @@ function CheckoutPageInner() {
                <div className="border-t border-border pt-3.5 space-y-1">
                   <div className="flex justify-between items-baseline">
                      <span className="font-bold text-heading text-sm">Total Payable</span>
-                     <span className="font-black text-heading text-lg gradient-text">{formatPrice(pricing.total)}</span>
+                     <span className="font-black text-heading text-lg gradient-text">{formatPrice(pricing.total, countryCode)}</span>
                   </div>
                   {pricing.discount > 0 && (
                     <p className="text-[11px] text-emerald-600 font-bold text-right">
-                      You will save {formatPrice(pricing.discount)} on this order!
+                      You will save {formatPrice(pricing.discount, countryCode)} on this order!
                     </p>
                   )}
                </div>

@@ -46,13 +46,22 @@ export const metadata: Metadata = {
 import { MainLayout } from "@/features/core/components/MainLayout";
 import { RegionProvider } from "@/context/RegionContext";
 import { WishlistProvider } from "@/context/WishlistContext";
-
+import { headers, cookies } from "next/headers";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = headers();
+  const cookieStore = cookies();
+  
+  const cookieRegion = cookieStore.get("stopshop_region")?.value;
+  const cfCountry = headersList.get("cf-ipcountry");
+  const vercelCountry = headersList.get("x-vercel-ip-country");
+  
+  const serverRegion = (cookieRegion || cfCountry || vercelCountry || "IN").toUpperCase();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -88,7 +97,7 @@ export default function RootLayout({
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
         <ThemeProvider>
-          <RegionProvider>
+          <RegionProvider initialRegion={serverRegion}>
             <CartProvider>
               <WishlistProvider>
                 <SmoothScroll>

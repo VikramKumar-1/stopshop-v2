@@ -20,6 +20,17 @@ export async function POST(req: Request) {
     const targetProductId = productId ? parseInt(productId) : null;
     const hours = parseInt(expiresAtHours) || 48; // Default 48 hours
 
+    // Security check: Verify the target product belongs to this vendor
+    if (targetProductId && session.role === "vendor") {
+      const product = await prisma.product.findUnique({
+        where: { id: targetProductId },
+        select: { vendorId: true }
+      });
+      if (!product || product.vendorId !== session.userId) {
+        return NextResponse.json({ error: "Forbidden: Product does not belong to you" }, { status: 403 });
+      }
+    }
+
     const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
 
     const offer = await prisma.targetedOffer.create({

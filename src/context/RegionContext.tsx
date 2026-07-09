@@ -9,9 +9,9 @@ interface RegionContextType {
   currency: string;
   symbol: string;
   setRegion: (region: Region) => void;
-  convertPrice: (priceInInr: number, product?: any, isMrp?: boolean) => string;
-  formatPrice: (value: number) => string;
-  getRawPrice: (priceInInr: number, product?: any, isMrp?: boolean) => number;
+  convertPrice: (priceInInr: number, product?: any, isMrp?: boolean, targetRegion?: string) => string;
+  formatPrice: (value: number, targetRegion?: string) => string;
+  getRawPrice: (priceInInr: number, product?: any, isMrp?: boolean, targetRegion?: string) => number;
   convertWeight: (specs: string) => string;
 }
 
@@ -61,9 +61,9 @@ export const currencyDatabase: Record<string, { c: string; s: string; p?: "suffi
   ZW: { c: "ZWL", s: "$" }
 };
 
-export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [region, setRegionState] = useState<Region>("IN");
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion?: string }> = ({ children, initialRegion = "IN" }) => {
+  const [region, setRegionState] = useState<Region>(initialRegion);
+  const [isLoaded, setIsLoaded] = useState<boolean>(true); // Start as true to prevent flicker since we have server-side region
   const [rates, setRates] = useState<Record<string, number>>({});
 
   // Fetch live exchange rates relative to INR on mount
@@ -84,65 +84,14 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     fetchRates();
   }, []);
 
-  useEffect(() => {
-    const stored = localStorage.getItem("stopshop_region") as Region;
-    if (stored && currencyDatabase[stored]) {
-      setRegionState(stored);
-      setIsLoaded(true);
-      return;
-    }
-
-    // 1. Guess timezone synchronously on mount to avoid the "IN" flicker
-    let initialTzCountry = "IN";
-    try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (tz.includes("London") || tz.includes("Belfast")) {
-        initialTzCountry = "GB";
-      } else if (tz.includes("Toronto") || tz.includes("Vancouver") || tz.includes("Montreal") || tz.includes("Winnipeg")) {
-        initialTzCountry = "CA";
-      } else if (tz.includes("Sydney") || tz.includes("Melbourne") || tz.includes("Brisbane") || tz.includes("Adelaide") || tz.includes("Perth")) {
-        initialTzCountry = "AU";
-      } else if (tz.includes("Singapore")) {
-        initialTzCountry = "SG";
-      } else if (tz.includes("Riyadh") || tz.includes("Jeddah")) {
-        initialTzCountry = "SA";
-      } else if (tz.includes("America")) {
-        initialTzCountry = "US";
-      } else if (tz.includes("Europe") || tz.includes("Paris") || tz.includes("Berlin") || tz.includes("Rome") || tz.includes("Madrid") || tz.includes("Amsterdam")) {
-        initialTzCountry = "EU";
-      } else if (tz.includes("Dubai") || tz.includes("Abu_Dhabi") || tz.includes("Muscat")) {
-        initialTzCountry = "AE";
-      } else if (tz.includes("Tokyo")) {
-        initialTzCountry = "JP";
-      }
-    } catch (e) {}
-
-    // Apply fast guess immediately
-    setRegionState(initialTzCountry);
-    setIsLoaded(true);
-
-    // 2. Fetch the highly-accurate IP header detection
-    fetch("/api/detect-region")
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw new Error("API call failed");
-      })
-      .then((data) => {
-        if (data && data.country && currencyDatabase[data.country]) {
-          setRegionState(data.country);
-        }
-      })
-      .catch(() => {
-        // Fallback guess is already set
-      });
-  }, []);
-
   const setRegion = (newRegion: Region) => {
     setRegionState(newRegion);
     localStorage.setItem("stopshop_region", newRegion);
+    document.cookie = `stopshop_region=${newRegion}; path=/; max-age=31536000`;
   };
 
-  const getRawPrice = (priceInInr: number, product?: any, isMrp?: boolean): number => {
+  const getRawPrice = (priceInInr: number, product?: any, isMrp?: boolean, targetRegion?: string): number => {
+    const activeRegion = targetRegion || region;
     if (product) {
       let pricesObj: any = null;
       if (product.prices) {
@@ -154,13 +103,13 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           pricesObj = product.prices;
         }
       }
-      if (pricesObj && pricesObj[region] && pricesObj[region].mrp !== undefined) {
-        const customMrp = parseFloat(pricesObj[region].mrp);
+      if (pricesObj && pricesObj[activeRegion] && pricesObj[activeRegion].mrp !== undefined) {
+        const customMrp = parseFloat(pricesObj[activeRegion].mrp);
         if (!isNaN(customMrp)) {
           if (isMrp) {
             return customMrp;
           } else {
-            const regDiscountVal = pricesObj[region].discount;
+            const regDiscountVal = pricesObj[activeRegion].discount;
             const discount = (regDiscountVal !== undefined && regDiscountVal !== null && regDiscountVal !== "")
               ? parseFloat(regDiscountVal)
               : (parseFloat(product.discount) || 0);
@@ -181,13 +130,14 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       SGD: 1 / 61.5,
       JPY: 1.88
     };
-    const config = currencyDatabase[region] || { c: "USD" };
+    const config = currencyDatabase[activeRegion] || { c: "USD" };
     const rate = rates[config.c] || defaultRates[config.c] || 1 / 83.5;
     return Math.round(priceInInr * rate);
   };
 
-  const formatPrice = (value: number): string => {
-    const config = currencyDatabase[region] || { c: "USD", s: "$" };
+  const formatPrice = (value: number, targetRegion?: string): string => {
+    const activeRegion = targetRegion || region;
+    const config = currencyDatabase[activeRegion] || { c: "USD", s: "$" };
     const formatted = value % 1 === 0 ? value.toLocaleString() : value.toFixed(2);
     if (config.p === "suffix") {
       return `${formatted} ${config.s}`;
@@ -195,9 +145,9 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return `${config.s}${formatted}`;
   };
 
-  const convertPrice = (priceInInr: number, product?: any, isMrp?: boolean): string => {
-    const rawPrice = getRawPrice(priceInInr, product, isMrp);
-    return formatPrice(rawPrice);
+  const convertPrice = (priceInInr: number, product?: any, isMrp?: boolean, targetRegion?: string): string => {
+    const rawPrice = getRawPrice(priceInInr, product, isMrp, targetRegion);
+    return formatPrice(rawPrice, targetRegion);
   };
 
   const convertWeight = (specs: string): string => {

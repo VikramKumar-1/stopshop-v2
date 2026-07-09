@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { signToken, TokenPayload } from "@/lib/auth";
+import { signToken, TokenPayload, COOKIE_MAX_AGE } from "@/lib/auth";
+import { generateSecureOAuthPassword } from "@/features/auth/services/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,16 @@ export async function GET(req: NextRequest) {
       redirectDest = state.substring(separatorIdx + 1);
     } else {
       redirectDest = state;
+    }
+
+    // SECURITY: Only allow known roles
+    if (targetRole !== "user" && targetRole !== "vendor") {
+      targetRole = "user";
+    }
+
+    // SECURITY: Validate redirect is a relative path (prevent open redirect)
+    if (redirectDest && (!redirectDest.startsWith("/") || redirectDest.startsWith("//"))) {
+      redirectDest = "";
     }
 
     const client_id = process.env.GOOGLE_CLIENT_ID;
@@ -78,17 +89,15 @@ export async function GET(req: NextRequest) {
     });
 
     if (user) {
-      // If user exists as a regular user, but authenticating as a vendor, upgrade their role
-      if (targetRole === "vendor" && user.role === "user") {
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: { role: "vendor" },
-        });
-      }
+      // SECURITY: Do NOT auto-upgrade user → vendor via OAuth (prevents role escalation).
+      // If the user wants to become a vendor, they must register through the vendor
+      // registration form which requires password verification.
+      // We simply log them in with their existing role.
     } else {
       // If user is new, automatically sign them up
-      const customPasswordPlaceholder = "google_oauth_placeholder_password";
-      const hashedPassword = await bcrypt.hash(customPasswordPlaceholder, 10);
+      // SECURITY: Generate a random unguessable password (not a known placeholder)
+      const randomPassword = generateSecureOAuthPassword();
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
       user = await prisma.user.create({
         data: {
@@ -111,7 +120,7 @@ export async function GET(req: NextRequest) {
     // Redirect destination (defaults to homepage, vendor dashboard, or the saved redirect path)
     const destination = redirectDest 
       ? `${appUrl}${redirectDest}` 
-      : (targetRole === "vendor" ? `${appUrl}/vendor/dashboard` : `${appUrl}/`);
+      : (user.role === "vendor" ? `${appUrl}/vendor/dashboard` : `${appUrl}/`);
 
     const response = NextResponse.redirect(destination);
 
@@ -122,7 +131,7 @@ export async function GET(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: COOKIE_MAX_AGE,
       path: "/",
     });
 

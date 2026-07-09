@@ -45,7 +45,16 @@ export async function GET(req: NextRequest) {
 // POST to logout (clear token cookie)
 export async function POST() {
   const response = NextResponse.json({ success: true, message: "Logged out successfully" });
-  response.cookies.delete("stopshop_token");
+  // SECURITY: Clear the cookie with matching attributes to ensure it's fully removed
+  response.cookies.set({
+    name: "stopshop_token",
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0, // Expire immediately
+  });
   return response;
 }
 
@@ -76,13 +85,13 @@ export async function PATCH(req: NextRequest) {
     const updatedUser = await prisma.user.update({
       where: { id: session.userId },
       data: {
-        name: name !== undefined ? name.trim() : undefined,
-        mobile: mobile !== undefined ? mobile.trim() : undefined,
-        location: location !== undefined ? location.trim() : undefined,
-        artisanId: artisanId !== undefined ? artisanId.trim() : undefined,
-        gstin: gstin !== undefined ? gstin.trim() : undefined,
-        aadhaar: aadhaar !== undefined ? aadhaar.trim() : undefined,
-        pan: pan !== undefined ? pan.trim() : undefined,
+        name: name !== undefined ? String(name).trim() : undefined,
+        mobile: mobile !== undefined ? String(mobile).trim() : undefined,
+        location: location !== undefined ? String(location).trim() : undefined,
+        artisanId: artisanId !== undefined ? String(artisanId).trim() : undefined,
+        gstin: gstin !== undefined ? String(gstin).trim() : undefined,
+        aadhaar: aadhaar !== undefined ? String(aadhaar).trim() : undefined,
+        pan: pan !== undefined ? String(pan).trim() : undefined,
         aadhaarUrl: aadhaarUrl !== undefined ? aadhaarUrl : undefined,
         panUrl: panUrl !== undefined ? panUrl : undefined,
         docUrl: docUrl !== undefined ? docUrl : undefined,

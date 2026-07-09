@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { ShiprocketService } from "@/lib/shiprocket";
+import { requireRole } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("x-internal-secret");
+    const isInternal = authHeader && authHeader === (process.env.JWT_SECRET || "internal");
+    
+    let user: any = null;
+    if (!isInternal) {
+      user = requireRole(req, ["admin", "vendor"]);
+      if (user instanceof NextResponse) return user;
+    }
+
     const { orderId, returnRequestId } = await req.json();
 
     if (!orderId || !returnRequestId) {
@@ -17,6 +27,13 @@ export async function POST(req: NextRequest) {
 
     if (!fullOrder) {
       return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
+    }
+
+    if (!isInternal && user && user.role === "vendor") {
+      const ownsItem = fullOrder.items.some((item: any) => item.vendorId === user.userId);
+      if (!ownsItem) {
+        return NextResponse.json({ success: false, error: "Unauthorized: You do not own items in this order" }, { status: 403 });
+      }
     }
 
     let returnAwbCode = `RET-AWB-${Math.floor(Math.random() * 10000000)}`;

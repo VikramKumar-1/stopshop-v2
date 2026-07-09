@@ -29,10 +29,31 @@ try {
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.env.ADMIN_EMAIL || "admin@stopshop.com";
-  const password = process.env.ADMIN_PASSWORD || "admin123";
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
 
-  console.log(`Setting up Admin with email: ${email}...`);
+  // SECURITY: Require explicit admin credentials — no hardcoded fallbacks
+  if (!email || !password) {
+    console.error(
+      "\n❌ ADMIN_EMAIL and ADMIN_PASSWORD must be set in your .env file.\n" +
+      "   No default credentials are used for security reasons.\n" +
+      "   Example:\n" +
+      "     ADMIN_EMAIL=\"your-admin@example.com\"\n" +
+      "     ADMIN_PASSWORD=\"a-strong-password-here\"\n"
+    );
+    process.exit(1);
+  }
+
+  // SECURITY: Enforce minimum password strength for admin
+  if (password.length < 8) {
+    console.error(
+      "\n❌ Admin password is too short (minimum 8 characters).\n" +
+      "   Please set a stronger ADMIN_PASSWORD in your .env file.\n"
+    );
+    process.exit(1);
+  }
+
+  console.log("Setting up Admin account...");
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -51,7 +72,7 @@ async function main() {
         name: "Admin StopShop"
       }
     });
-    console.log(`Admin user (ID: ${existingAdmin.id}) successfully updated with new credentials!`);
+    console.log(`✅ Admin user (ID: ${existingAdmin.id}) successfully updated!`);
   } else {
     // Create new admin
     const newAdmin = await prisma.user.create({
@@ -62,7 +83,7 @@ async function main() {
         role: "admin"
       }
     });
-    console.log(`Admin user (ID: ${newAdmin.id}) successfully created!`);
+    console.log(`✅ Admin user (ID: ${newAdmin.id}) successfully created!`);
   }
 }
 

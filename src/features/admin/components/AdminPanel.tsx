@@ -701,25 +701,28 @@ export const AdminPanel = () => {
   const handleAssignToHomepage = async () => {
     if (selectedProducts.length === 0 || !selectedCategorySlug) return;
     try {
-      // Validation: Ensure all selected products belong to the selected category
-      const invalidProducts = selectedProducts
-        .map((id: number) => products.find((p: any) => p.id === id))
-        .filter((p: any) => p && p.categoryName !== selectedCategorySlug);
+      // Validation: Ensure all selected products belong to the selected category (skip for Best Sellers)
+      if (selectedCategorySlug !== "best-sellers") {
+        const invalidProducts = selectedProducts
+          .map((id: number) => products.find((p: any) => p.id === id))
+          .filter((p: any) => p && p.categoryName !== selectedCategorySlug);
 
-      if (invalidProducts.length > 0) {
-        showToast(`Cannot assign! You selected ${invalidProducts.length} product(s) that belong to a different category than the target section. Please only assign products that match the section's category.`, "error");
-        return;
+        if (invalidProducts.length > 0) {
+          showToast(`Cannot assign! You selected ${invalidProducts.length} product(s) that belong to a different category than the target section. Please only assign products that match the section's category.`, "error");
+          return;
+        }
       }
 
       const secIdx = homepageSections.findIndex((s:any) => s.slug === selectedCategorySlug);
       const cat = dbCategories.find((c: any) => c.slug === selectedCategorySlug);
+      const sectionTitle = selectedCategorySlug === "best-sellers" ? "🔥 Best Sellers / Top Rated" : cat?.name;
       let newSections = [...homepageSections];
       
       if (secIdx > -1) {
         const currentIds = newSections[secIdx].productIds;
         const newIds = Array.from(new Set([...currentIds, ...selectedProducts]));
         if (newIds.length > 15) {
-          showToast(`Cannot add. The "${cat?.name}" section would exceed the maximum of 15 products (would have ${newIds.length}). Please unselect some products.`, "error");
+          showToast(`Cannot add. The "${sectionTitle}" section would exceed the maximum of 15 products (would have ${newIds.length}). Please unselect some products.`, "error");
           return;
         }
         newSections[secIdx].productIds = newIds;
@@ -728,7 +731,7 @@ export const AdminPanel = () => {
            showToast(`Cannot add. Maximum 15 products allowed per section.`, "error");
            return;
         }
-        newSections.push({ slug: selectedCategorySlug, title: cat?.name, productIds: selectedProducts });
+        newSections.push({ slug: selectedCategorySlug, title: sectionTitle, productIds: selectedProducts });
       }
 
       const updateRes = await fetch("/api/admin/settings/homepage", {

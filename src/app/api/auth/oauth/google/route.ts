@@ -16,8 +16,19 @@ export async function GET(req: NextRequest) {
 
   // Get the redirect and role query parameters from search params to pass along in state
   const { searchParams } = new URL(req.url);
-  const redirect = searchParams.get("redirect") || "";
-  const role = searchParams.get("role") || "user";
+  let redirect = searchParams.get("redirect") || "";
+  let role = searchParams.get("role") || "user";
+
+  // SECURITY: Only allow known roles
+  if (role !== "user" && role !== "vendor") {
+    role = "user";
+  }
+
+  // SECURITY: Only allow relative paths as redirect (prevent open redirect)
+  if (redirect && (!redirect.startsWith("/") || redirect.startsWith("//"))) {
+    redirect = "";
+  }
+
   const state = `${role}:${redirect}`;
 
   const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(

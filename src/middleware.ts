@@ -1,7 +1,32 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(request: NextRequest) {
+// Encode the secret for jose (Edge Runtime compatible)
+function getSecret() {
+  const secret = process.env.JWT_SECRET || "";
+  return new TextEncoder().encode(secret);
+}
+
+/**
+ * Verify JWT signature + expiry in Edge Runtime using `jose`.
+ * Returns the decoded payload or null if invalid/expired/forged.
+ */
+async function verifyTokenEdge(token: string): Promise<{ userId: number; email: string; role: string } | null> {
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    return {
+      userId: payload.userId as number,
+      email: payload.email as string,
+      role: payload.role as string,
+    };
+  } catch {
+    // Token is invalid, expired, or signature doesn't match
+    return null;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
   if (path.startsWith('/admin') || path.startsWith('/vendor')) {
@@ -17,46 +42,44 @@ export function middleware(request: NextRequest) {
       }
     }
     
-    // If token exists, do a basic decode to check role (Note: signature is verified in Node API routes)
+    // SECURITY: Verify JWT signature + expiry (not just base64 decode)
     if (token) {
-      try {
-        const payloadBase64 = token.split('.')[1];
-        let base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-        const pad = base64.length % 4;
-        if (pad) {
-          base64 += new Array(5 - pad).join('=');
-        }
-        const decodedJson = atob(base64);
-        const payload = JSON.parse(decodedJson);
-        const role = payload?.role;
-        
-        // Admin routes protection
-        if (path.startsWith('/admin')) {
-          if (role !== 'admin') {
-            return NextResponse.redirect(new URL('/', request.url));
-          }
-        }
-        
-        // Vendor routes protection
-        if (path.startsWith('/vendor') && path !== '/vendor/login' && path !== '/vendor/register') {
-          if (role !== 'vendor') {
-            if (role === 'admin') {
-              return NextResponse.redirect(new URL('/admin', request.url));
-            }
-            return NextResponse.redirect(new URL('/profile', request.url));
-          }
-        }
+      const payload = await verifyTokenEdge(token);
 
-        // Redirect logged-in users away from login pages
-        if (path === '/vendor/login' || path === '/vendor/register') {
-           if (role === 'vendor') return NextResponse.redirect(new URL('/vendor/dashboard', request.url));
-           if (role === 'admin') return NextResponse.redirect(new URL('/admin', request.url));
-           // Allow normal users to access both /vendor/login and /vendor/register 
-           // so they can upgrade or switch to a different vendor account
-        }
+      if (!payload) {
+        // Token is forged, expired, or tampered — clear it and redirect
+        const response = path.startsWith('/admin')
+          ? NextResponse.redirect(new URL('/admin', request.url))
+          : NextResponse.redirect(new URL('/vendor/login', request.url));
+        response.cookies.delete('stopshop_token');
+        return response;
+      }
 
-      } catch(e) {
-        // If parsing fails, let it pass through to the API or Client which will handle invalid tokens
+      const role = payload.role;
+        
+      // Admin routes protection
+      if (path.startsWith('/admin')) {
+        if (role !== 'admin') {
+          return NextResponse.redirect(new URL('/', request.url));
+        }
+      }
+        
+      // Vendor routes protection
+      if (path.startsWith('/vendor') && path !== '/vendor/login' && path !== '/vendor/register') {
+        if (role !== 'vendor') {
+          if (role === 'admin') {
+            return NextResponse.redirect(new URL('/admin', request.url));
+          }
+          return NextResponse.redirect(new URL('/profile', request.url));
+        }
+      }
+
+      // Redirect logged-in users away from login pages
+      if (path === '/vendor/login' || path === '/vendor/register') {
+         if (role === 'vendor') return NextResponse.redirect(new URL('/vendor/dashboard', request.url));
+         if (role === 'admin') return NextResponse.redirect(new URL('/admin', request.url));
+         // Allow normal users to access both /vendor/login and /vendor/register 
+         // so they can upgrade or switch to a different vendor account
       }
     }
   }

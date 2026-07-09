@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import Razorpay from "razorpay";
+import { requireRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    // Basic security for cron job (Vercel sets this header)
-    const authHeader = req.headers.get("authorization");
-    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // SECURITY: Require CRON_SECRET, internal secret, or admin role
+    const authHeader = req.headers.get("authorization") || req.headers.get("x-internal-secret");
+    const validCronSecret = process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    const validInternalSecret = authHeader === (process.env.JWT_SECRET || "internal");
+
+    if (!validCronSecret && !validInternalSecret) {
+      const user = requireRole(req, ["admin"]);
+      if (user instanceof NextResponse) return user;
     }
 
     // 1. Fetch the SLA window from Settings

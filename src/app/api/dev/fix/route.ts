@@ -1,9 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireRole } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json({ error: "Disabled in production" }, { status: 403 });
+    }
+    const user = requireRole(req, ["admin"]);
+    if (user instanceof NextResponse) return user;
+
     const orders = await prisma.order.findMany({
       where: { status: "RETURN_APPROVED", returnAwbCode: null }
     });

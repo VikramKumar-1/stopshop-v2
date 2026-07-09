@@ -34,7 +34,6 @@ export default function AdminVendorShop({ params }: { params: { id: string } }) 
       if (catRes.ok) {
         const data = await catRes.json();
         setDbCategories(data);
-        if (data.length > 0) setSelectedCategorySlug(data[0].slug);
       }
     } catch (e) {
       console.error(e);
@@ -73,6 +72,7 @@ export default function AdminVendorShop({ params }: { params: { id: string } }) 
       
       let homepageSections = settings?.homepageSections || [];
       const cat = dbCategories.find(c => c.slug === selectedCategorySlug);
+      const sectionTitle = selectedCategorySlug === "best-sellers" ? "🔥 Best Sellers / Top Rated" : cat?.name;
       
       const secIdx = homepageSections.findIndex((s:any) => s.slug === selectedCategorySlug);
       
@@ -80,14 +80,14 @@ export default function AdminVendorShop({ params }: { params: { id: string } }) 
         const currentIds = homepageSections[secIdx].productIds;
         const newIds = Array.from(new Set([...currentIds, ...selectedProducts]));
         if (newIds.length > 15) {
-          return alert(`Cannot add. The "${cat?.name}" section would exceed the maximum of 15 products (would have ${newIds.length}). Please unselect some products.`);
+          return alert(`Cannot add. The "${sectionTitle}" section would exceed the maximum of 15 products (would have ${newIds.length}). Please unselect some products.`);
         }
         homepageSections[secIdx].productIds = newIds;
       } else {
         if (selectedProducts.length > 15) {
            return alert(`Cannot add. Maximum 15 products allowed per section.`);
         }
-        homepageSections.push({ slug: selectedCategorySlug, title: cat?.name, productIds: selectedProducts });
+        homepageSections.push({ slug: selectedCategorySlug, title: sectionTitle, productIds: selectedProducts });
       }
 
       // Save back
@@ -148,13 +148,16 @@ export default function AdminVendorShop({ params }: { params: { id: string } }) 
                 onChange={e => setSelectedCategorySlug(e.target.value)}
                 className="bg-white text-slate-800 text-xs px-3 py-1.5 rounded-lg outline-none font-bold"
               >
+                <option value="" disabled>Select Section...</option>
+                <option value="best-sellers">🔥 Best Sellers / Top Rated</option>
                 {dbCategories.map(cat => (
                   <option key={cat.slug} value={cat.slug}>{cat.name}</option>
                 ))}
               </select>
               <button 
                 onClick={handleAssignToHomepage}
-                className="bg-slate-900 hover:bg-slate-800 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                className="bg-slate-900 hover:bg-slate-800 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                disabled={!selectedCategorySlug}
               >
                 Save to Section
               </button>

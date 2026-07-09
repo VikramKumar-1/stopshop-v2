@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { signToken, TokenPayload } from "@/lib/auth";
 
 /**
@@ -7,9 +8,31 @@ import { signToken, TokenPayload } from "@/lib/auth";
  * Keeps controllers under src/app/api/auth decoupled from db operations.
  */
 
-export async function loginUser(email: string, password: string) {
+// ─── Password Validation ─────────────────────────────────────────────────────
+const MIN_PASSWORD_LENGTH = 5;
+
+function validatePassword(password: string): void {
+  if (!password || password.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+  }
+}
+
+// ─── OAuth Placeholder Detection ──────────────────────────────────────────────
+// SECURITY: Known placeholder used in older OAuth registrations.
+// Block email/password login for these accounts.
+const LEGACY_OAUTH_PLACEHOLDER = "google_oauth_placeholder_password";
+
+async function isOAuthPlaceholderPassword(hashedPassword: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(LEGACY_OAUTH_PLACEHOLDER, hashedPassword);
+  } catch {
+    return false;
+  }
+}
+
+export async function loginUser(email: string, password: string, rememberMe?: boolean) {
   if (!email || !password) {
-    throw new Error("Email and password are required");
+    throw new Error("Invalid email or password");
   }
 
   const user = await prisma.user.findUnique({
@@ -18,6 +41,11 @@ export async function loginUser(email: string, password: string) {
 
   if (!user) {
     throw new Error("Invalid email or password");
+  }
+
+  // SECURITY: Block email/password login for OAuth-only accounts
+  if (await isOAuthPlaceholderPassword(user.password)) {
+    throw new Error("This account uses Google Sign-In. Please login with Google.");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
@@ -31,7 +59,7 @@ export async function loginUser(email: string, password: string) {
     role: user.role,
   };
 
-  const token = signToken(payload);
+  const token = signToken(payload, rememberMe);
 
   return {
     user: {
@@ -44,10 +72,13 @@ export async function loginUser(email: string, password: string) {
   };
 }
 
-export async function registerUser(name: string, email: string, password: string, role?: string) {
+export async function registerUser(name: string, email: string, password: string, role?: string, rememberMe?: boolean) {
   if (!name || !email || !password) {
     throw new Error("Name, email, and password are required");
   }
+
+  // SECURITY: Validate password strength
+  validatePassword(password);
 
   const targetRole = role === "vendor" ? "vendor" : "user";
 
@@ -75,7 +106,7 @@ export async function registerUser(name: string, email: string, password: string
         role: upgradedUser.role,
       };
 
-      const token = signToken(payload);
+      const token = signToken(payload, rememberMe);
 
       return {
         user: {
@@ -108,7 +139,7 @@ export async function registerUser(name: string, email: string, password: string
     role: newUser.role,
   };
 
-  const token = signToken(payload);
+  const token = signToken(payload, rememberMe);
 
   return {
     user: {
@@ -119,6 +150,14 @@ export async function registerUser(name: string, email: string, password: string
     },
     token,
   };
+}
+
+/**
+ * Generate a cryptographically random password for OAuth users.
+ * This password is unguessable and prevents email/password login.
+ */
+export function generateSecureOAuthPassword(): string {
+  return crypto.randomBytes(32).toString("base64url");
 }
 
 export async function getProfile(userId: number) {

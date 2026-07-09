@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import Razorpay from "razorpay";
+import { requireRole } from "@/lib/auth";
 
 // This cron job should be called daily at 00:00 (Midnight) by a scheduling service (like Vercel Cron or AWS EventBridge)
 export async function GET(req: NextRequest) {
   try {
+    // SECURITY: Require CRON_SECRET, internal secret, or admin role
+    const authHeader = req.headers.get("authorization") || req.headers.get("x-internal-secret");
+    const validCronSecret = process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    const validInternalSecret = authHeader === (process.env.JWT_SECRET || "internal");
+
+    if (!validCronSecret && !validInternalSecret) {
+      const user = requireRole(req, ["admin"]);
+      if (user instanceof NextResponse) return user;
+    }
+
     // 1. Fetch current global admin settings for payout schedule
     let settings = await prisma.adminSettings.findFirst();
     if (!settings) {
