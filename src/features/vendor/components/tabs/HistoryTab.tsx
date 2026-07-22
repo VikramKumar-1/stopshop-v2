@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Loader2 } from "lucide-react";
+import React, { useState } from "react";
+import { Loader2, Search, X } from "lucide-react";
 
 interface HistoryTabProps {
   dashboardStats: any;
@@ -30,11 +30,36 @@ export default function HistoryTab({
   setModalShipping,
   setModalTransaction,
 }: HistoryTabProps) {
+  const [historySearch, setHistorySearch] = useState("");
+
   return (
     <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300">
-      <div className="bg-gradient-to-r from-zinc-500/5 via-transparent to-transparent border-b border-border/70 px-6 py-4">
-        <h3 className="font-display font-bold text-sm text-heading uppercase tracking-wider">Order History</h3>
-        <p className="text-[10px] text-muted mt-0.5">Completed, returned, and cancelled order records</p>
+      <div className="bg-gradient-to-r from-zinc-500/5 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="font-display font-bold text-sm text-heading uppercase tracking-wider">Order History</h3>
+          <p className="text-[10px] text-muted mt-0.5">Completed, returned, and cancelled order records</p>
+        </div>
+
+        {/* Search Input */}
+        <div className="relative w-full sm:w-72">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            type="text"
+            value={historySearch}
+            onChange={(e) => setHistorySearch(e.target.value)}
+            placeholder="Search History #, Buyer, Product..."
+            className="w-full bg-surface border border-border rounded-xl pl-9 pr-8 py-2 text-xs text-heading placeholder-muted outline-none focus:border-orange-500 transition-all shadow-inner"
+          />
+          {historySearch && (
+            <button
+              type="button"
+              onClick={() => setHistorySearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-heading"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-3 gap-4 p-4 bg-surface/50 border-b border-border/80 text-xs">
         <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
@@ -98,6 +123,14 @@ export default function HistoryTab({
                   // Show only history states
                   if (!["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED"].includes(currentStatus)) {
                     return null;
+                  }
+
+                  if (historySearch.trim()) {
+                    const q = historySearch.toLowerCase().trim();
+                    const matchName = inq.name?.toLowerCase().includes(q);
+                    const matchProd = item.productName?.toLowerCase().includes(q);
+                    const matchPhone = inq.phone?.toLowerCase().includes(q);
+                    if (!matchName && !matchProd && !matchPhone) return null;
                   }
                   
                   historyCount++;
@@ -182,6 +215,16 @@ export default function HistoryTab({
                 const currentStatus = order.status || "PENDING";
                 if (!["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED"].includes(currentStatus)) {
                   return null;
+                }
+
+                if (historySearch.trim()) {
+                  const q = historySearch.toLowerCase().trim();
+                  const matchNum = (order.orderNumber && order.orderNumber.toLowerCase().includes(q)) || (order.id && order.id.toLowerCase().includes(q));
+                  const matchName = order.shippingName && order.shippingName.toLowerCase().includes(q);
+                  const matchCity = order.shippingCity && order.shippingCity.toLowerCase().includes(q);
+                  const matchAwb = order.awbCode && order.awbCode.toLowerCase().includes(q);
+                  const matchProd = order.items && order.items.some((i: any) => i.productName?.toLowerCase().includes(q));
+                  if (!matchNum && !matchName && !matchCity && !matchAwb && !matchProd) return null;
                 }
                 
                 historyCount++;

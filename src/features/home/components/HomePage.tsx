@@ -98,17 +98,30 @@ export const HomePage = () => {
     });
   };
 
-  // Compute Best Seller products (Admin controlled + auto-fill up to 15)
+  // Compute Best Seller products (Admin controlled + Top Rated/Featured filter)
   const bestSellerSection = homepageSections.find((s: any) => s.slug === "best-sellers");
   const manualBestSellers = bestSellerSection?.products || [];
   const manualIds = new Set(manualBestSellers.map((p: any) => p.id));
   
   let autoBestSellers: any[] = [];
   if (manualBestSellers.length < 15 && allProducts) {
-    autoBestSellers = (allProducts || [])
-      .filter((p: any) => !manualIds.has(p.id))
-      .sort((a: any, b: any) => (b.rating || 5) - (a.rating || 5))
-      .slice(0, 15 - manualBestSellers.length);
+    const candidates = (allProducts || []).filter((p: any) => !manualIds.has(p.id));
+    
+    // Only auto-fill with products that are explicitly featured or have actual reviews/sales
+    const qualified = candidates.filter((p: any) => p.featured || (p.reviews && p.reviews > 0));
+    
+    qualified.sort((a: any, b: any) => {
+      if (b.featured !== a.featured) return b.featured ? 1 : -1;
+      if ((b.reviews || 0) !== (a.reviews || 0)) return (b.reviews || 0) - (a.reviews || 0);
+      return (b.rating || 0) - (a.rating || 0);
+    });
+
+    if (qualified.length > 0) {
+      autoBestSellers = qualified.slice(0, 15 - manualBestSellers.length);
+    } else if (manualBestSellers.length === 0) {
+      // Fallback only if database has featured items
+      autoBestSellers = candidates.filter((p: any) => p.featured).slice(0, 15);
+    }
   }
   const bestSellerProducts = [...manualBestSellers, ...autoBestSellers];
 

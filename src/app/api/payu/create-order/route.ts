@@ -25,8 +25,10 @@ export async function POST(req: NextRequest) {
     // 1. Server-side pricing calculation
     const pricing = await calculateOrderPricing(cartItems, "payu", shippingInfo.country, couponCode, isBundle, user.userId);
 
-    // 2. Create Order in Database
-    const orderNumber = `SS-INTL-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    // 2. Create Order in Database (Enterprise International Format)
+    const dateStr = new Date().toISOString().slice(2,10).replace(/-/g,'');
+    const randomToken = Math.floor(100000 + Math.random() * 900000);
+    const orderNumber = `SS-INTL-${dateStr}-${randomToken}`;
     const txnid = `txnid_${Date.now()}`;
 
     const newOrder = await prisma.order.create({

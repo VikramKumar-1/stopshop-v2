@@ -24,11 +24,29 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [shippingSettings, setShippingSettings] = useState({ shippingFreeAbove: 99900, shippingChargePaise: 4900 });
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+  
+  // 100% Dynamic Vendor & Category details for ANY store
+  const currentVendorName = product?.vendor?.name || product?.vendorName || (product?.vendorId ? `Artisan Store #${product.vendorId}` : null);
+  const currentVendorSlug = currentVendorName
+    ? currentVendorName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+    : (product?.vendorId ? `${product.vendorId}` : "");
+  const currentCategoryName = product?.category?.name || (product?.categoryName ? product.categoryName.replace(/-/g, " ") : "");
+  const currentCategorySlug = product?.category?.slug || product?.categoryName || "";
+
+  const [referrerType, setReferrerType] = useState<"cart" | "admin" | "vendor" | "store" | "default">("default");
+  const [storePath, setStorePath] = useState<string>("");
+
+  const dynamicStoreHref = storePath || (currentVendorSlug ? `/store/${currentVendorSlug}` : "");
+
+  const defaultBackHref = dynamicStoreHref || (currentCategorySlug ? `/products?category=${currentCategorySlug}` : "/products");
+  const defaultBackLabel = currentVendorName
+    ? `Back to ${currentVendorName}`
+    : (currentCategoryName ? `Back to ${currentCategoryName}` : "Back to Marketplace");
+
   const [backPath, setBackPath] = useState({
-    href: product.categoryName ? `/products?category=${product.categoryName}` : "/products",
-    label: `Back to ${product.category?.name || product.categoryName?.replace(/-/g, " ") || "Collections"} Collection`
+    href: defaultBackHref,
+    label: defaultBackLabel
   });
-  const [referrerType, setReferrerType] = useState<"cart" | "admin" | "vendor" | "default">("default");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -47,24 +65,21 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
 
       if (document.referrer) {
         const referrer = document.referrer;
-        if (referrer.includes("/cart")) {
-          setBackPath({
-            href: "/cart",
-            label: "Back to Cart"
-          });
-          setReferrerType("cart");
-        } else if (referrer.includes("/admin")) {
+        if (referrer.includes("/admin")) {
           setBackPath({
             href: "/admin",
             label: "Back to Admin Panel"
           });
           setReferrerType("admin");
         } else if (referrer.includes("/store") || referrer.includes("/vendor-shop")) {
+          const path = referrer.substring(referrer.indexOf(window.location.host) + window.location.host.length);
+          const storeName = currentVendorName || "Store";
           setBackPath({
-            href: referrer.substring(referrer.indexOf(window.location.host) + window.location.host.length),
-            label: "Back to Artisan Store"
+            href: path,
+            label: `Back to ${storeName}`
           });
-          setReferrerType("default");
+          setStorePath(path);
+          setReferrerType("store");
         } else if (referrer.includes("/vendor") && !referrer.includes("/vendor-shop")) {
           setBackPath({
             href: "/vendor/dashboard",
@@ -78,10 +93,20 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
             label: "Back to Previous Product"
           });
           setReferrerType("default");
+        } else if (currentVendorName) {
+          setBackPath({
+            href: dynamicStoreHref,
+            label: `Back to ${currentVendorName}`
+          });
         }
+      } else if (currentVendorName) {
+        setBackPath({
+          href: dynamicStoreHref,
+          label: `Back to ${currentVendorName}`
+        });
       }
     }
-  }, [product]);
+  }, [product, currentVendorName, dynamicStoreHref]);
 
   useEffect(() => {
     if (product?.id) {
@@ -124,7 +149,7 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
             {backPath.label}
           </Link>
 
-          {/* Dynamic Breadcrumbs */}
+          {/* Product Breadcrumb Trail (100% Consistent & No Flashing) */}
           <nav aria-label="Breadcrumb" className="flex items-center text-[10px] sm:text-xs font-semibold text-muted flex-wrap">
             <ol itemScope itemType="https://schema.org/BreadcrumbList" className="flex items-center gap-1.5 flex-wrap list-none p-0 m-0">
               <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
@@ -136,50 +161,65 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
               
               <span className="mx-1 select-none">/</span>
               
-              {referrerType === "cart" ? (
-                <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
-                  <Link itemProp="item" href="/cart" className="hover:text-heading transition-colors">
-                    <span itemProp="name">Cart</span>
-                  </Link>
-                  <meta itemProp="position" content="2" />
-                </li>
-              ) : referrerType === "admin" ? (
-                <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
-                  <Link itemProp="item" href="/admin" className="hover:text-heading transition-colors">
-                    <span itemProp="name">Admin</span>
-                  </Link>
-                  <meta itemProp="position" content="2" />
-                </li>
-              ) : referrerType === "vendor" ? (
-                <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
-                  <Link itemProp="item" href="/vendor" className="hover:text-heading transition-colors">
-                    <span itemProp="name">Vendor</span>
-                  </Link>
-                  <meta itemProp="position" content="2" />
-                </li>
-              ) : (
+              {currentVendorName ? (
                 <>
                   <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
-                    <Link itemProp="item" href="/products" className="hover:text-heading transition-colors">
-                      <span itemProp="name">Collections</span>
+                    <Link
+                      itemProp="item"
+                      href={dynamicStoreHref || "/products"}
+                      className="hover:text-heading hover:text-orange-500 transition-colors"
+                    >
+                      <span itemProp="name" className="truncate max-w-[100px] sm:max-w-[180px] inline-block align-bottom" title={currentVendorName}>
+                        {currentVendorName}
+                      </span>
                     </Link>
                     <meta itemProp="position" content="2" />
                   </li>
                   
-                  <span className="mx-1 select-none">/</span>
-                  
+                  {currentCategoryName && (
+                    <>
+                      <span className="mx-1 select-none">/</span>
+                      <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
+                        <Link 
+                          itemProp="item" 
+                          href={dynamicStoreHref ? `${dynamicStoreHref}?category=${currentCategorySlug}` : `/products?category=${currentCategorySlug}`} 
+                          className="hover:text-heading hover:text-orange-500 transition-colors capitalize"
+                        >
+                          <span itemProp="name" className="truncate max-w-[100px] sm:max-w-[180px] inline-block align-bottom" title={currentCategoryName}>
+                            {currentCategoryName}
+                          </span>
+                        </Link>
+                        <meta itemProp="position" content="3" />
+                      </li>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
                   <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
-                    <Link 
-                      itemProp="item" 
-                      href={`/products?category=${product.categoryName || ""}`} 
-                      className="hover:text-heading hover:text-bronze-500 transition-colors capitalize"
-                    >
-                      <span itemProp="name">
-                        {product.category?.name || product.categoryName?.replace(/-/g, " ") || "Collection"}
-                      </span>
+                    <Link itemProp="item" href="/products" className="hover:text-heading transition-colors">
+                      <span itemProp="name">Marketplace</span>
                     </Link>
-                    <meta itemProp="position" content="3" />
+                    <meta itemProp="position" content="2" />
                   </li>
+                  
+                  {currentCategoryName && (
+                    <>
+                      <span className="mx-1 select-none">/</span>
+                      <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center">
+                        <Link 
+                          itemProp="item" 
+                          href={`/products?category=${currentCategorySlug}`} 
+                          className="hover:text-heading hover:text-orange-500 transition-colors capitalize"
+                        >
+                          <span itemProp="name" className="truncate max-w-[100px] sm:max-w-[180px] inline-block align-bottom" title={currentCategoryName}>
+                            {currentCategoryName}
+                          </span>
+                        </Link>
+                        <meta itemProp="position" content="3" />
+                      </li>
+                    </>
+                  )}
                 </>
               )}
 
@@ -191,10 +231,10 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
                 itemType="https://schema.org/ListItem" 
                 className="flex items-center"
               >
-                <span itemProp="name" className="text-bronze-600 dark:text-bronze-400 font-black truncate max-w-[150px] sm:max-w-[200px]" title={product.name}>
+                <span itemProp="name" className="text-orange-600 dark:text-orange-400 font-bold truncate max-w-[120px] sm:max-w-[240px] inline-block align-bottom" title={product.name}>
                   {product.name}
                 </span>
-                <meta itemProp="position" content={referrerType === "default" ? "4" : "3"} />
+                <meta itemProp="position" content="4" />
               </li>
             </ol>
           </nav>

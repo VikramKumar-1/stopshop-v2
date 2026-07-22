@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef } from "react";
 import { Search, X, Loader2, Plus, Upload, Trash2, ChevronDown, ChevronUp, Sparkles, Flame, Globe, Package, Star, Heart } from "lucide-react";
+import { compressImageToWebP } from "@/lib/imageCompressor";
 
 const THEMES = [
   { id: "sunset", label: "Sunset Flame", gradient: "from-orange-500 via-amber-500 to-yellow-400", iconName: "Flame", Icon: Flame },
@@ -55,13 +56,14 @@ function MobileBannersEditor({ mobileBanners, setMobileBanners, showToast }: any
     if (!file) return;
     try {
       setUploadingIdx(index);
+      const comp = await compressImageToWebP(file);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", comp.file);
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await res.json();
       if (res.ok && data.url) {
         updateBanner(index, "imageUrl", data.url);
-        showToast("Image uploaded successfully", "success");
+        showToast(`⚡ WebP Banner uploaded (${comp.compressedSizeFormatted})`, "success");
       } else {
         showToast("Failed to upload image", "error");
       }

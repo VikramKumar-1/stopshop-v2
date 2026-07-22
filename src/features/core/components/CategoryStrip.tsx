@@ -314,7 +314,7 @@ export const CategoryStrip = () => {
 
   return (
     <div
-      className={`fixed lg:sticky z-40 w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-white/85 dark:bg-[#141414]/85 backdrop-blur-md shadow-sm transition-[transform,opacity] duration-300 ease-out top-[95px] lg:top-[112px] ${
+      className={`fixed lg:sticky z-40 w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-orange-100 dark:bg-orange-950 lg:bg-white/85 lg:dark:bg-[#141414]/85 lg:backdrop-blur-md shadow-sm transition-[transform,opacity] duration-300 ease-out top-[95px] lg:top-[112px] ${
         isMobile
           ? (showMobileStrip ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none")
           : ((scrollingDown || searchExpanded) ? "-translate-y-[80px]" : "translate-y-0")
@@ -336,11 +336,11 @@ export const CategoryStrip = () => {
             <div className="hidden lg:flex items-center gap-2 flex-shrink-0 overflow-hidden animate-in fade-in slide-in-from-left-4 duration-200">
               <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
                 <img
-                  src="/logo4.jpg"
+                  src="/logo.webp"
                   alt="StopShop Logo"
-                  className="w-10 h-10 rounded-2xl bg-white p-1 object-contain shadow-sm border border-border group-hover:border-bronze-500/30 transition-all duration-200"
+                  className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl object-contain shadow-sm group-hover:scale-105 transition-transform shrink-0"
                 />
-                <span className="text-lg font-display font-bold tracking-tight text-heading">
+                <span className="text-lg sm:text-xl font-display font-bold tracking-tight text-heading">
                   Stop<span className="gradient-text">Shop</span>
                 </span>
               </Link>

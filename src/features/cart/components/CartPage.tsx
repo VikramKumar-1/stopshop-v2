@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, Clock, Lock, Zap, Sparkles } from "lucide-react";
 import { useRegion } from "@/context/RegionContext";
@@ -38,6 +39,7 @@ const CountdownTimer = ({ expiresAt }: { expiresAt: string }) => {
 };
 
 export const CartPage = () => {
+  const router = useRouter();
   const { cart, updateQuantity, removeFromCart, clearCart, cartCount, cartTotal, bundleDiscount, loaded } = useCart();
   const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
 
@@ -462,7 +464,7 @@ export const CartPage = () => {
                   type="button"
                   onClick={() => {
                     if (cart.length > 0) {
-                      window.location.href = `/checkout`;
+                      router.push(`/checkout`);
                     }
                   }}
                   className="w-full py-4 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"

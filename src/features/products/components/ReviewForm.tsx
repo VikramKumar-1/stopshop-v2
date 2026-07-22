@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Star, Upload, X, Loader2, CheckCircle2 } from "lucide-react";
+import { compressImageToWebP } from "@/lib/imageCompressor";
 
 interface ReviewFormProps {
   productId: number;
@@ -34,9 +35,10 @@ export default function ReviewForm({ productId, orderId, onReviewSubmitted, onCa
     
     try {
       const fileArray = Array.from(files);
-      const uploadPromises = fileArray.map(async (file) => {
+      const uploadPromises = fileArray.map(async (rawFile) => {
+        const comp = await compressImageToWebP(rawFile);
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", comp.file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         if (!res.ok) throw new Error("Upload failed");
         const data = await res.json();

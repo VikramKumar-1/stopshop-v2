@@ -53,8 +53,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Failed to create Razorpay order" }, { status: 500 });
     }
 
-    // 4. Create Order in Database
-    const orderNumber = `SS-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    // 4. Create Order in Database (Enterprise 6-Digit Date Token)
+    const dateStr = new Date().toISOString().slice(2,10).replace(/-/g,'');
+    const randomToken = Math.floor(100000 + Math.random() * 900000);
+    const orderNumber = `SS-${dateStr}-${randomToken}`;
 
     const newOrder = await prisma.order.create({
       data: {

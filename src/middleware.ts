@@ -41,21 +41,7 @@ export async function middleware(request: NextRequest) {
   const baseUrl = request.nextUrl.origin;
   const ip = request.ip || request.headers.get('x-forwarded-for') || 'Unknown IP';
 
-  // 1. IP BLACKLIST SHIELD (Check if this IP is banned)
-  // We don't want to block the telemetry or internal health APIs from running
-  if (!path.startsWith('/api/telemetry') && !path.startsWith('/api/security')) {
-    try {
-      const banRes = await fetch(`${baseUrl}/api/security/banned-ips`, { next: { revalidate: 60 } });
-      if (banRes.ok) {
-        const bannedIps: string[] = await banRes.json();
-        if (bannedIps.includes(ip)) {
-          return NextResponse.json({ error: '403 Forbidden. Your IP has been blocked for malicious activity.' }, { status: 403 });
-        }
-      }
-    } catch (e) {
-      // Fail open: If the ban list API fails, allow the request to prevent locking out normal users during a crash
-    }
-  }
+
 
   // 2. WAF: Check for malicious payloads in URL (XSS / SQLi)
   for (const pattern of SUSPICIOUS_PATTERNS) {
@@ -112,22 +98,18 @@ export async function middleware(request: NextRequest) {
         }
       }
         
-      // Vendor routes protection
+      // Vendor routes protection (Allow both vendor and admin to access vendor dashboard)
       if (path.startsWith('/vendor') && path !== '/vendor/login' && path !== '/vendor/register') {
-        if (role !== 'vendor') {
-          if (role === 'admin') {
-            return NextResponse.redirect(new URL('/admin', request.url));
-          }
+        if (role !== 'vendor' && role !== 'admin') {
           return NextResponse.redirect(new URL('/profile', request.url));
         }
       }
 
-      // Redirect logged-in users away from login pages
-      if (path === '/vendor/login' || path === '/vendor/register') {
-         if (role === 'vendor') return NextResponse.redirect(new URL('/vendor/dashboard', request.url));
-         if (role === 'admin') return NextResponse.redirect(new URL('/admin', request.url));
-         // Allow normal users to access both /vendor/login and /vendor/register 
-         // so they can upgrade or switch to a different vendor account
+      // Redirect logged-in vendor/admin away from login page to dashboard
+      if (path === '/vendor/login') {
+        if (role === 'vendor' || role === 'admin') {
+          return NextResponse.redirect(new URL('/vendor/dashboard', request.url));
+        }
       }
     }
   }

@@ -4,6 +4,7 @@ import { ArrowRight, Star, ShoppingCart, ChevronLeft, ChevronRight } from "lucid
 import Link from "next/link";
 import Image from "next/image";
 import { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useRegion } from "@/context/RegionContext";
 import { useCart } from "@/context/CartContext";
 
@@ -39,6 +40,7 @@ export const CategoryProductGrid = ({
   viewAllLink,
   accentColor
 }: CategoryProductGridProps) => {
+  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
   const { addToCart } = useCart();
@@ -152,10 +154,10 @@ export const CategoryProductGrid = ({
           </div>
         </div>
 
-        {/* Scrollable Horizontal 2-Row Grid Container */}
+        {/* Scrollable Horizontal Grid Container */}
         <div 
           ref={scrollRef}
-          className="grid grid-rows-2 grid-flow-col auto-cols-[calc(50%-8px)] sm:auto-cols-[230px] lg:auto-cols-[250px] gap-4 sm:gap-6 pb-6 pt-2 overflow-x-auto scrollbar-none"
+          className={`grid ${products.length > 4 ? "grid-rows-2" : "grid-rows-1"} grid-flow-col auto-cols-[calc(50%-8px)] sm:auto-cols-[230px] lg:auto-cols-[250px] gap-4 sm:gap-6 pb-3 pt-2 overflow-x-auto scrollbar-none`}
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none"
@@ -273,7 +275,7 @@ export const CategoryProductGrid = ({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          window.location.href = `/checkout?productId=${product.id}`;
+                          router.push(`/checkout?productId=${product.id}`);
                         }}
                         className="flex-grow inline-flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold text-[10px] sm:text-xs cursor-pointer text-center"
                       >
@@ -288,7 +290,7 @@ export const CategoryProductGrid = ({
         </div>
 
         {/* Center See More Button */}
-        <div className="mt-4 md:mt-5 text-center">
+        <div className="mt-2 md:mt-3 text-center">
           <Link
             href={viewAllLink}
             className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 rounded-full bg-gradient-to-r from-bronze-500/10 to-orange-500/10 hover:from-bronze-500/20 hover:to-orange-500/20 border border-bronze-500/20 hover:border-bronze-500/40 text-orange-600 dark:text-orange-400 text-xs sm:text-sm font-semibold shadow-sm"

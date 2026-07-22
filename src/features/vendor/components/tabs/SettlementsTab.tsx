@@ -18,6 +18,16 @@ export default function SettlementsTab({
   setSettlementTab,
   settlements,
 }: SettlementsTabProps) {
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
+
+  const filtered = (settlements || []).filter(s => settlementTab === "ALL" || s.status === settlementTab);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginatedSettlements = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [settlementTab]);
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -105,14 +115,12 @@ export default function SettlementsTab({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {settlements.filter(s => settlementTab === "ALL" || s.status === settlementTab).length === 0 && (
+            {filtered.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-8 text-center text-muted">No settlement records found in this status.</td>
               </tr>
             )}
-            {settlements
-              .filter(s => settlementTab === "ALL" || s.status === settlementTab)
-              .map(s => (
+            {paginatedSettlements.map(s => (
                 <tr key={s.id} className="hover:bg-surface-hover">
                   <td className="p-4 font-bold text-orange-500">{s.order.orderNumber}</td>
                   <td className="p-4">
@@ -143,6 +151,33 @@ export default function SettlementsTab({
               ))}
           </tbody>
         </table>
+
+        {filtered.length > itemsPerPage && (
+          <div className="p-4 border-t border-border flex items-center justify-between bg-surface-card/60">
+            <span className="text-xs text-muted font-medium">
+              Showing <span className="font-bold text-heading">{Math.min(filtered.length, (currentPage - 1) * itemsPerPage + 1)}</span> - <span className="font-bold text-heading">{Math.min(filtered.length, currentPage * itemsPerPage)}</span> of <span className="font-bold text-heading">{filtered.length}</span> entries
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-orange-500/10 hover:text-orange-500 transition-all cursor-pointer"
+              >
+                Previous
+              </button>
+              <span className="text-xs font-bold px-2 text-heading">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-orange-500/10 hover:text-orange-500 transition-all cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

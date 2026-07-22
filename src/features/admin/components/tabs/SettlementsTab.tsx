@@ -56,22 +56,37 @@ export const SettlementsTab = ({
     ? Math.max(...groupedSettlements.map((g: any) => g.summary.eligible || 0))
     : 0;
 
+  const totalEligiblePaise = settlementSummary?.eligible ?? (groupedSettlements.reduce((sum: number, g: any) => sum + (g.summary?.eligible || 0), 0));
+  const totalHoldPaise = settlementSummary?.hold ?? (groupedSettlements.reduce((sum: number, g: any) => sum + (g.summary?.hold || 0), 0));
+
   return (
     <div className="space-y-6">
        {settlementSummary && (
           <>
-             <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl p-6 shadow-xl text-white mb-6 flex justify-between items-center border border-emerald-400/30">
-                <div>
-                   <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-50 mb-1 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+             <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-6 shadow-xl text-white mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-emerald-400/30 relative overflow-hidden">
+                <div className="space-y-1 z-10">
+                   <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-100 mb-1 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
                       This Cycle Payout Total to Pay
                    </h3>
-                   <div className="text-4xl font-black tracking-tight drop-shadow-sm">
-                      ₹{(groupedSettlements.reduce((sum: number, g: any) => sum + (g.summary.eligible || 0), 0) / 100).toLocaleString()}
+                   <div className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-sm flex items-baseline gap-3">
+                      <span>₹{(totalEligiblePaise / 100).toLocaleString()}</span>
+                      {totalEligiblePaise > 0 ? (
+                         <span className="text-xs font-bold bg-white/20 text-white px-3 py-1 rounded-full border border-white/30 uppercase tracking-wider">
+                           Ready for Transfer
+                         </span>
+                      ) : (
+                         <span className="text-xs font-bold bg-amber-500/30 text-amber-200 px-3 py-1 rounded-full border border-amber-400/30 uppercase tracking-wider">
+                           0 Pending Transfer
+                         </span>
+                      )}
                    </div>
+                   <p className="text-xs text-emerald-100/90 font-medium pt-1">
+                      📦 Total Pool on Hold (7-Day Return Window): <strong className="text-white font-black">₹{(totalHoldPaise / 100).toLocaleString()}</strong>
+                   </p>
                 </div>
-                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
-                   <DollarSign size={32} className="text-white" />
+                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner shrink-0 z-10">
+                   <DollarSign size={28} className="text-white" />
                 </div>
              </div>
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -498,9 +513,9 @@ export const SettlementsTab = ({
           )}
        </AnimatePresence>
        {/* VENDOR SETTLEMENT MODAL */}
-       <AnimatePresence>
+       <AnimatePresence mode="wait">
           {selectedVendorSettlement && (
-             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+             <div key="vendor-settlement-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-auto">
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedVendorSettlement(null)}/>
                 <motion.div initial={{opacity:0, scale:0.95, y:20}} animate={{opacity:1, scale:1, y:0}} exit={{opacity:0, scale:0.95, y:20}} className="bg-surface-card border border-border rounded-3xl w-full max-w-6xl relative z-10 shadow-2xl" style={{display:'flex', flexDirection:'column', maxHeight:'90vh', overflow:'hidden'}}>
                          {/* Header */}
@@ -516,18 +531,31 @@ export const SettlementsTab = ({
                             </div>
                             <div className="flex items-center gap-3">
                                <button 
-                                  onClick={() => {
+                                  type="button"
+                                  onClick={(e) => {
+                                     e.preventDefault();
+                                     e.stopPropagation();
                                      setShowHistoryModal(true);
                                      setVisibleHistoryLimit(10);
                                   }}
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 rounded-xl text-xs font-bold transition-colors shadow-sm"
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer z-50 pointer-events-auto active:scale-95"
                                >
                                   <History size={14} />
-                                  Settlement History
+                                  <span>Settlement History</span>
                                </button>
-                               <button onClick={() => setSelectedVendorSettlement(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-border transition-colors text-muted">
-                                  <X size={16}/>
-                               </button>
+                               <button 
+                                   type="button"
+                                   onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setSelectedVendorSettlement(null);
+                                      setShowHistoryModal(false);
+                                   }} 
+                                   className="w-9 h-9 flex items-center justify-center rounded-full bg-surface-card hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors text-muted hover:text-heading cursor-pointer z-50 border border-border"
+                                   title="Close Modal"
+                                >
+                                   <X size={18}/>
+                                </button>
                             </div>
                          </div>
 
@@ -923,9 +951,9 @@ export const SettlementsTab = ({
              </AnimatePresence>
 
               {/* VENDOR SETTLEMENT HISTORY MODAL */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                  {showHistoryModal && selectedVendorSettlement && (
-                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                    <div key="history-settlement-modal" className="fixed inset-0 z-[150] flex items-center justify-center p-4 pointer-events-auto">
                        <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowHistoryModal(false)}/>
                        <motion.div initial={{opacity:0, scale:0.95, y:20}} animate={{opacity:1, scale:1, y:0}} exit={{opacity:0, scale:0.95, y:20}} className="bg-surface-card border border-border rounded-3xl w-full max-w-4xl relative z-10 shadow-2xl" style={{display:'flex', flexDirection:'column', maxHeight:'80vh', overflow:'hidden'}}>
                           {/* Header */}
@@ -962,8 +990,17 @@ export const SettlementsTab = ({
                                    {isDeletingHistory ? <RefreshCcw size={12} className="animate-spin" /> : <Trash2 size={12} />}
                                    Clear Old History (&gt; 1 Month)
                                 </button>
-                                <button onClick={() => setShowHistoryModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-border transition-colors text-muted">
-                                   <X size={16}/>
+                                <button 
+                                   type="button"
+                                   onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setShowHistoryModal(false);
+                                   }} 
+                                   className="w-9 h-9 flex items-center justify-center rounded-full bg-surface-card hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors text-muted hover:text-heading cursor-pointer z-50 border border-border"
+                                   title="Close History"
+                                >
+                                   <X size={18}/>
                                 </button>
                              </div>
                           </div>

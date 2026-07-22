@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, User as UserIcon, Lock, Loader2, ArrowRight, Edit3 } from "lucide-react";
+import { Mail, User as UserIcon, Lock, Loader2, ArrowRight, Edit3, Home } from "lucide-react";
 import { parseLocation } from "@/lib/pincodeResolver";
 import { countries, getPhoneRule } from "@/lib/countries";
 
@@ -52,7 +52,7 @@ function ProfilePageInner() {
 
   const handleGoogleLogin = () => {
     const searchParams = new URLSearchParams(window.location.search);
-    const redirectUrl = searchParams.get("redirect") || "/profile";
+    const redirectUrl = searchParams.get("redirect") || "/";
     window.location.href = `/api/auth/oauth/google?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
@@ -150,12 +150,10 @@ function ProfilePageInner() {
           window.location.href = redirectUrl;
         } else {
           // If the user's role is vendor, redirect them to the vendor dashboard
-          if (data.user.role === "vendor") {
+          if (data.user?.role === "vendor") {
             window.location.href = "/vendor/dashboard";
           } else {
-            setUser(data.user);
-            fetchProfileAndOrders();
-            window.location.reload(); // Refresh page to update the Navbar state
+            window.location.href = "/";
           }
         }
       } else {
@@ -246,9 +244,15 @@ function ProfilePageInner() {
     return (
       <div className="py-8 sm:py-12 px-4 flex items-center justify-center">
         <div className="max-w-md w-full bg-surface-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
-          {/* Subtle gradient highlights */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full blur-3xl -z-10" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-bronze-500/5 rounded-full blur-3xl -z-10" />
+          <div className="mb-4">
+            <button
+              onClick={() => window.location.href = "/"}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-muted hover:text-orange-500 transition-colors bg-surface/50 hover:bg-surface border border-border px-3 py-1.5 rounded-xl cursor-pointer"
+            >
+              <Home size={14} />
+              <span>Go to Homepage</span>
+            </button>
+          </div>
 
           {searchParams.get("reason") && (
             <div className="mb-5 p-3.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 rounded-2xl text-[10px] font-bold uppercase tracking-wider text-center animate-in fade-in duration-200">
@@ -402,6 +406,17 @@ function ProfilePageInner() {
     <div className="py-6 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
+        {/* Top Navigation Row */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => window.location.href = "/"}
+            className="inline-flex items-center gap-2 text-xs font-bold text-muted hover:text-orange-500 transition-colors bg-surface-card hover:bg-surface border border-border px-4 py-2.5 rounded-xl shadow-sm cursor-pointer"
+          >
+            <Home size={16} />
+            <span>Go to Homepage</span>
+          </button>
+        </div>
+
         {/* Profile Card Header */}
         <div className="bg-[#800000] rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative overflow-hidden border border-orange-500/10">
           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl -z-10" />
@@ -423,12 +438,21 @@ function ProfilePageInner() {
               </div>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 border border-orange-500/20 hover:bg-orange-500/10 text-orange-400 rounded-xl text-xs font-semibold transition-all hover:border-orange-500/50"
-          >
-            Sign Out Account
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => window.location.href = "/"}
+              className="px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 hover:text-white border border-orange-500/30 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Home size={14} />
+              <span>Go to Homepage</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 border border-orange-500/20 hover:bg-orange-500/10 text-orange-400 rounded-xl text-xs font-semibold transition-all hover:border-orange-500/50"
+            >
+              Sign Out Account
+            </button>
+          </div>
         </div>
 
         {/* Become a Vendor Invite Banner */}

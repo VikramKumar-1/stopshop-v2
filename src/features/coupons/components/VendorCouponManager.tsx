@@ -150,14 +150,14 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black text-heading flex items-center gap-2">
-            <Tag className="text-orange-500" />
+          <h2 className="text-base font-bold text-heading flex items-center gap-2">
+            <Tag className="text-orange-500" size={18} />
             Promotions & Offers
           </h2>
-          <p className="text-sm text-muted mt-1">Create store-specific coupons or join StopShop campaigns.</p>
+          <p className="text-xs text-muted mt-0.5">Create store-specific coupons or join StopShop campaigns.</p>
         </div>
         <button 
           onClick={() => {
@@ -167,9 +167,9 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
               setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1", expiresAt: "" });
             }
           }}
-          className="px-4 py-2 bg-heading text-surface rounded-xl text-sm font-bold hover:bg-orange-500 transition-colors flex items-center gap-2"
+          className="px-3.5 py-1.5 bg-heading text-surface rounded-xl text-xs font-bold hover:bg-orange-500 transition-colors flex items-center gap-1.5 shadow-sm"
         >
-          {showForm ? "Cancel" : <><Plus size={16} /> Create Promo</>}
+          {showForm ? "Cancel" : <><Plus size={14} /> Create Promo</>}
         </button>
       </div>
 
@@ -218,31 +218,31 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
       )}
 
       {loading ? (
-        <div className="flex justify-center p-10"><Loader2 className="animate-spin text-orange-500" /></div>
+        <div className="flex justify-center p-8"><Loader2 className="animate-spin text-orange-500" size={20} /></div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
           {coupons.map(c => (
-            <div key={c.id} className={`bg-surface border ${c.creatorRole === 'ADMIN' ? 'border-blue-500/30' : 'border-border'} rounded-2xl p-5 relative group flex flex-col justify-between`}>
+            <div key={c.id} className={`bg-surface-card border ${c.creatorRole === 'ADMIN' ? 'border-blue-500/30' : 'border-border/80'} rounded-2xl p-4 relative group flex flex-col justify-between shadow-sm max-w-xs sm:max-w-none`}>
               <div>
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-black text-heading uppercase tracking-widest">{c.code}</h3>
-                  <div className="flex gap-2">
+                <div className="flex justify-between items-start mb-1.5">
+                  <h3 className="text-sm font-bold text-heading uppercase tracking-wider font-mono">{c.code}</h3>
+                  <div className="flex gap-1.5">
                     {c.creatorRole === "VENDOR" && (
                       <>
-                        <button onClick={() => handleEdit(c)} className="text-muted hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 size={16} /></button>
-                        <button onClick={() => handleDelete(c.id)} className="text-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
+                        <button onClick={() => handleEdit(c)} className="text-muted hover:text-blue-500 transition-colors"><Edit2 size={13} /></button>
+                        <button onClick={() => handleDelete(c.id)} className="text-muted hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
                       </>
                     )}
                   </div>
                 </div>
-                <p className="text-sm text-emerald-600 font-bold mb-3">{c.description || `${c.discountValue}${c.discountType === 'PERCENTAGE' ? '%' : '₹'} OFF`}</p>
+                <p className="text-xs text-emerald-600 font-bold mb-2">{c.description || `${c.discountValue}${c.discountType === 'PERCENTAGE' ? '%' : '₹'} OFF`}</p>
                 
                 {c.creatorRole === "ADMIN" && (
-                  <div className="mb-3 inline-block px-2 py-1 bg-blue-500/10 text-blue-700 text-[10px] font-bold rounded uppercase">Platform Campaign</div>
+                  <div className="mb-2 inline-block px-2 py-0.5 bg-blue-500/10 text-blue-700 text-[9px] font-bold rounded uppercase">Platform Campaign</div>
                 )}
                 
-                <div className="space-y-1 text-xs text-muted font-medium">
-                  <p>Uses: {c.usedCount} / {c.maxUses || "∞"}</p>
+                <div className="space-y-0.5 text-[11px] text-muted font-medium">
+                  <p>Uses: <span className="font-bold text-heading">{c.usedCount}</span> / <span className="font-bold text-heading">{c.maxUses || "∞"}</span></p>
                   <p>Status: <span className="font-bold text-heading">{c.vendorStatus || "ACTIVE"}</span></p>
                   {c.expiresAt && <p>Expires: <span className="font-bold text-orange-500">{new Date(c.expiresAt).toLocaleDateString()}</span></p>}
                   {c.expiresAt && new Date(c.expiresAt) < new Date() && <p className="text-red-500 font-bold">⚠️ EXPIRED</p>}
@@ -250,23 +250,23 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
                 </div>
               </div>
               
-              <div className="mt-5 pt-4 border-t border-border flex flex-col gap-2">
+              <div className="mt-3 pt-3 border-t border-border flex flex-col gap-1.5">
                 {c.creatorRole === "ADMIN" && c.vendorStatus === "PENDING_OPT_IN" ? (
-                  <div className="flex gap-2">
-                    <button onClick={() => handleOptIn(c.id, true)} className="flex-1 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-colors">Join Campaign</button>
-                    <button onClick={() => handleOptIn(c.id, false)} className="flex-1 py-1.5 bg-surface-card border border-border text-muted hover:text-red-500 rounded-lg text-xs font-bold transition-colors">Decline</button>
+                  <div className="flex gap-1.5">
+                    <button onClick={() => handleOptIn(c.id, true)} className="flex-1 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-bold transition-colors">Join Campaign</button>
+                    <button onClick={() => handleOptIn(c.id, false)} className="flex-1 py-1 bg-surface border border-border text-muted hover:text-red-500 rounded-lg text-[10px] font-bold transition-colors">Decline</button>
                   </div>
                 ) : c.creatorRole === "ADMIN" && c.vendorStatus === "ACTIVE" ? (
-                  <button onClick={() => handleOptIn(c.id, false)} className="w-full py-1.5 bg-surface-card border border-border text-red-500 hover:bg-red-500/10 rounded-lg text-xs font-bold transition-colors">Opt-Out of Campaign</button>
+                  <button onClick={() => handleOptIn(c.id, false)} className="w-full py-1 bg-surface border border-border text-red-500 hover:bg-red-500/10 rounded-lg text-[10px] font-bold transition-colors">Opt-Out</button>
                 ) : c.creatorRole === "VENDOR" ? (
                   <button 
                     onClick={() => toggleStatus(c.id, c.isActive)}
-                    className={`w-full py-1.5 rounded-lg text-xs font-bold transition-colors ${c.isActive ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'}`}
+                    className={`w-full py-1.5 rounded-xl text-[10px] font-bold transition-colors ${c.isActive ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20'}`}
                   >
                     {c.isActive ? "Live / Active" : "Paused / Inactive"}
                   </button>
                 ) : (
-                  <div className="w-full py-1.5 text-center text-xs font-bold text-muted bg-surface-card rounded-lg">Declined</div>
+                  <div className="w-full py-1 text-center text-[10px] font-bold text-muted bg-surface rounded-lg">Declined</div>
                 )}
               </div>
             </div>

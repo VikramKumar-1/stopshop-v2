@@ -3,6 +3,7 @@ import { ArrowRight, Star, ShoppingCart, ChevronLeft, ChevronRight, TrendingUp }
 import Link from "next/link";
 import Image from "next/image";
 import React, { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useRegion } from "@/context/RegionContext";
 import { useCart } from "@/context/CartContext";
 
@@ -138,6 +139,7 @@ const products = [
 ];
 
 export const FeaturedProducts = ({ products: propProducts }: { products?: any[] }) => {
+  const router = useRouter();
   const displayProducts = (propProducts && propProducts.length > 0) ? propProducts : products;
   const scrollRef = useRef<HTMLDivElement>(null);
   const { convertPrice, convertWeight, getRawPrice, formatPrice } = useRegion();
@@ -332,7 +334,7 @@ export const FeaturedProducts = ({ products: propProducts }: { products?: any[] 
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        window.location.href = `/checkout?productId=${product.id}`;
+                        router.push(`/checkout?productId=${product.id}`);
                       }}
                       className="flex-grow inline-flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold text-[10px] sm:text-xs cursor-pointer text-center"
                     >

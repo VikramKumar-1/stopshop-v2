@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { useState, useEffect, useRef } from "react";
 import { Menu, X, Search, User, Heart, ShoppingCart, ChevronDown, LogOut, Store, PhoneCall, LayoutDashboard, Package, Home, Grid, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 
@@ -498,14 +499,14 @@ export const Navbar = () => {
 
                 <Link 
                   href={(pathname.startsWith("/vendor") && !pathname.startsWith("/vendor-shop")) ? "/vendor/dashboard" : pathname.startsWith("/admin") ? "/admin" : "/"} 
-                  className={`flex items-center gap-2 group ${searchOpen ? "hidden" : "flex"}`}
+                  className={`flex items-center gap-2.5 sm:gap-3 group ${searchOpen ? "hidden" : "flex"}`}
                 >
                   <img 
-                    src="/logo4.jpg" 
+                    src="/logo.webp" 
                     alt="StopShop Logo" 
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white rounded-xl sm:rounded-2xl p-1 object-contain shadow-sm border border-border group-hover:border-bronze-500/30"
+                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl sm:rounded-2xl object-contain shadow-sm group-hover:scale-105 transition-transform shrink-0"
                   />
-                  <span className="inline-block text-sm sm:text-base lg:text-2xl xl:text-2xl font-display font-bold tracking-tight text-heading">
+                  <span className="inline-block text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tight text-heading">
                     Stop<span className="gradient-text">Shop</span>
                   </span>
                 </Link>
@@ -771,7 +772,7 @@ export const Navbar = () => {
                                 className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
                               >
                                 <Package size={15} className="text-muted" />
-                                <span>Orders & Quotes</span>
+                                <span>Orders & Returns</span>
                               </Link>
 
                               <Link
@@ -903,7 +904,7 @@ export const Navbar = () => {
                 </div>
               )}
               {isProfilePage && (!user || user.role !== "vendor") && (
-                <div className="flex items-center gap-5 flex-shrink-0">
+                <div className="hidden sm:flex items-center gap-5 flex-shrink-0">
                   <Link
                     href="/vendor/register"
                     className="px-4 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-[11px] sm:text-xs font-bold shadow-md shadow-orange-500/10 whitespace-nowrap ml-2"
@@ -1185,75 +1186,87 @@ export const Navbar = () => {
           />
         )}
 
-      {/* Sticky Bottom Navigation Bar for Mobile (Blinkit Style) */}
+      {/* Sticky Bottom Navigation Bar for Mobile (Blinkit Style - Pitch-Black Liquid Glass) */}
       {!isDashboard && (
         <div 
-          className={`lg:hidden fixed bottom-4 left-4 right-4 z-[120] rounded-2xl bg-white dark:bg-zinc-900 border border-white/50 dark:border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] ${
+          className={`lg:hidden fixed bottom-3 left-3 right-3 z-[120] rounded-2xl bg-black/80 dark:bg-black/85 backdrop-blur-2xl border border-white/20 dark:border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6)] transition-all duration-300 ease-out will-change-transform transform-gpu ${
             bottomVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
           }`}
         >
-          <div className="flex justify-around items-center px-1 py-1">
+          <div className="flex justify-around items-center px-1.5 py-1.5">
               {/* Home */}
               <Link 
                 href="/" 
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative"
+                prefetch={true}
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
               >
                 {pathname === "/" && (
-                  <div 
-                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
+                  <motion.div 
+                    layoutId="bottom-nav-active-pill"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
                   />
                 )}
-                <Home size={22} className={`relative z-10 ${pathname === "/" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname === "/" ? 2.2 : 1.6} />
-                <span className={`relative z-10 text-[10px] font-semibold ${pathname === "/" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`}>Home</span>
+                <Home size={20} className={`relative z-10 ${pathname === "/" ? "text-orange-500" : "text-gray-400 dark:text-gray-400"}`} strokeWidth={pathname === "/" ? 2.4 : 1.8} />
+                <span className={`relative z-10 text-[10px] font-bold ${pathname === "/" ? "text-orange-500 font-extrabold" : "text-gray-400 dark:text-gray-400"}`}>Home</span>
               </Link>
 
               {/* Categories */}
               <Link 
                 href="/products" 
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
+                prefetch={true}
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
               >
                 {pathname === "/products" && (
-                  <div 
-                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
+                  <motion.div 
+                    layoutId="bottom-nav-active-pill"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
                   />
                 )}
-                <Grid size={22} className={`relative z-10 ${pathname === "/products" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname === "/products" ? 2.2 : 1.6} />
-                <span className={`relative z-10 text-[10px] font-semibold ${pathname === "/products" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`}>Categories</span>
+                <Grid size={20} className={`relative z-10 ${pathname === "/products" ? "text-orange-500" : "text-gray-400 dark:text-gray-400"}`} strokeWidth={pathname === "/products" ? 2.4 : 1.8} />
+                <span className={`relative z-10 text-[10px] font-bold ${pathname === "/products" ? "text-orange-500 font-extrabold" : "text-gray-400 dark:text-gray-400"}`}>Categories</span>
               </Link>
 
               {/* Cart */}
               <Link 
                 href="/cart" 
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
+                prefetch={true}
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
               >
                 {pathname === "/cart" && (
-                  <div 
-                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
+                  <motion.div 
+                    layoutId="bottom-nav-active-pill"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
                   />
                 )}
                 <div className="relative z-10">
-                  <ShoppingCart size={22} className={pathname === "/cart" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"} strokeWidth={pathname === "/cart" ? 2.2 : 1.6} />
+                  <ShoppingCart size={20} className={pathname === "/cart" ? "text-orange-500" : "text-gray-400 dark:text-gray-400"} strokeWidth={pathname === "/cart" ? 2.4 : 1.8} />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2.5 bg-orange-500 text-white text-[8px] font-bold min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-2 bg-orange-500 text-white text-[8px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center shadow-sm">
                       {cartCount}
                     </span>
                   )}
                 </div>
-                <span className={`relative z-10 text-[10px] font-semibold ${pathname === "/cart" ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`}>Cart</span>
+                <span className={`relative z-10 text-[10px] font-bold ${pathname === "/cart" ? "text-orange-500 font-extrabold" : "text-gray-400 dark:text-gray-400"}`}>Cart</span>
               </Link>
 
               {/* Profile */}
               <Link 
                 href={user ? "/profile" : "/profile?mode=login&reason=profile&redirect=/profile"} 
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-150"
+                prefetch={true}
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
               >
                 {pathname.startsWith("/profile") && (
-                  <div 
-                    className="absolute inset-0 rounded-xl bg-white/60 dark:bg-white/10 border border-orange-200/50 dark:border-orange-500/20 shadow-[0_2px_12px_rgba(249,115,22,0.12)]"
+                  <motion.div 
+                    layoutId="bottom-nav-active-pill"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
                   />
                 )}
-                <User size={22} className={`relative z-10 ${pathname.startsWith("/profile") ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`} strokeWidth={pathname.startsWith("/profile") ? 2.2 : 1.6} />
-                <span className={`relative z-10 text-[10px] font-semibold ${pathname.startsWith("/profile") ? "text-orange-500" : "text-gray-400 dark:text-gray-500"}`}>Profile</span>
+                <User size={20} className={`relative z-10 ${pathname.startsWith("/profile") ? "text-orange-500" : "text-gray-400 dark:text-gray-400"}`} strokeWidth={pathname.startsWith("/profile") ? 2.4 : 1.8} />
+                <span className={`relative z-10 text-[10px] font-bold ${pathname.startsWith("/profile") ? "text-orange-500 font-extrabold" : "text-gray-400 dark:text-gray-400"}`}>Profile</span>
               </Link>
           </div>
         </div>

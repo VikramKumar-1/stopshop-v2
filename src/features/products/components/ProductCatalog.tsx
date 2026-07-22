@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Star, ShoppingCart, SlidersHorizontal, ArrowUpDown, ShieldCheck, Heart } from "lucide-react";
+import { Search, Star, ShoppingCart, SlidersHorizontal, ArrowUpDown, ShieldCheck, Heart, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useRegion } from "@/context/RegionContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -144,6 +144,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
   const [sort, setSort] = useState(initialSort);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState<number>(20);
   const abortControllerRef = useRef<AbortController | null>(null);
  
   const activeHeader = categoryHeaderContents[category] || categoryHeaderContents.default;
@@ -156,6 +157,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
     setCategory(searchParams.get("category") || "");
     setMaterial(initialMaterialOverride || searchParams.get("material") || "");
     setSort(searchParams.get("sort") || "");
+    setVisibleCount(20);
   }, [searchParams, initialMaterialOverride]);
  
   // Sync state changes back to the URL
@@ -556,8 +558,9 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-6">
-                {products.map((product) => {
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-6">
+                  {products.slice(0, visibleCount).map((product) => {
                   const rawMrp = getRawPrice(product.mrp, product, true);
                   const rawPrice = getRawPrice(product.price, product, false);
                   const savedAmount = Math.max(0, rawMrp - rawPrice);
@@ -595,7 +598,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                           src={product.image}
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          loading="eager"
+                          loading="lazy"
                         />
                       </Link>
 
@@ -707,7 +710,23 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                   );
                 })}
               </div>
-            )}
+
+              {products.length > visibleCount && (
+                <div className="text-center pt-10 pb-6">
+                  <p className="text-xs text-muted font-semibold mb-3">
+                    Showing <span className="text-heading font-bold">{visibleCount}</span> of <span className="text-heading font-bold">{products.length}</span> items
+                  </p>
+                  <button
+                    onClick={() => setVisibleCount((prev) => prev + 20)}
+                    className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-xs font-bold rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer inline-flex items-center gap-2"
+                  >
+                    <Package size={14} />
+                    <span>Load More Products</span>
+                  </button>
+                </div>
+              )}
+            </>
+          )}
 
             {/* Scroll Sentinel / Loading More indicator */}
             {products.length > 0 && (

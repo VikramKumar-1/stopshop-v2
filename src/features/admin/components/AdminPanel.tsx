@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
-import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store, Loader2, Globe, Eye, History, Tag, Activity } from "lucide-react";
+import { Plus, Trash2, Edit, LogOut, CheckCircle, Mail, Phone, MapPin, Package, Award, X, Settings, DollarSign, RefreshCcw, Users, FileText, Download, LayoutDashboard, Search, Info, CheckCircle2, XCircle, AlertTriangle, Store, Loader2, Globe, Eye, History, Tag, Activity, LifeBuoy } from "lucide-react";
 import { currencyDatabase } from "@/context/RegionContext";
 import { jsPDF } from "jspdf";
 import { AnimatePresence, motion } from "framer-motion";
@@ -16,6 +16,7 @@ import { ProductsTab } from "./tabs/ProductsTab";
 import { HomepageTab } from "./tabs/HomepageTab";
 import { InquiriesTab } from "./tabs/InquiriesTab";
 import SystemHealthTab from "./tabs/SystemHealthTab";
+import { HelpSupportTab } from "./tabs/HelpSupportTab";
 
 export const AdminPanel = () => {
   // Premium Toast Notification State
@@ -875,6 +876,7 @@ export const AdminPanel = () => {
                { id: "coupons", label: "Coupons & Offers", icon: Tag },
                { id: "homepage", label: "Homepage Control", icon: LayoutDashboard },
                { id: "inquiries", label: "Inquiries", icon: Mail },
+               { id: "support", label: "Help & Support", icon: LifeBuoy },
                { id: "health", label: "System Health", icon: Activity },
                { id: "settings", label: "Settings", icon: Settings },
             ].map((tab) => {
@@ -1041,6 +1043,7 @@ export const AdminPanel = () => {
               setSelectedCategorySlug={setSelectedCategorySlug}
               handleAssignToHomepage={handleAssignToHomepage}
               setModalProduct={setModalProduct}
+              mutateProducts={mutateProducts}
             />
           )}
 
@@ -1074,6 +1077,11 @@ export const AdminPanel = () => {
           {/* HEALTH TAB */}
           {activeTab === "health" && (
             <SystemHealthTab showToast={showToast} />
+          )}
+
+          {/* HELP & SUPPORT TAB */}
+          {activeTab === "support" && (
+            <HelpSupportTab />
           )}
 
         </div>

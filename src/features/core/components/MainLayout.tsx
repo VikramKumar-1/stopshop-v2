@@ -128,7 +128,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
         />
       )}
       
-      <main className={`overflow-x-clip w-full flex-1 min-h-[75vh] ${ptClass}`} style={{ flex: 1 }}>
+      <main className={`overflow-x-clip w-full flex-1 min-h-[85vh] ${ptClass}`} style={{ flex: 1, minHeight: "85vh" }}>
         <Breadcrumbs />
         {children}
       </main>

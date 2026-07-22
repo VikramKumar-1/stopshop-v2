@@ -191,27 +191,27 @@ export const TargetedRetargetingPanel = ({ vendorId }: { vendorId: number }) => 
   const pendingIntents = intents; // API already handles expiry/cooling
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 mt-8 pt-8 border-t border-border">
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 mt-6 pt-6 border-t border-border">
       
       {/* Header and Tabs */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-black text-heading flex items-center gap-2 mb-4">
-            <Target className="text-red-500" />
+          <h2 className="text-base font-bold text-heading flex items-center gap-2 mb-3">
+            <Target className="text-red-500" size={18} />
             Targeted Retargeting Engine
           </h2>
-          <div className="flex gap-2 p-1 bg-surface-card border border-border rounded-xl inline-flex">
+          <div className="flex gap-1.5 p-1 bg-surface-card border border-border/80 rounded-xl inline-flex">
             <button 
               onClick={() => setActiveTab("abandoned")}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === "abandoned" ? 'bg-red-500 text-white shadow-md' : 'text-muted hover:text-heading hover:bg-surface-hover'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === "abandoned" ? 'bg-red-500 text-white shadow-sm' : 'text-muted hover:text-heading hover:bg-surface-hover'}`}
             >
-              <ShoppingCart size={16} /> Abandoned Carts ({totalIntents})
+              <ShoppingCart size={14} /> Abandoned Carts ({totalIntents})
             </button>
             <button 
               onClick={() => setActiveTab("loyal")}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === "loyal" ? 'bg-yellow-500 text-white shadow-md' : 'text-muted hover:text-heading hover:bg-surface-hover'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === "loyal" ? 'bg-amber-500 text-white shadow-sm' : 'text-muted hover:text-heading hover:bg-surface-hover'}`}
             >
-              <Crown size={16} /> Loyal Customers ({loyalTotalCustomers})
+              <Crown size={14} /> Loyal Customers ({loyalTotalCustomers})
             </button>
           </div>
         </div>
@@ -219,18 +219,18 @@ export const TargetedRetargetingPanel = ({ vendorId }: { vendorId: number }) => 
         {activeTab === "abandoned" && totalIntents > 0 && (
           <button 
             onClick={() => setShowBulkModal("abandoned")}
-            className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl text-sm font-bold shadow-md hover:from-red-600 hover:to-red-700 transition-all flex items-center gap-2"
+            className="px-3.5 py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl text-xs font-bold shadow-sm hover:from-red-600 hover:to-red-700 transition-all flex items-center gap-1.5"
           >
-            <Layers size={16} /> Bulk Target All Leads ({totalIntents})
+            <Layers size={14} /> Bulk Target All Leads ({totalIntents})
           </button>
         )}
 
         {activeTab === "loyal" && loyalTotalCustomers > 1 && (
           <button 
             onClick={() => setShowBulkModal("loyal")}
-            className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl text-sm font-bold shadow-md hover:from-yellow-600 hover:to-yellow-700 transition-all flex items-center gap-2"
+            className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl text-xs font-bold shadow-sm hover:from-amber-600 hover:to-amber-700 transition-all flex items-center gap-1.5"
           >
-            <Gift size={16} /> Reward All Loyal Users ({loyalTotalCustomers})
+            <Gift size={14} /> Reward All Loyal Users ({loyalTotalCustomers})
           </button>
         )}
       </div>

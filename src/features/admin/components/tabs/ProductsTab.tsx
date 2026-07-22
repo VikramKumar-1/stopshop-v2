@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { Search } from "lucide-react";
+import React, { useState } from "react";
+import { Search, Trash2 } from "lucide-react";
 
 export const ProductsTab = ({
   products,
@@ -17,8 +17,38 @@ export const ProductsTab = ({
   selectedCategorySlug,
   setSelectedCategorySlug,
   handleAssignToHomepage,
-  setModalProduct
+  setModalProduct,
+  mutateProducts,
 }: any) => {
+  const [wiping, setWiping] = useState(false);
+
+  const handleWipeProducts = async () => {
+    const confirmed = window.confirm(
+      "⚠️ WARNING: Are you sure you want to delete ALL dummy/seeded products?\n\nThis will remove all test products so you can start adding real products."
+    );
+    if (!confirmed) return;
+
+    setWiping(true);
+    try {
+      const res = await fetch("/api/admin/products/wipe-seeded", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(`✅ ${data.message || "All dummy products wiped successfully!"}`);
+        if (mutateProducts) mutateProducts();
+        else window.location.reload();
+      } else {
+        alert(`❌ Failed to wipe products: ${data.error || "Unknown error"}`);
+      }
+    } catch (err: any) {
+      console.error("Wipe products error:", err);
+      alert("❌ Network error while wiping products");
+    } finally {
+      setWiping(false);
+    }
+  };
+
   const filteredProducts = products.filter((p: any) => {
     if (globalProductCategory && p.categoryName !== globalProductCategory) return false;
     if (globalProductMaterial && p.material !== globalProductMaterial) return false;
@@ -141,8 +171,17 @@ export const ProductsTab = ({
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
           <h2 className="text-xl font-black text-heading">Catalog ({filteredProducts.length} items)</h2>
+          <button
+            onClick={handleWipeProducts}
+            disabled={wiping}
+            className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95 shadow-sm"
+            title="Delete all dummy/seeded products from database"
+          >
+            <Trash2 size={15} />
+            <span>{wiping ? "Wiping Products..." : "Wipe All Dummy Products"}</span>
+          </button>
         </div>
 
         {filteredProducts.length === 0 ? (

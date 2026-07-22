@@ -1,7 +1,10 @@
 "use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Globe, Mail, Phone, MapPin } from "lucide-react";
+import { Globe, Mail, Phone, MapPin, LifeBuoy } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { HelpSupportModal } from "./HelpSupportModal";
 
 const footerLinks = {
   company: [
@@ -35,26 +38,37 @@ const socialLinks = [
 export const Footer = () => {
   const pathname = usePathname();
   const isDashboard = pathname.startsWith("/vendor") || pathname.startsWith("/admin");
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   if (isDashboard) {
     return (
-      <footer className="bg-surface-card border-t border-border mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-muted">
-          <div className="flex items-center gap-2">
-            <span className="font-display font-bold text-heading text-sm">
-              Stop<span className="text-orange-500">Shop</span> <span className="font-normal text-xs text-muted">Artisan Partner</span>
-            </span>
+      <>
+        <HelpSupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
+        <footer className="bg-surface-card border-t border-border mt-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-muted">
+            <div className="flex items-center gap-2">
+              <span className="font-display font-bold text-heading text-sm">
+                Stop<span className="text-orange-500">Shop</span> <span className="font-normal text-xs text-muted">Artisan Partner</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-6 font-semibold">
+              <button 
+                type="button" 
+                onClick={() => setIsSupportOpen(true)}
+                className="hover:text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <LifeBuoy size={14} className="text-orange-500" />
+                <span>Help & Support</span>
+              </button>
+              <a href="#" className="hover:text-heading transition-colors">Seller Policies</a>
+              <a href="#" className="hover:text-heading transition-colors">Terms of Service</a>
+            </div>
+            <p className="text-[11px]">
+              &copy; {new Date().getFullYear()} StopShop. Artisan Partner Portal • Made in India 🇮🇳
+            </p>
           </div>
-          <div className="flex items-center gap-6 font-semibold">
-            <a href="/vendor/dashboard" className="hover:text-heading transition-colors">Dashboard Support</a>
-            <a href="#" className="hover:text-heading transition-colors">Seller Policies</a>
-            <a href="#" className="hover:text-heading transition-colors">Terms of Service</a>
-          </div>
-          <p className="text-[11px]">
-            &copy; {new Date().getFullYear()} StopShop. Artisan Partner Portal • Made in India 🇮🇳
-          </p>
-        </div>
-      </footer>
+        </footer>
+      </>
     );
   }
 
@@ -68,13 +82,13 @@ export const Footer = () => {
 
           {/* Brand — full width on mobile, 2 cols on lg */}
           <div className="col-span-2 md:col-span-4 lg:col-span-2 space-y-5">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-3 group">
               <img
-                src="/logo4.jpg" 
+                src="/logo.webp" 
                 alt="StopShop Logo" 
-                className="w-14 h-14 bg-white rounded-2xl p-1.5 object-contain border border-bronze-800 shadow-md"
+                className="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-2xl object-contain shadow-md group-hover:scale-105 transition-transform shrink-0"
               />
-              <span className="text-xl font-display font-bold tracking-tight text-white">
+              <span className="text-2xl sm:text-3xl font-display font-bold tracking-tight text-white">
                 Stop<span className="text-bronze-400">Shop</span>
               </span>
             </Link>
@@ -175,20 +189,25 @@ export const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-bronze-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-3">
-          <p className="text-xs text-bronze-500">
-            &copy; {new Date().getFullYear()} StopShop. All rights reserved.
-          </p>
-          <div className="flex items-center gap-4 text-xs text-bronze-500">
-            <span>GST: XXXXXXXXXXXXXXX</span>
-            <span>•</span>
-            <span>MSME Registered</span>
-            <span>•</span>
-            <span>Made with pride in India 🇮🇳</span>
+      <div className="border-t border-bronze-900/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-bronze-400">
+          <p>&copy; {new Date().getFullYear()} StopShop Inc. All rights reserved.</p>
+          <div className="flex items-center gap-6 font-semibold">
+            <button 
+              type="button" 
+              onClick={() => setIsSupportOpen(true)}
+              className="hover:text-orange-400 transition-colors flex items-center gap-1.5 cursor-pointer text-orange-400 font-bold"
+            >
+              <LifeBuoy size={14} />
+              <span>Help & Support</span>
+            </button>
+            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+            <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </div>
+      <HelpSupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
     </footer>
   );
 };

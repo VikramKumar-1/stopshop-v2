@@ -19,7 +19,12 @@ export async function uploadFile(file: File): Promise<string> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
   
-  const provider = process.env.STORAGE_PROVIDER || 'cloudinary';
+  // Seamless .env toggle:
+  // Set STORAGE_PROVIDER=local for Hostinger disk uploads
+  // Set STORAGE_PROVIDER=cloudinary (or fill CLOUDINARY_CLOUD_NAME) for Cloudinary uploads
+  const provider = process.env.STORAGE_PROVIDER === 'local' || (!process.env.CLOUDINARY_CLOUD_NAME && process.env.STORAGE_PROVIDER !== 'cloudinary')
+    ? 'local'
+    : 'cloudinary';
 
   if (provider === 'local') {
     // 1. Create the public/uploads directory if it doesn't exist

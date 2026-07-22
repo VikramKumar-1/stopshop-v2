@@ -27,6 +27,7 @@ interface AddProductTabProps {
   listingProduct: boolean;
   aiSeoData?: any;
   products: any[];
+  compressionLogs?: Array<{ name: string; original: string; compressed: string; saved: number }>;
 }
 
 export default function AddProductTab({
@@ -53,6 +54,7 @@ export default function AddProductTab({
   listingProduct,
   aiSeoData,
   products,
+  compressionLogs = []
 }: AddProductTabProps) {
   const [bundleSearch, setBundleSearch] = React.useState("");
 
@@ -328,9 +330,9 @@ export default function AddProductTab({
                           <button
                             type="button"
                             onClick={() => removeGalleryImage(idx, false)}
-                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white font-bold text-xs transition-opacity duration-200"
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            Remove
+                            ×
                           </button>
                         </div>
                       ))}
@@ -338,6 +340,35 @@ export default function AddProductTab({
                   )}
                 </div>
               </div>
+
+              {/* Live WebP Compression Stats UI Banner */}
+              {compressionLogs.length > 0 && (
+                <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl space-y-1.5 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="flex items-center gap-1.5">
+                      ⚡ Browser WebP Compressor (Auto Convert & Zero Quality Loss)
+                    </span>
+                    <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full font-mono uppercase">
+                      Active
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {compressionLogs.map((log, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-[11px] font-mono text-muted bg-surface/80 px-3 py-1.5 rounded-xl border border-border/60">
+                        <span className="truncate max-w-[140px] sm:max-w-[200px] font-medium text-heading">{log.name}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-red-400 line-through text-[10px]">{log.original}</span>
+                          <span className="text-muted">➔</span>
+                          <span className="text-emerald-500 font-bold">{log.compressed}</span>
+                          <span className="bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            -{log.saved}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">

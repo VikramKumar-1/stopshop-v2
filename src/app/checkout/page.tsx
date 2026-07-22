@@ -41,12 +41,14 @@ interface AddressFormProps {
     state: string;
     pincode: string;
     country: string;
-  }) => void;
+  }) => Promise<void> | void;
   onCancel: () => void;
+  isSaving?: boolean;
 }
 
-function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProps) {
+function AddressForm({ initialData, onSubmit, onCancel, isSaving }: AddressFormProps) {
   const { region } = useRegion();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState(initialData?.name || "");
   const [phone, setPhone] = useState(initialData?.phone || "");
   const [address, setAddress] = useState(initialData?.address || "");
@@ -83,71 +85,86 @@ function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProps) {
 
   const selectedCountryObj = countries.find(c => c.name === country) || countries.find(c => c.name === "India") || countries[0];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ name, phone, address, city, state, pincode, country });
+    if (isSubmitting || isSaving) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit({ name, phone, address, city, state, pincode, country });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const isDisabled = isSubmitting || isSaving;
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
       <input 
         type="text" 
         required 
+        disabled={isDisabled}
         value={name} 
         onChange={e=>setName(e.target.value)} 
         placeholder="Full Name" 
-        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs disabled:opacity-60" 
       />
       <input 
         type="text" 
         required 
+        disabled={isDisabled}
         value={phone} 
         onChange={e=>setPhone(e.target.value)} 
         placeholder="Contact Number" 
-        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs disabled:opacity-60" 
       />
       <input 
         type="text" 
         required 
+        disabled={isDisabled}
         value={address} 
         onChange={e=>setAddress(e.target.value)} 
         placeholder="Street Address" 
-        className="sm:col-span-2 w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+        className="sm:col-span-2 w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs disabled:opacity-60" 
       />
       <input 
         type="text" 
         required 
+        disabled={isDisabled}
         value={city} 
         onChange={e=>setCity(e.target.value)} 
         placeholder="City" 
-        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs disabled:opacity-60" 
       />
       <input 
         type="text" 
         required 
+        disabled={isDisabled}
         value={state} 
         onChange={e=>setState(e.target.value)} 
         placeholder="State" 
-        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs disabled:opacity-60" 
       />
       <input 
         type="text" 
         required 
+        disabled={isDisabled}
         value={pincode} 
         onChange={e=>setPincode(e.target.value)} 
         placeholder="Pincode / Postal Code" 
-        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs" 
+        className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs disabled:opacity-60" 
       />
       
       {/* Searchable Country Picker Dropdown */}
       <div className="relative" ref={dropdownRef}>
         <button
           type="button"
+          disabled={isDisabled}
           onClick={() => {
             setIsDropdownOpen(!isDropdownOpen);
             setSearchQuery("");
           }}
-          className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs flex items-center justify-between text-left h-[42px] sm:h-[38px]"
+          className="w-full bg-surface border border-border rounded-xl px-3 py-2.5 focus:border-orange-500 focus:outline-none text-base sm:text-xs flex items-center justify-between text-left h-[42px] sm:h-[38px] disabled:opacity-60"
         >
           <span className="truncate">
             {selectedCountryObj.flag} &nbsp; {selectedCountryObj.name}
@@ -195,8 +212,28 @@ function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProps) {
       </div>
 
       <div className="sm:col-span-2 flex justify-end gap-2 pt-2 border-t border-border">
-        <button type="button" onClick={onCancel} className="px-4 py-2 text-xs font-bold text-muted hover:text-heading">Cancel</button>
-        <button type="submit" className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl">Save Address</button>
+        <button 
+          type="button" 
+          onClick={onCancel} 
+          disabled={isDisabled}
+          className="px-4 py-2 text-xs font-bold text-muted hover:text-heading disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          disabled={isDisabled}
+          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-75 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 min-w-[120px] transition-all cursor-pointer disabled:cursor-not-allowed shadow-sm"
+        >
+          {isDisabled ? (
+            <>
+              <Loader2 size={14} className="animate-spin text-white" />
+              <span>Saving...</span>
+            </>
+          ) : (
+            <span>Save Address</span>
+          )}
+        </button>
       </div>
     </form>
   );
@@ -217,6 +254,7 @@ function CheckoutPageInner() {
   const [fetchingBuyNow, setFetchingBuyNow] = useState(!!buyNowProductId || !!buyNowBundleIds);
 
   const [loading, setLoading] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("razorpay"); // "razorpay" | "payu" | "cod"
   const [paying, setPaying] = useState(false);
 
@@ -365,77 +403,62 @@ function CheckoutPageInner() {
 
     const loadData = async () => {
       try {
-        // Fetch Buy Now Product or Bundle if exists
-        if (buyNowProductId) {
-           const pRes = await fetch(`/api/products/${buyNowProductId}`);
-           if (pRes.ok) {
-              const pData = await pRes.json();
-              if (pData && pData.id) {
-                 setBuyNowCart([{ ...pData, quantity: buyNowQty }]);
-              }
-           }
-        } else if (buyNowBundleIds) {
-           const ids = buyNowBundleIds.split(",").filter(Boolean);
-           const fetchedItems: any[] = [];
-           for (const id of ids) {
-              const pRes = await fetch(`/api/products/${id}`);
-              if (pRes.ok) {
-                 const pData = await pRes.json();
-                 if (pData && pData.id) {
-                    fetchedItems.push({ ...pData, quantity: buyNowQty });
-                 }
-              }
-           }
-           if (fetchedItems.length > 0) {
-              setBuyNowCart(fetchedItems);
-           }
-        }
+        const productFetchPromise = (async () => {
+          if (buyNowProductId) {
+             const pRes = await fetch(`/api/products/${buyNowProductId}`);
+             if (pRes.ok) {
+                const pData = await pRes.json();
+                if (pData && pData.id) {
+                   setBuyNowCart([{ ...pData, quantity: buyNowQty }]);
+                }
+             }
+          } else if (buyNowBundleIds) {
+             const ids = buyNowBundleIds.split(",").filter(Boolean);
+             const pResults = await Promise.all(
+               ids.map(id => fetch(`/api/products/${id}`).then(r => r.ok ? r.json() : null).catch(() => null))
+             );
+             const fetchedItems = pResults.filter((p: any) => p && p.id).map((p: any) => ({ ...p, quantity: buyNowQty }));
+             if (fetchedItems.length > 0) {
+                setBuyNowCart(fetchedItems);
+             }
+          }
+        })();
 
-        // Fetch User Info
-        const userRes = await fetch("/api/auth/me");
-        if (userRes.ok) {
-           const userData = await userRes.json();
-           if (userData.authenticated && userData.user) {
-              setUserEmail(userData.user.email);
-           } else {
-              const buyNowParams = buyNowProductId ? `?productId=${buyNowProductId}&qty=${buyNowQty}` : buyNowBundleIds ? `?bundleIds=${buyNowBundleIds}&qty=${buyNowQty}` : "";
-              const redirectPath = encodeURIComponent(`/checkout${buyNowParams}`);
-              router.push(`/profile?redirect=${redirectPath}`);
-              return;
-           }
+        const userPromise = fetch("/api/auth/me").then(r => r.ok ? r.json() : null).catch(() => null);
+        const offersPromise = fetch("/api/targeted-offers?asBuyer=true").then(r => r.ok ? r.json() : null).catch(() => null);
+        const addrPromise = fetch("/api/addresses").then(r => r.ok ? r.json() : null).catch(() => null);
+        const settingsPromise = fetch("/api/settings/public").then(r => r.ok ? r.json() : null).catch(() => null);
+
+        const [_, userData, offersData, addrData, settingsData] = await Promise.all([
+          productFetchPromise,
+          userPromise,
+          offersPromise,
+          addrPromise,
+          settingsPromise
+        ]);
+
+        if (userData && userData.authenticated && userData.user) {
+          setUserEmail(userData.user.email);
         } else {
-           const buyNowParams = buyNowProductId ? `?productId=${buyNowProductId}&qty=${buyNowQty}` : buyNowBundleIds ? `?bundleIds=${buyNowBundleIds}&qty=${buyNowQty}` : "";
-           const redirectPath = encodeURIComponent(`/checkout${buyNowParams}`);
-           router.push(`/profile?redirect=${redirectPath}`);
-           return;
+          setIsRedirecting(true);
+          const buyNowParams = buyNowProductId ? `?productId=${buyNowProductId}&qty=${buyNowQty}` : buyNowBundleIds ? `?bundleIds=${buyNowBundleIds}&qty=${buyNowQty}` : "";
+          const redirectPath = encodeURIComponent(`/checkout${buyNowParams}`);
+          router.push(`/profile?redirect=${redirectPath}`);
+          return;
         }
 
-        // Fetch Targeted Offers
-        const offersRes = await fetch("/api/targeted-offers?asBuyer=true");
-        if (offersRes.ok) {
-           const offersData = await offersRes.json();
-           if (Array.isArray(offersData)) {
-              setTargetedOffers(offersData);
-           }
+        if (Array.isArray(offersData)) {
+          setTargetedOffers(offersData);
         }
 
-        // Fetch Addresses
-        const addrRes = await fetch("/api/addresses");
-        if (addrRes.ok) {
-           const addrData = await addrRes.json();
-           if (addrData.addresses?.length > 0) {
-              setAddresses(addrData.addresses);
-              const def = addrData.addresses.find((a: any) => a.isDefault) || addrData.addresses[0];
-              setSelectedAddressId(def.id);
-           }
+        if (addrData && addrData.addresses?.length > 0) {
+          setAddresses(addrData.addresses);
+          const def = addrData.addresses.find((a: any) => a.isDefault) || addrData.addresses[0];
+          setSelectedAddressId(def.id);
         }
-        // Fetch Shipping Settings
-        const settingsRes = await fetch("/api/settings/public");
-        if (settingsRes.ok) {
-           const settingsData = await settingsRes.json();
-           if (settingsData.success) {
-              setSettings(settingsData.settings);
-           }
+
+        if (settingsData && settingsData.success) {
+          setSettings(settingsData.settings);
         }
       } catch (e) {
         console.error(e);
@@ -837,7 +860,7 @@ function CheckoutPageInner() {
     }
   };
 
-  if (fetchingBuyNow || loading || !loaded) {
+  if (fetchingBuyNow || loading || !loaded || isRedirecting) {
     return (
       <div className="min-h-[75vh] w-full flex flex-col items-center justify-center gap-4 bg-surface text-center">
         <div className="w-12 h-12 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />

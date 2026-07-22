@@ -25,6 +25,8 @@ export default function InquiriesTab({
   setModalMessage,
   openProductModal,
 }: InquiriesTabProps) {
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
   return (
     <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
       <div className="bg-gradient-to-r from-orange-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex items-center justify-between">
@@ -292,10 +294,34 @@ export default function InquiriesTab({
                   </tr>
                 );
               }
-              return rows;
+              const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage));
+              return rows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
             })()}
           </tbody>
         </table>
+
+        {inquiries.length > 0 && (
+          <div className="p-4 border-t border-border flex items-center justify-between bg-surface-card/60">
+            <span className="text-xs text-muted font-medium">
+              Showing page <span className="font-bold text-heading">{currentPage}</span>
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-orange-500/10 hover:text-orange-500 transition-all cursor-pointer"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border hover:bg-orange-500/10 hover:text-orange-500 transition-all cursor-pointer"
+              >
+                Next Page
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

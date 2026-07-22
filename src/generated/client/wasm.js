@@ -483,6 +483,18 @@ exports.Prisma.IPBlacklistScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.SupportTicketScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  mobile: 'mobile',
+  description: 'description',
+  status: 'status',
+  adminNotes: 'adminNotes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -530,7 +542,8 @@ exports.Prisma.ModelName = {
   ProductPair: 'ProductPair',
   Cart: 'Cart',
   CartItem: 'CartItem',
-  IPBlacklist: 'IPBlacklist'
+  IPBlacklist: 'IPBlacklist',
+  SupportTicket: 'SupportTicket'
 };
 
 /**

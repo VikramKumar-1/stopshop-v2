@@ -1,7 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Loader2, ArrowRight, User as UserIcon, Lock, Package, Truck, Download, RefreshCcw, Camera, X, AlertTriangle, ShieldCheck, CheckCircle } from "lucide-react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import { compressImageToWebP } from "@/lib/imageCompressor";
+import { Mail, Loader2, ArrowRight, User as UserIcon, Lock, Package, Truck, Download, RefreshCcw, Camera, X, AlertTriangle, ShieldCheck, CheckCircle, ExternalLink, Eye } from "lucide-react";
 import InlineReviewStars from "./InlineReviewStars";
 
 export default function OrdersPage() {
@@ -56,9 +59,10 @@ export default function OrdersPage() {
       }
 
       const fileArray = Array.from(files);
-      const uploadPromises = fileArray.map(async (file) => {
+      const uploadPromises = fileArray.map(async (rawFile) => {
+        const comp = await compressImageToWebP(rawFile);
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", comp.file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         if (!res.ok) throw new Error("Upload failed");
         const data = await res.json();
@@ -120,11 +124,10 @@ export default function OrdersPage() {
 
       const data = await res.json();
       if (res.ok) {
-        if (data.user.role === "vendor") {
+        if (data.user?.role === "vendor") {
           window.location.href = "/vendor/dashboard";
         } else {
-          setUser(data.user);
-          fetchProfileAndOrders();
+          window.location.href = "/";
         }
       } else {
         setAuthError(data.error || "Authentication failed.");
@@ -254,9 +257,18 @@ export default function OrdersPage() {
                     </div>
                     <div className="flex items-center gap-3">
                        <span className="text-zinc-500 font-medium">Date: <strong className="text-zinc-900 dark:text-white font-bold">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong></span>
-                       <button onClick={() => handleDownloadInvoice(order.id, order.orderNumber)} className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold px-3.5 py-1.5 rounded-xl shadow-md transition-all active:scale-[0.98]">
-                          <Download size={14} /> Invoice
-                       </button>
+                       <button 
+                          onClick={() => handleDownloadInvoice(order.id, order.orderNumber)} 
+                          className={`flex items-center gap-1.5 font-bold px-3.5 py-1.5 rounded-xl shadow-md transition-all active:scale-[0.98] ${
+                            order.status === "DELIVERED"
+                              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20"
+                              : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20"
+                          }`}
+                          title={order.status === "DELIVERED" ? "Download Final Delivered Tax Invoice with Delivery Proof" : "Download Tax Invoice"}
+                        >
+                           <Download size={14} /> 
+                           <span>{order.status === "DELIVERED" ? "Delivered Tax Invoice" : "Tax Invoice"}</span>
+                        </button>
                     </div>
                  </div>
 
@@ -376,23 +388,50 @@ export default function OrdersPage() {
                  {/* Items List inside Crisp Box */}
                  <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3">
                     <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider pb-1 border-b border-zinc-200 dark:border-zinc-800">Order Items</h4>
-                    {order.items.map((item: any) => (
-                       <div key={item.id} className="flex items-center gap-3.5 pt-1">
-                          <div className="w-14 h-14 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 overflow-hidden shrink-0 shadow-sm flex items-center justify-center">
-                             <img src={item.productImage || "/logo4.jpg"} alt={item.productName} className="w-full h-full object-cover" />
+                    {order.items.map((item: any) => {
+                        const productUrl = `/product/${item.product?.slug || item.productId}`;
+                        return (
+                          <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 pb-2 border-b border-zinc-200/50 dark:border-zinc-800/50 last:border-0">
+                             <div className="flex items-center gap-3.5 min-w-0">
+                                <Link 
+                                  href={productUrl}
+                                  className="w-14 h-14 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 overflow-hidden shrink-0 shadow-sm flex items-center justify-center group/img hover:border-orange-500 transition-colors"
+                                >
+                                   <img src={item.productImage || "/logo4.jpg"} alt={item.productName} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300" />
+                                </Link>
+                                <div className="flex-1 min-w-0 space-y-1">
+                                   <Link 
+                                     href={productUrl}
+                                     className="font-extrabold text-zinc-900 dark:text-white text-sm sm:text-base truncate block hover:text-orange-500 transition-colors"
+                                     title={item.productName}
+                                   >
+                                      {item.productName}
+                                   </Link>
+                                   <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium flex-wrap">
+                                      <span>Quantity: <strong className="text-zinc-700 dark:text-zinc-300">{item.quantity}</strong></span>
+                                   </div>
+                                   {order.status === "DELIVERED" && (
+                                     <InlineReviewStars productId={item.productId} orderId={order.id} />
+                                   )}
+                                </div>
+                             </div>
+
+                             <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0">
+                                <div className="font-black text-zinc-900 dark:text-white text-sm sm:text-base whitespace-nowrap">
+                                   ₹{(item.totalPaise / 100).toLocaleString("en-IN")}
+                                </div>
+                                <Link 
+                                  href={productUrl} 
+                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 dark:text-orange-400 hover:text-orange-500 border border-orange-500/30 hover:border-orange-500/60 bg-orange-500/10 hover:bg-orange-500/20 px-3 py-1 rounded-xl transition-all shadow-sm"
+                                >
+                                   <Eye size={13} />
+                                   <span>View Product</span>
+                                   <ArrowRight size={12} />
+                                </Link>
+                             </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                             <h4 className="font-extrabold text-zinc-900 dark:text-white text-sm sm:text-base truncate">{item.productName}</h4>
-                             <p className="text-xs text-zinc-500 font-medium mt-0.5">Quantity: <strong className="text-zinc-700 dark:text-zinc-300">{item.quantity}</strong></p>
-                             {order.status === "DELIVERED" && (
-                               <InlineReviewStars productId={item.productId} orderId={order.id} />
-                             )}
-                          </div>
-                          <div className="font-black text-zinc-900 dark:text-white text-sm sm:text-base whitespace-nowrap">
-                             ₹{(item.totalPaise / 100).toLocaleString("en-IN")}
-                          </div>
-                       </div>
-                    ))}
+                        );
+                     })}
                  </div>
 
                  {/* Dark Luxury Financial Receipt Breakdown Box (Stops everything from blending into white!) */}
@@ -434,7 +473,7 @@ export default function OrdersPage() {
 
                  {/* Status Footer */}
                  <div className="flex justify-between items-center pt-2 border-t border-zinc-200/80 dark:border-zinc-800 flex-wrap gap-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                        <span className={`px-3 py-1.5 rounded-xl text-[11px] font-black uppercase border shadow-sm ${
                           ['DELIVERED', 'RETURNED'].includes(order.status) ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' :
                           order.status.includes('RETURN') ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400' :
@@ -447,21 +486,23 @@ export default function OrdersPage() {
                        )}
                     </div>
 
-                     {order.status === "DELIVERED" && !order.returnRequest && (() => {
-                        const returnWindowMs = 7 * 24 * 60 * 60 * 1000;
-                        const deliveredTimestamp = new Date(order.updatedAt || order.createdAt).getTime();
-                        const isWithinReturnWindow = (Date.now() - deliveredTimestamp) <= returnWindowMs;
+                    <div className="flex items-center gap-2 flex-wrap">
+                       {order.status === "DELIVERED" && !order.returnRequest && (() => {
+                          const returnWindowMs = 7 * 24 * 60 * 60 * 1000;
+                          const deliveredTimestamp = new Date(order.updatedAt || order.createdAt).getTime();
+                          const isWithinReturnWindow = (Date.now() - deliveredTimestamp) <= returnWindowMs;
 
-                        return isWithinReturnWindow ? (
-                           <button onClick={() => openReturnModal(order)} className="text-xs font-bold text-red-600 hover:text-red-700 border-2 border-red-500/30 bg-red-500/10 px-4 py-2 rounded-xl transition-all shadow-sm">
-                              Return Product
-                           </button>
-                        ) : (
-                           <span className="text-xs font-semibold text-zinc-400 border border-zinc-200 dark:border-zinc-800 px-3.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-900">
-                              Return window closed (7 Days)
-                           </span>
-                        );
-                     })()}
+                          return isWithinReturnWindow ? (
+                             <button onClick={() => openReturnModal(order)} className="text-xs font-bold text-red-600 hover:text-red-700 border-2 border-red-500/30 bg-red-500/10 px-4 py-2 rounded-xl transition-all shadow-sm">
+                                Return Product
+                             </button>
+                          ) : (
+                             <span className="text-xs font-semibold text-zinc-400 border border-zinc-200 dark:border-zinc-800 px-3.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-900">
+                                Return window closed (7 Days)
+                             </span>
+                          );
+                       })()}
+                    </div>
                  </div>
 
                  {/* Return Notes/Dispute Details */}
@@ -604,26 +645,45 @@ export default function OrdersPage() {
               id="return-camera-video"
               autoPlay 
               playsInline 
+              muted
               className="w-full h-full object-cover" 
               ref={(node) => {
                 if (node && !node.srcObject && !node.dataset.requesting) {
                   node.dataset.requesting = "true";
-                  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    displayToast("Camera access requires HTTPS or localhost", true);
-                    setCameraActive(false);
-                    return;
-                  }
-                  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
-                    .then(stream => { 
-                      node.srcObject = stream; 
+                  
+                  const startCamera = async () => {
+                    try {
+                      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        displayToast("Camera access requires HTTPS or modern browser", true);
+                        setCameraActive(false);
+                        return;
+                      }
+
+                      let stream: MediaStream;
+                      try {
+                        stream = await navigator.mediaDevices.getUserMedia({ 
+                          video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                        });
+                      } catch (e1) {
+                        try {
+                          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                        } catch (e2) {
+                          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        }
+                      }
+                      
+                      node.srcObject = stream;
+                      await node.play().catch(() => {});
                       delete node.dataset.requesting;
-                    })
-                    .catch(err => {
+                    } catch (err: any) {
                       delete node.dataset.requesting;
                       console.error("Camera error:", err);
-                      displayToast(`Camera error: ${err.name} - ${err.message}`, true);
+                      displayToast(`Camera error: ${err.name || "Access Denied"}`, true);
                       setCameraActive(false);
-                    });
+                    }
+                  };
+
+                  startCamera();
                 }
               }}
             />

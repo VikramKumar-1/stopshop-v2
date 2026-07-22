@@ -17,6 +17,7 @@ import ProductsTab from "./tabs/ProductsTab";
 import SettlementsTab from "./tabs/SettlementsTab";
 import DirectOrdersAndReturnsTab from "./tabs/DirectOrdersAndReturnsTab";
 import AddProductTab from "./tabs/AddProductTab";
+import { compressImageToWebP } from "@/lib/imageCompressor";
 
 export const VendorDashboard = () => {
   const router = useRouter();
@@ -76,7 +77,9 @@ export const VendorDashboard = () => {
 
   // Dashboard Data
   const [inquiries, setInquiries] = useState<any[]>([]);
-  const { data: productsData, mutate: mutateProducts } = useSWR(vendor?.id ? `/api/products?vendorId=${vendor.id}` : null, fetcher);
+  const swrConfig = { revalidateOnFocus: false, revalidateOnReconnect: false };
+
+  const { data: productsData, mutate: mutateProducts } = useSWR(vendor?.id ? `/api/products?vendorId=${vendor.id}` : null, fetcher, swrConfig);
   const products = productsData || [];
   const [productSearch, setProductSearch] = useState("");
   const [modalProduct, setModalProduct] = useState<any | null>(null);
@@ -102,11 +105,11 @@ export const VendorDashboard = () => {
     localStorage.setItem("vendorActiveTab", tab);
   };
 
-  const { data: returnsData, mutate: mutateReturns } = useSWR(vendor?.id ? `/api/vendor/returns` : null, fetcher);
+  const { data: returnsData, mutate: mutateReturns } = useSWR(vendor?.id ? `/api/vendor/returns` : null, fetcher, swrConfig);
   const returns = returnsData?.success ? returnsData.returns : [];
   const slaHours = returnsData?.success && returnsData.slaHours ? returnsData.slaHours : 24;
 
-  const { data: settlementsData, mutate: mutateSettlements } = useSWR(vendor?.id ? `/api/admin/settlements` : null, fetcher);
+  const { data: settlementsData, mutate: mutateSettlements } = useSWR(vendor?.id ? `/api/admin/settlements` : null, fetcher, swrConfig);
   const settlements = settlementsData?.success ? settlementsData.settlements : [];
   const settlementSummary = settlementsData?.success ? settlementsData.summary : null;
   const settlementSettings = settlementsData?.success ? settlementsData.settings : null;
@@ -117,7 +120,7 @@ export const VendorDashboard = () => {
   const [editingDirectDelivery, setEditingDirectDelivery] = useState<{ orderId: string, value: string } | null>(null);
   const [directOrders, setDirectOrders] = useState<any[]>([]);
   
-  const { data: statsData, mutate: mutateStats } = useSWR(vendor?.id ? `/api/vendor/stats?vendorId=${vendor.id}` : null, fetcher);
+  const { data: statsData, mutate: mutateStats } = useSWR(vendor?.id ? `/api/vendor/stats?vendorId=${vendor.id}` : null, fetcher, swrConfig);
   const dashboardStats = (statsData?.success ? statsData.stats : null) || {
     todayOrders: 0,
     todayRevenue: 0,
@@ -130,7 +133,8 @@ export const VendorDashboard = () => {
 
   const { data: ordData, isValidating: fetchingOrders, mutate: mutateOrders } = useSWR(
     vendor?.id ? `/api/orders?vendorId=${vendor.id}&page=${orderPage}&limit=10` : null,
-    fetcher
+    fetcher,
+    swrConfig
   );
 
   useEffect(() => {
@@ -279,13 +283,6 @@ export const VendorDashboard = () => {
       });
     }
   }, [vendor]);
-
-  // Handle Order Pagination
-  useEffect(() => {
-    if (vendor && vendor.id) {
-      fetchOrders(vendor.id, orderPage);
-    }
-  }, [orderPage]);
 
   // Infinite Scroll Observer
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -570,14 +567,22 @@ export const VendorDashboard = () => {
   };
 
   const handleEditFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const rawFile = e.target.files?.[0];
+    if (!rawFile) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
+      const comp = await compressImageToWebP(rawFile);
+      setCompressionLogs(prev => [{
+        name: rawFile.name,
+        original: comp.originalSizeFormatted,
+        compressed: comp.compressedSizeFormatted,
+        saved: comp.savedPercentage
+      }, ...prev.slice(0, 4)]);
+
+      const formData = new FormData();
+      formData.append("file", comp.file);
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -586,6 +591,7 @@ export const VendorDashboard = () => {
       if (res.ok) {
         const data = await res.json();
         setEditForm((prev) => ({ ...prev, image: data.url }));
+        showToast(`✨ Image compressed to WebP: ${comp.compressedSizeFormatted} (${comp.savedPercentage}% saved)`, "success");
       } else {
         showToast("Failed to upload image", "error");
       }
@@ -748,16 +754,35 @@ export const VendorDashboard = () => {
   });
   const [editBundleSearch, setEditBundleSearch] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [compressionLogs, setCompressionLogs] = useState<Array<{ name: string; original: string; compressed: string; saved: number }>>([]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const rawFile = e.target.files?.[0];
+    if (!rawFile) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
+    showToast(`⚡ Compressing ${rawFile.name} to WebP...`, "info");
+    
     try {
+      // 1. Browser client-side compression to WebP
+      const comp = await compressImageToWebP(rawFile);
+
+      // Log stats for UI display
+      const logItem = {
+        name: rawFile.name,
+        original: comp.originalSizeFormatted,
+        compressed: comp.compressedSizeFormatted,
+        saved: comp.savedPercentage
+      };
+      setCompressionLogs(prev => [logItem, ...prev.slice(0, 4)]);
+
+      if (comp.savedPercentage > 0) {
+        showToast(`✨ Compressed WebP: ${comp.originalSizeFormatted} ➔ ${comp.compressedSizeFormatted} (${comp.savedPercentage}% saved)`, "success");
+      }
+
+      const formData = new FormData();
+      formData.append("file", comp.file);
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -786,9 +811,19 @@ export const VendorDashboard = () => {
     const fileArray = Array.from(files);
 
     try {
-      const uploadPromises = fileArray.map(async (file, idx) => {
+      const uploadPromises = fileArray.map(async (rawFile, idx) => {
+        // Compress each file to WebP
+        const comp = await compressImageToWebP(rawFile);
+
+        setCompressionLogs(prev => [{
+          name: rawFile.name,
+          original: comp.originalSizeFormatted,
+          compressed: comp.compressedSizeFormatted,
+          saved: comp.savedPercentage
+        }, ...prev.slice(0, 4)]);
+
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", comp.file);
         
         const res = await fetch("/api/upload", {
           method: "POST",
@@ -817,7 +852,7 @@ export const VendorDashboard = () => {
           images: [...(prev.images || []), ...uploadedUrls],
         }));
       }
-      showToast("Gallery images uploaded successfully!", "success");
+      showToast("⚡ WebP Gallery images compressed & uploaded!", "success");
     } catch (err: any) {
       console.error("Gallery upload error:", err);
       showToast(err.message || "Error uploading gallery images", "error");
@@ -837,9 +872,10 @@ export const VendorDashboard = () => {
       }
 
       const fileArray = Array.from(files);
-      const uploadPromises = fileArray.map(async (file) => {
+      const uploadPromises = fileArray.map(async (rawFile) => {
+        const comp = await compressImageToWebP(rawFile);
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", comp.file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         if (!res.ok) throw new Error("Upload failed");
         const data = await res.json();
@@ -851,7 +887,7 @@ export const VendorDashboard = () => {
         ...prev,
         [itemId]: [...(prev[itemId] || []), ...uploadedUrls]
       }));
-      showToast("Dispatch photos uploaded successfully!", "success");
+      showToast("⚡ WebP Dispatch photos uploaded successfully!", "success");
     } catch (err: any) {
       console.error(err);
       showToast(err.message || "Failed to upload photo", "error");
@@ -866,9 +902,10 @@ export const VendorDashboard = () => {
     try {
       if (qcImages.length + files.length > 8) throw new Error("Max 8 photos");
       const fileArray = Array.from(files);
-      const uploadPromises = fileArray.map(async (file) => {
+      const uploadPromises = fileArray.map(async (rawFile) => {
+        const comp = await compressImageToWebP(rawFile);
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", comp.file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         if (!res.ok) throw new Error("Upload failed");
         const data = await res.json();
@@ -876,6 +913,7 @@ export const VendorDashboard = () => {
       });
       const urls = await Promise.all(uploadPromises);
       setQcImages(prev => [...prev, ...urls]);
+      showToast("⚡ WebP QC photos uploaded successfully!", "success");
     } catch (err: any) {
       showToast(err.message, "error");
     } finally {
@@ -952,26 +990,24 @@ export const VendorDashboard = () => {
       if (res.ok) {
         const data = await res.json();
         if (data.authenticated) {
-          if (data.user.role === "vendor") {
+          if (data.user.role === "vendor" || data.user.role === "admin") {
             setAuthorized(true);
             setVendor(data.user);
             fetchData(data.user.id, data.user);
-          } else if (data.user.role === "admin") {
-            window.location.href = "/admin";
           } else {
-            window.location.href = "/profile";
+            router.push("/profile");
           }
         } else {
           setAuthorized(false);
-          window.location.href = "/vendor/login";
+          router.push("/vendor/login");
         }
       } else {
         setAuthorized(false);
-        window.location.href = "/vendor/login";
+        router.push("/vendor/login");
       }
     } catch (e) {
       setAuthorized(false);
-      window.location.href = "/vendor/login";
+      router.push("/vendor/login");
     }
   };
 
@@ -1225,18 +1261,50 @@ export const VendorDashboard = () => {
 
   const getUnitsSold = (productId: number) => {
     let count = 0;
-    inquiries.forEach((inq) => {
+    const targetId = Number(productId);
+
+    // 1. Calculate from inquiries
+    (inquiries || []).forEach((inq) => {
       if (inq.items) {
         try {
           const list = typeof inq.items === "string" ? JSON.parse(inq.items) : (inq.items as any[]) || [];
           list.forEach((item: any) => {
-            if (item.id === productId && item.status === "DELIVERED") {
-              count += 1;
+            const pId = Number(item.productId || item.id || item.product?.id);
+            const itemStatus = (item.status || inq.status || "").toUpperCase();
+            const validStatus = !["CANCELLED", "REJECTED", "RETURNED", "QC_FAIL"].includes(itemStatus);
+            if (pId === targetId && validStatus) {
+              const qty = Number(item.quantity || item.qty || 1);
+              count += qty > 0 ? qty : 1;
             }
           });
         } catch (e) {}
       }
     });
+
+    // 2. Calculate from directOrders
+    (directOrders || []).forEach((ord) => {
+      const orderStatus = (ord.status || "").toUpperCase();
+      const validStatus = !["CANCELLED", "RETURNED", "RETURN_REJECTED", "RETURN_APPROVED", "RETURN_RECEIVED", "QC_FAIL"].includes(orderStatus);
+      
+      if (validStatus) {
+        if (ord.items) {
+          try {
+            const list = typeof ord.items === "string" ? JSON.parse(ord.items) : (ord.items as any[]) || [];
+            list.forEach((item: any) => {
+              const pId = Number(item.productId || item.id || item.product?.id);
+              if (pId === targetId) {
+                const qty = Number(item.quantity || item.qty || 1);
+                count += qty > 0 ? qty : 1;
+              }
+            });
+          } catch (e) {}
+        } else if (ord.productId && Number(ord.productId) === targetId) {
+          const qty = Number(ord.quantity || ord.qty || 1);
+          count += qty > 0 ? qty : 1;
+        }
+      }
+    });
+
     return count;
   };
 
@@ -1365,6 +1433,17 @@ export const VendorDashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Mobile Camera Studio Quick Button */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push("/vendor/camera")}
+                className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <Camera size={16} />
+                <span>📲 Mobile Cam Studio</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1449,7 +1528,7 @@ export const VendorDashboard = () => {
             {/* Promotions Tab */}
             <button
               onClick={() => setActiveTab("promotions")}
-              className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap ${
                 activeTab === "promotions" ? "text-orange-500" : "text-muted hover:text-heading"
               }`}
             >
@@ -1460,7 +1539,7 @@ export const VendorDashboard = () => {
             {/* Settlements Tab */}
             <button
               onClick={() => setActiveTab("settlements")}
-              className={`relative px-4 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap ${
                 activeTab === "settlements" ? "text-orange-500" : "text-muted hover:text-heading"
               }`}
             >
@@ -1600,6 +1679,7 @@ export const VendorDashboard = () => {
             listingProduct={listingProduct}
             aiSeoData={aiSeoData}
             products={products}
+            compressionLogs={compressionLogs}
           />
         )}
 
@@ -2858,8 +2938,8 @@ export const VendorDashboard = () => {
 
       {/* Review Return Modal */}
       {reviewReturnOrder && reviewReturnOrder.returnRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto py-10">
-          <div className="bg-surface-card border border-border rounded-3xl w-full max-w-2xl p-6 space-y-6 shadow-2xl relative my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto py-6 sm:py-10">
+          <div className="bg-surface-card border border-border rounded-3xl w-full max-w-2xl p-5 sm:p-6 space-y-5 shadow-2xl relative my-auto max-h-[85vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-start">
                <div>
                   <h2 className="text-lg font-bold text-heading">Incoming Return Request</h2>
@@ -3121,26 +3201,45 @@ export const VendorDashboard = () => {
               id="live-camera-video"
               autoPlay 
               playsInline 
+              muted
               className="w-full h-full object-cover" 
               ref={(node) => {
                 if (node && !node.srcObject && !node.dataset.requesting) {
                   node.dataset.requesting = "true";
-                  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    showToast("Camera access requires HTTPS or localhost", "error");
-                    setActiveCameraItem(null);
-                    return;
-                  }
-                  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
-                    .then(stream => { 
-                      node.srcObject = stream; 
+                  
+                  const startCamera = async () => {
+                    try {
+                      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        showToast("Camera access requires HTTPS or modern browser", "error");
+                        setActiveCameraItem(null);
+                        return;
+                      }
+
+                      let stream: MediaStream;
+                      try {
+                        stream = await navigator.mediaDevices.getUserMedia({ 
+                          video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                        });
+                      } catch (e1) {
+                        try {
+                          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                        } catch (e2) {
+                          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        }
+                      }
+                      
+                      node.srcObject = stream;
+                      await node.play().catch(() => {});
                       delete node.dataset.requesting;
-                    })
-                    .catch(err => {
+                    } catch (err: any) {
                       delete node.dataset.requesting;
                       console.error("Camera error:", err);
-                      showToast(`Camera error: ${err.name} - ${err.message}`, "error");
+                      showToast(`Camera error: ${err.name || "Access Denied"}`, "error");
                       setActiveCameraItem(null);
-                    });
+                    }
+                  };
+
+                  startCamera();
                 }
               }}
             />

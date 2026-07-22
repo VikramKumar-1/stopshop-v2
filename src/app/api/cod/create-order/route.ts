@@ -62,7 +62,9 @@ export async function POST(req: NextRequest) {
        const commissionRate = settings.defaultCommissionRate || 10;
        const commissionPaise = Math.round(pricing.totalPaise * (commissionRate / 100));
        
-       const orderNumber = `SS-COD-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(1000 + Math.random() * 9000)}`;
+       const dateStr = new Date().toISOString().slice(2,10).replace(/-/g,'');
+       const randomToken = Math.floor(100000 + Math.random() * 900000);
+       const orderNumber = `SS-COD-${dateStr}-${randomToken}`;
 
        const order = await tx.order.create({
         data: {

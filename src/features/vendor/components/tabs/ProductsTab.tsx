@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 
 interface ProductsTabProps {
@@ -30,6 +30,25 @@ export default function ProductsTab({
   openEditModal,
   handleDeleteProduct,
 }: ProductsTabProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const filtered = (products || []).filter((prod) => {
+    if (!productSearch) return true;
+    const searchStr = productSearch.toLowerCase().trim();
+    return (
+      prod.id.toString() === searchStr ||
+      prod.name.toLowerCase().includes(searchStr)
+    );
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [productSearch]);
+
   return (
     <div className="space-y-4">
       {/* Catalog Search Bar */}
@@ -59,16 +78,7 @@ export default function ProductsTab({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {products
-              .filter((prod) => {
-                if (!productSearch) return true;
-                const searchStr = productSearch.toLowerCase().trim();
-                return (
-                  prod.id.toString() === searchStr ||
-                  prod.name.toLowerCase().includes(searchStr)
-                );
-              })
-              .map((prod) => (
+            {paginatedProducts.map((prod) => (
                 <tr key={prod.id} className="hover:bg-orange-500/[0.03] transition-all duration-200 text-body group/row">
                   <td className="p-4">
                     <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono font-bold px-2.5 py-1 rounded-xl text-[10px] border border-orange-500/10">
@@ -143,6 +153,33 @@ export default function ProductsTab({
               ))}
           </tbody>
         </table>
+
+        {filtered.length > itemsPerPage && (
+          <div className="p-4 border-t border-border flex items-center justify-between bg-surface-card/60">
+            <span className="text-xs text-muted font-medium">
+              Showing <span className="font-bold text-heading">{Math.min(filtered.length, (currentPage - 1) * itemsPerPage + 1)}</span> - <span className="font-bold text-heading">{Math.min(filtered.length, currentPage * itemsPerPage)}</span> of <span className="font-bold text-heading">{filtered.length}</span> items
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-orange-500/10 hover:text-orange-500 transition-all cursor-pointer"
+              >
+                Previous
+              </button>
+              <span className="text-xs font-bold px-2 text-heading">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-orange-500/10 hover:text-orange-500 transition-all cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

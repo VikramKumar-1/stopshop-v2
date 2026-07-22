@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { User as UserIcon, Mail, Store, Loader2, Award, ShieldCheck, MapPin, Phone, FileText, CheckCircle, Upload, Eye, Edit3 } from "lucide-react";
 import { resolvePincodeOffline, parseLocation } from "@/lib/pincodeResolver";
+import { compressImageToWebP } from "@/lib/imageCompressor";
 
 import { usePathname } from "next/navigation";
 
@@ -203,6 +204,10 @@ export default function VendorProfilePage() {
     formData.append("file", file);
 
     try {
+      const comp = await compressImageToWebP(file);
+      const formData = new FormData();
+      formData.append("file", comp.file);
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,

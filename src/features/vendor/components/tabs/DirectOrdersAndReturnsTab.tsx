@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { FileText, Loader2 } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { FileText, Loader2, Search, X, Calendar, Clock, User, Phone, Mail, MapPin, Package, CreditCard, Truck, ExternalLink, CheckCircle2, ShieldCheck, Camera } from "lucide-react";
 
 interface DirectOrdersAndReturnsTabProps {
   activeTab: string;
@@ -56,9 +56,13 @@ export default function DirectOrdersAndReturnsTab({
   currentTime,
   slaHours,
 }: DirectOrdersAndReturnsTabProps) {
+  const [vendorSearchQuery, setVendorSearchQuery] = useState("");
+
   return (
     <div className="bg-surface-card border border-border/80 rounded-3xl overflow-hidden shadow-md animate-in fade-in duration-300 relative">
-      <div className="bg-gradient-to-r from-orange-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex items-center justify-between">
+      
+      {/* Header & Vendor Order Search Bar */}
+      <div className="bg-gradient-to-r from-orange-500/10 via-transparent to-transparent border-b border-border/70 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="font-display font-bold text-sm text-heading uppercase tracking-wider flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${activeTab === 'returns-action' ? 'bg-red-500' : 'bg-orange-500'} animate-ping`} />
@@ -69,6 +73,27 @@ export default function DirectOrdersAndReturnsTab({
             {activeTab === "direct-orders" ? "Manage automated checkout orders, payments, and dispatch dates" : 
              "Manage customer returns and disputes"}
           </p>
+        </div>
+
+        {/* Vendor Search Input */}
+        <div className="relative w-full md:w-80">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            type="text"
+            value={vendorSearchQuery}
+            onChange={(e) => setVendorSearchQuery(e.target.value)}
+            placeholder="Search Order #, Buyer, Product, City..."
+            className="w-full bg-surface border border-border rounded-xl pl-9 pr-8 py-2 text-xs text-heading placeholder-muted outline-none focus:border-orange-500 transition-all shadow-inner"
+          />
+          {vendorSearchQuery && (
+            <button
+              type="button"
+              onClick={() => setVendorSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-heading"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -121,16 +146,35 @@ export default function DirectOrdersAndReturnsTab({
           </thead>
           <tbody className="divide-y divide-border/50">
             {(() => {
-              const activeDirects = directOrders.filter((o) => {
-                if (activeTab === "returns-pending") {
-                   return o.status === "RETURN_APPROVED" && !o.returnRequest?.vendorDeliveredAt;
-                }
-                if (activeTab === "returns-action") {
-                   return o.status === "RETURN_RECEIVED" || (o.status === "RETURN_APPROVED" && o.returnRequest?.vendorDeliveredAt);
-                }
-                // Default "direct-orders" tab logic (hide returns and completed)
-                return !["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REQUESTED"].includes(o.status || "PENDING");
-              });
+              let activeDirects = directOrders;
+
+              // If vendor is searching, search across ALL vendor orders (any status: pending, delivered, returned, etc.)
+              if (vendorSearchQuery.trim()) {
+                const q = vendorSearchQuery.toLowerCase().trim();
+                activeDirects = activeDirects.filter((o) => 
+                  (o.orderNumber && o.orderNumber.toLowerCase().includes(q)) ||
+                  (o.id && o.id.toLowerCase().includes(q)) ||
+                  (o.shippingName && o.shippingName.toLowerCase().includes(q)) ||
+                  (o.shippingCity && o.shippingCity.toLowerCase().includes(q)) ||
+                  (o.shippingState && o.shippingState.toLowerCase().includes(q)) ||
+                  (o.awbCode && o.awbCode.toLowerCase().includes(q)) ||
+                  (o.items && o.items.some((i: any) => 
+                    i.vendorId === vendor?.id && 
+                    (i.productName?.toLowerCase().includes(q) || i.productMaterial?.toLowerCase().includes(q))
+                  ))
+                );
+              } else {
+                // Default tab filter when not searching
+                activeDirects = directOrders.filter((o) => {
+                  if (activeTab === "returns-pending") {
+                     return o.status === "RETURN_APPROVED" && !o.returnRequest?.vendorDeliveredAt;
+                  }
+                  if (activeTab === "returns-action") {
+                     return o.status === "RETURN_RECEIVED" || (o.status === "RETURN_APPROVED" && o.returnRequest?.vendorDeliveredAt);
+                  }
+                  return !["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REJECTED", "RETURN_APPROVED", "RETURN_RECEIVED", "RETURN_REQUESTED"].includes(o.status || "PENDING");
+                });
+              }
 
               if (activeDirects.length === 0) {
                 return (
