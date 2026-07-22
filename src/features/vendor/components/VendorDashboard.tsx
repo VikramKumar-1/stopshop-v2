@@ -165,6 +165,88 @@ export const VendorDashboard = () => {
   const [submittingQc, setSubmittingQc] = useState(false);
   const [submittingPacking, setSubmittingPacking] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [qcCameraError, setQcCameraError] = useState(false);
+  const [liveCameraError, setLiveCameraError] = useState(false);
+
+  useEffect(() => {
+    if (!qcCameraActive) {
+      setQcCameraError(false);
+      return;
+    }
+    let stream: MediaStream | null = null;
+    const initQcCam = async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setQcCameraError(true);
+          return;
+        }
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+          });
+        } catch (e1) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          } catch (e2) {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          }
+        }
+        const videoNode = document.getElementById("qc-camera-video") as HTMLVideoElement;
+        if (videoNode) {
+          videoNode.srcObject = stream;
+          await videoNode.play().catch(() => {});
+        }
+      } catch (e) {
+        console.error("QC Camera Error:", e);
+        setQcCameraError(true);
+      }
+    };
+    const timer = setTimeout(() => { initQcCam(); }, 100);
+    return () => {
+      clearTimeout(timer);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+    };
+  }, [qcCameraActive]);
+
+  useEffect(() => {
+    if (activeCameraItem === null) {
+      setLiveCameraError(false);
+      return;
+    }
+    let stream: MediaStream | null = null;
+    const initLiveCam = async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setLiveCameraError(true);
+          return;
+        }
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+          });
+        } catch (e1) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          } catch (e2) {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          }
+        }
+        const videoNode = document.getElementById("live-camera-video") as HTMLVideoElement;
+        if (videoNode) {
+          videoNode.srcObject = stream;
+          await videoNode.play().catch(() => {});
+        }
+      } catch (e) {
+        console.error("Live Camera Error:", e);
+        setLiveCameraError(true);
+      }
+    };
+    const timer = setTimeout(() => { initLiveCam(); }, 100);
+    return () => {
+      clearTimeout(timer);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+    };
+  }, [activeCameraItem]);
 
   useEffect(() => {
     if (modalShipping) {
@@ -1939,7 +2021,12 @@ export const VendorDashboard = () => {
                                   return (
                                     <button
                                       key={i}
-                                      onClick={() => setActiveCameraItem(item.id)}
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setActiveCameraItem(item.id);
+                                      }}
                                       className={`aspect-square rounded-md border border-dashed flex flex-col items-center justify-center text-[8px] font-bold text-muted transition-all hover:bg-orange-500/10 hover:border-orange-500/50 hover:text-orange-500 ${i < 5 ? 'border-orange-500/30 bg-orange-500/5' : 'border-border bg-surface'}`}
                                     >
                                       <Camera size={12} className="mb-0.5" />
@@ -3034,7 +3121,12 @@ export const VendorDashboard = () => {
                              return (
                                <button
                                  key={i}
-                                 onClick={() => setQcCameraActive(true)}
+                                 type="button"
+                                 onClick={(e) => {
+                                   e.preventDefault();
+                                   e.stopPropagation();
+                                   setQcCameraActive(true);
+                                 }}
                                  className={`aspect-square rounded-md border border-dashed flex flex-col items-center justify-center text-[8px] font-bold text-muted transition-all hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 ${i < 5 ? 'border-red-500/30 bg-red-500/5 text-red-400' : 'border-border bg-surface'}`}
                                >
                                  <Camera size={12} className="mb-0.5" />
@@ -3080,49 +3172,82 @@ export const VendorDashboard = () => {
             }} className="text-white bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
               <X size={24} />
             </button>
-            <button 
-              onClick={() => {
-                const video = document.getElementById("qc-camera-video") as HTMLVideoElement;
-                if (video && video.srcObject) {
-                  const stream = video.srcObject as MediaStream;
-                  const track = stream.getVideoTracks()[0];
-                  const currentFacing = track.getSettings().facingMode;
-                  stream.getTracks().forEach(t => t.stop());
-                  navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
-                  }).then(newStream => {
-                    video.srcObject = newStream;
-                  }).catch(console.error);
-                }
-              }} 
-              className="text-white bg-white/20 px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-2 hover:bg-white/30 transition-colors"
-            >
-              <Camera size={16} /> Switch Camera
-            </button>
+             <div className="flex items-center gap-2">
+               <label className="text-white bg-white/20 px-3.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-1.5 hover:bg-white/30 transition-colors cursor-pointer">
+                 <Camera size={14} /> Native Camera
+                 <input 
+                   type="file" 
+                   accept="image/*" 
+                   capture="environment" 
+                   onChange={(e) => {
+                     if (e.target.files && e.target.files[0]) {
+                       handleUploadQcImage([e.target.files[0]]);
+                       setQcCameraActive(false);
+                     }
+                     e.target.value = "";
+                   }} 
+                   className="hidden" 
+                 />
+               </label>
+               <button 
+                 onClick={() => {
+                   const video = document.getElementById("qc-camera-video") as HTMLVideoElement;
+                   if (video && video.srcObject) {
+                     const stream = video.srcObject as MediaStream;
+                     const track = stream.getVideoTracks()[0];
+                     const currentFacing = track.getSettings().facingMode;
+                     stream.getTracks().forEach(t => t.stop());
+                     navigator.mediaDevices.getUserMedia({ 
+                       video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
+                     }).then(newStream => {
+                       video.srcObject = newStream;
+                       video.play().catch(() => {});
+                     }).catch(console.error);
+                   }
+                 }} 
+                 className="text-white bg-white/20 px-3.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-1.5 hover:bg-white/30 transition-colors"
+               >
+                 <Camera size={14} /> Switch
+               </button>
+             </div>
           </div>
           <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black">
-            <video 
-              id="qc-camera-video"
-              autoPlay 
-              playsInline 
-              className="w-full h-full object-cover" 
-              ref={(node) => {
-                if (node && !node.srcObject && !node.dataset.requesting) {
-                  node.dataset.requesting = "true";
-                  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                    .then(stream => { 
-                      node.srcObject = stream; 
-                      delete node.dataset.requesting;
-                    })
-                    .catch(err => {
-                      delete node.dataset.requesting;
-                      console.error("Camera error:", err);
-                      showToast("Camera access denied", "error");
-                      setQcCameraActive(false);
-                    });
-                }
-              }}
-            />
+            {qcCameraError ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center text-white space-y-4 max-w-sm">
+                <div className="w-16 h-16 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <Camera size={32} />
+                </div>
+                <h4 className="text-base font-bold">Camera Stream Unavailable</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  WebRTC stream blocked or browser permission denied. You can snap a photo directly using your phone's camera app below!
+                </p>
+                <label className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-2xl text-xs flex items-center gap-2 shadow-lg cursor-pointer transition-all active:scale-95">
+                  <Camera size={16} />
+                  <span>Snap Photo with Phone Camera</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    capture="environment" 
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleUploadQcImage([e.target.files[0]]);
+                        setQcCameraActive(false);
+                      }
+                      e.target.value = "";
+                    }} 
+                    className="hidden" 
+                  />
+                </label>
+              </div>
+            ) : (
+              <video 
+                id="qc-camera-video"
+                autoPlay 
+                playsInline 
+                muted
+                className="w-full h-full object-cover" 
+              />
+            )}
             <canvas id="qc-camera-canvas" className="hidden" />
           </div>
           <div className="p-8 pb-12 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 w-full flex justify-center z-10">
@@ -3172,77 +3297,82 @@ export const VendorDashboard = () => {
             }} className="text-white bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
               <X size={24} />
             </button>
-            <button 
-              onClick={() => {
-                // To switch camera, we just toggle a state which re-triggers the useEffect.
-                // We'll manage this inline.
-                const video = document.getElementById("live-camera-video") as HTMLVideoElement;
-                if (video && video.srcObject) {
-                  const stream = video.srcObject as MediaStream;
-                  const track = stream.getVideoTracks()[0];
-                  const currentFacing = track.getSettings().facingMode;
-                  // Stop current stream
-                  stream.getTracks().forEach(t => t.stop());
-                  // Request new stream
-                  navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
-                  }).then(newStream => {
-                    video.srcObject = newStream;
-                  }).catch(console.error);
-                }
-              }} 
-              className="text-white bg-white/20 px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-2 hover:bg-white/30 transition-colors"
-            >
-              <Camera size={16} /> Switch Camera
-            </button>
+             <div className="flex items-center gap-2">
+               <label className="text-white bg-white/20 px-3.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-1.5 hover:bg-white/30 transition-colors cursor-pointer">
+                 <Camera size={14} /> Native Camera
+                 <input 
+                   type="file" 
+                   accept="image/*" 
+                   capture="environment" 
+                   onChange={(e) => {
+                     if (e.target.files && e.target.files[0]) {
+                       handleUploadProofImage(activeCameraItem, e.target.files[0]);
+                       setActiveCameraItem(null);
+                     }
+                     e.target.value = "";
+                   }} 
+                   className="hidden" 
+                 />
+               </label>
+               <button 
+                 onClick={() => {
+                   const video = document.getElementById("live-camera-video") as HTMLVideoElement;
+                   if (video && video.srcObject) {
+                     const stream = video.srcObject as MediaStream;
+                     const track = stream.getVideoTracks()[0];
+                     const currentFacing = track.getSettings().facingMode;
+                     stream.getTracks().forEach(t => t.stop());
+                     navigator.mediaDevices.getUserMedia({ 
+                       video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
+                     }).then(newStream => {
+                       video.srcObject = newStream;
+                       video.play().catch(() => {});
+                     }).catch(console.error);
+                   }
+                 }} 
+                 className="text-white bg-white/20 px-3.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md flex items-center gap-1.5 hover:bg-white/30 transition-colors"
+               >
+                 <Camera size={14} /> Switch
+               </button>
+             </div>
           </div>
           <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black">
-            <video 
-              id="live-camera-video"
-              autoPlay 
-              playsInline 
-              muted
-              className="w-full h-full object-cover" 
-              ref={(node) => {
-                if (node && !node.srcObject && !node.dataset.requesting) {
-                  node.dataset.requesting = "true";
-                  
-                  const startCamera = async () => {
-                    try {
-                      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                        showToast("Camera access requires HTTPS or modern browser", "error");
+            {liveCameraError ? (
+              <div className="flex flex-col items-center justify-center p-6 text-center text-white space-y-4 max-w-sm">
+                <div className="w-16 h-16 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <Camera size={32} />
+                </div>
+                <h4 className="text-base font-bold">Camera Stream Unavailable</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  WebRTC stream blocked or browser permission denied. You can snap a photo directly using your phone's camera app below!
+                </p>
+                <label className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-2xl text-xs flex items-center gap-2 shadow-lg cursor-pointer transition-all active:scale-95">
+                  <Camera size={16} />
+                  <span>Snap Photo with Phone Camera</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    capture="environment" 
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleUploadProofImage(activeCameraItem, e.target.files[0]);
                         setActiveCameraItem(null);
-                        return;
                       }
-
-                      let stream: MediaStream;
-                      try {
-                        stream = await navigator.mediaDevices.getUserMedia({ 
-                          video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } 
-                        });
-                      } catch (e1) {
-                        try {
-                          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                        } catch (e2) {
-                          stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                        }
-                      }
-                      
-                      node.srcObject = stream;
-                      await node.play().catch(() => {});
-                      delete node.dataset.requesting;
-                    } catch (err: any) {
-                      delete node.dataset.requesting;
-                      console.error("Camera error:", err);
-                      showToast(`Camera error: ${err.name || "Access Denied"}`, "error");
-                      setActiveCameraItem(null);
-                    }
-                  };
-
-                  startCamera();
-                }
-              }}
-            />
+                      e.target.value = "";
+                    }} 
+                    className="hidden" 
+                  />
+                </label>
+              </div>
+            ) : (
+              <video 
+                id="live-camera-video"
+                autoPlay 
+                playsInline 
+                muted
+                className="w-full h-full object-cover" 
+              />
+            )}
             <canvas id="live-camera-canvas" className="hidden" />
           </div>
           <div className="p-8 pb-12 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 w-full flex justify-center z-10">
