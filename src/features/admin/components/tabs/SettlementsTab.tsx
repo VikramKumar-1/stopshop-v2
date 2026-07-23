@@ -91,20 +91,20 @@ export const SettlementsTab = ({
              </div>
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-surface-card border border-border rounded-2xl p-4">
-                   <p className="text-[10px] uppercase font-bold text-muted">Total on Hold</p>
-                   <p className="text-lg font-bold text-orange-500 mt-1">₹{(settlementSummary.hold / 100).toLocaleString()}</p>
+                   <p className="text-[10px] uppercase font-bold text-muted">Eligible Payout</p>
+                   <p className="text-lg font-bold text-emerald-500 mt-1">₹{((settlementSummary?.eligible || 0) / 100).toLocaleString()}</p>
                 </div>
                 <div className="bg-surface-card border border-border rounded-2xl p-4">
-                   <p className="text-[10px] uppercase font-bold text-muted">Eligible for Payout</p>
-                   <p className="text-lg font-bold text-emerald-500 mt-1">₹{(settlementSummary.eligible / 100).toLocaleString()}</p>
+                   <p className="text-[10px] uppercase font-bold text-muted">On Hold</p>
+                   <p className="text-lg font-bold text-orange-500 mt-1">₹{((settlementSummary?.hold || 0) / 100).toLocaleString()}</p>
                 </div>
                 <div className="bg-surface-card border border-border rounded-2xl p-4">
                    <p className="text-[10px] uppercase font-bold text-muted">Total Settled</p>
-                   <p className="text-lg font-bold text-blue-500 mt-1">₹{(settlementSummary.settled / 100).toLocaleString()}</p>
+                   <p className="text-lg font-bold text-blue-500 mt-1">₹{((settlementSummary?.settled || 0) / 100).toLocaleString()}</p>
                 </div>
                 <div className="bg-surface-card border border-border rounded-2xl p-4">
                    <p className="text-[10px] uppercase font-bold text-muted">Disputed</p>
-                   <p className="text-lg font-bold text-red-500 mt-1">₹{(settlementSummary.disputed / 100).toLocaleString()}</p>
+                   <p className="text-lg font-bold text-red-500 mt-1">₹{((settlementSummary?.disputed || 0) / 100).toLocaleString()}</p>
                 </div>
              </div>
           </>

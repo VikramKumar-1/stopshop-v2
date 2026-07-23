@@ -154,6 +154,7 @@ export const VendorDashboard = () => {
   const [packingImages, setPackingImages] = useState<Record<number, string[]>>({}); // orderItemId -> string[]
   const [uploadingPacking, setUploadingPacking] = useState<{ [itemId: number]: boolean }>({});
   const [activeCameraItem, setActiveCameraItem] = useState<number | null>(null);
+  const [activeCameraStream, setActiveCameraStream] = useState<MediaStream | null>(null);
 
   // Return QC State
   const [reviewReturnOrder, setReviewReturnOrder] = useState<any | null>(null);
@@ -162,91 +163,56 @@ export const VendorDashboard = () => {
   const [isDisputing, setIsDisputing] = useState(false);
   const [uploadingQc, setUploadingQc] = useState(false);
   const [qcCameraActive, setQcCameraActive] = useState(false);
+  const [qcCameraStream, setQcCameraStream] = useState<MediaStream | null>(null);
   const [submittingQc, setSubmittingQc] = useState(false);
   const [submittingPacking, setSubmittingPacking] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [showSettlementsModal, setShowSettlementsModal] = useState(false);
   const [qcCameraError, setQcCameraError] = useState(false);
   const [liveCameraError, setLiveCameraError] = useState(false);
+
+  // Mobile Studio QR State
+  const [showMobileQR, setShowMobileQR] = useState(false);
+  const [mobileQRUrl, setMobileQRUrl] = useState("");
+
+  const handleOpenMobileQR = async () => {
+    try {
+      const url = window.location.origin + "/vendor/camera";
+      const qr = await QRCode.toDataURL(url, { width: 250, margin: 2 });
+      setMobileQRUrl(qr);
+      setShowMobileQR(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     if (!qcCameraActive) {
       setQcCameraError(false);
       return;
     }
-    let stream: MediaStream | null = null;
-    const initQcCam = async () => {
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setQcCameraError(true);
-          return;
-        }
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-          });
-        } catch (e1) {
-          try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-          } catch (e2) {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          }
-        }
-        const videoNode = document.getElementById("qc-camera-video") as HTMLVideoElement;
-        if (videoNode) {
-          videoNode.srcObject = stream;
-          await videoNode.play().catch(() => {});
-        }
-      } catch (e) {
-        console.error("QC Camera Error:", e);
-        setQcCameraError(true);
+    if (qcCameraStream) {
+      const videoNode = document.getElementById("qc-camera-video") as HTMLVideoElement;
+      if (videoNode) {
+        videoNode.srcObject = qcCameraStream;
+        videoNode.play().catch(() => {});
       }
-    };
-    const timer = setTimeout(() => { initQcCam(); }, 100);
-    return () => {
-      clearTimeout(timer);
-      if (stream) stream.getTracks().forEach(t => t.stop());
-    };
-  }, [qcCameraActive]);
+    }
+  }, [qcCameraActive, qcCameraStream]);
 
   useEffect(() => {
     if (activeCameraItem === null) {
       setLiveCameraError(false);
       return;
     }
-    let stream: MediaStream | null = null;
-    const initLiveCam = async () => {
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setLiveCameraError(true);
-          return;
-        }
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-          });
-        } catch (e1) {
-          try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-          } catch (e2) {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          }
-        }
-        const videoNode = document.getElementById("live-camera-video") as HTMLVideoElement;
-        if (videoNode) {
-          videoNode.srcObject = stream;
-          await videoNode.play().catch(() => {});
-        }
-      } catch (e) {
-        console.error("Live Camera Error:", e);
-        setLiveCameraError(true);
+    if (activeCameraStream) {
+      const videoNode = document.getElementById("live-camera-video") as HTMLVideoElement;
+      if (videoNode) {
+        videoNode.srcObject = activeCameraStream;
+        videoNode.play().catch(() => {});
       }
-    };
-    const timer = setTimeout(() => { initLiveCam(); }, 100);
-    return () => {
-      clearTimeout(timer);
-      if (stream) stream.getTracks().forEach(t => t.stop());
-    };
-  }, [activeCameraItem]);
+    }
+  }, [activeCameraItem, activeCameraStream]);
 
   useEffect(() => {
     if (modalShipping) {
@@ -1517,13 +1483,20 @@ export const VendorDashboard = () => {
             </div>
 
             {/* Mobile Camera Studio Quick Button */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => router.push("/vendor/camera")}
                 className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer hover:scale-105 active:scale-95"
               >
                 <Camera size={16} />
                 <span>📲 Mobile Cam Studio</span>
+              </button>
+              <button
+                onClick={handleOpenMobileQR}
+                className="px-3 py-2.5 bg-surface border border-border hover:border-orange-500 text-heading font-bold text-xs rounded-xl shadow-sm flex items-center gap-2 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                title="Scan QR to open on mobile"
+              >
+                <span>📱 Scan QR</span>
               </button>
             </div>
           </div>
@@ -1618,15 +1591,12 @@ export const VendorDashboard = () => {
               {activeTab === "promotions" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
 
-            {/* Settlements Tab */}
+            {/* Settlements Tab / Modal Button */}
             <button
-              onClick={() => setActiveTab("settlements")}
-              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap ${
-                activeTab === "settlements" ? "text-orange-500" : "text-muted hover:text-heading"
-              }`}
+              onClick={() => setShowSettlementsModal(true)}
+              className="pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap text-muted hover:text-heading"
             >
               Settlements
-              {activeTab === "settlements" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
 
             {/* Admin Panel Redirect (Only if admin role) */}
@@ -1765,14 +1735,24 @@ export const VendorDashboard = () => {
           />
         )}
 
-        {activeTab === "settlements" && (
-          <SettlementsTab
-            settlementSettings={settlementSettings}
-            settlementSummary={settlementSummary}
-            settlementTab={settlementTab}
-            setSettlementTab={setSettlementTab}
-            settlements={settlements}
-          />
+        {showSettlementsModal && (
+          <div className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-surface-card border border-border rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in fade-in zoom-in duration-200 scrollbar-none p-6 pt-10">
+              <button
+                onClick={() => setShowSettlementsModal(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface hover:bg-surface-hover border border-border flex items-center justify-center text-muted hover:text-heading transition-colors z-10 font-bold"
+              >
+                <X size={16} />
+              </button>
+              <SettlementsTab
+                settlementSettings={settlementSettings}
+                settlementSummary={settlementSummary}
+                settlementTab={settlementTab}
+                setSettlementTab={setSettlementTab}
+                settlements={settlements}
+              />
+            </div>
+          </div>
         )}
 
         {activeTab === "promotions" && vendor?.id && (
@@ -2022,10 +2002,32 @@ export const VendorDashboard = () => {
                                     <button
                                       key={i}
                                       type="button"
-                                      onClick={(e) => {
+                                      onClick={async (e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
                                         setActiveCameraItem(item.id);
+                                        try {
+                                          let stream: MediaStream;
+                                          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                                            setLiveCameraError(true);
+                                            return;
+                                          }
+                                          try {
+                                            stream = await navigator.mediaDevices.getUserMedia({
+                                              video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+                                            });
+                                          } catch (e1) {
+                                            try {
+                                              stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                                            } catch (e2) {
+                                              stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                                            }
+                                          }
+                                          setActiveCameraStream(stream);
+                                        } catch (err) {
+                                          console.error("Live Camera Error:", err);
+                                          setLiveCameraError(true);
+                                        }
                                       }}
                                       className={`aspect-square rounded-md border border-dashed flex flex-col items-center justify-center text-[8px] font-bold text-muted transition-all hover:bg-orange-500/10 hover:border-orange-500/50 hover:text-orange-500 ${i < 5 ? 'border-orange-500/30 bg-orange-500/5' : 'border-border bg-surface'}`}
                                     >
@@ -2483,7 +2485,31 @@ export const VendorDashboard = () => {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setEditForm({ ...editForm, name: aiSeoData.suggestedTitle })}
+                        onClick={async () => {
+                          setQcCameraActive(true);
+                          try {
+                            let stream: MediaStream;
+                            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                              setQcCameraError(true);
+                              return;
+                            }
+                            try {
+                              stream = await navigator.mediaDevices.getUserMedia({
+                                video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+                              });
+                            } catch (e1) {
+                              try {
+                                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                              } catch (e2) {
+                                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                              }
+                            }
+                            setQcCameraStream(stream);
+                          } catch (err) {
+                            console.error("QC Camera Error:", err);
+                            setQcCameraError(true);
+                          }
+                        }}
                         className="px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-white rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer"
                       >
                         ✨ Apply to Item Name
@@ -3122,10 +3148,30 @@ export const VendorDashboard = () => {
                                <button
                                  key={i}
                                  type="button"
-                                 onClick={(e) => {
-                                   e.preventDefault();
-                                   e.stopPropagation();
+                                 onClick={async () => {
                                    setQcCameraActive(true);
+                                   try {
+                                     let stream: MediaStream;
+                                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                                       setQcCameraError(true);
+                                       return;
+                                     }
+                                     try {
+                                       stream = await navigator.mediaDevices.getUserMedia({
+                                         video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+                                       });
+                                     } catch (e1) {
+                                       try {
+                                         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                                       } catch (e2) {
+                                         stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                                       }
+                                     }
+                                     setQcCameraStream(stream);
+                                   } catch (err) {
+                                     console.error("QC Camera Error:", err);
+                                     setQcCameraError(true);
+                                   }
                                  }}
                                  className={`aspect-square rounded-md border border-dashed flex flex-col items-center justify-center text-[8px] font-bold text-muted transition-all hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 ${i < 5 ? 'border-red-500/30 bg-red-500/5 text-red-400' : 'border-border bg-surface'}`}
                                >
@@ -3164,9 +3210,9 @@ export const VendorDashboard = () => {
         <div className="fixed inset-0 z-[250] bg-black flex flex-col animate-in fade-in zoom-in-95 duration-200">
           <div className="p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 w-full z-10">
             <button onClick={() => {
-              const video = document.getElementById("qc-camera-video") as HTMLVideoElement;
-              if (video && video.srcObject) {
-                (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+              if (qcCameraStream) {
+                qcCameraStream.getTracks().forEach(t => t.stop());
+                setQcCameraStream(null);
               }
               setQcCameraActive(false);
             }} className="text-white bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
@@ -3182,6 +3228,10 @@ export const VendorDashboard = () => {
                    onChange={(e) => {
                      if (e.target.files && e.target.files[0]) {
                        handleUploadQcImage([e.target.files[0]]);
+                       if (qcCameraStream) {
+                         qcCameraStream.getTracks().forEach(t => t.stop());
+                         setQcCameraStream(null);
+                       }
                        setQcCameraActive(false);
                      }
                      e.target.value = "";
@@ -3200,6 +3250,7 @@ export const VendorDashboard = () => {
                      navigator.mediaDevices.getUserMedia({ 
                        video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
                      }).then(newStream => {
+                       setQcCameraStream(newStream);
                        video.srcObject = newStream;
                        video.play().catch(() => {});
                      }).catch(console.error);
@@ -3231,6 +3282,10 @@ export const VendorDashboard = () => {
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         handleUploadQcImage([e.target.files[0]]);
+                        if (qcCameraStream) {
+                          qcCameraStream.getTracks().forEach(t => t.stop());
+                          setQcCameraStream(null);
+                        }
                         setQcCameraActive(false);
                       }
                       e.target.value = "";
@@ -3268,10 +3323,13 @@ export const VendorDashboard = () => {
                   if (!blob) return;
                   const file = new File([blob], `qc-${Date.now()}.jpg`, { type: "image/jpeg" });
                   
-                  if (video.srcObject) {
-                    (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+                  // Stop camera
+                  if (qcCameraStream) {
+                    qcCameraStream.getTracks().forEach(t => t.stop());
+                    setQcCameraStream(null);
                   }
                   
+                  // Upload
                   handleUploadQcImage([file]);
                   setQcCameraActive(false);
                 }, "image/jpeg", 0.7);
@@ -3289,9 +3347,9 @@ export const VendorDashboard = () => {
         <div className="fixed inset-0 z-[200] bg-black flex flex-col animate-in fade-in zoom-in-95 duration-200">
           <div className="p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 w-full z-10">
             <button onClick={() => {
-              const video = document.getElementById("live-camera-video") as HTMLVideoElement;
-              if (video && video.srcObject) {
-                (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+              if (activeCameraStream) {
+                activeCameraStream.getTracks().forEach(t => t.stop());
+                setActiveCameraStream(null);
               }
               setActiveCameraItem(null);
             }} className="text-white bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
@@ -3306,7 +3364,11 @@ export const VendorDashboard = () => {
                    capture="environment" 
                    onChange={(e) => {
                      if (e.target.files && e.target.files[0]) {
-                       handleUploadProofImage(activeCameraItem, e.target.files[0]);
+                        handleUploadPackingImage([e.target.files[0]], activeCameraItem);
+                       if (activeCameraStream) {
+                         activeCameraStream.getTracks().forEach(t => t.stop());
+                         setActiveCameraStream(null);
+                       }
                        setActiveCameraItem(null);
                      }
                      e.target.value = "";
@@ -3325,6 +3387,7 @@ export const VendorDashboard = () => {
                      navigator.mediaDevices.getUserMedia({ 
                        video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
                      }).then(newStream => {
+                       setActiveCameraStream(newStream);
                        video.srcObject = newStream;
                        video.play().catch(() => {});
                      }).catch(console.error);
@@ -3355,7 +3418,11 @@ export const VendorDashboard = () => {
                     capture="environment" 
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
-                        handleUploadProofImage(activeCameraItem, e.target.files[0]);
+                        handleUploadPackingImage([e.target.files[0]], activeCameraItem);
+                        if (activeCameraStream) {
+                          activeCameraStream.getTracks().forEach(t => t.stop());
+                          setActiveCameraStream(null);
+                        }
                         setActiveCameraItem(null);
                       }
                       e.target.value = "";
@@ -3416,8 +3483,9 @@ export const VendorDashboard = () => {
                   const file = new File([blob], `dispatch-${Date.now()}.jpg`, { type: "image/jpeg" });
                   
                   // Stop camera
-                  if (video.srcObject) {
-                    (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+                  if (activeCameraStream) {
+                    activeCameraStream.getTracks().forEach(t => t.stop());
+                    setActiveCameraStream(null);
                   }
                   
                   // Upload
@@ -3540,6 +3608,27 @@ export const VendorDashboard = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Mobile Studio QR Modal */}
+      {showMobileQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-surface border border-border/80 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center relative animate-in zoom-in-95">
+            <button
+              onClick={() => setShowMobileQR(false)}
+              className="absolute top-4 right-4 p-2 text-muted hover:text-heading bg-surface-card rounded-full cursor-pointer transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-xl font-bold font-display text-heading mb-2">Scan to Open on Mobile</h3>
+            <p className="text-sm text-muted mb-6">Point your phone's camera at this QR code to open the Mobile Camera Studio directly.</p>
+            {mobileQRUrl && (
+              <div className="bg-white p-4 rounded-2xl inline-block mx-auto mb-4 border border-border shadow-inner">
+                <img src={mobileQRUrl} alt="Mobile Studio QR" className="w-48 h-48 mx-auto" />
+              </div>
+            )}
+            <p className="text-xs text-orange-500 font-bold bg-orange-500/10 py-2 px-4 rounded-xl inline-block">Make sure phone & laptop are on same Wi-Fi</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

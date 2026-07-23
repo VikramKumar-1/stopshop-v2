@@ -48,58 +48,22 @@ export default function OrdersPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(false);
+  const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
     if (!cameraActive) {
       setCameraError(false);
       return;
     }
-
-    let currentStream: MediaStream | null = null;
-    const initCamera = async () => {
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setCameraError(true);
-          return;
-        }
-
-        let stream: MediaStream;
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } 
-          });
-        } catch (e1) {
-          try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-          } catch (e2) {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          }
-        }
-
-        currentStream = stream;
-        const videoNode = document.getElementById("return-camera-video") as HTMLVideoElement;
-        if (videoNode) {
-          videoNode.srcObject = stream;
-          await videoNode.play().catch(() => {});
-        }
-      } catch (err) {
-        console.error("Camera stream error:", err);
-        setCameraError(true);
+    if (activeStream) {
+      const videoNode = document.getElementById("return-camera-video") as HTMLVideoElement;
+      if (videoNode) {
+        videoNode.srcObject = activeStream;
+        videoNode.play().catch(() => {});
       }
-    };
+    }
+  }, [cameraActive, activeStream]);
 
-    // Small delay to ensure DOM element is mounted
-    const timer = setTimeout(() => {
-      initCamera();
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      if (currentStream) {
-        currentStream.getTracks().forEach(t => t.stop());
-      }
-    };
-  }, [cameraActive]);
 
   const handleUploadReturnImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -621,10 +585,32 @@ export default function OrdersPage() {
                             <button
                               key={i}
                               type="button"
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 setCameraActive(true);
+                                try {
+                                  let stream: MediaStream;
+                                  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                                    setCameraError(true);
+                                    return;
+                                  }
+                                  try {
+                                    stream = await navigator.mediaDevices.getUserMedia({ 
+                                      video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                                    });
+                                  } catch (e1) {
+                                    try {
+                                      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                                    } catch (e2) {
+                                      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                                    }
+                                  }
+                                  setActiveStream(stream);
+                                } catch (err) {
+                                  console.error("Camera error:", err);
+                                  setCameraError(true);
+                                }
                               }}
                               className={`aspect-square rounded-md border border-dashed flex flex-col items-center justify-center text-[8px] font-bold text-muted transition-all hover:bg-orange-500/10 hover:border-orange-500/50 hover:text-orange-500 ${i < 6 ? 'border-orange-500/30 bg-orange-500/5' : 'border-border bg-surface'}`}
                             >
@@ -670,9 +656,9 @@ export default function OrdersPage() {
         <div className="fixed inset-0 z-[200] bg-black flex flex-col animate-in fade-in zoom-in-95 duration-200">
           <div className="p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 w-full z-10">
             <button onClick={() => {
-              const video = document.getElementById("return-camera-video") as HTMLVideoElement;
-              if (video && video.srcObject) {
-                (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+              if (activeStream) {
+                activeStream.getTracks().forEach(t => t.stop());
+                setActiveStream(null);
               }
               setCameraActive(false);
             }} className="text-white bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
@@ -688,6 +674,10 @@ export default function OrdersPage() {
                    onChange={(e) => {
                      if (e.target.files && e.target.files[0]) {
                        handleUploadReturnImage(e as unknown as React.ChangeEvent<HTMLInputElement>);
+                       if (activeStream) {
+                         activeStream.getTracks().forEach(t => t.stop());
+                         setActiveStream(null);
+                       }
                        setCameraActive(false);
                      }
                    }} 
@@ -705,6 +695,7 @@ export default function OrdersPage() {
                      navigator.mediaDevices.getUserMedia({ 
                        video: { facingMode: currentFacing === "environment" ? "user" : "environment" } 
                      }).then(newStream => {
+                       setActiveStream(newStream);
                        video.srcObject = newStream;
                        video.play().catch(() => {});
                      }).catch(console.error);
@@ -736,6 +727,10 @@ export default function OrdersPage() {
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         handleUploadReturnImage(e as unknown as React.ChangeEvent<HTMLInputElement>);
+                        if (activeStream) {
+                          activeStream.getTracks().forEach(t => t.stop());
+                          setActiveStream(null);
+                        }
                         setCameraActive(false);
                       }
                     }} 
@@ -772,11 +767,17 @@ export default function OrdersPage() {
                   if (!blob) return;
                   const file = new File([blob], `return-${Date.now()}.jpg`, { type: "image/jpeg" });
                   
-                  if (video.srcObject) {
-                    (video.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+                  // Stop camera
+                  if (activeStream) {
+                    activeStream.getTracks().forEach(t => t.stop());
+                    setActiveStream(null);
                   }
                   
-                  handleUploadReturnImage({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>);
+                  // Upload
+                  const changeEvent = {
+                    target: { files: [file] }
+                  } as unknown as React.ChangeEvent<HTMLInputElement>;
+                  handleUploadReturnImage(changeEvent);
                   setCameraActive(false);
                 }, "image/jpeg", 0.7);
               }} 

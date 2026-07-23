@@ -7,7 +7,7 @@ import { compressImageToWebP } from "@/lib/imageCompressor";
 
 export default function VendorCameraHubPage() {
   const router = useRouter();
-  const [activeMode, setActiveMode] = useState<"add-product" | "dispatch" | "return-qc">("add-product");
+  const [activeMode, setActiveMode] = useState<"dispatch" | "return-qc">("dispatch");
   const [loading, setLoading] = useState(true);
   const [vendor, setVendor] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -19,21 +19,8 @@ export default function VendorCameraHubPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // ==================== MODE 1: ADD PRODUCT FORM STATES ====================
-  const [prodName, setProdName] = useState("");
-  const [prodPrice, setProdPrice] = useState("");
-  const [prodMrp, setProdMrp] = useState("");
-  const [prodStock, setProdStock] = useState("10");
-  const [prodCategory, setProdCategory] = useState("");
-  const [prodMaterial, setProdMaterial] = useState("Brass");
-  const [prodImage, setProdImage] = useState("");
-  const [prodGallery, setProdGallery] = useState<string[]>([]);
-  const [uploadingMain, setUploadingMain] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
-  const [submittingProduct, setSubmittingProduct] = useState(false);
-  const [lastCompressedStats, setLastCompressedStats] = useState<string | null>(null);
-
   // ==================== MODE 2: DISPATCH PACKING STATES ====================
+  const [searchOrderId, setSearchOrderId] = useState("");
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [packingImages, setPackingImages] = useState<string[]>([]);
@@ -55,12 +42,12 @@ export default function VendorCameraHubPage() {
   const fetchVendorAuth = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/vendor/me");
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
       const data = await res.json();
-      if (res.ok && data.vendor) {
-        setVendor(data.vendor);
+      if (res.ok && data.authenticated && (data.user?.role === "vendor" || data.user?.role === "admin")) {
+        setVendor(data.user);
         fetchCategories();
-        fetchOrdersAndReturns();
+        fetchOrdersAndReturns(data.user.id);
       } else {
         router.push("/vendor/login");
       }
@@ -80,10 +67,12 @@ export default function VendorCameraHubPage() {
     } catch (e) {}
   };
 
-  const fetchOrdersAndReturns = async () => {
+  const fetchOrdersAndReturns = async (vid?: number) => {
     try {
+      const activeVendorId = vid || vendor?.id;
+      if (!activeVendorId) return;
       const [ordRes, retRes] = await Promise.all([
-        fetch("/api/vendor/orders"),
+        fetch(`/api/orders?vendorId=${activeVendorId}`),
         fetch("/api/vendor/returns")
       ]);
       if (ordRes.ok) {
@@ -95,109 +84,6 @@ export default function VendorCameraHubPage() {
         setReturns(rData.returns || []);
       }
     } catch (e) {}
-  };
-
-  // 📸 Handlers: Add Product Camera Uploads
-  const handleSnapMainImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawFile = e.target.files?.[0];
-    if (!rawFile) return;
-
-    setUploadingMain(true);
-    showToast(`⚡ Compressing photo to WebP...`, "info");
-
-    try {
-      const comp = await compressImageToWebP(rawFile);
-      setLastCompressedStats(`${comp.originalSizeFormatted} ➔ ${comp.compressedSizeFormatted} (${comp.savedPercentage}% saved)`);
-
-      const formData = new FormData();
-      formData.append("file", comp.file);
-
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
-
-      if (res.ok && data.url) {
-        setProdImage(data.url);
-        showToast(`✨ WebP Photo ready! Saved ${comp.savedPercentage}%`, "success");
-      } else {
-        showToast("Upload failed", "error");
-      }
-    } catch (err: any) {
-      showToast(err.message || "Camera upload error", "error");
-    } finally {
-      setUploadingMain(false);
-    }
-  };
-
-  const handleSnapGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    setUploadingGallery(true);
-    try {
-      const fileArray = Array.from(files);
-      const uploadPromises = fileArray.map(async (rawFile) => {
-        const comp = await compressImageToWebP(rawFile);
-        const formData = new FormData();
-        formData.append("file", comp.file);
-        const res = await fetch("/api/upload", { method: "POST", body: formData });
-        const data = await res.json();
-        return data.url;
-      });
-
-      const urls = await Promise.all(uploadPromises);
-      setProdGallery(prev => [...prev, ...urls]);
-      showToast("⚡ Gallery photos snapped & compressed!", "success");
-    } catch (err: any) {
-      showToast(err.message || "Failed to upload gallery photo", "error");
-    } finally {
-      setUploadingGallery(false);
-    }
-  };
-
-  const handleCreateProductSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!prodName.trim()) return showToast("Product name is required", "error");
-    if (!prodPrice || parseFloat(prodPrice) <= 0) return showToast("Valid price is required", "error");
-    if (!prodImage) return showToast("Please snap or select a main product photo", "error");
-
-    setSubmittingProduct(true);
-    try {
-      const payload = {
-        name: prodName.trim(),
-        price: parseFloat(prodPrice),
-        mrp: prodMrp ? parseFloat(prodMrp) : parseFloat(prodPrice) * 1.25,
-        stock: parseInt(prodStock) || 10,
-        categoryId: prodCategory ? parseInt(prodCategory) : categories[0]?.id || 1,
-        material: prodMaterial,
-        image: prodImage,
-        images: prodGallery,
-        vendorId: vendor.id,
-        specs: JSON.stringify({ Material: prodMaterial, Origin: "Moradabad, India" })
-      };
-
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        showToast("🎉 Product published successfully!", "success");
-        setProdName("");
-        setProdPrice("");
-        setProdMrp("");
-        setProdImage("");
-        setProdGallery([]);
-        setLastCompressedStats(null);
-      } else {
-        showToast(data.error || "Failed to publish product", "error");
-      }
-    } catch (err: any) {
-      showToast(err.message || "Product creation error", "error");
-    } finally {
-      setSubmittingProduct(false);
-    }
   };
 
   // 📦 Handlers: Dispatch Packing Camera Photos
@@ -370,228 +256,6 @@ export default function VendorCameraHubPage() {
       {/* Main Content Area */}
       <main className="p-4 max-w-md mx-auto space-y-6">
 
-        {/* MODE 1: ADD PRODUCT VIA CAMERA */}
-        {activeMode === "add-product" && (
-          <form onSubmit={handleCreateProductSubmit} className="space-y-4 animate-in fade-in duration-200">
-            <div className="bg-surface-card border border-border/80 rounded-3xl p-5 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                <h2 className="text-sm font-bold text-heading flex items-center gap-2">
-                  <Plus size={16} className="text-orange-500" />
-                  Snap & Add New Product
-                </h2>
-                <span className="text-[10px] text-muted font-bold">Auto-WebP ⚡</span>
-              </div>
-
-              {/* Main Photo Camera Trigger */}
-              <div>
-                <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
-                  1. Main Product Photo *
-                </label>
-
-                {prodImage ? (
-                  <div className="relative rounded-2xl overflow-hidden border border-border h-48 bg-white flex items-center justify-center">
-                    <img src={prodImage} alt="Product" className="w-full h-full object-contain" />
-                    <button
-                      type="button"
-                      onClick={() => setProdImage("")}
-                      className="absolute top-3 right-3 p-1.5 rounded-full bg-red-500 text-white font-bold text-xs shadow-md"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-orange-500/40 rounded-2xl p-5 bg-orange-500/5 text-center space-y-2.5">
-                    {/* Live Camera Button */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      id="cam-main-photo"
-                      onChange={handleSnapMainImage}
-                      className="sr-only"
-                    />
-                    <label
-                      htmlFor="cam-main-photo"
-                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      {uploadingMain ? (
-                        <>
-                          <Loader2 size={16} className="animate-spin" />
-                          <span>Compressing WebP...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Camera size={18} />
-                          <span>Snap Live Photo (Camera)</span>
-                        </>
-                      )}
-                    </label>
-
-                    {/* Phone Gallery Select Button */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="gallery-main-photo"
-                      onChange={handleSnapMainImage}
-                      className="sr-only"
-                    />
-                    <label
-                      htmlFor="gallery-main-photo"
-                      className="w-full py-2.5 bg-surface border border-border hover:border-orange-500 text-heading rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <ImageIcon size={16} className="text-orange-500" />
-                      <span>Choose from Phone Gallery</span>
-                    </label>
-
-                    <p className="text-[10px] text-muted">WebP Auto-Convert & Size Reduction</p>
-                  </div>
-                )}
-
-                {/* Compression Status Stats Banner */}
-                {lastCompressedStats && (
-                  <p className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold mt-1 text-center bg-emerald-500/10 py-1 rounded-lg">
-                    ✨ WebP Saved: {lastCompressedStats}
-                  </p>
-                )}
-              </div>
-
-              {/* Gallery Photos Camera & Phone Gallery Triggers */}
-              <div>
-                <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-2">
-                  2. Additional Gallery Photos
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Camera Snap */}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    multiple
-                    id="cam-gallery-photos"
-                    onChange={handleSnapGalleryImage}
-                    className="sr-only"
-                  />
-                  <label
-                    htmlFor="cam-gallery-photos"
-                    className="py-2.5 bg-surface border border-border hover:border-orange-500 rounded-xl font-bold text-xs text-heading flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                  >
-                    {uploadingGallery ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} className="text-orange-500" />}
-                    <span>Snap Camera</span>
-                  </label>
-
-                  {/* Gallery Select */}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    id="phone-gallery-photos"
-                    onChange={handleSnapGalleryImage}
-                    className="sr-only"
-                  />
-                  <label
-                    htmlFor="phone-gallery-photos"
-                    className="py-2.5 bg-surface border border-border hover:border-orange-500 rounded-xl font-bold text-xs text-heading flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                  >
-                    <ImageIcon size={14} className="text-orange-500" />
-                    <span>From Phone Gallery</span>
-                  </label>
-                </div>
-
-                {/* Gallery Previews */}
-                {prodGallery.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto pt-3">
-                    {prodGallery.map((img, idx) => (
-                      <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden border border-border shrink-0">
-                        <img src={img} alt="gallery" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => setProdGallery(prev => prev.filter((_, i) => i !== idx))}
-                          className="absolute top-1 right-1 bg-black/70 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Product Info Inputs */}
-              <div className="space-y-3 pt-2">
-                <div>
-                  <label className="block text-[10px] font-bold text-muted uppercase mb-1">Product Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={prodName}
-                    onChange={e => setProdName(e.target.value)}
-                    placeholder="e.g. Pure Brass Royal Kadai 2L"
-                    className="w-full bg-surface border border-border rounded-xl px-3.5 py-2.5 text-xs text-heading focus:outline-none focus:border-orange-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-bold text-muted uppercase mb-1">Selling Price (₹) *</label>
-                    <input
-                      type="number"
-                      required
-                      value={prodPrice}
-                      onChange={e => setProdPrice(e.target.value)}
-                      placeholder="1299"
-                      className="w-full bg-surface border border-border rounded-xl px-3.5 py-2.5 text-xs text-heading focus:outline-none focus:border-orange-500 font-mono font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-muted uppercase mb-1">MRP Price (₹)</label>
-                    <input
-                      type="number"
-                      value={prodMrp}
-                      onChange={e => setProdMrp(e.target.value)}
-                      placeholder="1999"
-                      className="w-full bg-surface border border-border rounded-xl px-3.5 py-2.5 text-xs text-heading focus:outline-none focus:border-orange-500 font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-bold text-muted uppercase mb-1">Stock Units</label>
-                    <input
-                      type="number"
-                      value={prodStock}
-                      onChange={e => setProdStock(e.target.value)}
-                      className="w-full bg-surface border border-border rounded-xl px-3.5 py-2.5 text-xs text-heading focus:outline-none focus:border-orange-500 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-muted uppercase mb-1">Category</label>
-                    <select
-                      value={prodCategory}
-                      onChange={e => setProdCategory(e.target.value)}
-                      className="w-full bg-surface border border-border rounded-xl px-3.5 py-2.5 text-xs text-heading focus:outline-none focus:border-orange-500"
-                    >
-                      {categories.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Publish Button */}
-              <button
-                type="submit"
-                disabled={submittingProduct}
-                className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {submittingProduct ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                <span>Publish Product to Store</span>
-              </button>
-            </div>
-          </form>
-        )}
-
         {/* MODE 2: DISPATCH PACKING CAMERA */}
         {activeMode === "dispatch" && (
           <div className="space-y-4 animate-in fade-in duration-200">
@@ -677,7 +341,7 @@ export default function VendorCameraHubPage() {
                     No pending orders to pack.
                   </div>
                 ) : (
-                  orders.map(ord => (
+                  orders.filter(o => !searchOrderId || o.id.toString() === searchOrderId).map(ord => (
                     <div
                       key={ord.id}
                       onClick={() => { setSelectedOrder(ord); setPackingImages([]); }}
@@ -832,15 +496,6 @@ export default function VendorCameraHubPage() {
 
       {/* Sticky Mobile Bottom Navigation Switcher */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-card/95 backdrop-blur-xl border-t border-border/80 px-4 py-2 flex justify-around items-center">
-        <button
-          onClick={() => setActiveMode("add-product")}
-          className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-            activeMode === "add-product" ? "text-orange-500 font-bold bg-orange-500/10" : "text-muted hover:text-heading"
-          }`}
-        >
-          <Plus size={18} />
-          <span className="text-[10px]">Add Product</span>
-        </button>
 
         <button
           onClick={() => setActiveMode("dispatch")}
