@@ -28,6 +28,7 @@ export default function VendorCameraHubPage() {
   const [submittingDispatch, setSubmittingDispatch] = useState(false);
 
   // ==================== MODE 3: RETURN QC STATES ====================
+  const [searchReturnId, setSearchReturnId] = useState("");
   const [returns, setReturns] = useState<any[]>([]);
   const [selectedReturn, setSelectedReturn] = useState<any | null>(null);
   const [qcImages, setQcImages] = useState<string[]>([]);
@@ -39,6 +40,30 @@ export default function VendorCameraHubPage() {
     fetchVendorAuth();
   }, []);
 
+  // Auto-Select Order ID if search matches exactly
+  useEffect(() => {
+    if (searchOrderId && orders.length > 0) {
+      const match = orders.find(o => (o.status === "PAID" || o.status === "PENDING") && o.id.toString() === searchOrderId);
+      if (match) {
+        setSelectedOrder(match);
+        setPackingImages([]);
+        setSearchOrderId(""); // Clear search field after auto-selecting
+      }
+    }
+  }, [searchOrderId, orders]);
+
+  // Auto-Select Return ID if search matches exactly
+  useEffect(() => {
+    if (searchReturnId && returns.length > 0) {
+      const match = returns.find(r => (r.status === "RETURN_RECEIVED" || r.status === "RETURN_APPROVED") && r.id.toString() === searchReturnId);
+      if (match) {
+        setSelectedReturn(match);
+        setQcImages([]);
+        setSearchReturnId(""); // Clear search field after auto-selecting
+      }
+    }
+  }, [searchReturnId, returns]);
+
   const fetchVendorAuth = async () => {
     setLoading(true);
     try {
@@ -49,11 +74,11 @@ export default function VendorCameraHubPage() {
         fetchCategories();
         fetchOrdersAndReturns(data.user.id);
       } else {
-        router.push("/vendor/login");
+        router.push("/vendor/login?redirect=/vendor/camera");
       }
     } catch (err) {
       console.error(err);
-      router.push("/vendor/login");
+      router.push("/vendor/login?redirect=/vendor/camera");
     } finally {
       setLoading(false);
     }
@@ -291,7 +316,6 @@ export default function VendorCameraHubPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     multiple
                     id="cam-packing-photos"
                     onChange={handleSnapPackingPhotos}
@@ -341,7 +365,7 @@ export default function VendorCameraHubPage() {
                     No pending orders to pack.
                   </div>
                 ) : (
-                  orders.filter(o => !searchOrderId || o.id.toString() === searchOrderId).map(ord => (
+                  orders.filter(o => (o.status === "PAID" || o.status === "PENDING") && (!searchOrderId || o.id.toString() === searchOrderId)).map(ord => (
                     <div
                       key={ord.id}
                       onClick={() => { setSelectedOrder(ord); setPackingImages([]); }}
@@ -398,7 +422,6 @@ export default function VendorCameraHubPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     multiple
                     id="cam-qc-photos"
                     onChange={handleSnapQcPhotos}
@@ -463,12 +486,21 @@ export default function VendorCameraHubPage() {
             ) : (
               /* Return Selector List */
               <div className="space-y-2">
-                {returns.length === 0 ? (
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    placeholder="Scan or Enter Return ID..."
+                    value={searchReturnId}
+                    onChange={(e) => setSearchReturnId(e.target.value)}
+                    className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-red-500 font-mono"
+                  />
+                </div>
+                {returns.filter(r => (r.status === "RETURN_RECEIVED" || r.status === "RETURN_APPROVED") && (!searchReturnId || r.id.toString() === searchReturnId)).length === 0 ? (
                   <div className="p-8 text-center text-xs text-muted font-bold bg-surface-card rounded-2xl border border-dashed border-border">
                     No pending returns to inspect.
                   </div>
                 ) : (
-                  returns.map(ret => (
+                  returns.filter(r => (r.status === "RETURN_RECEIVED" || r.status === "RETURN_APPROVED") && (!searchReturnId || r.id.toString() === searchReturnId)).map(ret => (
                     <div
                       key={ret.id}
                       onClick={() => { setSelectedReturn(ret); setQcImages([]); }}

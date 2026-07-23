@@ -24,7 +24,9 @@ export const VendorLogin = () => {
       const data = await res.json();
       if (res.ok) {
         if (data.user.role === "vendor") {
-          window.location.href = "/vendor/dashboard";
+          const params = new URLSearchParams(window.location.search);
+          const redirectUrl = params.get("redirect") || "/vendor/dashboard";
+          window.location.href = redirectUrl;
         } else {
           setError("Access denied. This portal is strictly for registered artisans and vendors.");
         }
