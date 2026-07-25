@@ -88,7 +88,8 @@ export async function GET(req: NextRequest) {
         },
         orderBy: [
           { reviews: 'desc' },
-          { rating: 'desc' }
+          { rating: 'desc' },
+          { id: 'asc' }
         ],
         take: limit - recommendationsMap.size
       });

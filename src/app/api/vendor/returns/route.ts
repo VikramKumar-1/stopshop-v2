@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const user = requireRole(req, ["vendor"]);
+    const user = requireAuth(req);
     if (user instanceof NextResponse) return user;
-
-    const vendorId = user.userId;
+    if (user.role !== "vendor" && !user.parentVendorId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+    const vendorId = user.role === "vendor" ? user.userId : user.parentVendorId;
 
     // Fetch return requests that belong to this vendor's items.
     // A return request might contain items from multiple vendors in theory,

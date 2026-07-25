@@ -260,6 +260,65 @@ export function ReturnsTab({
                      </div>
                   ))}
 
+                  {/* FAILED REFUNDS (ACTION REQUIRED) */}
+                  {returns.filter(r => r.status === "REFUND_FAILED").length > 0 && <h3 className="text-sm font-bold text-red-500 mt-10 border-b border-border pb-2">Failed Refunds (Action Required)</h3>}
+                  {returns.filter(r => r.status === "REFUND_FAILED").map(r => (
+                     <div key={r.id} className="bg-surface-card border-2 border-red-500/30 rounded-2xl p-6 shadow-sm relative overflow-hidden mt-6">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl -z-10" />
+                        
+                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-4">
+                           <div>
+                              <div className="flex gap-3 items-center mb-1">
+                                 <span className="font-bold text-heading text-lg">Return #{r.id}</span>
+                                 <span className="bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase shadow-sm animate-pulse">REFUND FAILED</span>
+                              </div>
+                              <span className="text-xs text-muted">Order: <strong className="text-heading">{r.order.orderNumber}</strong> ({r.order.paymentGateway})</span>
+                           </div>
+                        </div>
+
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
+                           <h4 className="text-xs font-bold text-red-600 uppercase mb-1 flex items-center gap-2">
+                              <AlertTriangle size={16} /> System Error / Admin Note
+                           </h4>
+                           <p className="text-sm font-medium text-red-700">{r.adminNotes || "Unknown error occurred during refund."}</p>
+                           <p className="text-[10px] text-red-500/80 mt-2">The background cron job will automatically retry this every hour. If it's a balance issue, please add funds to your gateway account and click Retry.</p>
+                        </div>
+
+                        <div className="flex justify-end border-t border-border pt-4">
+                           <button 
+                              onClick={async (e) => {
+                                 const btn = e.currentTarget;
+                                 btn.disabled = true;
+                                 btn.innerText = "Retrying...";
+                                 try {
+                                    const res = await fetch("/api/returns/admin/retry-refund", {
+                                       method: "POST",
+                                       headers: { "Content-Type": "application/json" },
+                                       body: JSON.stringify({ returnId: r.id })
+                                    });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                       showToast("Refund initiated successfully!", "success");
+                                       setTimeout(() => window.location.reload(), 1000);
+                                    } else {
+                                       showToast(data.error || "Retry failed again", "error");
+                                       btn.disabled = false;
+                                       btn.innerText = "Retry Refund Now";
+                                    }
+                                 } catch (err) {
+                                    showToast("Network error", "error");
+                                    btn.disabled = false;
+                                    btn.innerText = "Retry Refund Now";
+                                 }
+                              }} 
+                              className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-red-500/30 flex items-center gap-2"
+                           >
+                              Retry Refund Now
+                           </button>
+                        </div>
+                     </div>
+                  ))}
+
                   {/* RESOLVED / RETURN HISTORY (AUDIT TRAIL) */}
                   {returns.filter(r => r.status === "REFUNDED" || r.status === "REJECTED" || r.status === "COMPLETED").length > 0 && (
                    <div className="space-y-4 mt-8 pt-6 border-t-2 border-dashed border-border">

@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = requireRole(req, ["vendor"]);
+    const user = requireAuth(req);
     if (user instanceof NextResponse) return user;
+    if (user.role !== "vendor" && !user.parentVendorId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+    const effVendorId = user.role === "vendor" ? user.userId : user.parentVendorId;
 
     const body = await req.json();
     const { orderItemId, dispatchImages } = body;
@@ -28,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Order item not found" }, { status: 404 });
     }
 
-    if (orderItem.vendorId !== user.userId) {
+    if (orderItem.vendorId !== effVendorId) {
       return NextResponse.json({ success: false, error: "Unauthorized for this item" }, { status: 403 });
     }
 

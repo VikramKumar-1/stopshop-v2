@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Package, RefreshCcw, Plus, ArrowLeft, CheckCircle2, Loader2, Upload, AlertCircle, Sparkles, Image as ImageIcon, ShieldCheck, X } from "lucide-react";
+import {  Camera, Package, RefreshCcw, Plus, ArrowLeft, CheckCircle2, Loader2, Upload, AlertCircle, Sparkles, Image as ImageIcon, ShieldCheck, X , Search, ScanLine } from "lucide-react";
+import BarcodeScanner from "@/features/vendor/components/BarcodeScanner";
 import { compressImageToWebP } from "@/lib/imageCompressor";
 
 export default function VendorCameraHubPage() {
@@ -10,10 +11,12 @@ export default function VendorCameraHubPage() {
   const [activeMode, setActiveMode] = useState<"dispatch" | "return-qc">("dispatch");
   const [loading, setLoading] = useState(true);
   const [vendor, setVendor] = useState<any>(null);
+  const [workerVendorId, setWorkerVendorId] = useState<number | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
 
   // Toast State
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
   const showToast = (message: string, type: "success" | "error" | "info" = "info") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -43,7 +46,7 @@ export default function VendorCameraHubPage() {
   // Auto-Select Order ID if search matches exactly
   useEffect(() => {
     if (searchOrderId && orders.length > 0) {
-      const match = orders.find(o => (o.status === "PAID" || o.status === "PENDING") && o.id.toString() === searchOrderId);
+      const match = orders.find(o => o.id.toString() === searchOrderId);
       if (match) {
         setSelectedOrder(match);
         setPackingImages([]);
@@ -55,7 +58,7 @@ export default function VendorCameraHubPage() {
   // Auto-Select Return ID if search matches exactly
   useEffect(() => {
     if (searchReturnId && returns.length > 0) {
-      const match = returns.find(r => (r.status === "RETURN_RECEIVED" || r.status === "RETURN_APPROVED") && r.id.toString() === searchReturnId);
+      const match = returns.find(r => r.id.toString() === searchReturnId);
       if (match) {
         setSelectedReturn(match);
         setQcImages([]);
@@ -69,7 +72,7 @@ export default function VendorCameraHubPage() {
     try {
       const res = await fetch("/api/auth/me", { cache: "no-store" });
       const data = await res.json();
-      if (res.ok && data.authenticated && (data.user?.role === "vendor" || data.user?.role === "admin")) {
+      if (res.ok && data.authenticated && (data.user?.role === "vendor" || data.user?.role === "admin" || (data.user?.role === "user" && data.user?.parentVendorId))) {
         setVendor(data.user);
         fetchCategories();
         fetchOrdersAndReturns(data.user.id);
@@ -97,7 +100,7 @@ export default function VendorCameraHubPage() {
       const activeVendorId = vid || vendor?.id;
       if (!activeVendorId) return;
       const [ordRes, retRes] = await Promise.all([
-        fetch(`/api/orders?vendorId=${activeVendorId}`),
+        fetch(`/api/orders?vendorId=${activeVendorId}&limit=500`),
         fetch("/api/vendor/returns")
       ]);
       if (ordRes.ok) {
@@ -199,6 +202,15 @@ export default function VendorCameraHubPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+    } catch(e) {
+      router.push('/login');
+    }
+  };
+
   const handleSubmitQcReport = async (action: "QC_PASS" | "QC_UPLOAD") => {
     if (!selectedReturn || !selectedReturn.returnRequest) return;
     if (action === "QC_UPLOAD" && qcImages.length < 5) {
@@ -270,7 +282,7 @@ export default function VendorCameraHubPage() {
               <Camera size={16} className="text-orange-500" />
               Camera Studio
             </h1>
-            <p className="text-[10px] text-muted truncate max-w-[160px]">{vendor?.storeName || vendor?.name}</p>
+            <p className="text-[10px] text-muted truncate max-w-[160px]">{vendor ? (vendor.storeName || vendor.name) : (workerVendorId ? "Worker Mode" : "")}</p>
           </div>
         </div>
         <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-500/10 text-orange-500 rounded-full border border-orange-500/20">
@@ -286,48 +298,92 @@ export default function VendorCameraHubPage() {
           <div className="space-y-4 animate-in fade-in duration-200">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-2">
               <Package size={14} className="text-orange-500" />
-              Orders Ready for Packing Photos ({orders.filter(o => o.status === "PAID" || o.status === "PENDING").length})
+              Orders Ready for Packing Photos ({orders.length})
             </h2>
 
             {selectedOrder ? (
-              <div className="bg-surface-card border border-border/80 rounded-3xl p-5 space-y-4 shadow-sm">
+              <div className="bg-surface-card border border-border/80 rounded-3xl p-5 space-y-4 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500"></div>
                 <div className="flex justify-between items-start border-b border-border/60 pb-3">
                   <div>
-                    <span className="text-[10px] font-mono font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded">
+                    <span className="text-[11px] font-mono font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded">
                       Order #{selectedOrder.id}
                     </span>
-                    <p className="text-xs font-bold text-heading mt-1">{selectedOrder.customerName || "Customer"}</p>
+                    <p className="text-xs font-bold text-heading mt-1.5">{selectedOrder.shippingName || "Customer"}</p>
                   </div>
                   <button
                     onClick={() => { setSelectedOrder(null); setPackingImages([]); }}
-                    className="text-xs font-bold text-muted hover:text-heading"
+                    className="w-8 h-8 flex items-center justify-center bg-surface hover:bg-surface-hover rounded-full border border-border text-muted transition-colors"
                   >
-                    Cancel
+                    <X size={14} />
                   </button>
                 </div>
 
-                {/* Snap Camera Section */}
-                <div className="space-y-2">
-                  <label className="block text-[11px] font-bold text-muted uppercase">
-                    Snap 5 to 8 Mandatory Packing Photos *
-                  </label>
-                  <p className="text-[10px] text-muted">Take clear photos of item, bubble wrap, box, and shipping label.</p>
+                {/* Show Products to Pack */}
+                <div className="space-y-2 bg-surface p-3 rounded-2xl border border-border/60">
+                  <label className="text-[9px] font-bold text-muted uppercase tracking-wider">Items to Pack ({selectedOrder.items?.length || 0})</label>
+                  <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
+                    {selectedOrder.items?.map((item: any) => (
+                      <div key={item.id} className="flex items-center gap-3 bg-surface-card p-2 rounded-xl border border-border/50">
+                        <img src={item.productImage || "/logo4.jpg"} alt={item.productName} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-bold text-heading truncate">{item.productName}</p>
+                          <div className="flex gap-2 items-center mt-1">
+                            <span className="text-[9px] font-bold bg-orange-500/10 text-orange-600 px-1.5 py-0.5 rounded">Qty: {item.quantity}</span>
+                            <span className="text-[9px] text-muted truncate">{item.productMaterial}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    id="cam-packing-photos"
-                    onChange={handleSnapPackingPhotos}
-                    className="sr-only"
-                  />
-                  <label
-                    htmlFor="cam-packing-photos"
-                    className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {uploadingPacking ? <Loader2 size={16} className="animate-spin" /> : <Camera size={18} />}
-                    <span>Snap Photo with Camera ({packingImages.length}/8)</span>
-                  </label>
+                {/* Upload Section */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-bold text-heading uppercase">
+                      Upload Packing Proof
+                    </label>
+                    <span className="text-[10px] font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">{packingImages.length} / 8</span>
+                  </div>
+                  <p className="text-[10px] text-muted leading-tight">Please upload clear photos of the item, bubble wrapping, box sealing, and shipping label.</p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Camera Button */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      multiple
+                      id="cam-packing-live"
+                      onChange={handleSnapPackingPhotos}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="cam-packing-live"
+                      className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      {uploadingPacking ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
+                      <span>Use Camera</span>
+                    </label>
+
+                    {/* Gallery Button */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      id="cam-packing-gallery"
+                      onChange={handleSnapPackingPhotos}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="cam-packing-gallery"
+                      className="w-full py-3 bg-surface hover:bg-surface-hover text-heading border border-border rounded-2xl font-bold text-xs shadow-sm transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      {uploadingPacking ? <Loader2 size={18} className="animate-spin text-orange-500" /> : <ImageIcon size={18} className="text-blue-500" />}
+                      <span>Pick Gallery</span>
+                    </label>
+                  </div>
                 </div>
 
                 {/* Photos Grid */}
@@ -360,27 +416,59 @@ export default function VendorCameraHubPage() {
             ) : (
               /* Order Selector List */
               <div className="space-y-2">
+                <div className="mb-4 bg-gradient-to-r from-orange-500/10 to-amber-500/10 p-4 rounded-3xl border border-orange-500/20 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                  
+                  <label className="text-[11px] font-bold text-orange-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <ScanLine size={14} className="animate-pulse" /> Find Order to Pack
+                  </label>
+
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="Enter Order ID..."
+                        value={searchOrderId}
+                        onChange={(e) => setSearchOrderId(e.target.value)}
+                        className="w-full bg-surface border-2 border-orange-500/30 rounded-2xl pl-10 pr-4 py-3.5 text-xs focus:outline-none focus:border-orange-500 focus:ring-4 ring-orange-500/10 font-mono shadow-inner transition-all"
+                      />
+                      <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+                    </div>
+                    
+                    <button
+                      onClick={() => setShowScanner(true)}
+                      className="w-12 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_12px_rgba(249,115,22,0.3)] transition-all active:scale-95"
+                    >
+                      <Camera size={20} />
+                    </button>
+                  </div>
+                </div>
                 {orders.length === 0 ? (
                   <div className="p-8 text-center text-xs text-muted font-bold bg-surface-card rounded-2xl border border-dashed border-border">
                     No pending orders to pack.
                   </div>
                 ) : (
-                  orders.filter(o => (o.status === "PAID" || o.status === "PENDING") && (!searchOrderId || o.id.toString() === searchOrderId)).map(ord => (
+                  orders.filter(o => !searchOrderId || o.id.toString() === searchOrderId).map(ord => (
                     <div
                       key={ord.id}
                       onClick={() => { setSelectedOrder(ord); setPackingImages([]); }}
                       className="p-4 bg-surface-card border border-border/80 hover:border-orange-500/80 rounded-2xl flex items-center justify-between cursor-pointer transition-all shadow-sm"
                     >
-                      <div>
-                        <span className="text-[10px] font-mono font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded">
-                          Order #{ord.id}
+                      <div className="flex items-center gap-3 w-full">
+                        <div className="w-12 h-12 rounded-xl border border-border/80 overflow-hidden flex-shrink-0 bg-surface">
+                          <img src={(ord.items && ord.items[0]?.productImage) || "/logo4.jpg"} alt="product" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[10px] font-mono font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded inline-block mb-1">
+                            {ord.orderNumber || `Order #${ord.id}`}
+                          </span>
+                          <h4 className="text-xs font-bold text-heading truncate">{ord.shippingName || "Customer"}</h4>
+                          <p className="text-[10px] text-muted">₹{((ord.totalPaise || 0) / 100).toLocaleString("en-IN")} • {ord.items?.length || 1} items</p>
+                        </div>
+                        <span className="px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl text-[10px] font-bold flex items-center gap-1 shadow-md flex-shrink-0">
+                          <Camera size={14} /> Pack
                         </span>
-                        <h4 className="text-xs font-bold text-heading mt-1">{ord.customerName || "Customer"}</h4>
-                        <p className="text-[10px] text-muted">₹{ord.totalAmount} • {ord.items?.length || 1} items</p>
                       </div>
-                      <span className="px-3 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold flex items-center gap-1">
-                        <Camera size={12} /> Snap Photos
-                      </span>
                     </div>
                   ))
                 )}
@@ -394,7 +482,7 @@ export default function VendorCameraHubPage() {
           <div className="space-y-4 animate-in fade-in duration-200">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-2">
               <RefreshCcw size={14} className="text-red-500" />
-              Incoming Return Inspections ({returns.filter(r => r.status === "RETURN_RECEIVED" || r.status === "RETURN_APPROVED").length})
+              Incoming Return Inspections ({returns.length})
             </h2>
 
             {selectedReturn ? (
@@ -495,12 +583,12 @@ export default function VendorCameraHubPage() {
                     className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-red-500 font-mono"
                   />
                 </div>
-                {returns.filter(r => (r.status === "RETURN_RECEIVED" || r.status === "RETURN_APPROVED") && (!searchReturnId || r.id.toString() === searchReturnId)).length === 0 ? (
+                {returns.filter(r => !searchReturnId || r.id.toString() === searchReturnId).length === 0 ? (
                   <div className="p-8 text-center text-xs text-muted font-bold bg-surface-card rounded-2xl border border-dashed border-border">
                     No pending returns to inspect.
                   </div>
                 ) : (
-                  returns.filter(r => (r.status === "RETURN_RECEIVED" || r.status === "RETURN_APPROVED") && (!searchReturnId || r.id.toString() === searchReturnId)).map(ret => (
+                  returns.filter(r => !searchReturnId || r.id.toString() === searchReturnId).map(ret => (
                     <div
                       key={ret.id}
                       onClick={() => { setSelectedReturn(ret); setQcImages([]); }}
@@ -525,6 +613,18 @@ export default function VendorCameraHubPage() {
         )}
 
       </main>
+
+      {/* Barcode Scanner Modal */}
+      {showScanner && (
+        <BarcodeScanner
+          onClose={() => setShowScanner(false)}
+          onScan={(text: string) => {
+            setSearchOrderId(text);
+            setShowScanner(false);
+            setToast({ type: "success", message: `Scanned: ${text}` });
+          }}
+        />
+      )}
 
       {/* Sticky Mobile Bottom Navigation Switcher */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-card/95 backdrop-blur-xl border-t border-border/80 px-4 py-2 flex justify-around items-center">

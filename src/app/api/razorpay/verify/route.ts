@@ -3,14 +3,15 @@ import { prisma } from "@/lib/db";
 import crypto from "crypto";
 import { requireAuth } from "@/lib/auth";
 import { RAZORPAY_CONFIG } from "@/lib/paymentConfig";
-
+import Razorpay from "razorpay";
 
 export async function POST(req: NextRequest) {
+  let body: any = {};
   try {
     const user = requireAuth(req);
     if (user instanceof NextResponse) return user;
 
-    const body = await req.json();
+    body = await req.json();
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -44,16 +45,19 @@ export async function POST(req: NextRequest) {
          return order; // Already verified (maybe webhook hit first)
       }
 
-      // 3. Deduct Stock and Track Co-Purchases
+      // 3. Deduct Stock (Atomic Concurrency Safe)
       for (const item of order.items) {
-        const product = await tx.product.findUnique({ where: { id: item.productId } });
-        if (!product || product.stock < item.quantity) {
-           throw new Error(`Out of stock for item ${item.productName}`);
-        }
-        await tx.product.update({
-          where: { id: item.productId },
+        const updateResult = await tx.product.updateMany({
+          where: { 
+             id: item.productId,
+             stock: { gte: item.quantity }
+          },
           data: { stock: { decrement: item.quantity } }
         });
+        
+        if (updateResult.count === 0) {
+           throw new Error(`OUT_OF_STOCK_ERROR: Someone just bought the last stock of ${item.productName}.`);
+        }
       }
 
       // Track 'Frequently Bought Together' pairs
@@ -123,6 +127,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, orderId: result.id });
   } catch (error: any) {
     console.error("Razorpay verify error:", error);
+
+    // Auto-Refund Logic for Race Conditions
+    if (error.message && error.message.includes("OUT_OF_STOCK_ERROR")) {
+       try {
+          const razorpay = new Razorpay({
+            key_id: RAZORPAY_CONFIG.keyId,
+            key_secret: RAZORPAY_CONFIG.keySecret,
+          });
+          
+          // Get order total to refund
+          const failedOrder = await prisma.order.findUnique({ where: { paymentOrderId: body.razorpay_order_id } });
+          
+          if (failedOrder) {
+             await razorpay.payments.refund(body.razorpay_payment_id, {
+                amount: failedOrder.totalPaise,
+                notes: { reason: "Auto-refunded due to out of stock race condition" }
+             });
+
+             await prisma.order.update({
+                where: { id: failedOrder.id },
+                data: {
+                   status: "CANCELLED_OUT_OF_STOCK",
+                   paymentStatus: "REFUNDED",
+                   razorpayPaymentId: body.razorpay_payment_id
+                }
+             });
+          }
+       } catch (refundErr) {
+          console.error("Failed to auto-refund out-of-stock order:", refundErr);
+       }
+    }
+
     return NextResponse.json(
       { success: false, error: error.message || "Internal server error" },
       { status: 500 }

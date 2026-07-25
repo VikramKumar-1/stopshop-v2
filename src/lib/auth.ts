@@ -40,6 +40,7 @@ export interface TokenPayload {
   userId: number;
   email: string;
   role: string;
+  parentVendorId?: number;
 }
 
 export function signToken(payload: TokenPayload, rememberMe?: boolean): string {

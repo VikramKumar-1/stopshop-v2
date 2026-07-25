@@ -18,6 +18,7 @@ import SettlementsTab from "./tabs/SettlementsTab";
 import DirectOrdersAndReturnsTab from "./tabs/DirectOrdersAndReturnsTab";
 import AddProductTab from "./tabs/AddProductTab";
 import { compressImageToWebP } from "@/lib/imageCompressor";
+import WorkersTab from "./tabs/WorkersTab";
 
 export const VendorDashboard = () => {
   const router = useRouter();
@@ -91,7 +92,7 @@ export const VendorDashboard = () => {
   const [updatingStock, setUpdatingStock] = useState(false);
   const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
   const [approveReturnModal, setApproveReturnModal] = useState<any | null>(null);
-  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile" | "promotions">("inquiries");
+  const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile" | "promotions" | "workers">("inquiries");
 
   useEffect(() => {
     const savedTab = localStorage.getItem("vendorActiveTab");
@@ -100,7 +101,7 @@ export const VendorDashboard = () => {
     }
   }, []);
 
-  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile" | "promotions") => {
+  const setActiveTab = (tab: "inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile" | "promotions" | "workers") => {
     _setActiveTab(tab);
     localStorage.setItem("vendorActiveTab", tab);
   };
@@ -167,7 +168,7 @@ export const VendorDashboard = () => {
   const [submittingQc, setSubmittingQc] = useState(false);
   const [submittingPacking, setSubmittingPacking] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [showSettlementsModal, setShowSettlementsModal] = useState(false);
+
   const [qcCameraError, setQcCameraError] = useState(false);
   const [liveCameraError, setLiveCameraError] = useState(false);
 
@@ -1484,20 +1485,7 @@ export const VendorDashboard = () => {
 
             {/* Mobile Camera Studio Quick Button */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => router.push("/vendor/camera")}
-                className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer hover:scale-105 active:scale-95"
-              >
-                <Camera size={16} />
-                <span>📲 Mobile Cam Studio</span>
-              </button>
-              <button
-                onClick={handleOpenMobileQR}
-                className="px-3 py-2.5 bg-surface border border-border hover:border-orange-500 text-heading font-bold text-xs rounded-xl shadow-sm flex items-center gap-2 transition-all cursor-pointer hover:scale-105 active:scale-95"
-                title="Scan QR to open on mobile"
-              >
-                <span>📱 Scan QR</span>
-              </button>
+              
             </div>
           </div>
         </div>
@@ -1572,6 +1560,15 @@ export const VendorDashboard = () => {
               {activeTab === "add-product" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
             <button
+              onClick={() => setActiveTab("workers")}
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap ${
+                activeTab === "workers" ? "text-orange-500" : "text-muted hover:text-heading"
+              }`}
+            >
+              Team & Workers
+              {activeTab === "workers" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
+            </button>
+            <button
               onClick={() => setActiveTab("profile")}
               className={`pb-2 text-sm font-bold transition-all relative cursor-pointer ${
                 activeTab === "profile" ? "text-orange-500" : "text-muted hover:text-heading"
@@ -1591,12 +1588,15 @@ export const VendorDashboard = () => {
               {activeTab === "promotions" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
 
-            {/* Settlements Tab / Modal Button */}
+            {/* Settlements Tab */}
             <button
-              onClick={() => setShowSettlementsModal(true)}
-              className="pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap text-muted hover:text-heading"
+              onClick={() => setActiveTab("settlements")}
+              className={`pb-2 text-sm font-bold transition-all relative cursor-pointer whitespace-nowrap ${
+                activeTab === "settlements" ? "text-orange-500" : "text-muted hover:text-heading"
+              }`}
             >
               Settlements
+              {activeTab === "settlements" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500" />}
             </button>
 
             {/* Admin Panel Redirect (Only if admin role) */}
@@ -1625,6 +1625,12 @@ export const VendorDashboard = () => {
       </div>
 
       <div className="max-w-[95%] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20">  {/* Tab Contents */}
+        {activeTab === "workers" && (
+          <div className="animate-in fade-in duration-300">
+            <WorkersTab />
+          </div>
+        )}
+
         {activeTab === "profile" && (
           <div className="animate-in fade-in duration-300">
             <VendorProfilePage />
@@ -1735,23 +1741,15 @@ export const VendorDashboard = () => {
           />
         )}
 
-        {showSettlementsModal && (
-          <div className="fixed inset-0 z-[150] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-surface-card border border-border rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in fade-in zoom-in duration-200 scrollbar-none p-6 pt-10">
-              <button
-                onClick={() => setShowSettlementsModal(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface hover:bg-surface-hover border border-border flex items-center justify-center text-muted hover:text-heading transition-colors z-10 font-bold"
-              >
-                <X size={16} />
-              </button>
-              <SettlementsTab
-                settlementSettings={settlementSettings}
-                settlementSummary={settlementSummary}
-                settlementTab={settlementTab}
-                setSettlementTab={setSettlementTab}
-                settlements={settlements}
-              />
-            </div>
+        {activeTab === "settlements" && (
+          <div className="animate-in fade-in duration-300">
+            <SettlementsTab
+              settlementSettings={settlementSettings}
+              settlementSummary={settlementSummary}
+              settlementTab={settlementTab}
+              setSettlementTab={setSettlementTab}
+              settlements={settlements}
+            />
           </div>
         )}
 

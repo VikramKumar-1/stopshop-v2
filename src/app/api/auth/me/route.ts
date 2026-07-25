@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
         vendorStatus: true,
         allowedCategories: true,
         rejectionReason: true,
+        parentVendorId: true,
       },
     });
 

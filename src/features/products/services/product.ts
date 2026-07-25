@@ -189,7 +189,11 @@ export async function getProducts(filters: ProductFilters) {
   } else if (filters.sort === "rating") {
     orderBy = { rating: "desc" };
   } else if (filters.sort === "best-sellers") {
-    orderBy = { reviews: "desc" };
+    orderBy = [
+      { reviews: "desc" },
+      { rating: "desc" },
+      { id: "asc" }
+    ];
   }
 
   // 1. Initial Fast Query (Uses Database Indexes & Smart Dictionary)
@@ -277,7 +281,11 @@ export async function getProducts(filters: ProductFilters) {
     } else if (filters.sort === "rating") {
       products.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (filters.sort === "best-sellers") {
-      products.sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
+      products.sort((a, b) => {
+        if ((b.reviews || 0) !== (a.reviews || 0)) return (b.reviews || 0) - (a.reviews || 0);
+        if ((b.rating || 0) !== (a.rating || 0)) return (b.rating || 0) - (a.rating || 0);
+        return a.id - b.id;
+      });
     } else {
       const queryLower = (filters.search || "").trim().toLowerCase();
       const scores = new Map<number, number>();

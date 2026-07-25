@@ -72,7 +72,7 @@ export async function loginUser(email: string, password: string, rememberMe?: bo
   };
 }
 
-export async function registerUser(name: string, email: string, password: string, role?: string, rememberMe?: boolean) {
+export async function registerUser(name: string, email: string, password: string, role?: string, rememberMe?: boolean, inviteCode?: string) {
   if (!name || !email || !password) {
     throw new Error("Name, email, and password are required");
   }

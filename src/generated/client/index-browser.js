@@ -132,6 +132,7 @@ exports.Prisma.UserScalarFieldEnum = {
   mobile: 'mobile',
   location: 'location',
   artisanId: 'artisanId',
+  parentVendorId: 'parentVendorId',
   gstin: 'gstin',
   aadhaar: 'aadhaar',
   pan: 'pan',

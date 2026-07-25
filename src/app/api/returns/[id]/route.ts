@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const admin = requireRole(req, ["admin", "vendor"]);
+    const admin = requireAuth(req);
     if (admin instanceof NextResponse) return admin;
+    if (admin.role !== "admin" && admin.role !== "vendor" && !admin.parentVendorId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+    const effVendorId = admin.role === "admin" ? null : (admin.role === "vendor" ? admin.userId : admin.parentVendorId);
 
     const returnId = parseInt(params.id);
     const body = await req.json();

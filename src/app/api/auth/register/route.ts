@@ -19,10 +19,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, email, password, role, rememberMe } = await req.json();
+    const { name, email, password, role, rememberMe, inviteCode } = await req.json();
 
     // Call service layer for validation, hashing, and database insertion
-    const { user, token } = await registerUser(name, email, password, role, rememberMe);
+    const { user, token } = await registerUser(name, email, password, role, rememberMe, inviteCode);
 
     const response = NextResponse.json({
       success: true,

@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
         });
       });
       
-      // Trigger Razorpay Refund
+      // Trigger Gateway Refund
       if (returnReq.order.paymentGateway === "razorpay" && returnReq.order.razorpayPaymentId) {
          if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
             try {
@@ -78,11 +78,30 @@ export async function GET(req: NextRequest) {
                });
                await prisma.returnRequest.update({
                   where: { id: returnReq.id },
-                  data: { refundStatus: "completed", refundedAt: new Date() }
+                  data: { refundStatus: "initiated", refundedAt: new Date() }
                });
-            } catch (rpe) {
+            } catch (rpe: any) {
                console.error(`Razorpay refund failed for SLA cron, order ${returnReq.orderId}:`, rpe);
+               await prisma.returnRequest.update({
+                  where: { id: returnReq.id },
+                  data: { status: "REFUND_FAILED", refundStatus: "failed", adminNotes: `Refund failed: ${rpe?.message || "Razorpay Error"} (Auto-approved due to SLA expiration)` }
+               });
             }
+         }
+      } else if (returnReq.order.paymentGateway === "payu" && returnReq.order.razorpayPaymentId) {
+         try {
+            const { processPayURefund } = await import("@/lib/payu");
+            await processPayURefund(returnReq.order.razorpayPaymentId, returnReq.order.totalPaise);
+            await prisma.returnRequest.update({
+               where: { id: returnReq.id },
+               data: { refundStatus: "initiated", refundedAt: new Date() }
+            });
+         } catch (payue: any) {
+            console.error(`PayU refund failed for SLA cron, order ${returnReq.orderId}:`, payue);
+            await prisma.returnRequest.update({
+               where: { id: returnReq.id },
+               data: { status: "REFUND_FAILED", refundStatus: "failed", adminNotes: `Refund failed: ${payue?.message || "PayU Error"} (Auto-approved due to SLA expiration)` }
+            });
          }
       }
 

@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
              }
           });
 
-          // Trigger Razorpay Refund
+          // Trigger Gateway Refund
           if (returnRequest.order.paymentGateway === "razorpay" && returnRequest.order.razorpayPaymentId) {
              if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
                 try {
@@ -158,12 +158,30 @@ export async function POST(req: NextRequest) {
                    });
                    await prisma.returnRequest.update({
                       where: { id: returnId },
-                      data: { refundStatus: "completed", refundedAt: new Date() }
+                      data: { refundStatus: "initiated", refundedAt: new Date() }
                    });
-                } catch (rpe) {
+                } catch (rpe: any) {
                    console.error("Razorpay refund failed:", rpe);
-                   // In a real system, you might flag this for manual retry
+                   await prisma.returnRequest.update({
+                      where: { id: returnId },
+                      data: { status: "REFUND_FAILED", refundStatus: "failed", adminNotes: "Refund failed: " + (rpe?.message || "Razorpay Error") }
+                   });
                 }
+             }
+          } else if (returnRequest.order.paymentGateway === "payu" && returnRequest.order.razorpayPaymentId) {
+             try {
+                const { processPayURefund } = await import("@/lib/payu");
+                await processPayURefund(returnRequest.order.razorpayPaymentId, returnRequest.order.totalPaise);
+                await prisma.returnRequest.update({
+                   where: { id: returnId },
+                   data: { refundStatus: "initiated", refundedAt: new Date() }
+                });
+             } catch (payue: any) {
+                console.error("PayU refund failed:", payue);
+                await prisma.returnRequest.update({
+                   where: { id: returnId },
+                   data: { status: "REFUND_FAILED", refundStatus: "failed", adminNotes: "Refund failed: " + (payue?.message || "PayU Error") }
+                });
              }
           }
 

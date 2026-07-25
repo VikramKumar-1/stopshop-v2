@@ -36,81 +36,113 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Process Successful Payment (Atomic transaction)
-    await prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({
-        where: { paymentOrderId: txnid },
-        include: { items: true }
-      });
-
-      if (!order) throw new Error("Order not found");
-      if (order.status !== "PENDING" && order.paymentStatus === "PAID") return; // Already processed
-
-      // Deduct Stock and Track Co-Purchases
-      for (const item of order.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } }
+    try {
+      await prisma.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { paymentOrderId: txnid },
+          include: { items: true }
         });
-      }
 
-      // Track 'Frequently Bought Together' pairs
-      if (order.items.length > 1) {
-        for (let i = 0; i < order.items.length; i++) {
-          for (let j = i + 1; j < order.items.length; j++) {
-            const pA = Math.min(order.items[i].productId, order.items[j].productId);
-            const pB = Math.max(order.items[i].productId, order.items[j].productId);
-            
-            await tx.productPair.upsert({
-              where: { productA_productB: { productA: pA, productB: pB } },
-              update: { score: { increment: 1 } },
-              create: { productA: pA, productB: pB, score: 1 }
-            });
+        if (!order) throw new Error("Order not found");
+        if (order.status !== "PENDING" && order.paymentStatus === "PAID") return; // Already processed
+
+        // Deduct Stock (Atomic Concurrency Safe)
+        for (const item of order.items) {
+          const updateResult = await tx.product.updateMany({
+            where: { 
+               id: item.productId,
+               stock: { gte: item.quantity }
+            },
+            data: { stock: { decrement: item.quantity } }
+          });
+          
+          if (updateResult.count === 0) {
+             throw new Error(`OUT_OF_STOCK_ERROR: Someone just bought the last stock of ${item.productName}.`);
           }
         }
-      }
 
-      // Calculate Commission
-      const settings = await tx.adminSettings.findFirst();
-      const commissionRate = settings?.defaultCommissionRate || 10;
-      const commissionPaise = Math.round(order.totalPaise * (commissionRate / 100));
-
-      await tx.order.update({
-        where: { id: order.id },
-        data: {
-          paymentStatus: "PAID",
-          status: "CONFIRMED",
-          razorpayPaymentId: mihpayid,
-          paymentData: data,
-          commissionRate,
-          commissionPaise,
-          vendorPayoutPaise: order.totalPaise - commissionPaise,
-          settlementStatus: "HOLD",
+        // Track 'Frequently Bought Together' pairs
+        if (order.items.length > 1) {
+          for (let i = 0; i < order.items.length; i++) {
+            for (let j = i + 1; j < order.items.length; j++) {
+              const pA = Math.min(order.items[i].productId, order.items[j].productId);
+              const pB = Math.max(order.items[i].productId, order.items[j].productId);
+              
+              await tx.productPair.upsert({
+                where: { productA_productB: { productA: pA, productB: pB } },
+                update: { score: { increment: 1 } },
+                create: { productA: pA, productB: pB, score: 1 }
+              });
+            }
+          }
         }
-      });
 
-      // Create Settlements
-      const vendorTotals: Record<number, number> = {};
-      for (const item of order.items) {
-        if (item.vendorId) {
-          vendorTotals[item.vendorId] = (vendorTotals[item.vendorId] || 0) + item.totalPaise;
-        }
-      }
+        // Calculate Commission
+        const settings = await tx.adminSettings.findFirst();
+        const commissionRate = settings?.defaultCommissionRate || 10;
+        const commissionPaise = Math.round(order.totalPaise * (commissionRate / 100));
 
-      for (const [vendorId, total] of Object.entries(vendorTotals)) {
-        const vComm = Math.round(total * (commissionRate / 100));
-        await tx.settlement.create({
+        await tx.order.update({
+          where: { id: order.id },
           data: {
-            orderId: order.id,
-            vendorId: Number(vendorId),
-            orderAmountPaise: total,
-            commissionPaise: vComm,
-            vendorPayoutPaise: total - vComm,
-            status: "HOLD",
-            holdUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            paymentStatus: "PAID",
+            status: "CONFIRMED",
+            razorpayPaymentId: mihpayid,
+            paymentData: data,
+            commissionRate,
+            commissionPaise,
+            vendorPayoutPaise: order.totalPaise - commissionPaise,
+            settlementStatus: "HOLD",
           }
         });
+
+        // Create Settlements
+        const vendorTotals: Record<number, number> = {};
+        for (const item of order.items) {
+          if (item.vendorId) {
+            vendorTotals[item.vendorId] = (vendorTotals[item.vendorId] || 0) + item.totalPaise;
+          }
+        }
+
+        for (const [vendorId, total] of Object.entries(vendorTotals)) {
+          const vComm = Math.round(total * (commissionRate / 100));
+          await tx.settlement.create({
+            data: {
+              orderId: order.id,
+              vendorId: Number(vendorId),
+              orderAmountPaise: total,
+              commissionPaise: vComm,
+              vendorPayoutPaise: total - vComm,
+              status: "HOLD",
+              holdUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            }
+          });
+        }
+      });
+    } catch (txError: any) {
+      if (txError.message && txError.message.includes("OUT_OF_STOCK_ERROR")) {
+         console.warn("PayU Out of stock race condition caught. Auto-refunding.");
+         try {
+            const { processPayURefund } = await import("@/lib/payu");
+            const failedOrder = await prisma.order.findUnique({ where: { paymentOrderId: txnid } });
+            if (failedOrder) {
+               await processPayURefund(mihpayid, failedOrder.totalPaise);
+               await prisma.order.update({
+                  where: { id: failedOrder.id },
+                  data: {
+                     status: "CANCELLED_OUT_OF_STOCK",
+                     paymentStatus: "REFUNDED",
+                     razorpayPaymentId: mihpayid
+                  }
+               });
+            }
+         } catch (refundErr) {
+            console.error("Failed to auto-refund out-of-stock order (PayU):", refundErr);
+         }
+         return NextResponse.redirect(new URL("/checkout/failure?reason=out_of_stock_refunded", req.url));
       }
-    });
+      throw txError;
+    }
 
     let dbOrderId = null;
     const order = await prisma.order.findUnique({ where: { paymentOrderId: txnid } });

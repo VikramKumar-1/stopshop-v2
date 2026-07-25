@@ -2846,10 +2846,12 @@ export namespace Prisma {
 
   export type UserAvgAggregateOutputType = {
     id: number | null
+    parentVendorId: number | null
   }
 
   export type UserSumAggregateOutputType = {
     id: number | null
+    parentVendorId: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -2862,6 +2864,7 @@ export namespace Prisma {
     mobile: string | null
     location: string | null
     artisanId: string | null
+    parentVendorId: number | null
     gstin: string | null
     aadhaar: string | null
     pan: string | null
@@ -2885,6 +2888,7 @@ export namespace Prisma {
     mobile: string | null
     location: string | null
     artisanId: string | null
+    parentVendorId: number | null
     gstin: string | null
     aadhaar: string | null
     pan: string | null
@@ -2908,6 +2912,7 @@ export namespace Prisma {
     mobile: number
     location: number
     artisanId: number
+    parentVendorId: number
     gstin: number
     aadhaar: number
     pan: number
@@ -2925,10 +2930,12 @@ export namespace Prisma {
 
   export type UserAvgAggregateInputType = {
     id?: true
+    parentVendorId?: true
   }
 
   export type UserSumAggregateInputType = {
     id?: true
+    parentVendorId?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -2941,6 +2948,7 @@ export namespace Prisma {
     mobile?: true
     location?: true
     artisanId?: true
+    parentVendorId?: true
     gstin?: true
     aadhaar?: true
     pan?: true
@@ -2964,6 +2972,7 @@ export namespace Prisma {
     mobile?: true
     location?: true
     artisanId?: true
+    parentVendorId?: true
     gstin?: true
     aadhaar?: true
     pan?: true
@@ -2987,6 +2996,7 @@ export namespace Prisma {
     mobile?: true
     location?: true
     artisanId?: true
+    parentVendorId?: true
     gstin?: true
     aadhaar?: true
     pan?: true
@@ -3097,6 +3107,7 @@ export namespace Prisma {
     mobile: string | null
     location: string | null
     artisanId: string | null
+    parentVendorId: number | null
     gstin: string | null
     aadhaar: string | null
     pan: string | null
@@ -3139,6 +3150,7 @@ export namespace Prisma {
     mobile?: boolean
     location?: boolean
     artisanId?: boolean
+    parentVendorId?: boolean
     gstin?: boolean
     aadhaar?: boolean
     pan?: boolean
@@ -3172,6 +3184,7 @@ export namespace Prisma {
     mobile?: boolean
     location?: boolean
     artisanId?: boolean
+    parentVendorId?: boolean
     gstin?: boolean
     aadhaar?: boolean
     pan?: boolean
@@ -3219,6 +3232,7 @@ export namespace Prisma {
       mobile: string | null
       location: string | null
       artisanId: string | null
+      parentVendorId: number | null
       gstin: string | null
       aadhaar: string | null
       pan: string | null
@@ -3616,6 +3630,7 @@ export namespace Prisma {
     readonly mobile: FieldRef<"User", 'String'>
     readonly location: FieldRef<"User", 'String'>
     readonly artisanId: FieldRef<"User", 'String'>
+    readonly parentVendorId: FieldRef<"User", 'Int'>
     readonly gstin: FieldRef<"User", 'String'>
     readonly aadhaar: FieldRef<"User", 'String'>
     readonly pan: FieldRef<"User", 'String'>
@@ -25581,6 +25596,7 @@ export namespace Prisma {
     mobile: 'mobile',
     location: 'location',
     artisanId: 'artisanId',
+    parentVendorId: 'parentVendorId',
     gstin: 'gstin',
     aadhaar: 'aadhaar',
     pan: 'pan',
@@ -26113,6 +26129,7 @@ export namespace Prisma {
     mobile?: StringNullableFilter<"User"> | string | null
     location?: StringNullableFilter<"User"> | string | null
     artisanId?: StringNullableFilter<"User"> | string | null
+    parentVendorId?: IntNullableFilter<"User"> | number | null
     gstin?: StringNullableFilter<"User"> | string | null
     aadhaar?: StringNullableFilter<"User"> | string | null
     pan?: StringNullableFilter<"User"> | string | null
@@ -26144,6 +26161,7 @@ export namespace Prisma {
     mobile?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     artisanId?: SortOrderInput | SortOrder
+    parentVendorId?: SortOrderInput | SortOrder
     gstin?: SortOrderInput | SortOrder
     aadhaar?: SortOrderInput | SortOrder
     pan?: SortOrderInput | SortOrder
@@ -26178,6 +26196,7 @@ export namespace Prisma {
     mobile?: StringNullableFilter<"User"> | string | null
     location?: StringNullableFilter<"User"> | string | null
     artisanId?: StringNullableFilter<"User"> | string | null
+    parentVendorId?: IntNullableFilter<"User"> | number | null
     gstin?: StringNullableFilter<"User"> | string | null
     aadhaar?: StringNullableFilter<"User"> | string | null
     pan?: StringNullableFilter<"User"> | string | null
@@ -26209,6 +26228,7 @@ export namespace Prisma {
     mobile?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     artisanId?: SortOrderInput | SortOrder
+    parentVendorId?: SortOrderInput | SortOrder
     gstin?: SortOrderInput | SortOrder
     aadhaar?: SortOrderInput | SortOrder
     pan?: SortOrderInput | SortOrder
@@ -26240,6 +26260,7 @@ export namespace Prisma {
     mobile?: StringNullableWithAggregatesFilter<"User"> | string | null
     location?: StringNullableWithAggregatesFilter<"User"> | string | null
     artisanId?: StringNullableWithAggregatesFilter<"User"> | string | null
+    parentVendorId?: IntNullableWithAggregatesFilter<"User"> | number | null
     gstin?: StringNullableWithAggregatesFilter<"User"> | string | null
     aadhaar?: StringNullableWithAggregatesFilter<"User"> | string | null
     pan?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -28406,6 +28427,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -28437,6 +28459,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -28467,6 +28490,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28498,6 +28522,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28529,6 +28554,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -28551,6 +28577,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28574,6 +28601,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31058,6 +31086,17 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type BoolFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>
     not?: NestedBoolFilter<$PrismaModel> | boolean
@@ -31153,6 +31192,7 @@ export namespace Prisma {
     mobile?: SortOrder
     location?: SortOrder
     artisanId?: SortOrder
+    parentVendorId?: SortOrder
     gstin?: SortOrder
     aadhaar?: SortOrder
     pan?: SortOrder
@@ -31168,6 +31208,7 @@ export namespace Prisma {
 
   export type UserAvgOrderByAggregateInput = {
     id?: SortOrder
+    parentVendorId?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -31180,6 +31221,7 @@ export namespace Prisma {
     mobile?: SortOrder
     location?: SortOrder
     artisanId?: SortOrder
+    parentVendorId?: SortOrder
     gstin?: SortOrder
     aadhaar?: SortOrder
     pan?: SortOrder
@@ -31203,6 +31245,7 @@ export namespace Prisma {
     mobile?: SortOrder
     location?: SortOrder
     artisanId?: SortOrder
+    parentVendorId?: SortOrder
     gstin?: SortOrder
     aadhaar?: SortOrder
     pan?: SortOrder
@@ -31218,6 +31261,7 @@ export namespace Prisma {
 
   export type UserSumOrderByAggregateInput = {
     id?: SortOrder
+    parentVendorId?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -31282,6 +31326,22 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
     _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -31352,17 +31412,6 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type FloatNullableFilter<$PrismaModel = never> = {
@@ -31554,22 +31603,6 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -33061,6 +33094,14 @@ export namespace Prisma {
     set?: string | null
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type BoolFieldUpdateOperationsInput = {
     set?: boolean
   }
@@ -33571,14 +33612,6 @@ export namespace Prisma {
     update?: CartItemUpdateWithWhereUniqueWithoutProductInput | CartItemUpdateWithWhereUniqueWithoutProductInput[]
     updateMany?: CartItemUpdateManyWithWhereWithoutProductInput | CartItemUpdateManyWithWhereWithoutProductInput[]
     deleteMany?: CartItemScalarWhereInput | CartItemScalarWhereInput[]
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type OrderItemUncheckedUpdateManyWithoutProductNestedInput = {
@@ -34147,6 +34180,17 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedBoolFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>
     not?: NestedBoolFilter<$PrismaModel> | boolean
@@ -34227,7 +34271,7 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | null
     notIn?: number[] | null
@@ -34235,15 +34279,12 @@ export namespace Prisma {
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
-  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type NestedFloatNullableFilter<$PrismaModel = never> = {
@@ -34255,6 +34296,14 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
   export type NestedJsonNullableFilter<$PrismaModel = never> = 
     | PatchUndefined<
@@ -34293,22 +34342,6 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -35178,6 +35211,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -35208,6 +35242,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -35500,6 +35535,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -35530,6 +35566,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -35714,6 +35751,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -35744,6 +35782,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -35925,6 +35964,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -35955,6 +35995,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -36938,6 +36979,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -36968,6 +37010,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -37013,6 +37056,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37043,6 +37087,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37072,6 +37117,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -37102,6 +37148,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -37217,6 +37264,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37247,6 +37295,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37422,6 +37471,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -37452,6 +37502,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -37573,6 +37624,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37603,6 +37655,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37632,6 +37685,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -37662,6 +37716,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -37777,6 +37832,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37807,6 +37863,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37912,6 +37969,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -37942,6 +38000,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -38057,6 +38116,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38087,6 +38147,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38338,6 +38399,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -38368,6 +38430,7 @@ export namespace Prisma {
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
+    parentVendorId?: number | null
     gstin?: string | null
     aadhaar?: string | null
     pan?: string | null
@@ -38438,6 +38501,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38468,6 +38532,7 @@ export namespace Prisma {
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
+    parentVendorId?: NullableIntFieldUpdateOperationsInput | number | null
     gstin?: NullableStringFieldUpdateOperationsInput | string | null
     aadhaar?: NullableStringFieldUpdateOperationsInput | string | null
     pan?: NullableStringFieldUpdateOperationsInput | string | null

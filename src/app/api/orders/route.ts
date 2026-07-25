@@ -23,9 +23,10 @@ export async function GET(req: NextRequest) {
        if (asVendor) {
            whereClause.items = { some: { vendorId: parseInt(asVendor) } };
        }
-    } else if (user.role === "vendor" && asVendor && parseInt(asVendor) === user.userId) {
+    } else if ((user.role === "vendor" || user.parentVendorId) && asVendor && parseInt(asVendor) === (user.role === "vendor" ? user.userId : user.parentVendorId)) {
+       const effVendorId = user.role === "vendor" ? user.userId : user.parentVendorId;
        whereClause.items = {
-          some: { vendorId: user.userId }
+          some: { vendorId: effVendorId }
        };
        if (status) {
           whereClause.status = status === "PENDING" ? { not: "PENDING" } : status;

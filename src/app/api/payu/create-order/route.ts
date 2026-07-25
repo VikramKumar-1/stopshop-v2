@@ -101,8 +101,12 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("PayU create order error:", error);
+    let errorMessage = error.message || "Internal server error";
+    if (errorMessage.includes("Can't reach database server") || errorMessage.includes("prisma.")) {
+       errorMessage = "We are currently experiencing a temporary database issue. Please try again in a few moments.";
+    }
     return NextResponse.json(
-      { success: false, error: error.message || "Internal server error" },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
