@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
 import jwt from "jsonwebtoken";
 
+export const dynamic = "force-dynamic";
+
 const SIGNING_SECRET = process.env.JWT_SECRET || "";
 
 export async function GET(request: Request) {

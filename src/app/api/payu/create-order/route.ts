@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     const firstName = shippingInfo.name.split(" ")[0] || "Customer";
     const email = shippingInfo.email || user.email;
 
-    const hashString = `${PAYU_CONFIG.merchantKey}|${txnid}|${amount}|${productInfo}|${firstName}|${email}|||||||||||${PAYU_CONFIG.merchantSalt}`;
+    const hashString = `${PAYU_CONFIG.merchantKey}|${txnid}|${amount}|${productInfo}|${firstName}|${email}||||||||||${PAYU_CONFIG.merchantSalt}`;
     const hash = crypto.createHash("sha512").update(hashString).digest("hex");
 
     // 4. Return PayU Form Data

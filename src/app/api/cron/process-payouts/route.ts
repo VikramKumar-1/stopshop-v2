@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import Razorpay from "razorpay";
 import { requireRole } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 // This cron job should be called daily at 00:00 (Midnight) by a scheduling service (like Vercel Cron or AWS EventBridge)
 export async function GET(req: NextRequest) {
   try {
