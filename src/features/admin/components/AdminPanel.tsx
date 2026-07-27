@@ -943,6 +943,7 @@ export const AdminPanel = () => {
               orderTotalPages={orderTotalPages}
               exchangeRates={exchangeRates}
               loadMoreRef={loadMoreRef}
+              isLoadingData={isLoadingData}
             />
           )}
 

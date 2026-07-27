@@ -13,6 +13,7 @@ export function OrdersTab({
   orderTotalPages,
   exchangeRates,
   loadMoreRef,
+  isLoadingData = false,
 }: {
   orders: any[];
   orderStats: any[];
@@ -20,6 +21,7 @@ export function OrdersTab({
   orderTotalPages: number;
   exchangeRates: Record<string, number> | null;
   loadMoreRef: (node: HTMLDivElement | null) => void;
+  isLoadingData?: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -36,9 +38,18 @@ export function OrdersTab({
   const paymentCounts: Record<string, number> = {};
 
   const statsSource = orderStats && orderStats.length > 0 ? orderStats : orders;
+  let abandonedPendingCount = 0;
+  let paidOrConfirmedPendingCount = 0;
+
   statsSource.forEach(o => {
      const status = (o.status || "").toUpperCase();
      statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+     if (status === "PENDING" && o.paymentStatus !== "PAID") {
+        abandonedPendingCount += 1;
+     } else if (["CONFIRMED", "PACKED"].includes(status) || (status === "PENDING" && o.paymentStatus === "PAID")) {
+        paidOrConfirmedPendingCount += 1;
+     }
 
      const isValidSale = o.paymentStatus === "PAID" || ["CONFIRMED", "PACKED", "DISPATCHED", "DELIVERED"].includes(status);
      const excludedStatuses = ["CANCELLED", "RETURN_APPROVED", "RETURN_PICKED", "RETURN_RECEIVED", "RETURNED", "REFUNDED", "FAILED"];
@@ -482,10 +493,14 @@ export function OrdersTab({
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             Estimated Global Revenue
           </h3>
-          <div className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            ₹{(globalConvertedRevenueINR / 100).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            <span className="text-sm font-semibold text-blue-200 ml-1.5">INR</span>
-          </div>
+          {isLoadingData ? (
+            <div className="h-10 w-44 bg-white/20 animate-pulse rounded-lg my-1" />
+          ) : (
+            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              ₹{(globalConvertedRevenueINR / 100).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              <span className="text-sm font-semibold text-blue-200 ml-1.5">INR</span>
+            </div>
+          )}
           <p className="text-[11px] text-blue-200/80">Live exchange rates · auto-converted from all currencies.</p>
         </div>
         <div className="relative z-10 w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20 shrink-0">
@@ -505,14 +520,18 @@ export function OrdersTab({
             </div>
           </div>
           <div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-extrabold text-white tracking-tight">
-                ₹{(totalSalesINR / 100).toLocaleString()}
-              </h3>
-              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded uppercase">
-                INR
-              </span>
-            </div>
+            {isLoadingData ? (
+              <div className="h-8 w-28 bg-amber-500/20 animate-pulse rounded-lg my-1" />
+            ) : (
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-3xl font-extrabold text-white tracking-tight">
+                  ₹{(totalSalesINR / 100).toLocaleString()}
+                </h3>
+                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded uppercase">
+                  INR
+                </span>
+              </div>
+            )}
             {(totalSalesUSD > 0 || nonCancelledCountUSD > 0) && (
               <p className="text-xs font-semibold text-slate-400 mt-1">
                 ${(totalSalesUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-amber-400/80">USD</span>
@@ -533,14 +552,18 @@ export function OrdersTab({
             </div>
           </div>
           <div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-extrabold text-white tracking-tight">
-                ₹{(totalCommissionINR / 100).toLocaleString()}
-              </h3>
-              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded uppercase">
-                INR
-              </span>
-            </div>
+            {isLoadingData ? (
+              <div className="h-8 w-28 bg-emerald-500/20 animate-pulse rounded-lg my-1" />
+            ) : (
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-3xl font-extrabold text-white tracking-tight">
+                  ₹{(totalCommissionINR / 100).toLocaleString()}
+                </h3>
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded uppercase">
+                  INR
+                </span>
+              </div>
+            )}
             {(totalCommissionUSD > 0 || nonCancelledCountUSD > 0) && (
               <p className="text-xs font-semibold text-slate-400 mt-1">
                 ${(totalCommissionUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-emerald-400/80">USD</span>
@@ -561,12 +584,16 @@ export function OrdersTab({
             </div>
           </div>
           <div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-extrabold text-white tracking-tight">{totalOrders}</h3>
-              <span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded uppercase">
-                Orders
-              </span>
-            </div>
+            {isLoadingData ? (
+              <div className="h-8 w-20 bg-blue-500/20 animate-pulse rounded-lg my-1" />
+            ) : (
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-3xl font-extrabold text-white tracking-tight">{totalOrders}</h3>
+                <span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded uppercase">
+                  Orders
+                </span>
+              </div>
+            )}
           </div>
           <p className="text-[11px] text-slate-400 border-t border-blue-500/10 pt-2.5">
             All orders across vendors
@@ -582,14 +609,18 @@ export function OrdersTab({
             </div>
           </div>
           <div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-extrabold text-white tracking-tight">
-                ₹{(aovINR / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-              </h3>
-              <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded uppercase">
-                INR
-              </span>
-            </div>
+            {isLoadingData ? (
+              <div className="h-8 w-28 bg-purple-500/20 animate-pulse rounded-lg my-1" />
+            ) : (
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-3xl font-extrabold text-white tracking-tight">
+                  ₹{(aovINR / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                </h3>
+                <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded uppercase">
+                  INR
+                </span>
+              </div>
+            )}
             {(aovUSD > 0 || nonCancelledCountUSD > 0) && (
               <p className="text-xs font-semibold text-slate-400 mt-1">
                 ${(aovUSD / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] text-purple-400/80">USD</span>
@@ -615,9 +646,10 @@ export function OrdersTab({
             </h4>
             <div className="space-y-3">
               {[
+                { label: "Active Orders (Confirmed/Packing)", count: paidOrConfirmedPendingCount, color: "bg-amber-500" },
                 { label: "Delivered", count: statusCounts["DELIVERED"] || 0, color: "bg-emerald-500" },
-                { label: "Pending & Confirmed", count: (statusCounts["PENDING"] || 0) + (statusCounts["CONFIRMED"] || 0) + (statusCounts["PACKED"] || 0), color: "bg-amber-500" },
                 { label: "In Transit", count: statusCounts["DISPATCHED"] || 0, color: "bg-blue-500" },
+                { label: "Abandoned Checkouts (Unpaid)", count: abandonedPendingCount, color: "bg-zinc-600" },
                 { label: "Cancelled", count: statusCounts["CANCELLED"] || 0, color: "bg-red-500" },
               ].map((st, i) => {
                 const pct = totalOrders > 0 ? Math.round((st.count / totalOrders) * 100) : 0;
