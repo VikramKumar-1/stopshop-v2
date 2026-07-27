@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { ShiprocketService, isShiprocketConfigured } from "@/lib/shiprocket";
 
 export async function POST(req: NextRequest) {
   try {
@@ -102,20 +103,39 @@ export async function POST(req: NextRequest) {
        });
     }
 
-    if (allPacked) {
-       // Trigger auto-shiprocket integration asynchronously when all items are packed
-       fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/shiprocket/create-shipment`, {
-           method: "POST",
-           headers: { 
-             "Content-Type": "application/json",
-             "x-internal-secret": process.env.JWT_SECRET || "internal",
-             "Cookie": req.headers.get("cookie") || ""
-           },
-           body: JSON.stringify({ orderId: targetOrder.id })
-       }).catch(e => console.error("Auto-ship trigger failed on packing completion", e));
+    let shiprocketCreated = false;
+    let shiprocketError = null;
+
+    if (allPacked && !targetOrder.shiprocketShipmentId) {
+      if (isShiprocketConfigured()) {
+        try {
+          const settings = await prisma.adminSettings.findFirst();
+          const pickupLocation = settings?.shiprocketPickupLocation || "Primary";
+          const srOrder = await ShiprocketService.createOrder(targetOrder, allItems, pickupLocation);
+          await prisma.order.update({
+            where: { id: targetOrder.id },
+            data: {
+              shiprocketOrderId: srOrder.shiprocket_order_id,
+              shiprocketShipmentId: srOrder.shipment_id,
+            }
+          });
+          shiprocketCreated = true;
+          console.log(`[Shiprocket Auto-Ping Success] Order ${targetOrder.id} registered in Shiprocket with Shipment ID: ${srOrder.shipment_id}`);
+        } catch (srErr: any) {
+          console.error("[Shiprocket Auto-Ping Error]:", srErr);
+          shiprocketError = srErr.message || "Shiprocket integration error";
+        }
+      }
     }
 
-    return NextResponse.json({ success: true, message: "Dispatch photos uploaded successfully", anyPacked, allPacked });
+    return NextResponse.json({ 
+      success: true, 
+      message: "Dispatch photos uploaded & Order marked as PACKED", 
+      anyPacked, 
+      allPacked, 
+      shiprocketCreated,
+      shiprocketError
+    });
   } catch (error: any) {
     console.error("Vendor dispatch upload error:", error);
     return NextResponse.json(

@@ -261,9 +261,19 @@ export default function VendorCameraHubPage() {
 
       if (res.ok) {
         showToast("📦 Order marked as PACKED! Shiprocket pickup requested.", "success");
+        const effectiveVid = vendor?.role === "user" && vendor?.parentVendorId ? vendor.parentVendorId : vendor?.id;
+        
+        // Broadcast Event Push to Vendor Dashboard with 0% DB Load!
+        try {
+          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            const bc = new BroadcastChannel(`stopshop_vendor_${effectiveVid}`);
+            bc.postMessage({ type: "ORDER_PACKED", orderId: selectedOrder.id });
+            bc.close();
+          }
+        } catch (e) {}
+
         setSelectedOrder(null);
         setPackingImages([]);
-        const effectiveVid = vendor?.role === "user" && vendor?.parentVendorId ? vendor.parentVendorId : vendor?.id;
         fetchOrdersAndReturns(effectiveVid);
       } else {
         const errData = await res.json();
@@ -403,7 +413,7 @@ export default function VendorCameraHubPage() {
           <div className="space-y-4 animate-in fade-in duration-200">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-2">
               <Package size={14} className="text-orange-500" />
-              Orders Ready for Packing Photos ({orders.filter(o => o.status === "CONFIRMED" || o.status === "PROCESSING" || !["SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status)).length})
+              Orders Ready for Packing Photos ({orders.filter(o => o.status === "CONFIRMED" || o.status === "PROCESSING" || !["PACKED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status)).length})
             </h2>
 
             {selectedOrder ? (
@@ -540,13 +550,13 @@ export default function VendorCameraHubPage() {
                     </button>
                   </div>
                 </div>
-                {orders.filter(o => o.status === "CONFIRMED" || o.status === "PROCESSING" || !["SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status)).length === 0 ? (
+                {orders.filter(o => o.status === "CONFIRMED" || o.status === "PROCESSING" || !["PACKED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status)).length === 0 ? (
                   <div className="p-8 text-center text-xs text-muted font-bold bg-surface-card rounded-2xl border border-dashed border-border">
                     No pending orders to pack.
                   </div>
                 ) : (
                   orders.filter(o => {
-                    const isPackingReady = o.status === "CONFIRMED" || o.status === "PROCESSING" || !["SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status);
+                    const isPackingReady = o.status === "CONFIRMED" || o.status === "PROCESSING" || !["PACKED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status);
                     if (!isPackingReady) return false;
 
                     if (!searchOrderId) return true;

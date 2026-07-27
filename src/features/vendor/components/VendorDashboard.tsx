@@ -1392,6 +1392,51 @@ export const VendorDashboard = () => {
     checkAuth();
   }, []);
 
+  // Smart Zero-Load Adaptive Polling Engine
+  useEffect(() => {
+    if (!vendor?.id) return;
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        bc = new BroadcastChannel(`stopshop_vendor_${vendor.id}`);
+        bc.onmessage = (event) => {
+          if (event.data?.type === "ORDER_PACKED" && event.data?.orderId) {
+            const { orderId } = event.data;
+            setDirectOrders(prev => prev.map(o => (o.id === orderId || o.orderNumber === orderId) ? { ...o, status: "PACKED" } : o));
+            showToast("⚡ Order marked as PACKED by Worker Studio!", "success");
+          }
+        };
+      }
+    } catch (e) {}
+
+    const hasPendingOrders = directOrders.some((o: any) => o.status === "CONFIRMED" || o.status === "PENDING" || o.status === "PROCESSING");
+    if (!hasPendingOrders) return;
+
+    let timer: any = null;
+
+    const poll = () => {
+      if (document.visibilityState === "visible") {
+        fetchData(vendor.id, vendor);
+      }
+    };
+
+    timer = setInterval(poll, 15000);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchData(vendor.id, vendor);
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      if (timer) clearInterval(timer);
+      if (bc) bc.close();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [vendor?.id, directOrders]);
+
   if (authorized === null || (authorized && isLoadingData)) {
     return <div className="min-h-screen bg-surface flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" /></div>;
   }
