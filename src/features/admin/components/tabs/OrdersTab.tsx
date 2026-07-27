@@ -40,10 +40,10 @@ export function OrdersTab({
      const status = (o.status || "").toUpperCase();
      statusCounts[status] = (statusCounts[status] || 0) + 1;
 
-     const isPaidOrConfirmed = o.paymentStatus === "PAID" || (o.paymentMethod === "cod" && ["CONFIRMED", "PACKED", "DISPATCHED", "DELIVERED"].includes(status));
+     const isValidSale = o.paymentStatus === "PAID" || ["CONFIRMED", "PACKED", "DISPATCHED", "DELIVERED"].includes(status);
      const excludedStatuses = ["CANCELLED", "RETURN_APPROVED", "RETURN_PICKED", "RETURN_RECEIVED", "RETURNED", "REFUNDED", "FAILED"];
      
-     if (isPaidOrConfirmed && !excludedStatuses.includes(status)) {
+     if (isValidSale && !excludedStatuses.includes(status)) {
         const method = (o.paymentMethod || "").toLowerCase();
         if (method) {
           paymentCounts[method] = (paymentCounts[method] || 0) + 1;

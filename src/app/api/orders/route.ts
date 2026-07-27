@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
           select: {
              status: true,
              paymentMethod: true,
+             paymentStatus: true,
              currency: true,
              totalPaise: true,
              commissionPaise: true
