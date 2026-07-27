@@ -35,6 +35,9 @@ export async function GET(req: NextRequest) {
        }
     } else {
        whereClause.userId = user.userId;
+       if (!status) {
+          whereClause.status = { not: "PENDING" };
+       }
     }
 
     if (status && user.role !== "vendor") {

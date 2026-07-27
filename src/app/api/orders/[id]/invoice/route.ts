@@ -5,6 +5,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import crypto from "crypto";
 import QRCode from "qrcode";
+import { currencyDatabase } from "@/lib/currencyData";
+import { getInrPerForeignUnit } from "@/lib/exchangeRates";
 
 function getLocaleAndTimeZone(countryCode: string) {
   const cleanCode = (countryCode || "IN").trim().toUpperCase();
@@ -103,43 +105,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const cleanCountry = (order.shippingCountry || "IN").trim().toUpperCase();
     const isInternationalOrder = order.orderNumber.startsWith("SS-INTL-") || (cleanCountry !== "IN" && cleanCountry !== "INDIA");
 
-    const currencyMap: Record<string, { symbol: string; rate: number }> = {
-      IN: { symbol: "Rs.", rate: 1 },
-      INDIA: { symbol: "Rs.", rate: 1 },
-      US: { symbol: "$", rate: 83.5 },
-      USA: { symbol: "$", rate: 83.5 },
-      "UNITED STATES": { symbol: "$", rate: 83.5 },
-      GB: { symbol: "£", rate: 105.0 },
-      UK: { symbol: "£", rate: 105.0 },
-      "UNITED KINGDOM": { symbol: "£", rate: 105.0 },
-      EU: { symbol: "€", rate: 90.0 },
-      EUROPE: { symbol: "€", rate: 90.0 },
-      AE: { symbol: "AED", rate: 22.7 },
-      UAE: { symbol: "AED", rate: 22.7 },
-      "UNITED ARAB EMIRATES": { symbol: "AED", rate: 22.7 },
-      CA: { symbol: "C$", rate: 61.0 },
-      CANADA: { symbol: "C$", rate: 61.0 },
-      AU: { symbol: "A$", rate: 55.0 },
-      AUSTRALIA: { symbol: "A$", rate: 55.0 },
-      SG: { symbol: "S$", rate: 61.5 },
-      SINGAPORE: { symbol: "S$", rate: 61.5 },
-      JP: { symbol: "¥", rate: 0.53 },
-      JAPAN: { symbol: "¥", rate: 0.53 },
-      SA: { symbol: "SAR", rate: 22.2 },
-      "SAUDI ARABIA": { symbol: "SAR", rate: 22.2 }
-    };
-
-    const currencyConfig = isInternationalOrder 
-      ? (currencyMap[cleanCountry] || { symbol: "$", rate: 83.5 })
-      : { symbol: "Rs.", rate: 1 };
+    const currencyInfo = currencyDatabase[cleanCountry] || { c: "USD", s: "$" };
+    const liveRateInrPerUnit = isInternationalOrder ? await getInrPerForeignUnit(currencyInfo.c) : 1.0;
+    const currencySymbol = isInternationalOrder ? currencyInfo.s : "Rs.";
 
     const formatCurrency = (amtPaise: number) => {
       const amtInr = (amtPaise || 0) / 100;
-      if (currencyConfig.rate !== 1) {
-        const foreignAmt = amtInr / currencyConfig.rate;
-        return `${currencyConfig.symbol} ${foreignAmt.toFixed(2)}`;
+      if (isInternationalOrder && liveRateInrPerUnit > 0) {
+        const foreignAmt = amtInr / liveRateInrPerUnit;
+        return `${currencySymbol} ${foreignAmt.toFixed(2)}`;
       }
-      return `${currencyConfig.symbol} ${amtInr.toFixed(2)}`;
+      return `${currencySymbol} ${amtInr.toFixed(2)}`;
     };
 
     const { locale, timeZone } = getLocaleAndTimeZone(order.shippingCountry);

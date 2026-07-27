@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db';
 import { countries } from '@/lib/countries';
+import { currencyDatabase } from '@/lib/currencyData';
+import { getInrPerForeignUnit } from '@/lib/exchangeRates';
 
 const countryNameToCodeMap: Record<string, string> = {};
 countries.forEach(c => {
@@ -56,6 +58,9 @@ export async function calculateOrderPricing(
   let subtotalPaise = 0;
   const processedItems = [];
 
+  // Determine target currency code for 100% dynamic live rate lookup
+  const currencyInfo = currencyDatabase[finalCountry] || { c: "USD" };
+
   // 2. Fetch fresh prices for all items directly from DB
   for (const item of cartItems) {
     const product = await prisma.product.findUnique({
@@ -80,17 +85,12 @@ export async function calculateOrderPricing(
          const customMrp = parseFloat(targetConfig.mrp);
          const customDiscount = parseFloat(targetConfig.discount) || 0;
          if (!isNaN(customMrp)) {
-           // This is the price in the foreign currency (e.g., USD)
+           // Foreign currency price set by admin
            const foreignPrice = customMrp - (customMrp * customDiscount / 100);
            
-           // Convert back to INR since the payment gateway processes in INR
-           const defaultRates: Record<string, number> = {
-             US: 83.5, GB: 105.0, EU: 90.0, AE: 22.7, CA: 61.0, 
-             AU: 55.0, SA: 22.2, SG: 61.5, JP: 0.53
-           };
-           
-           const conversionRate = defaultRates[finalCountry] || 83.5;
-           unitPrice = foreignPrice * conversionRate;
+           // Fetch 100% live real-time forex rate relative to INR
+           const liveRateInrPerUnit = await getInrPerForeignUnit(currencyInfo.c);
+           unitPrice = foreignPrice * liveRateInrPerUnit;
          }
       }
     }

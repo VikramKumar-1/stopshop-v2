@@ -2964,12 +2964,6 @@ export const VendorDashboard = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    const printWindow = window.open("", "_blank", "width=800,height=600");
-                    if (!printWindow) {
-                      showToast("Please allow popups to print labels.", "error");
-                      return;
-                    }
-
                     const qrUrl = qrDataUrl;
 
                     const htmlContent = `
@@ -3031,6 +3025,34 @@ export const VendorDashboard = () => {
                       </body>
                       </html>
                     `;
+
+                    let printWindow = window.open("", "_blank");
+                    if (!printWindow) {
+                      // Fallback: Use hidden iframe so popup blockers NEVER block printing!
+                      let printIframe = document.getElementById("hidden-print-label-iframe") as HTMLIFrameElement;
+                      if (!printIframe) {
+                        printIframe = document.createElement("iframe");
+                        printIframe.id = "hidden-print-label-iframe";
+                        printIframe.style.position = "fixed";
+                        printIframe.style.right = "-9999px";
+                        printIframe.style.bottom = "-9999px";
+                        printIframe.style.width = "0";
+                        printIframe.style.height = "0";
+                        printIframe.style.border = "0";
+                        document.body.appendChild(printIframe);
+                      }
+                      const doc = printIframe.contentWindow?.document;
+                      if (doc) {
+                        doc.open();
+                        doc.write(htmlContent);
+                        doc.close();
+                        setTimeout(() => {
+                          printIframe.contentWindow?.focus();
+                          printIframe.contentWindow?.print();
+                        }, 300);
+                      }
+                      return;
+                    }
 
                     printWindow.document.open();
                     printWindow.document.write(htmlContent);

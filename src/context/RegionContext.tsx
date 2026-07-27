@@ -17,49 +17,8 @@ interface RegionContextType {
 
 const RegionContext = createContext<RegionContextType | undefined>(undefined);
 
-// ISO 3166-1 Alpha-2 to Currency Code and Symbol Database for 190+ countries
-export const currencyDatabase: Record<string, { c: string; s: string; p?: "suffix" }> = {
-  AF: { c: "AFN", s: "؋" }, AL: { c: "ALL", s: "Lek" }, DZ: { c: "DZD", s: "د.ج" }, AD: { c: "EUR", s: "€" }, AO: { c: "AOA", s: "Kz" },
-  AG: { c: "XCD", s: "$" }, AR: { c: "ARS", s: "$" }, AM: { c: "AMD", s: "֏" }, AU: { c: "AUD", s: "A$" }, AT: { c: "EUR", s: "€" },
-  AZ: { c: "AZN", s: "₼" }, BS: { c: "BSD", s: "$" }, BH: { c: "BHD", s: "د.ب" }, BD: { c: "BDT", s: "৳" }, BB: { c: "BBD", s: "$" },
-  BY: { c: "BYN", s: "Br" }, BE: { c: "EUR", s: "€" }, BZ: { c: "BZD", s: "$" }, BJ: { c: "XOF", s: "CFA" }, BT: { c: "BTN", s: "Nu." },
-  BO: { c: "BOB", s: "Bs." }, BA: { c: "BAM", s: "KM" }, BW: { c: "BWP", s: "P" }, BR: { c: "BRL", s: "R$" }, BN: { c: "BND", s: "$" },
-  BG: { c: "BGN", s: "лв" }, BF: { c: "XOF", s: "CFA" }, BI: { c: "BIF", s: "FBu" }, KH: { c: "KHR", s: "៛" }, CM: { c: "XAF", s: "FCFA" },
-  CA: { c: "CAD", s: "C$" }, CV: { c: "CVE", s: "Esc" }, CF: { c: "XAF", s: "FCFA" }, TD: { c: "XAF", s: "FCFA" }, CL: { c: "CLP", s: "$" },
-  CN: { c: "CNY", s: "¥" }, CO: { c: "COP", s: "$" }, KM: { c: "KMF", s: "CF" }, CD: { c: "CDF", s: "FC" }, CG: { c: "XAF", s: "FCFA" },
-  CR: { c: "CRC", s: "₡" }, HR: { c: "EUR", s: "€" }, CU: { c: "CUP", s: "$" }, CY: { c: "EUR", s: "€" }, CZ: { c: "CZK", s: "Kč" },
-  DK: { c: "DKK", s: "kr" }, DJ: { c: "DJF", s: "Fdj" }, DM: { c: "XCD", s: "$" }, DO: { c: "DOP", s: "$" }, EC: { c: "USD", s: "$" },
-  EG: { c: "EGP", s: "E£" }, SV: { c: "USD", s: "$" }, GQ: { c: "XAF", s: "FCFA" }, ER: { c: "ERN", s: "Nfk" }, EE: { c: "EUR", s: "€" },
-  SZ: { c: "SZL", s: "L" }, ET: { c: "ETB", s: "Br" }, FJ: { c: "FJD", s: "$" }, FI: { c: "EUR", s: "€" }, FR: { c: "EUR", s: "€" },
-  GA: { c: "XAF", s: "FCFA" }, GM: { c: "GMD", s: "D" }, GE: { c: "GEL", s: "₾" }, DE: { c: "EUR", s: "€" }, GH: { c: "GHS", s: "₵" },
-  GR: { c: "EUR", s: "€" }, GD: { c: "XCD", s: "$" }, GT: { c: "GTQ", s: "Q" }, GN: { c: "GNF", s: "FG" }, GW: { c: "XOF", s: "CFA" },
-  GY: { c: "GYD", s: "$" }, HT: { c: "HTG", s: "G" }, HN: { c: "HNL", s: "L" }, HK: { c: "HKD", s: "HK$" }, HU: { c: "HUF", s: "Ft" },
-  IS: { c: "ISK", s: "kr" }, IN: { c: "INR", s: "₹" }, ID: { c: "IDR", s: "Rp" }, IR: { c: "IRR", s: "﷼" }, IQ: { c: "IQD", s: "د.ع" },
-  IE: { c: "EUR", s: "€" }, IL: { c: "ILS", s: "₪" }, IT: { c: "EUR", s: "€" }, JM: { c: "JMD", s: "$" }, JP: { c: "JPY", s: "¥" },
-  JO: { c: "JOD", s: "د.ا" }, KZ: { c: "KZT", s: "₸" }, KE: { c: "KES", s: "KSh" }, KI: { c: "AUD", s: "$" }, KP: { c: "KPW", s: "₩" },
-  KR: { c: "KRW", s: "₩" }, KW: { c: "KWD", s: "د.ك" }, KG: { c: "KGS", s: "сом" }, LA: { c: "LAK", s: "₭" }, LV: { c: "EUR", s: "€" },
-  LB: { c: "LBP", s: "L£" }, LS: { c: "LSL", s: "L" }, LR: { c: "LRD", s: "$" }, LY: { c: "LYD", s: "ل.د" }, LI: { c: "CHF", s: "CHF" },
-  LT: { c: "EUR", s: "€" }, LU: { c: "EUR", s: "€" }, MG: { c: "MGA", s: "Ar" }, MW: { c: "MWK", s: "MK" }, MY: { c: "MYR", s: "RM" },
-  MV: { c: "MVR", s: "Rf" }, ML: { c: "XOF", s: "CFA" }, MT: { c: "EUR", s: "€" }, MH: { c: "USD", s: "$" }, MR: { c: "MRU", s: "UM" },
-  MU: { c: "MUR", s: "₨" }, MX: { c: "MXN", s: "$" }, FM: { c: "USD", s: "$" }, MD: { c: "MDL", s: "L" }, MC: { c: "EUR", s: "€" },
-  MN: { c: "MNT", s: "₮" }, ME: { c: "EUR", s: "€" }, MA: { c: "MAD", s: "د.م." }, MZ: { c: "MZN", s: "MT" }, MM: { c: "MMK", s: "K" },
-  NA: { c: "NAD", s: "$" }, NR: { c: "AUD", s: "$" }, NP: { c: "NPR", s: "₨" }, NL: { c: "EUR", s: "€" }, NZ: { c: "NZD", s: "NZ$" },
-  NI: { c: "NIO", s: "C$" }, NE: { c: "XOF", s: "CFA" }, NG: { c: "NGN", s: "₦" }, MK: { c: "MKD", s: "ден" }, NO: { c: "NOK", s: "kr" },
-  OM: { c: "OMR", s: "ر.ع." }, PK: { c: "PKR", s: "₨" }, PW: { c: "USD", s: "$" }, PS: { c: "ILS", s: "₪" }, PA: { c: "PAB", s: "B/." },
-  PG: { c: "PGK", s: "K" }, PY: { c: "PYG", s: "₲" }, PE: { c: "PEN", s: "S/." }, PH: { c: "PHP", s: "₱" }, PL: { c: "PLN", s: "zł" },
-  PT: { c: "EUR", s: "€" }, QA: { c: "QAR", s: "ر.ق" }, RO: { c: "RON", s: "lei" }, RU: { c: "RUB", s: "₽" }, RW: { c: "RWF", s: "FRw" },
-  KN: { c: "XCD", s: "$" }, LC: { c: "XCD", s: "$" }, VC: { c: "XCD", s: "$" }, WS: { c: "WST", s: "T" }, SM: { c: "EUR", s: "€" },
-  ST: { c: "STN", s: "Db" }, SA: { c: "SAR", s: "SR", p: "suffix" }, SN: { c: "XOF", s: "CFA" }, RS: { c: "RSD", s: "дин." },
-  SC: { c: "SCR", s: "₨" }, SL: { c: "SLL", s: "Le" }, SG: { c: "SGD", s: "S$" }, SK: { c: "EUR", s: "€" }, SI: { c: "EUR", s: "€" },
-  SB: { c: "SBD", s: "$" }, SO: { c: "SOS", s: "S" }, ZA: { c: "ZAR", s: "R" }, ES: { c: "EUR", s: "€" }, LK: { c: "LKR", s: "₨" },
-  SD: { c: "SDG", s: "S£" }, SR: { c: "SRD", s: "$" }, SE: { c: "SEK", s: "kr" }, CH: { c: "CHF", s: "CHF" }, SY: { c: "SYP", s: "£S" },
-  TW: { c: "TWD", s: "NT$" }, TJ: { c: "TJS", s: "SM" }, TZ: { c: "TZS", s: "TSh" }, TH: { c: "THB", s: "฿" }, TL: { c: "USD", s: "$" },
-  TG: { c: "XOF", s: "CFA" }, TO: { c: "TOP", s: "T$" }, TT: { c: "TTD", s: "$" }, TN: { c: "TND", s: "د.ت" }, TR: { c: "TRY", s: "₺" },
-  TM: { c: "TMT", s: "T" }, TV: { c: "AUD", s: "$" }, UG: { c: "UGX", s: "USh" }, UA: { c: "UAH", s: "₴" }, AE: { c: "AED", s: "د.إ", p: "suffix" },
-  GB: { c: "GBP", s: "£" }, US: { c: "USD", s: "$" }, UY: { c: "UYU", s: "$U" }, UZ: { c: "UZS", s: "soʻm" }, VU: { c: "VUV", s: "VT" },
-  VA: { c: "EUR", s: "€" }, VE: { c: "VES", s: "Bs.S" }, VN: { c: "VND", s: "₫" }, YE: { c: "YER", s: "﷼" }, ZM: { c: "ZMW", s: "ZK" },
-  ZW: { c: "ZWL", s: "$" }
-};
+import { currencyDatabase } from "@/lib/currencyData";
+export { currencyDatabase };
 
 export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion?: string }> = ({ children, initialRegion = "IN" }) => {
   const [region, setRegionState] = useState<Region>(initialRegion);
@@ -134,18 +93,18 @@ export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion
     }
     const defaultRates: Record<string, number> = {
       INR: 1.0,
-      USD: 1 / 83.5,
-      EUR: 1 / 90.0,
-      GBP: 1 / 105.0,
-      AED: 1 / 22.7,
-      CAD: 1 / 61.0,
-      AUD: 1 / 55.0,
-      SAR: 1 / 22.2,
-      SGD: 1 / 61.5,
-      JPY: 1.88
+      USD: 1 / 96.0,
+      EUR: 1 / 104.0,
+      GBP: 1 / 120.0,
+      AED: 1 / 26.0,
+      CAD: 1 / 70.0,
+      AUD: 1 / 62.0,
+      SAR: 1 / 25.5,
+      SGD: 1 / 71.0,
+      JPY: 0.62
     };
     const config = currencyDatabase[activeRegion] || { c: "USD" };
-    const rate = rates[config.c] || defaultRates[config.c] || 1 / 83.5;
+    const rate = rates[config.c] || defaultRates[config.c] || 1 / 96.0;
     return Math.round(priceInInr * rate);
   };
 

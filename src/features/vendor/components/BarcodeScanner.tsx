@@ -8,7 +8,11 @@ export default function BarcodeScanner({ onScan, onClose }: { onScan: (text: str
 
   useEffect(() => {
     const scanner = new Html5Qrcode("reader");
-    const config = { fps: 10, qrbox: { width: 250, height: 100 } };
+    const config = { 
+      fps: 15, 
+      qrbox: { width: 280, height: 160 },
+      aspectRatio: 1.0
+    };
 
     scanner.start(
       { facingMode: "environment" },
@@ -19,10 +23,10 @@ export default function BarcodeScanner({ onScan, onClose }: { onScan: (text: str
         }
       },
       (err) => {
-        // ignore continuous scan errors
+        // continuous scanning frame check
       }
     ).catch(err => {
-      setError("Camera permission denied or not supported.");
+      setError("Camera permission denied or camera not accessible.");
     });
 
     return () => {

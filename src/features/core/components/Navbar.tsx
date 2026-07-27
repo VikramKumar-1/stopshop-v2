@@ -20,6 +20,7 @@ const navLinks = [
 
 export const Navbar = () => {
   const pathname = usePathname();
+  if (pathname.startsWith("/worker")) return null;
   const isDashboard = (pathname.startsWith("/vendor") && !pathname.startsWith("/vendor-shop")) || pathname.startsWith("/admin");
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();

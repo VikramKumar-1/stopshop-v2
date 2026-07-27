@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { compressImageToWebP } from "@/lib/imageCompressor";
+import { useRegion } from "@/context/RegionContext";
 import { Mail, Loader2, ArrowRight, User as UserIcon, Lock, Package, Truck, Download, RefreshCcw, Camera, X, AlertTriangle, ShieldCheck, CheckCircle, ExternalLink, Eye } from "lucide-react";
 import InlineReviewStars from "./InlineReviewStars";
 
 export default function OrdersPage() {
   const router = useRouter();
+  const { formatPrice } = useRegion();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
@@ -435,7 +437,7 @@ export default function OrdersPage() {
 
                              <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0">
                                 <div className="font-black text-zinc-900 dark:text-white text-sm sm:text-base whitespace-nowrap">
-                                   ₹{(item.totalPaise / 100).toLocaleString("en-IN")}
+                                   {formatPrice(item.totalPaise / 100, order.shippingCountry)}
                                 </div>
                                 <Link 
                                   href={productUrl} 
@@ -455,26 +457,26 @@ export default function OrdersPage() {
                  <div className="bg-[#121214] text-white p-4 sm:p-5 rounded-2xl border border-zinc-800 shadow-xl space-y-2 text-xs">
                     <div className="flex justify-between items-center text-zinc-400">
                        <span>Item Subtotal</span>
-                       <span className="font-medium text-white">₹{((order.subtotalPaise || order.totalPaise) / 100).toLocaleString("en-IN")}</span>
+                       <span className="font-medium text-white">{formatPrice(((order.subtotalPaise || order.totalPaise) / 100), order.shippingCountry)}</span>
                     </div>
 
                     {order.discountPaise > 0 && (
                        <div className="flex justify-between items-center font-bold text-[#22c55e] bg-[#0a2e1a]/80 px-3 py-1.5 rounded-xl border border-[#22c55e]/30">
                           <span>🎉 Coupon Saved {order.couponCode ? `(${order.couponCode})` : ""}</span>
-                          <span>-₹{(order.discountPaise / 100).toLocaleString("en-IN")}</span>
+                          <span>-{formatPrice((order.discountPaise / 100), order.shippingCountry)}</span>
                        </div>
                     )}
 
                     {order.shippingPaise > 0 && (
                        <div className="flex justify-between items-center text-zinc-400">
                           <span>Delivery Charges</span>
-                          <span className="font-medium text-white">+₹{(order.shippingPaise / 100).toLocaleString("en-IN")}</span>
+                          <span className="font-medium text-white">+{formatPrice((order.shippingPaise / 100), order.shippingCountry)}</span>
                        </div>
                     )}
                     {order.codChargePaise > 0 && (
                        <div className="flex justify-between items-center text-zinc-400">
                           <span>COD Surcharge</span>
-                          <span className="font-medium text-white">+₹{(order.codChargePaise / 100).toLocaleString("en-IN")}</span>
+                          <span className="font-medium text-white">+{formatPrice((order.codChargePaise / 100), order.shippingCountry)}</span>
                        </div>
                     )}
 
@@ -483,7 +485,7 @@ export default function OrdersPage() {
                     <div className="flex justify-between items-baseline pt-1">
                        <span className="text-zinc-200 font-extrabold text-sm">Total Paid / Payable</span>
                        <span className="font-black text-[#22c55e] text-base sm:text-lg">
-                          ₹{(order.totalPaise / 100).toLocaleString("en-IN")}
+                          {formatPrice((order.totalPaise / 100), order.shippingCountry)}
                        </span>
                     </div>
                  </div>

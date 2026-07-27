@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {  Camera, Package, RefreshCcw, Plus, ArrowLeft, CheckCircle2, Loader2, Upload, AlertCircle, Sparkles, Image as ImageIcon, ShieldCheck, X , Search, ScanLine } from "lucide-react";
+import { Camera, Package, RefreshCcw, Plus, ArrowLeft, CheckCircle2, Loader2, Upload, AlertCircle, Sparkles, Image as ImageIcon, ShieldCheck, X, Search, ScanLine, LogOut } from "lucide-react";
 import BarcodeScanner from "@/features/vendor/components/BarcodeScanner";
 import { compressImageToWebP } from "@/lib/imageCompressor";
 
@@ -43,26 +43,34 @@ export default function VendorCameraHubPage() {
     fetchVendorAuth();
   }, []);
 
-  // Auto-Select Order ID if search matches exactly
+  // Auto-Select Order ID if search matches
   useEffect(() => {
     if (searchOrderId && orders.length > 0) {
-      const match = orders.find(o => o.id.toString() === searchOrderId);
+      const cleaned = searchOrderId.trim().toLowerCase();
+      const match = orders.find(o => 
+        o.id.toString() === cleaned || 
+        (o.orderNumber && o.orderNumber.toLowerCase() === cleaned) ||
+        (o.orderNumber && o.orderNumber.toLowerCase().includes(cleaned)) ||
+        (o.awbCode && o.awbCode.toLowerCase().includes(cleaned))
+      );
       if (match) {
         setSelectedOrder(match);
         setPackingImages([]);
-        setSearchOrderId(""); // Clear search field after auto-selecting
       }
     }
   }, [searchOrderId, orders]);
 
-  // Auto-Select Return ID if search matches exactly
+  // Auto-Select Return ID if search matches
   useEffect(() => {
     if (searchReturnId && returns.length > 0) {
-      const match = returns.find(r => r.id.toString() === searchReturnId);
+      const cleaned = searchReturnId.trim().toLowerCase();
+      const match = returns.find(r => 
+        r.id.toString() === cleaned || 
+        (r.reason && r.reason.toLowerCase().includes(cleaned))
+      );
       if (match) {
         setSelectedReturn(match);
         setQcImages([]);
-        setSearchReturnId(""); // Clear search field after auto-selecting
       }
     }
   }, [searchReturnId, returns]);
@@ -72,16 +80,17 @@ export default function VendorCameraHubPage() {
     try {
       const res = await fetch("/api/auth/me", { cache: "no-store" });
       const data = await res.json();
-      if (res.ok && data.authenticated && (data.user?.role === "vendor" || data.user?.role === "admin" || (data.user?.role === "user" && data.user?.parentVendorId))) {
+      if (res.ok && data.authenticated) {
         setVendor(data.user);
         fetchCategories();
-        fetchOrdersAndReturns(data.user.id);
+        const effectiveVid = data.user.role === "user" && data.user.parentVendorId ? data.user.parentVendorId : data.user.id;
+        fetchOrdersAndReturns(effectiveVid);
       } else {
-        router.push("/vendor/login?redirect=/vendor/camera");
+        router.push("/login");
       }
     } catch (err) {
       console.error(err);
-      router.push("/vendor/login?redirect=/vendor/camera");
+      router.push("/login");
     } finally {
       setLoading(false);
     }
@@ -97,7 +106,7 @@ export default function VendorCameraHubPage() {
 
   const fetchOrdersAndReturns = async (vid?: number) => {
     try {
-      const activeVendorId = vid || vendor?.id;
+      const activeVendorId = vid || (vendor?.role === "user" && vendor?.parentVendorId ? vendor.parentVendorId : vendor?.id);
       if (!activeVendorId) return;
       const [ordRes, retRes] = await Promise.all([
         fetch(`/api/orders?vendorId=${activeVendorId}&limit=500`),
@@ -268,26 +277,28 @@ export default function VendorCameraHubPage() {
         </div>
       )}
 
-      {/* Mobile Sticky Top Header */}
-      <header className="sticky top-0 z-40 bg-surface-card/90 backdrop-blur-md border-b border-border/80 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.push("/vendor/dashboard")}
-            className="p-2 rounded-xl bg-surface border border-border text-muted hover:text-heading cursor-pointer"
-          >
-            <ArrowLeft size={18} />
-          </button>
+      {/* Worker Dedicated Minimal Top Header (Logo + Account Only, No Blinkit/Main Navbar) */}
+      <header className="sticky top-0 z-40 bg-[#121214] text-white border-b border-zinc-800 px-4 py-3 flex items-center justify-between shadow-xl">
+        <div className="flex items-center gap-3">
+          <img src="/logo4.jpg" alt="StopShop Logo" className="w-8 h-8 rounded-xl object-contain bg-white p-0.5" />
           <div>
-            <h1 className="text-sm font-bold text-heading flex items-center gap-1.5 font-display">
-              <Camera size={16} className="text-orange-500" />
-              Camera Studio
+            <h1 className="text-xs font-black text-white flex items-center gap-1.5 font-display tracking-wider">
+              Worker Studio
+              <span className="text-[9px] bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.2 rounded-md font-sans">LIVE</span>
             </h1>
-            <p className="text-[10px] text-muted truncate max-w-[160px]">{vendor ? (vendor.storeName || vendor.name) : (workerVendorId ? "Worker Mode" : "")}</p>
+            <p className="text-[10px] text-zinc-400 truncate max-w-[170px] font-medium">
+              {vendor ? (vendor.name || vendor.email) : "Worker Account"}
+            </p>
           </div>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-500/10 text-orange-500 rounded-full border border-orange-500/20">
-          ⚡ Mobile Cam
-        </span>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 text-[11px] font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer"
+        >
+          <LogOut size={13} />
+          <span>Logout</span>
+        </button>
       </header>
 
       {/* Main Content Area */}
@@ -448,11 +459,20 @@ export default function VendorCameraHubPage() {
                     No pending orders to pack.
                   </div>
                 ) : (
-                  orders.filter(o => !searchOrderId || o.id.toString() === searchOrderId).map(ord => (
+                  orders.filter(o => {
+                    if (!searchOrderId) return true;
+                    const q = searchOrderId.trim().toLowerCase();
+                    return (
+                      o.id.toString() === q ||
+                      (o.orderNumber && o.orderNumber.toLowerCase().includes(q)) ||
+                      (o.shippingName && o.shippingName.toLowerCase().includes(q)) ||
+                      (o.awbCode && o.awbCode.toLowerCase().includes(q))
+                    );
+                  }).map(ord => (
                     <div
                       key={ord.id}
                       onClick={() => { setSelectedOrder(ord); setPackingImages([]); }}
-                      className="p-4 bg-surface-card border border-border/80 hover:border-orange-500/80 rounded-2xl flex items-center justify-between cursor-pointer transition-all shadow-sm"
+                      className="p-4 bg-surface-card border border-border/80 hover:border-orange-500/80 rounded-2xl flex items-center justify-between cursor-pointer transition-all shadow-sm hover:scale-[1.01]"
                     >
                       <div className="flex items-center gap-3 w-full">
                         <div className="w-12 h-12 rounded-xl border border-border/80 overflow-hidden flex-shrink-0 bg-surface">
