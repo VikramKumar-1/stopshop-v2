@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
       }
 
       return customPayout;
-    });
+    }, { maxWait: 10000, timeout: 30000 });
 
     return NextResponse.json({ success: true, data: result, message: "Custom payout processed successfully" });
 

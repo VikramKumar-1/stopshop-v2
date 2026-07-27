@@ -47,48 +47,48 @@ export async function GET(req: NextRequest) {
        whereClause.status = status;
     }
 
-    const total = await prisma.order.count({ where: whereClause });
-    const orders = await prisma.order.findMany({
-      where: whereClause,
-      include: {
-         user: {
-            select: { id: true, name: true, email: true, mobile: true }
-         },
-         items: {
-            include: {
-               product: {
-                  select: {
-                     id: true,
-                     name: true,
-                     slug: true,
-                     image: true,
-                     images: true,
-                     vendorId: true
-                  }
-               }
-            }
-         },
-         returnRequest: true
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit
-    });
+    const shouldFetchStats = searchParams.get("getStats") === "true";
 
-    let stats: any[] | undefined = undefined;
-    if (searchParams.get("getStats") === "true") {
-       stats = await prisma.order.findMany({
-          where: whereClause,
-          select: {
-             status: true,
-             paymentMethod: true,
-             paymentStatus: true,
-             currency: true,
-             totalPaise: true,
-             commissionPaise: true
-          }
-       });
-    }
+    const [total, orders, stats] = await Promise.all([
+      prisma.order.count({ where: whereClause }),
+      prisma.order.findMany({
+        where: whereClause,
+        include: {
+           user: {
+              select: { id: true, name: true, email: true, mobile: true }
+           },
+           items: {
+              include: {
+                 product: {
+                    select: {
+                       id: true,
+                       name: true,
+                       slug: true,
+                       image: true,
+                       images: true,
+                       vendorId: true
+                    }
+                 }
+              }
+           },
+           returnRequest: true
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      shouldFetchStats ? prisma.order.findMany({
+        where: whereClause,
+        select: {
+           status: true,
+           paymentMethod: true,
+           paymentStatus: true,
+           currency: true,
+           totalPaise: true,
+           commissionPaise: true
+        }
+      }) : Promise.resolve(undefined)
+    ]);
 
     return NextResponse.json({
       success: true,

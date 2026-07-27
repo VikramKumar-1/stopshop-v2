@@ -121,7 +121,7 @@ export const AdminPanel = () => {
   const [orderPage, setOrderPage] = useState(1);
   const [fetchingOrders, setFetchingOrders] = useState(false);
 
-  const { data: ordersData, mutate: mutateOrders } = useSWR(authorized ? `/api/orders?page=${orderPage}&limit=20&getStats=true` : null, fetcher);
+  const { data: ordersData, mutate: mutateOrders, isLoading: isLoadingOrders } = useSWR(authorized ? `/api/orders?page=${orderPage}&limit=20&getStats=true` : null, fetcher);
   const orders = ordersData?.orders || [];
   const orderStats = ordersData?.stats || [];
   const orderTotalPages = ordersData?.pagination?.totalPages || 1;
@@ -943,7 +943,7 @@ export const AdminPanel = () => {
               orderTotalPages={orderTotalPages}
               exchangeRates={exchangeRates}
               loadMoreRef={loadMoreRef}
-              isLoadingData={isLoadingData}
+              isLoadingData={isLoadingData || isLoadingOrders || (!ordersData && authorized === true)}
             />
           )}
 

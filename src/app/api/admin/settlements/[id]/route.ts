@@ -53,7 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
           }
 
           return s;
-       });
+       }, { maxWait: 10000, timeout: 30000 });
 
        return NextResponse.json({ success: true, data: updated });
     }
@@ -129,7 +129,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
           }
 
           return s;
-       });
+       }, { maxWait: 10000, timeout: 30000 });
 
        return NextResponse.json({ success: true, data: updated });
     }
