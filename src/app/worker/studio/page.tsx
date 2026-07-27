@@ -246,7 +246,7 @@ export default function VendorCameraHubPage() {
 
   const handleConfirmDispatch = async () => {
     if (!selectedOrder) return;
-    if (packingImages.length < 5) return showToast("Please snap at least 5 packing photos", "error");
+    if (packingImages.length < 5) return showToast("Please upload at least 5 clear proof photos (Min 5 required)", "error");
 
     setSubmittingDispatch(true);
     try {
@@ -260,15 +260,17 @@ export default function VendorCameraHubPage() {
       });
 
       if (res.ok) {
-        showToast("📦 Dispatch photos submitted & Order Dispatched!", "success");
+        showToast("📦 Order marked as PACKED! Shiprocket pickup requested.", "success");
         setSelectedOrder(null);
         setPackingImages([]);
-        fetchOrdersAndReturns();
+        const effectiveVid = vendor?.role === "user" && vendor?.parentVendorId ? vendor.parentVendorId : vendor?.id;
+        fetchOrdersAndReturns(effectiveVid);
       } else {
-        showToast("Failed to submit dispatch", "error");
+        const errData = await res.json();
+        showToast(errData.error || "Failed to submit packing proof", "error");
       }
     } catch (e: any) {
-      showToast(e.message || "Dispatch error", "error");
+      showToast(e.message || "Packing submission error", "error");
     } finally {
       setSubmittingDispatch(false);
     }
@@ -447,9 +449,9 @@ export default function VendorCameraHubPage() {
                     <label className="block text-[11px] font-bold text-heading uppercase">
                       Upload Packing Proof
                     </label>
-                    <span className="text-[10px] font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">{packingImages.length} / 8</span>
+                    <span className="text-[10px] font-bold text-orange-500 bg-orange-500/10 px-2.5 py-1 rounded-full">{packingImages.length} / 8 (Min 5 Req)</span>
                   </div>
-                  <p className="text-[10px] text-muted leading-tight">Please upload clear photos of the item, bubble wrapping, box sealing, and shipping label.</p>
+                  <p className="text-[10px] text-muted leading-tight">Snap raw product from 4 angles (front, sides, bottom for dent proof), plus bubble wrap, box sealing & shipping label.</p>
 
                   <div className="grid grid-cols-2 gap-3">
                     {/* Live In-App Camera Viewfinder Button */}
@@ -505,7 +507,7 @@ export default function VendorCameraHubPage() {
                   className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
                 >
                   {submittingDispatch ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                  <span>Confirm & Mark Dispatched ({packingImages.length} Photos)</span>
+                  <span>Mark as Packed (Request Shiprocket Pickup)</span>
                 </button>
               </div>
             ) : (
