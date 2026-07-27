@@ -18,7 +18,9 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
     maxDiscountPaise: "",
     maxUses: "",
     maxUsesPerUser: "1",
-    expiresAt: ""
+    expiresAt: "",
+    allowDomestic: true,
+    allowInternational: true
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -54,7 +56,9 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
       maxDiscountPaise: coupon.maxDiscountPaise ? (coupon.maxDiscountPaise / 100).toString() : "",
       maxUses: coupon.maxUses ? coupon.maxUses.toString() : "",
       maxUsesPerUser: coupon.maxUsesPerUser ? coupon.maxUsesPerUser.toString() : "1",
-      expiresAt: coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().slice(0, 16) : ""
+      expiresAt: coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().slice(0, 16) : "",
+      allowDomestic: coupon.allowDomestic !== false,
+      allowInternational: coupon.allowInternational !== false
     });
     setEditingId(coupon.id);
     setShowForm(true);
@@ -96,7 +100,7 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
       if (data.success) {
         setShowForm(false);
         setEditingId(null);
-        setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1", expiresAt: "" });
+        setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1", expiresAt: "", allowDomestic: true, allowInternational: true });
         fetchCoupons(true);
       } else {
         setError(data.error);
@@ -164,7 +168,7 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
             setShowForm(!showForm);
             if (!showForm) {
               setEditingId(null);
-              setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1", expiresAt: "" });
+              setFormData({ code: "", description: "", discountType: "PERCENTAGE", discountValue: "", minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1", expiresAt: "", allowDomestic: true, allowInternational: true });
             }
           }}
           className="px-3.5 py-1.5 bg-heading text-surface rounded-xl text-xs font-bold hover:bg-orange-500 transition-colors flex items-center gap-1.5 shadow-sm"
@@ -207,6 +211,25 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
             <div>
               <label className="block text-xs font-bold text-muted mb-1 uppercase">Expiry Date (Optional)</label>
               <input type="datetime-local" value={formData.expiresAt} onChange={e => setFormData({...formData, expiresAt: e.target.value})} className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold focus:border-orange-500 focus:outline-none" />
+            </div>
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-xs font-bold text-muted uppercase">Target Region / Country Applicability</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex items-center gap-3 bg-blue-500/5 p-3 rounded-xl border border-blue-500/20">
+                  <input type="checkbox" id="vendorAllowDomestic" checked={formData.allowDomestic} onChange={e => setFormData({...formData, allowDomestic: e.target.checked})} className="w-5 h-5 accent-blue-500" />
+                  <label htmlFor="vendorAllowDomestic" className="text-xs font-bold text-heading cursor-pointer">
+                    🇮🇳 Domestic (India)
+                    <span className="block text-[10px] text-muted font-normal mt-0.5">Valid for customers in India</span>
+                  </label>
+                </div>
+                <div className="flex items-center gap-3 bg-purple-500/5 p-3 rounded-xl border border-purple-500/20">
+                  <input type="checkbox" id="vendorAllowInternational" checked={formData.allowInternational} onChange={e => setFormData({...formData, allowInternational: e.target.checked})} className="w-5 h-5 accent-purple-500" />
+                  <label htmlFor="vendorAllowInternational" className="text-xs font-bold text-heading cursor-pointer">
+                    🌍 International (Outside India)
+                    <span className="block text-[10px] text-muted font-normal mt-0.5">Valid for International customers</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex justify-end pt-2">

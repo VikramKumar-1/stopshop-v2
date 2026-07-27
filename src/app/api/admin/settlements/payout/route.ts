@@ -63,10 +63,45 @@ export async function POST(req: NextRequest) {
     });
     const vendorMap = new Map(vendors.map(v => [v.id, v]));
 
+    // Fast-path for Test Payout Mode (Bulk update in 10ms)
+    if (testMode) {
+       const validSettlements = eligibleSettlements.filter(s => {
+          const v = vendorMap.get(s.vendorId);
+          return v && !v.payoutsPaused;
+       });
+
+       const validIds = validSettlements.map(s => s.id);
+       const targetOrderIds = Array.from(new Set(validSettlements.map(s => s.orderId)));
+
+       if (validIds.length > 0) {
+          await Promise.all([
+             prisma.settlement.updateMany({
+                where: { id: { in: validIds } },
+                data: {
+                   status: "SETTLED",
+                   vendorPaymentMode: "razorpay_route_mock",
+                   vendorPaymentRef: "mock_trf_bulk_" + Date.now(),
+                   settledAt: new Date()
+                }
+             }),
+             prisma.order.updateMany({
+                where: { id: { in: targetOrderIds } },
+                data: { settlementStatus: "SETTLED" }
+             })
+          ]);
+       }
+
+       return NextResponse.json({
+          success: true,
+          message: `Test Payouts completed instantly for ${validIds.length} settlements!`,
+          processedCount: validIds.length
+       });
+    }
+
     const processedIds: number[] = [];
     const failedIds: number[] = [];
 
-    // 2. Process each settlement
+    // 2. Process each live settlement
     for (const settlement of eligibleSettlements) {
        const vendor = vendorMap.get(settlement.vendorId);
        if (!vendor) {

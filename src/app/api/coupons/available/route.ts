@@ -6,7 +6,8 @@ export async function POST(req: NextRequest) {
   try {
     const user = getAuthUser(req);
     const body = await req.json();
-    const { cartItems } = body;
+    const { cartItems, country = "IN" } = body;
+    const isDomestic = (country || "IN").toUpperCase() === "IN";
 
     const totalUserOrders = user ? await prisma.order.count({
       where: {
@@ -58,12 +59,16 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Filter out coupons that the user has already maxed out
+    // Filter out coupons that the user has already maxed out or region mismatch
     const availableCoupons = [];
     
     for (const coupon of activeCoupons) {
       // Skip if global usage limit reached
       if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) continue;
+      
+      // Skip if region mismatch
+      if (isDomestic && coupon.allowDomestic === false) continue;
+      if (!isDomestic && coupon.allowInternational === false) continue;
       
       // If user has already placed an order, do NOT show "first order" or welcome coupons!
       if (totalUserOrders > 0) {

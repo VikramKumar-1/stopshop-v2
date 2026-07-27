@@ -409,6 +409,8 @@ exports.Prisma.CouponScalarFieldEnum = {
   maxUsesPerUser: 'maxUsesPerUser',
   usedCount: 'usedCount',
   isFirstOrderOnly: 'isFirstOrderOnly',
+  allowDomestic: 'allowDomestic',
+  allowInternational: 'allowInternational',
   isActive: 'isActive',
   isAutoApply: 'isAutoApply',
   startsAt: 'startsAt',

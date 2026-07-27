@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
                     commissionPaise: vComm,
                     vendorPayoutPaise: total - vComm,
                     status: "HOLD",
-                    holdUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                    holdUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
                   }
                 });
               }

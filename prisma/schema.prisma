@@ -478,6 +478,8 @@ model Coupon {
   maxUsesPerUser  Int       @default(1)      // Per-user limit
   usedCount       Int       @default(0)      // Current total uses
   isFirstOrderOnly Boolean  @default(false)  // Only valid for the user's very first order
+  allowDomestic    Boolean  @default(true)   // Valid for India orders
+  allowInternational Boolean @default(true)  // Valid for Outside India orders
   
   // Validity
   isActive        Boolean   @default(true)

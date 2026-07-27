@@ -94,6 +94,17 @@ export async function GET(req: NextRequest) {
        data: { lastPayoutRun: new Date() }
     });
 
+    // Auto-release settlements whose 7-day return window holding period has passed
+    await prisma.settlement.updateMany({
+       where: {
+          status: "HOLD",
+          holdUntil: { lte: new Date() }
+       },
+       data: {
+          status: "ELIGIBLE"
+       }
+    });
+
     // 3. Find all ELIGIBLE settlements
     const eligibleSettlements = await prisma.settlement.findMany({
        where: { status: "ELIGIBLE" },

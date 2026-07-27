@@ -17111,6 +17111,8 @@ export namespace Prisma {
     maxUsesPerUser: number | null
     usedCount: number | null
     isFirstOrderOnly: boolean | null
+    allowDomestic: boolean | null
+    allowInternational: boolean | null
     isActive: boolean | null
     isAutoApply: boolean | null
     startsAt: Date | null
@@ -17137,6 +17139,8 @@ export namespace Prisma {
     maxUsesPerUser: number | null
     usedCount: number | null
     isFirstOrderOnly: boolean | null
+    allowDomestic: boolean | null
+    allowInternational: boolean | null
     isActive: boolean | null
     isAutoApply: boolean | null
     startsAt: Date | null
@@ -17163,6 +17167,8 @@ export namespace Prisma {
     maxUsesPerUser: number
     usedCount: number
     isFirstOrderOnly: number
+    allowDomestic: number
+    allowInternational: number
     isActive: number
     isAutoApply: number
     startsAt: number
@@ -17215,6 +17221,8 @@ export namespace Prisma {
     maxUsesPerUser?: true
     usedCount?: true
     isFirstOrderOnly?: true
+    allowDomestic?: true
+    allowInternational?: true
     isActive?: true
     isAutoApply?: true
     startsAt?: true
@@ -17241,6 +17249,8 @@ export namespace Prisma {
     maxUsesPerUser?: true
     usedCount?: true
     isFirstOrderOnly?: true
+    allowDomestic?: true
+    allowInternational?: true
     isActive?: true
     isAutoApply?: true
     startsAt?: true
@@ -17267,6 +17277,8 @@ export namespace Prisma {
     maxUsesPerUser?: true
     usedCount?: true
     isFirstOrderOnly?: true
+    allowDomestic?: true
+    allowInternational?: true
     isActive?: true
     isAutoApply?: true
     startsAt?: true
@@ -17380,6 +17392,8 @@ export namespace Prisma {
     maxUsesPerUser: number
     usedCount: number
     isFirstOrderOnly: boolean
+    allowDomestic: boolean
+    allowInternational: boolean
     isActive: boolean
     isAutoApply: boolean
     startsAt: Date
@@ -17425,6 +17439,8 @@ export namespace Prisma {
     maxUsesPerUser?: boolean
     usedCount?: boolean
     isFirstOrderOnly?: boolean
+    allowDomestic?: boolean
+    allowInternational?: boolean
     isActive?: boolean
     isAutoApply?: boolean
     startsAt?: boolean
@@ -17452,6 +17468,8 @@ export namespace Prisma {
     maxUsesPerUser?: boolean
     usedCount?: boolean
     isFirstOrderOnly?: boolean
+    allowDomestic?: boolean
+    allowInternational?: boolean
     isActive?: boolean
     isAutoApply?: boolean
     startsAt?: boolean
@@ -17482,6 +17500,8 @@ export namespace Prisma {
       maxUsesPerUser: number
       usedCount: number
       isFirstOrderOnly: boolean
+      allowDomestic: boolean
+      allowInternational: boolean
       isActive: boolean
       isAutoApply: boolean
       startsAt: Date
@@ -17874,6 +17894,8 @@ export namespace Prisma {
     readonly maxUsesPerUser: FieldRef<"Coupon", 'Int'>
     readonly usedCount: FieldRef<"Coupon", 'Int'>
     readonly isFirstOrderOnly: FieldRef<"Coupon", 'Boolean'>
+    readonly allowDomestic: FieldRef<"Coupon", 'Boolean'>
+    readonly allowInternational: FieldRef<"Coupon", 'Boolean'>
     readonly isActive: FieldRef<"Coupon", 'Boolean'>
     readonly isAutoApply: FieldRef<"Coupon", 'Boolean'>
     readonly startsAt: FieldRef<"Coupon", 'DateTime'>
@@ -25912,6 +25934,8 @@ export namespace Prisma {
     maxUsesPerUser: 'maxUsesPerUser',
     usedCount: 'usedCount',
     isFirstOrderOnly: 'isFirstOrderOnly',
+    allowDomestic: 'allowDomestic',
+    allowInternational: 'allowInternational',
     isActive: 'isActive',
     isAutoApply: 'isAutoApply',
     startsAt: 'startsAt',
@@ -27770,6 +27794,8 @@ export namespace Prisma {
     maxUsesPerUser?: IntFilter<"Coupon"> | number
     usedCount?: IntFilter<"Coupon"> | number
     isFirstOrderOnly?: BoolFilter<"Coupon"> | boolean
+    allowDomestic?: BoolFilter<"Coupon"> | boolean
+    allowInternational?: BoolFilter<"Coupon"> | boolean
     isActive?: BoolFilter<"Coupon"> | boolean
     isAutoApply?: BoolFilter<"Coupon"> | boolean
     startsAt?: DateTimeFilter<"Coupon"> | Date | string
@@ -27796,6 +27822,8 @@ export namespace Prisma {
     maxUsesPerUser?: SortOrder
     usedCount?: SortOrder
     isFirstOrderOnly?: SortOrder
+    allowDomestic?: SortOrder
+    allowInternational?: SortOrder
     isActive?: SortOrder
     isAutoApply?: SortOrder
     startsAt?: SortOrder
@@ -27825,6 +27853,8 @@ export namespace Prisma {
     maxUsesPerUser?: IntFilter<"Coupon"> | number
     usedCount?: IntFilter<"Coupon"> | number
     isFirstOrderOnly?: BoolFilter<"Coupon"> | boolean
+    allowDomestic?: BoolFilter<"Coupon"> | boolean
+    allowInternational?: BoolFilter<"Coupon"> | boolean
     isActive?: BoolFilter<"Coupon"> | boolean
     isAutoApply?: BoolFilter<"Coupon"> | boolean
     startsAt?: DateTimeFilter<"Coupon"> | Date | string
@@ -27851,6 +27881,8 @@ export namespace Prisma {
     maxUsesPerUser?: SortOrder
     usedCount?: SortOrder
     isFirstOrderOnly?: SortOrder
+    allowDomestic?: SortOrder
+    allowInternational?: SortOrder
     isActive?: SortOrder
     isAutoApply?: SortOrder
     startsAt?: SortOrder
@@ -27885,6 +27917,8 @@ export namespace Prisma {
     maxUsesPerUser?: IntWithAggregatesFilter<"Coupon"> | number
     usedCount?: IntWithAggregatesFilter<"Coupon"> | number
     isFirstOrderOnly?: BoolWithAggregatesFilter<"Coupon"> | boolean
+    allowDomestic?: BoolWithAggregatesFilter<"Coupon"> | boolean
+    allowInternational?: BoolWithAggregatesFilter<"Coupon"> | boolean
     isActive?: BoolWithAggregatesFilter<"Coupon"> | boolean
     isAutoApply?: BoolWithAggregatesFilter<"Coupon"> | boolean
     startsAt?: DateTimeWithAggregatesFilter<"Coupon"> | Date | string
@@ -30367,6 +30401,8 @@ export namespace Prisma {
     maxUsesPerUser?: number
     usedCount?: number
     isFirstOrderOnly?: boolean
+    allowDomestic?: boolean
+    allowInternational?: boolean
     isActive?: boolean
     isAutoApply?: boolean
     startsAt?: Date | string
@@ -30393,6 +30429,8 @@ export namespace Prisma {
     maxUsesPerUser?: number
     usedCount?: number
     isFirstOrderOnly?: boolean
+    allowDomestic?: boolean
+    allowInternational?: boolean
     isActive?: boolean
     isAutoApply?: boolean
     startsAt?: Date | string
@@ -30418,6 +30456,8 @@ export namespace Prisma {
     maxUsesPerUser?: IntFieldUpdateOperationsInput | number
     usedCount?: IntFieldUpdateOperationsInput | number
     isFirstOrderOnly?: BoolFieldUpdateOperationsInput | boolean
+    allowDomestic?: BoolFieldUpdateOperationsInput | boolean
+    allowInternational?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isAutoApply?: BoolFieldUpdateOperationsInput | boolean
     startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30444,6 +30484,8 @@ export namespace Prisma {
     maxUsesPerUser?: IntFieldUpdateOperationsInput | number
     usedCount?: IntFieldUpdateOperationsInput | number
     isFirstOrderOnly?: BoolFieldUpdateOperationsInput | boolean
+    allowDomestic?: BoolFieldUpdateOperationsInput | boolean
+    allowInternational?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isAutoApply?: BoolFieldUpdateOperationsInput | boolean
     startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30470,6 +30512,8 @@ export namespace Prisma {
     maxUsesPerUser?: number
     usedCount?: number
     isFirstOrderOnly?: boolean
+    allowDomestic?: boolean
+    allowInternational?: boolean
     isActive?: boolean
     isAutoApply?: boolean
     startsAt?: Date | string
@@ -30495,6 +30539,8 @@ export namespace Prisma {
     maxUsesPerUser?: IntFieldUpdateOperationsInput | number
     usedCount?: IntFieldUpdateOperationsInput | number
     isFirstOrderOnly?: BoolFieldUpdateOperationsInput | boolean
+    allowDomestic?: BoolFieldUpdateOperationsInput | boolean
+    allowInternational?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isAutoApply?: BoolFieldUpdateOperationsInput | boolean
     startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30521,6 +30567,8 @@ export namespace Prisma {
     maxUsesPerUser?: IntFieldUpdateOperationsInput | number
     usedCount?: IntFieldUpdateOperationsInput | number
     isFirstOrderOnly?: BoolFieldUpdateOperationsInput | boolean
+    allowDomestic?: BoolFieldUpdateOperationsInput | boolean
+    allowInternational?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     isAutoApply?: BoolFieldUpdateOperationsInput | boolean
     startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32538,6 +32586,8 @@ export namespace Prisma {
     maxUsesPerUser?: SortOrder
     usedCount?: SortOrder
     isFirstOrderOnly?: SortOrder
+    allowDomestic?: SortOrder
+    allowInternational?: SortOrder
     isActive?: SortOrder
     isAutoApply?: SortOrder
     startsAt?: SortOrder
@@ -32576,6 +32626,8 @@ export namespace Prisma {
     maxUsesPerUser?: SortOrder
     usedCount?: SortOrder
     isFirstOrderOnly?: SortOrder
+    allowDomestic?: SortOrder
+    allowInternational?: SortOrder
     isActive?: SortOrder
     isAutoApply?: SortOrder
     startsAt?: SortOrder
@@ -32602,6 +32654,8 @@ export namespace Prisma {
     maxUsesPerUser?: SortOrder
     usedCount?: SortOrder
     isFirstOrderOnly?: SortOrder
+    allowDomestic?: SortOrder
+    allowInternational?: SortOrder
     isActive?: SortOrder
     isAutoApply?: SortOrder
     startsAt?: SortOrder

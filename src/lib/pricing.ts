@@ -183,6 +183,9 @@ export async function calculateOrderPricing(
         if (!coupon.maxUses || coupon.usedCount < coupon.maxUses) {
           
           let canUse = true;
+          const isDomestic = (country || "IN").toUpperCase() === "IN";
+          if (isDomestic && coupon.allowDomestic === false) canUse = false;
+          if (!isDomestic && coupon.allowInternational === false) canUse = false;
           if (userId) {
             if (coupon.isFirstOrderOnly) {
               const totalSuccessfulOrders = await prisma.order.count({

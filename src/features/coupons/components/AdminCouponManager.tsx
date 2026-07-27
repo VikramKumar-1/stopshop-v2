@@ -21,7 +21,9 @@ export const AdminCouponManager = () => {
     isActive: true,
     description: "",
     applicableCategories: "",
-    applicableMaterials: ""
+    applicableMaterials: "",
+    allowDomestic: true,
+    allowInternational: true
   });
   const [updating, setUpdating] = useState(false);
 
@@ -40,7 +42,9 @@ export const AdminCouponManager = () => {
     applicableCategories: "",
     applicableMaterials: "",
     isAutoApply: false,
-    isFirstOrderOnly: false
+    isFirstOrderOnly: false,
+    allowDomestic: true,
+    allowInternational: true
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -124,7 +128,8 @@ export const AdminCouponManager = () => {
         setFormData({
           code: "", description: "", discountType: "PERCENTAGE", discountValue: "",
           minOrderPaise: "", maxDiscountPaise: "", maxUses: "", maxUsesPerUser: "1",
-          vendorId: "", startsAt: "", expiresAt: "", applicableCategories: "", applicableMaterials: "", isAutoApply: false, isFirstOrderOnly: false
+          vendorId: "", startsAt: "", expiresAt: "", applicableCategories: "", applicableMaterials: "", isAutoApply: false, isFirstOrderOnly: false,
+          allowDomestic: true, allowInternational: true
         });
         fetchAllData(true);
       } else {
@@ -152,7 +157,9 @@ export const AdminCouponManager = () => {
       isActive: coupon.isActive,
       description: coupon.description || "",
       applicableCategories: coupon.applicableCategories || "",
-      applicableMaterials: coupon.applicableMaterials || ""
+      applicableMaterials: coupon.applicableMaterials || "",
+      allowDomestic: coupon.allowDomestic !== false,
+      allowInternational: coupon.allowInternational !== false
     });
   };
 
@@ -179,7 +186,9 @@ export const AdminCouponManager = () => {
           isActive: editFormData.isActive,
           description: editFormData.description,
           applicableCategories: editFormData.applicableCategories || null,
-          applicableMaterials: editFormData.applicableMaterials || null
+          applicableMaterials: editFormData.applicableMaterials || null,
+          allowDomestic: editFormData.allowDomestic,
+          allowInternational: editFormData.allowInternational
         })
       });
 
@@ -414,6 +423,25 @@ export const AdminCouponManager = () => {
                   <option key={mat} value={mat}>{mat}</option>
                 ))}
               </select>
+            </div>
+            <div className="md:col-span-2 lg:col-span-3 space-y-2">
+              <label className="block text-xs font-bold text-muted uppercase">Target Region / Country Applicability</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex items-center gap-3 bg-blue-500/5 p-3 rounded-xl border border-blue-500/20">
+                  <input type="checkbox" id="allowDomestic" checked={formData.allowDomestic} onChange={e => setFormData({...formData, allowDomestic: e.target.checked})} className="w-5 h-5 accent-blue-500" />
+                  <label htmlFor="allowDomestic" className="text-xs font-bold text-heading cursor-pointer">
+                    🇮🇳 Domestic (India)
+                    <span className="block text-[10px] text-muted font-normal mt-0.5">Valid for customers in India</span>
+                  </label>
+                </div>
+                <div className="flex items-center gap-3 bg-purple-500/5 p-3 rounded-xl border border-purple-500/20">
+                  <input type="checkbox" id="allowInternational" checked={formData.allowInternational} onChange={e => setFormData({...formData, allowInternational: e.target.checked})} className="w-5 h-5 accent-purple-500" />
+                  <label htmlFor="allowInternational" className="text-xs font-bold text-heading cursor-pointer">
+                    🌍 International (Outside India)
+                    <span className="block text-[10px] text-muted font-normal mt-0.5">Valid for International customers</span>
+                  </label>
+                </div>
+              </div>
             </div>
             <div className="md:col-span-2 lg:col-span-3 flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex-1 flex items-center gap-3 bg-orange-500/5 p-4 rounded-xl border border-orange-500/20">

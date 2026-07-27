@@ -38,6 +38,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ valid: false, error: "This coupon has reached its usage limit" });
     }
 
+    // Region restriction checks (silently reject mismatching region coupons as Invalid)
+    const isDomestic = (country || "IN").toUpperCase() === "IN";
+    if ((isDomestic && coupon.allowDomestic === false) || (!isDomestic && coupon.allowInternational === false)) {
+      return NextResponse.json({ valid: false, error: "Invalid coupon code" });
+    }
+
     // Check per-user limits and first order constraint
     if (user) {
       if (coupon.isFirstOrderOnly) {

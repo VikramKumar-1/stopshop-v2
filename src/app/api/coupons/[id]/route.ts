@@ -9,7 +9,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     const couponId = parseInt(params.id);
     const body = await req.json();
-    const { isActive, vendorStatus, isAutoApply, isFirstOrderOnly, description, expiresAt, maxUses, startsAt, applicableCategories, applicableMaterials } = body;
+    const { isActive, vendorStatus, isAutoApply, isFirstOrderOnly, description, expiresAt, maxUses, startsAt, applicableCategories, applicableMaterials, allowDomestic, allowInternational } = body;
 
     const coupon = await prisma.coupon.findUnique({ where: { id: couponId } });
     if (!coupon) {
@@ -36,6 +36,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (maxUses !== undefined) updateData.maxUses = maxUses ? parseInt(maxUses) : null;
     if (applicableCategories !== undefined) updateData.applicableCategories = applicableCategories;
     if (applicableMaterials !== undefined) updateData.applicableMaterials = applicableMaterials;
+    if (allowDomestic !== undefined) updateData.allowDomestic = !!allowDomestic;
+    if (allowInternational !== undefined) updateData.allowInternational = !!allowInternational;
     
     // Vendor Opt-in logic
     if (user.role === "vendor" && vendorStatus !== undefined) {

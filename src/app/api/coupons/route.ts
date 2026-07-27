@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       code, description, discountType, discountValue, maxDiscountPaise, 
       minOrderPaise, maxUses, maxUsesPerUser, startsAt, expiresAt, 
       applicableCategories, applicableMaterials, minItems, vendorId, isAutoApply,
-      isFirstOrderOnly
+      isFirstOrderOnly, allowDomestic, allowInternational
     } = body;
 
     if (!code || !discountValue) {
@@ -110,7 +110,9 @@ export async function POST(req: NextRequest) {
         minItems: minItems ? parseInt(minItems) : 1,
         isActive: user.role === "admin" && finalVendorId ? false : true, // Active if not pending opt-in
         isAutoApply: user.role === "admin" ? !!isAutoApply : false, // ONLY Admin can set auto-apply
-        isFirstOrderOnly: !!isFirstOrderOnly
+        isFirstOrderOnly: !!isFirstOrderOnly,
+        allowDomestic: allowDomestic !== undefined ? !!allowDomestic : true,
+        allowInternational: allowInternational !== undefined ? !!allowInternational : true
       }
     });
 
