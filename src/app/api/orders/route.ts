@@ -12,7 +12,8 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const rawLimit = parseInt(searchParams.get("limit") || "15");
+    const limit = Math.min(Math.max(rawLimit, 1), 100);
     const status = searchParams.get("status");
 
     let whereClause: any = {};
@@ -56,16 +57,18 @@ export async function GET(req: NextRequest) {
          items: {
             include: {
                product: {
-                  include: {
-                     vendor: {
-                        select: { id: true, name: true, email: true, mobile: true, location: true, gstin: true, artisanId: true }
-                     }
+                  select: {
+                     id: true,
+                     name: true,
+                     slug: true,
+                     image: true,
+                     images: true,
+                     vendorId: true
                   }
                }
             }
          },
-         returnRequest: true,
-         settlements: true
+         returnRequest: true
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -30,6 +31,9 @@ export async function PUT(req: NextRequest) {
       },
       update: { homepageSections, mobileBanners },
     });
+
+    revalidatePath("/");
+    revalidatePath("/api/homepage");
 
     return NextResponse.json({ success: true, homepageSections: updated.homepageSections, mobileBanners: updated.mobileBanners });
     } catch (error: any) {

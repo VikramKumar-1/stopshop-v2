@@ -56,7 +56,14 @@ export async function GET() {
       where: { role: "vendor", vendorStatus: "APPROVED" }
     });
 
-    return NextResponse.json({ sections: populatedSections, mobileBanners, vendorCount });
+    return NextResponse.json(
+      { sections: populatedSections, mobileBanners, vendorCount },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300"
+        }
+      }
+    );
   } catch (error: any) {
     console.error("Homepage sections error:", error);
     return NextResponse.json({ sections: [], mobileBanners: [] });

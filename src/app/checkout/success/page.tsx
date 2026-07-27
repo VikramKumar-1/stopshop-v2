@@ -32,7 +32,7 @@ function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams?.get("orderId");
   const { clearCart } = useCart();
-  const { formatPrice } = useRegion();
+  const { formatPrice, getRawPrice, region } = useRegion();
   
   // Initialize instantly from sessionStorage or clean fallback for 0ms loading delay!
   const [order, setOrder] = useState<any>(() => {
@@ -159,43 +159,67 @@ function CheckoutSuccessContent() {
               </div>
             )}
 
-            <div className="h-px bg-zinc-800/80 my-1.5" />
+            {/* Currency aware price rendering */}
+            {(() => {
+              const isIntl = order?.orderNumber?.includes("-INTL-") || (order?.shippingCountry && order.shippingCountry.trim().toUpperCase() !== "IN");
+              const orderRegion = isIntl ? (order?.shippingCountry || "US") : (region || "IN");
+              
+              const renderPrice = (paiseVal: number) => {
+                const inrVal = paiseVal / 100;
+                if (isIntl) {
+                  const converted = getRawPrice(inrVal, undefined, false, orderRegion);
+                  return formatPrice(converted, orderRegion);
+                }
+                return formatPrice(inrVal, orderRegion);
+              };
 
-            <div className="flex justify-between items-center text-zinc-400 gap-2">
-              <span className="shrink-0">Item total</span>
-              <span className="font-medium text-white">
-                {formatPrice((order?.subtotalPaise || order?.totalPaise || 400000) / 100)}
-              </span>
-            </div>
+              return (
+                <>
+                  <div className="flex justify-between items-center text-zinc-400 gap-2">
+                    <span className="shrink-0">Item total</span>
+                    <span className="font-medium text-white">
+                      {renderPrice(order?.subtotalPaise || order?.totalPaise || 400000)}
+                    </span>
+                  </div>
 
-            {order?.discountPaise > 0 && (
-              <div className="flex justify-between items-center font-bold text-[#22c55e] bg-[#0a2e1a]/60 px-2 py-0.5 rounded-lg border border-[#22c55e]/20 gap-2">
-                <span className="truncate mr-1">🎉 Coupon {order.couponCode ? `(${order.couponCode})` : "(MONSOON10)"}</span>
-                <span className="shrink-0">-{formatPrice(order.discountPaise / 100)}</span>
-              </div>
-            )}
+                  {order?.discountPaise > 0 && (
+                    <div className="flex justify-between items-center font-bold text-[#22c55e] bg-[#0a2e1a]/60 px-2 py-0.5 rounded-lg border border-[#22c55e]/20 gap-2">
+                      <span className="truncate mr-1">🎉 Coupon {order.couponCode ? `(${order.couponCode})` : "(MONSOON10)"}</span>
+                      <span className="shrink-0">-{renderPrice(order.discountPaise)}</span>
+                    </div>
+                  )}
 
-            {order?.shippingPaise > 0 && (
-              <div className="flex justify-between items-center text-zinc-400 gap-2">
-                <span className="shrink-0">Delivery charges</span>
-                <span className="font-medium text-white">+{formatPrice(order.shippingPaise / 100)}</span>
-              </div>
-            )}
-            {order?.codChargePaise > 0 && (
-              <div className="flex justify-between items-center text-zinc-400 gap-2">
-                <span className="shrink-0">COD surcharge</span>
-                <span className="font-medium text-white">+{formatPrice(order.codChargePaise / 100)}</span>
-              </div>
-            )}
+                  {order?.shippingPaise > 0 && (
+                    <div className="flex justify-between items-center text-zinc-400 gap-2">
+                      <span className="shrink-0">Delivery charges</span>
+                      <span className="font-medium text-white">+{renderPrice(order.shippingPaise)}</span>
+                    </div>
+                  )}
+                  {order?.codChargePaise > 0 && (
+                    <div className="flex justify-between items-center text-zinc-400 gap-2">
+                      <span className="shrink-0">COD surcharge</span>
+                      <span className="font-medium text-white">+{renderPrice(order.codChargePaise)}</span>
+                    </div>
+                  )}
 
-            <div className="h-px bg-zinc-800/80 my-1.5" />
+                  <div className="h-px bg-zinc-800/80 my-1.5" />
 
-            <div className="flex justify-between items-baseline pt-0.5 gap-2">
-              <span className="text-zinc-200 font-bold text-xs shrink-0">Total paid</span>
-              <span className="font-black text-[#22c55e] text-sm sm:text-base">
-                {order ? formatPrice(order.totalPaise / 100) : "₹3,600.80"}
-              </span>
-            </div>
+                  <div className="flex justify-between items-baseline pt-0.5 gap-2">
+                    <span className="text-zinc-200 font-bold text-xs shrink-0">Total paid</span>
+                    <div className="text-right">
+                      <span className="font-black text-[#22c55e] text-sm sm:text-base block">
+                        {order ? renderPrice(order.totalPaise) : "$109.46"}
+                      </span>
+                      {isIntl && order?.totalPaise && (
+                        <span className="text-[10px] text-zinc-400 font-medium block">
+                          (₹{(order.totalPaise / 100).toLocaleString("en-IN")} INR equivalent)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           {/* Compact 1-Row Item Summary */}

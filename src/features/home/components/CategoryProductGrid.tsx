@@ -193,7 +193,8 @@ export const CategoryProductGrid = ({
                     alt={product.name}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                    loading="lazy"
+                    priority={index < 4}
+                    loading={index < 4 ? "eager" : "lazy"}
                     className="object-cover"
                   />
 

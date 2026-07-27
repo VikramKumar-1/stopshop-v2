@@ -62,13 +62,20 @@ export const HomePage = () => {
   const { data: allProducts, isLoading: loadingProducts } = useSWR('/api/products', fetcher);
   const { data: hpData, isLoading: loadingSections } = useSWR('/api/homepage', fetcher);
 
-  const [groupedProducts, setGroupedProducts] = useState<Record<string, any[]>>({});
+  const [groupedProducts, setGroupedProducts] = useState<Record<string, any[]>>(() => ({
+    "Kitchen Utility": mockKitchenUtility,
+    "Pooja Collection": mockPoojaCollection,
+    "Brass Cookware": mockBrassCookware,
+    "Copper Products": mockCopperProducts,
+    "Steel Essentials": mockSteelEssentials,
+    "Dinner Sets": mockDinnerSets,
+  }));
   const [homepageSections, setHomepageSections] = useState<any[]>([]);
   const [mobileBanners, setMobileBanners] = useState<any[]>([]);
 
   // Group products when data arrives
   useEffect(() => {
-    if (allProducts) {
+    if (allProducts && Array.isArray(allProducts) && allProducts.length > 0) {
       const groups: Record<string, any[]> = {};
       allProducts.forEach((product: any) => {
         const catName = product.category?.name || "Premium Collection";
@@ -88,7 +95,7 @@ export const HomePage = () => {
     }
   }, [hpData]);
 
-  const loading = loadingProducts || loadingSections;
+  const loading = (loadingProducts || loadingSections) && Object.keys(groupedProducts).length === 0;
 
   const hasCategory = (slug: string) => {
     return Object.entries(groupedProducts).some(([name, products]) => {

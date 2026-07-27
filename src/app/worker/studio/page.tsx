@@ -26,6 +26,7 @@ export default function VendorCameraHubPage() {
   const [showLiveCameraModal, setShowLiveCameraModal] = useState(false);
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [previewModalImage, setPreviewModalImage] = useState<{ url: string; index: number; type: "packing" | "qc" } | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -33,6 +34,16 @@ export default function VendorCameraHubPage() {
     const mode = overrideFacing || facingMode;
     setShowLiveCameraModal(true);
     try {
+      // Reuse existing active stream if available so mobile browser NEVER prompts permission twice!
+      if (liveStream && liveStream.active && !overrideFacing) {
+        // Enable video tracks if paused
+        liveStream.getVideoTracks().forEach(t => { t.enabled = true; });
+        if (videoRef.current) {
+          videoRef.current.srcObject = liveStream;
+        }
+        return;
+      }
+
       if (liveStream) {
         liveStream.getTracks().forEach(t => t.stop());
       }
@@ -57,8 +68,8 @@ export default function VendorCameraHubPage() {
 
   const stopLiveCamera = () => {
     if (liveStream) {
-      liveStream.getTracks().forEach(t => t.stop());
-      setLiveStream(null);
+      // Pause tracks rather than killing them so permission remains active in browser memory
+      liveStream.getVideoTracks().forEach(t => { t.enabled = false; });
     }
     setShowLiveCameraModal(false);
   };
@@ -497,11 +508,19 @@ export default function VendorCameraHubPage() {
                 {packingImages.length > 0 && (
                   <div className="grid grid-cols-4 gap-2 pt-2">
                     {packingImages.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-border">
-                        <img src={img} alt="packing" className="w-full h-full object-cover" />
+                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-border group cursor-pointer">
+                        <img 
+                          src={img} 
+                          alt="packing" 
+                          onClick={() => setPreviewModalImage({ url: img, index: idx, type: "packing" })}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                        />
                         <button
-                          onClick={() => setPackingImages(prev => prev.filter((_, i) => i !== idx))}
-                          className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPackingImages(prev => prev.filter((_, i) => i !== idx));
+                          }}
+                          className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center font-bold shadow"
                         >
                           ✕
                         </button>
@@ -838,6 +857,59 @@ export default function VendorCameraHubPage() {
                 Done
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-Screen Photo Inspection Lightbox Modal */}
+      {previewModalImage && (
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 animate-in fade-in duration-200">
+          {/* Header */}
+          <div className="flex justify-between items-center text-white pt-2 px-2 z-10">
+            <div>
+              <p className="text-xs font-bold text-orange-400 uppercase tracking-wide">Photo Inspector</p>
+              <p className="text-[10px] text-zinc-400">Snap #{previewModalImage.index + 1} of {packingImages.length}</p>
+            </div>
+            <button 
+              onClick={() => setPreviewModalImage(null)}
+              className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-full font-bold text-xs shadow cursor-pointer"
+            >
+              ✕ Close
+            </button>
+          </div>
+
+          {/* High Res Full View */}
+          <div className="flex-1 flex items-center justify-center p-2 relative overflow-hidden">
+            <img 
+              src={previewModalImage.url} 
+              alt="Inspect Photo" 
+              className="max-h-[75vh] max-w-full object-contain rounded-2xl border border-zinc-800 shadow-2xl" 
+            />
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-center gap-3 pb-6 z-10">
+            <button
+              onClick={() => {
+                if (previewModalImage.type === "packing") {
+                  setPackingImages(prev => prev.filter((_, i) => i !== previewModalImage.index));
+                } else {
+                  setQcImages(prev => prev.filter((_, i) => i !== previewModalImage.index));
+                }
+                setPreviewModalImage(null);
+                showToast("Photo removed", "info");
+              }}
+              className="px-5 py-3 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 rounded-2xl font-bold text-xs flex items-center gap-2 cursor-pointer active:scale-95"
+            >
+              <span>🗑️ Remove Photo</span>
+            </button>
+
+            <button
+              onClick={() => setPreviewModalImage(null)}
+              className="px-6 py-3 bg-white text-black font-extrabold text-xs rounded-2xl shadow active:scale-95 cursor-pointer"
+            >
+              ✓ Looks Good
+            </button>
           </div>
         </div>
       )}

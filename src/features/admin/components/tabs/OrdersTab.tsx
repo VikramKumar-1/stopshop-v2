@@ -40,11 +40,15 @@ export function OrdersTab({
      const status = (o.status || "").toUpperCase();
      statusCounts[status] = (statusCounts[status] || 0) + 1;
 
-     const method = (o.paymentMethod || "").toLowerCase();
-     paymentCounts[method] = (paymentCounts[method] || 0) + 1;
-
+     const isPaidOrConfirmed = o.paymentStatus === "PAID" || (o.paymentMethod === "cod" && ["CONFIRMED", "PACKED", "DISPATCHED", "DELIVERED"].includes(status));
      const excludedStatuses = ["CANCELLED", "RETURN_APPROVED", "RETURN_PICKED", "RETURN_RECEIVED", "RETURNED", "REFUNDED", "FAILED"];
-     if (!excludedStatuses.includes(status)) {
+     
+     if (isPaidOrConfirmed && !excludedStatuses.includes(status)) {
+        const method = (o.paymentMethod || "").toLowerCase();
+        if (method) {
+          paymentCounts[method] = (paymentCounts[method] || 0) + 1;
+        }
+
         const currency = o.currency || "INR";
         const rawPaise = o.totalPaise || 0;
         
@@ -580,7 +584,7 @@ export function OrdersTab({
           <div>
             <div className="flex items-baseline gap-2">
               <h3 className="text-3xl font-extrabold text-white tracking-tight">
-                ₹{(aovINR / 100).toLocaleString()}
+                ₹{(aovINR / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
               </h3>
               <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded uppercase">
                 INR
