@@ -37,6 +37,7 @@ const socialLinks = [
 
 export const Footer = () => {
   const pathname = usePathname();
+  if (pathname.startsWith("/worker")) return null;
   const isDashboard = pathname.startsWith("/vendor") || pathname.startsWith("/admin");
   const [isSupportOpen, setIsSupportOpen] = useState(false);
 

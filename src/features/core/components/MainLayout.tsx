@@ -109,7 +109,9 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   let ptClass = "pt-[95px] lg:pt-0";
-  if (isDashboard) {
+  if (pathname.startsWith("/worker")) {
+    ptClass = "pt-0";
+  } else if (isDashboard) {
     ptClass = "pt-14 lg:pt-0";
   } else if (isNoStripPage) {
     ptClass = "pt-[95px] lg:pt-0";

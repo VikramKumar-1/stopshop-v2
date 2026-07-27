@@ -309,7 +309,7 @@ export default function VendorCameraHubPage() {
           <div className="space-y-4 animate-in fade-in duration-200">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-2">
               <Package size={14} className="text-orange-500" />
-              Orders Ready for Packing Photos ({orders.length})
+              Orders Ready for Packing Photos ({orders.filter(o => o.status === "CONFIRMED" || o.status === "PROCESSING" || !["SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status)).length})
             </h2>
 
             {selectedOrder ? (
@@ -360,25 +360,24 @@ export default function VendorCameraHubPage() {
                   <p className="text-[10px] text-muted leading-tight">Please upload clear photos of the item, bubble wrapping, box sealing, and shipping label.</p>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Camera Button */}
+                    {/* Live Camera Button */}
                     <input
                       type="file"
                       accept="image/*"
                       capture="environment"
-                      multiple
                       id="cam-packing-live"
                       onChange={handleSnapPackingPhotos}
                       className="sr-only"
                     />
                     <label
                       htmlFor="cam-packing-live"
-                      className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       {uploadingPacking ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
-                      <span>Use Camera</span>
+                      <span>Snap Photo ({packingImages.length}/8)</span>
                     </label>
 
-                    {/* Gallery Button */}
+                    {/* Multi-Photo Gallery Selection */}
                     <input
                       type="file"
                       accept="image/*"
@@ -389,10 +388,10 @@ export default function VendorCameraHubPage() {
                     />
                     <label
                       htmlFor="cam-packing-gallery"
-                      className="w-full py-3 bg-surface hover:bg-surface-hover text-heading border border-border rounded-2xl font-bold text-xs shadow-sm transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-3 bg-surface hover:bg-surface-hover text-heading border border-border rounded-2xl font-bold text-xs shadow-sm transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       {uploadingPacking ? <Loader2 size={18} className="animate-spin text-orange-500" /> : <ImageIcon size={18} className="text-blue-500" />}
-                      <span>Pick Gallery</span>
+                      <span>Select Multiple</span>
                     </label>
                   </div>
                 </div>
@@ -454,12 +453,15 @@ export default function VendorCameraHubPage() {
                     </button>
                   </div>
                 </div>
-                {orders.length === 0 ? (
+                {orders.filter(o => o.status === "CONFIRMED" || o.status === "PROCESSING" || !["SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status)).length === 0 ? (
                   <div className="p-8 text-center text-xs text-muted font-bold bg-surface-card rounded-2xl border border-dashed border-border">
                     No pending orders to pack.
                   </div>
                 ) : (
                   orders.filter(o => {
+                    const isPackingReady = o.status === "CONFIRMED" || o.status === "PROCESSING" || !["SHIPPED", "DELIVERED", "CANCELLED", "RETURNED", "DISPATCHED"].includes(o.status);
+                    if (!isPackingReady) return false;
+
                     if (!searchOrderId) return true;
                     const q = searchOrderId.trim().toLowerCase();
                     return (
