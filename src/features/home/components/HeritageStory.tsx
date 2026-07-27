@@ -29,7 +29,7 @@ export const HeritageStory = ({ vendorCount = 0 }: { vendorCount?: number }) => 
           >
             <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl shadow-black/30">
               <Image
-                src="/bronze-kadai.png"
+                src="/bronze-kadai.webp"
                 alt="Indian artisans crafting bronze utensils"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

@@ -71,7 +71,7 @@ export const WhyChooseUs = () => {
           >
             <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl shadow-bronze-900/10">
               <Image
-                src="/bronze-hero.png"
+                src="/bronze-hero.webp"
                 alt="StopShop quality checked products"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

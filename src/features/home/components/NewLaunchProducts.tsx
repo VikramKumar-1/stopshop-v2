@@ -14,7 +14,7 @@ const newProducts = [
     tagColor: "from-rose-500 to-orange-500",
     description: "Set of 6 premium handcrafted bell metal (Kansa) water glasses with an exquisite mirror-finish polish.",
     specs: "Set of 6 | 320ml | Mirror Finish",
-    image: "/bronze-lota.png",
+    image: "/bronze-lota.webp",
     rating: 5.0,
     reviews: 8
   },
@@ -25,7 +25,7 @@ const newProducts = [
     tagColor: "from-teal-500 to-bronze-500",
     description: "An elegant kitchen organizer containing 7 individual bronze bowls protected by a hand-carved floral lid.",
     specs: "7 Bowls | Engraved Floral Lid",
-    image: "/bronze-hero.png",
+    image: "/bronze-hero.webp",
     rating: 4.9,
     reviews: 14
   },
@@ -36,7 +36,7 @@ const newProducts = [
     tagColor: "from-purple-500 to-indigo-500",
     description: "Premium heavy-gauge bronze frypan with an insulated handle, optimized for roasting spices and quick cooking.",
     specs: "Diameter: 9.5 inches | Induction Friendly",
-    image: "/bronze-kadai.png",
+    image: "/bronze-kadai.webp",
     rating: 4.8,
     reviews: 6
   },
@@ -47,7 +47,7 @@ const newProducts = [
     tagColor: "from-orange-600 to-red-500",
     description: "Traditional wellness water jug handcrafted from pure bronze to boost digestion and purify your daily drinking water.",
     specs: "Capacity: 2 Litres | 100% Lead-Free",
-    image: "/bronze-lota.png",
+    image: "/bronze-lota.webp",
     rating: 5.0,
     reviews: 5
   }

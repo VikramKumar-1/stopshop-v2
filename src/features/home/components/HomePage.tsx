@@ -26,41 +26,41 @@ const generateMock = (base: any[]) => {
 };
 
 const mockKitchenUtility = generateMock([
-  { id: 1, name: "Heritage Bronze Kadai", description: "Heavy-duty pure bronze cooking kadai.", specs: "Weight: 2.4 kg | Hand-Hammered", image: "/bronze-kadai.png", rating: 4.9, reviews: 124, price: 2499, mrp: 3199, material: "Bronze", categoryName: "kitchen-utility" },
-  { id: 2, name: "Handcrafted Bronze Handi", description: "Elegant deep-cooking pot with lid.", specs: "Capacity: 3 Litres", image: "/bronze-hero.png", rating: 4.7, reviews: 67, price: 3299, mrp: 4499, material: "Bronze", categoryName: "kitchen-utility" }
+  { id: 1, name: "Heritage Bronze Kadai", description: "Heavy-duty pure bronze cooking kadai.", specs: "Weight: 2.4 kg | Hand-Hammered", image: "/bronze-kadai.webp", rating: 4.9, reviews: 124, price: 2499, mrp: 3199, material: "Bronze", categoryName: "kitchen-utility" },
+  { id: 2, name: "Handcrafted Bronze Handi", description: "Elegant deep-cooking pot with lid.", specs: "Capacity: 3 Litres", image: "/bronze-hero.webp", rating: 4.7, reviews: 67, price: 3299, mrp: 4499, material: "Bronze", categoryName: "kitchen-utility" }
 ]);
 
 const mockPoojaCollection = generateMock([
-  { id: 101, name: "Premium Brass Puja Thali Set", description: "Complete handcrafted puja thali with components.", specs: "Material: Brass | 7 Pieces", image: "/collection-pooja.png", rating: 4.8, reviews: 89, price: 1899, mrp: 2499, material: "Brass", categoryName: "pooja-collection" },
-  { id: 102, name: "Hand-Hammered Copper Lota", description: "Traditional copper vessel for prayer water.", specs: "Material: Copper | 500ml", image: "/bronze-lota.png", rating: 4.9, reviews: 210, price: 899, mrp: 1299, material: "Copper", categoryName: "pooja-collection" }
+  { id: 101, name: "Premium Brass Puja Thali Set", description: "Complete handcrafted puja thali with components.", specs: "Material: Brass | 7 Pieces", image: "/collection-pooja.webp", rating: 4.8, reviews: 89, price: 1899, mrp: 2499, material: "Brass", categoryName: "pooja-collection" },
+  { id: 102, name: "Hand-Hammered Copper Lota", description: "Traditional copper vessel for prayer water.", specs: "Material: Copper | 500ml", image: "/bronze-lota.webp", rating: 4.9, reviews: 210, price: 899, mrp: 1299, material: "Copper", categoryName: "pooja-collection" }
 ]);
 
 const mockBrassCookware = generateMock([
-  { id: 201, name: "Royal Brass Cookware Kadai", description: "Traditional solid brass cooking vessel.", specs: "Material: Brass | 2.5 Litre", image: "/bronze-kadai.png", rating: 4.8, reviews: 54, price: 2899, mrp: 3599, material: "Brass", categoryName: "brass-cookware" },
-  { id: 202, name: "Artisan Brass Patila Pot", description: "Deep-bottom brass pot for milk and curries.", specs: "Capacity: 2 Litres", image: "/bronze-hero.png", rating: 4.6, reviews: 32, price: 3599, mrp: 4299, material: "Brass", categoryName: "brass-cookware" }
+  { id: 201, name: "Royal Brass Cookware Kadai", description: "Traditional solid brass cooking vessel.", specs: "Material: Brass | 2.5 Litre", image: "/bronze-kadai.webp", rating: 4.8, reviews: 54, price: 2899, mrp: 3599, material: "Brass", categoryName: "brass-cookware" },
+  { id: 202, name: "Artisan Brass Patila Pot", description: "Deep-bottom brass pot for milk and curries.", specs: "Capacity: 2 Litres", image: "/bronze-hero.webp", rating: 4.6, reviews: 32, price: 3599, mrp: 4299, material: "Brass", categoryName: "brass-cookware" }
 ]);
 
 const mockCopperProducts = generateMock([
-  { id: 301, name: "Ayurvedic Pure Copper Water Bottle", description: "Joint-less pure copper leakproof water bottle.", specs: "Capacity: 1 Litre", image: "/bronze-lota.png", rating: 4.9, reviews: 342, price: 999, mrp: 1399, material: "Copper", categoryName: "copper-products" },
-  { id: 302, name: "Traditional Copper Hammered Jug Set", description: "Elegant copper jug with matching glasses.", specs: "1 Jug + 2 Glasses", image: "/collection-tableware.png", rating: 4.7, reviews: 118, price: 1899, mrp: 2499, material: "Copper", categoryName: "copper-products" }
+  { id: 301, name: "Ayurvedic Pure Copper Water Bottle", description: "Joint-less pure copper leakproof water bottle.", specs: "Capacity: 1 Litre", image: "/bronze-lota.webp", rating: 4.9, reviews: 342, price: 999, mrp: 1399, material: "Copper", categoryName: "copper-products" },
+  { id: 302, name: "Traditional Copper Hammered Jug Set", description: "Elegant copper jug with matching glasses.", specs: "1 Jug + 2 Glasses", image: "/collection-tableware.webp", rating: 4.7, reviews: 118, price: 1899, mrp: 2499, material: "Copper", categoryName: "copper-products" }
 ]);
 
 const mockSteelEssentials = generateMock([
-  { id: 401, name: "Premium Tri-Ply Stainless Steel Frypan", description: "High-grade tri-ply stainless steel skillet.", specs: "Diameter: 24cm", image: "/collection-tableware.png", rating: 4.8, reviews: 93, price: 1499, mrp: 1999, material: "Steel", categoryName: "steel-essentials" },
-  { id: 402, name: "Durable Steel Storage Containers", description: "Airtight modular kitchen container set.", specs: "Set of 3 Containers", image: "/bronze-kadai.png", rating: 4.6, reviews: 45, price: 799, mrp: 1099, material: "Steel", categoryName: "steel-essentials" }
+  { id: 401, name: "Premium Tri-Ply Stainless Steel Frypan", description: "High-grade tri-ply stainless steel skillet.", specs: "Diameter: 24cm", image: "/collection-tableware.webp", rating: 4.8, reviews: 93, price: 1499, mrp: 1999, material: "Steel", categoryName: "steel-essentials" },
+  { id: 402, name: "Durable Steel Storage Containers", description: "Airtight modular kitchen container set.", specs: "Set of 3 Containers", image: "/bronze-kadai.webp", rating: 4.6, reviews: 45, price: 799, mrp: 1099, material: "Steel", categoryName: "steel-essentials" }
 ]);
 
 const mockDinnerSets = generateMock([
-  { id: 501, name: "Vedic Bronze Thali Dinner Set", description: "Traditional pure bronze dinner set.", specs: "Kansa / Bronze | 6 Pieces", image: "/collection-tableware.png", rating: 4.9, reviews: 156, price: 4999, mrp: 5999, material: "Bronze", categoryName: "dinner-sets" },
-  { id: 502, name: "Royal Brass Dinner Set", description: "Exquisite solid brass design dinner set.", specs: "Brass | 5 Pieces", image: "/collection-tableware.png", rating: 4.8, reviews: 78, price: 3899, mrp: 4599, material: "Brass", categoryName: "dinner-sets" }
+  { id: 501, name: "Vedic Bronze Thali Dinner Set", description: "Traditional pure bronze dinner set.", specs: "Kansa / Bronze | 6 Pieces", image: "/collection-tableware.webp", rating: 4.9, reviews: 156, price: 4999, mrp: 5999, material: "Bronze", categoryName: "dinner-sets" },
+  { id: 502, name: "Royal Brass Dinner Set", description: "Exquisite solid brass design dinner set.", specs: "Brass | 5 Pieces", image: "/collection-tableware.webp", rating: 4.8, reviews: 78, price: 3899, mrp: 4599, material: "Brass", categoryName: "dinner-sets" }
 ]);
 
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 
-export const HomePage = () => {
-  const { data: allProducts, isLoading: loadingProducts } = useSWR('/api/products', fetcher);
-  const { data: hpData, isLoading: loadingSections } = useSWR('/api/homepage', fetcher);
+export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?: any[]; initialHpData?: any }) => {
+  const { data: allProducts, isLoading: loadingProducts } = useSWR('/api/products?take=60', fetcher, { fallbackData: initialProducts });
+  const { data: hpData, isLoading: loadingSections } = useSWR('/api/homepage', fetcher, { fallbackData: initialHpData });
 
   const [groupedProducts, setGroupedProducts] = useState<Record<string, any[]>>(() => ({
     "Kitchen Utility": mockKitchenUtility,
@@ -141,7 +141,7 @@ export const HomePage = () => {
       <HeroSection />
 
       {/* 2. Shop by Category Grid */}
-      <ShopByCollections />
+      <ShopByCollections categoriesData={hpData?.categories} />
 
       {/* 3. Best Sellers */}
       <FeaturedProducts products={bestSellerProducts.length > 0 ? bestSellerProducts : undefined} />
@@ -187,7 +187,7 @@ export const HomePage = () => {
       ) : Object.keys(groupedProducts).length === 0 && homepageSections.length === 0 ? (
         // Fallback display if DB is empty and no admin sections - Render ALL mock sections
         <>
-          <CategoryProductGrid title="Kitchen Utility" tagLine="Heritage Cooking Essentials" products={mockKitchenUtility} viewAllLink="/products?category=kitchen-utility" accentColor="emerald" />
+          <CategoryProductGrid title="Kitchen Utility" tagLine="Heritage Cooking Essentials" products={mockKitchenUtility} viewAllLink="/products?category=kitchen-utility" accentColor="emerald" isAboveFold />
           <CategoryProductGrid title="Brass Cookware" tagLine="Royal Dining & Serveware" products={mockBrassCookware} viewAllLink="/products?category=brass-cookware" accentColor="bronze" />
           <CategoryProductGrid title="Pooja Collection" tagLine="Sacred Ritual Vessels" products={mockPoojaCollection} viewAllLink="/products?category=pooja-collection" accentColor="rose" />
           <CategoryProductGrid title="Copper Products" tagLine="Ayurvedic Wellness Essentials" products={mockCopperProducts} viewAllLink="/products?category=copper-products" accentColor="bronze" />
@@ -216,7 +216,7 @@ export const HomePage = () => {
         return (
           <>
             {/* 1. Admin-configured sections first — show assigned products + auto-fill remaining up to 15 */}
-            {sectionsToRender.map((section: any) => {
+            {sectionsToRender.map((section: any, sectionIdx: number) => {
               const { accentColor, tagLine } = getAccent(section.slug);
               
               const manualProducts = section.products || [];
@@ -250,6 +250,7 @@ export const HomePage = () => {
                   products={finalProducts}
                   viewAllLink={section.slug === "best-sellers" ? "/products" : `/products?category=${section.slug}`}
                   accentColor={accentColor}
+                  isAboveFold={sectionIdx === 0}
                 />
               );
             })}

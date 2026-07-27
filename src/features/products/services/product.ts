@@ -205,7 +205,7 @@ export async function getProducts(filters: ProductFilters) {
     include: {
       category: true,
       vendor: {
-        select: { id: true, name: true, location: true, allowedCategories: true, createdAt: true },
+        select: { id: true, name: true, location: true },
       },
     },
   });

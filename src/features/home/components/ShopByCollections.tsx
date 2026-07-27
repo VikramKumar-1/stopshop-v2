@@ -10,67 +10,67 @@ const categoryStylePresets: Record<string, { bgClass: string; fadeClass: string;
     bgClass: "from-[#121E15] to-[#070D09]", // forest green
     fadeClass: "from-[#121E15] to-transparent",
     textColor: "text-emerald-200",
-    fallbackImage: "/cat-kitchen-utility.png",
+    fallbackImage: "/cat-kitchen-utility.webp",
   },
   "brass-cookware": {
     bgClass: "from-[#251805] to-[#110A01]", // deep bronze
     fadeClass: "from-[#251805] to-transparent",
     textColor: "text-amber-200",
-    fallbackImage: "/cat-brass-cookware.png",
+    fallbackImage: "/cat-brass-cookware.webp",
   },
   "copper-products": {
     bgClass: "from-[#2A1005] to-[#110501]", // deep copper
     fadeClass: "from-[#2A1005] to-transparent",
     textColor: "text-orange-200",
-    fallbackImage: "/cat-copper-products.png",
+    fallbackImage: "/cat-copper-products.webp",
   },
   "steel-essentials": {
     bgClass: "from-[#1F2229] to-[#0E1013]", // slate steel
     fadeClass: "from-[#1F2229] to-transparent",
     textColor: "text-zinc-300",
-    fallbackImage: "/cat-steel-essentials.png",
+    fallbackImage: "/cat-steel-essentials.webp",
   },
   "home-living": {
     bgClass: "from-[#24170A] to-[#100903]", // earthy brown
     fadeClass: "from-[#24170A] to-transparent",
     textColor: "text-amber-200/90",
-    fallbackImage: "/cat-home-living.png",
+    fallbackImage: "/cat-home-living.webp",
   },
   "bedroom-essentials": {
     bgClass: "from-[#0F1626] to-[#070B14]", // indigo
     fadeClass: "from-[#0F1626] to-transparent",
     textColor: "text-indigo-200",
-    fallbackImage: "/cat-home-living.png",
+    fallbackImage: "/cat-home-living.webp",
   },
   "living-room": {
     bgClass: "from-[#261016] to-[#110408]", // warm burgundy
     fadeClass: "from-[#261016] to-transparent",
     textColor: "text-rose-200",
-    fallbackImage: "/cat-living-room.png",
+    fallbackImage: "/cat-living-room.webp",
   },
   "handicrafts": {
     bgClass: "from-[#1D1026] to-[#0D0412]", // deep purple
     fadeClass: "from-[#1D1026] to-transparent",
     textColor: "text-purple-200",
-    fallbackImage: "/cat-handicrafts.png",
+    fallbackImage: "/cat-handicrafts.webp",
   },
   "pooja-collection": {
     bgClass: "from-[#2B0E0E] to-[#130303]", // crimson red
     fadeClass: "from-[#2B0E0E] to-transparent",
     textColor: "text-red-200",
-    fallbackImage: "/cat-pooja-collection.png",
+    fallbackImage: "/cat-pooja-collection.webp",
   },
   "kitchen-racks": {
     bgClass: "from-[#0D1F1D] to-[#040C0B]", // teal
     fadeClass: "from-[#0D1F1D] to-transparent",
     textColor: "text-teal-200",
-    fallbackImage: "/cat-kitchen-racks.png",
+    fallbackImage: "/cat-kitchen-racks.webp",
   },
   "dinner-sets": {
     bgClass: "from-[#2A1005] to-[#110501]", // deep copper/bronze
     fadeClass: "from-[#2A1005] to-transparent",
     textColor: "text-amber-200",
-    fallbackImage: "/cat-dinner-sets.png", 
+    fallbackImage: "/cat-dinner-sets.webp", 
   },
 };
 
@@ -82,59 +82,58 @@ const defaultCategoryStyle = {
   fallbackImage: "/logo4.jpg"
 };
 
-export const ShopByCollections = () => {
-  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+const defaultCategoriesList = [
+  { id: "brass-cookware", name: "Brass Cookware", image: "/cat-brass-cookware.webp", ...categoryStylePresets["brass-cookware"] },
+  { id: "copper-products", name: "Copper Products", image: "/cat-copper-products.webp", ...categoryStylePresets["copper-products"] },
+  { id: "dinner-sets", name: "Dinner Sets", image: "/cat-dinner-sets.webp", ...categoryStylePresets["dinner-sets"] },
+  { id: "handicrafts", name: "Handicrafts", image: "/cat-handicrafts.webp", ...categoryStylePresets["handicrafts"] },
+  { id: "home-living", name: "Home Living", image: "/cat-home-living.webp", ...categoryStylePresets["home-living"] },
+  { id: "kitchen-racks", name: "Kitchen Racks", image: "/cat-kitchen-racks.webp", ...categoryStylePresets["kitchen-racks"] },
+  { id: "kitchen-utility", name: "Kitchen Utility", image: "/cat-kitchen-utility.webp", ...categoryStylePresets["kitchen-utility"] },
+  { id: "living-room", name: "Living Room", image: "/cat-living-room.webp", ...categoryStylePresets["living-room"] },
+  { id: "pooja-collection", name: "Pooja Collection", image: "/cat-pooja-collection.webp", ...categoryStylePresets["pooja-collection"] },
+  { id: "steel-essentials", name: "Steel Essentials", image: "/cat-steel-essentials.webp", ...categoryStylePresets["steel-essentials"] },
+];
+
+export const ShopByCollections = ({ categoriesData }: { categoriesData?: any[] }) => {
+  const [categoriesList, setCategoriesList] = useState<any[]>(defaultCategoriesList);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch("/api/categories");
-        if (res.ok) {
-          const data = await res.json();
-          // Map API data and attach corresponding styling presets
-            const formatted = data
-            .filter((cat: any) => cat.slug !== "bedroom-essentials")
-            .map((cat: any) => {
-              const preset = categoryStylePresets[cat.slug] || defaultCategoryStyle;
-              
-              // If the database has one of the old generic images, forcefully upgrade it to our new AI image
-              const oldGenericImages = [
-                "/bronze-kadai.png", "/bronze-hero.png", "/bronze-lota.png", 
-                "/collection-tableware.png", "/collection-pooja.png", "/logo4.jpg"
-              ];
-              
-              let finalImage = cat.image;
-              if (!finalImage || oldGenericImages.includes(finalImage)) {
-                finalImage = preset.fallbackImage;
-              }
+    const rawData = categoriesData || [];
+    if (rawData.length > 0) {
+      const formatted = rawData
+        .filter((cat: any) => cat.slug !== "bedroom-essentials")
+        .map((cat: any) => {
+          const preset = categoryStylePresets[cat.slug] || defaultCategoryStyle;
+          
+          const oldGenericImages = [
+            "/bronze-kadai.webp", "/bronze-hero.webp", "/bronze-lota.webp", 
+            "/collection-tableware.webp", "/collection-pooja.webp", "/logo4.jpg"
+          ];
+          
+          let finalImage = cat.image;
+          if (!finalImage || oldGenericImages.includes(finalImage)) {
+            finalImage = preset.fallbackImage;
+          }
+          // Auto-upgrade old .png category images to compressed .webp
+          if (finalImage && finalImage.startsWith("/cat-") && finalImage.endsWith(".png")) {
+            finalImage = finalImage.replace(".png", ".webp");
+          }
 
-              return {
-                id: cat.slug,
-                name: cat.name,
-                image: finalImage,
-                bgClass: preset.bgClass,
-                fadeClass: preset.fadeClass,
-                textColor: preset.textColor,
-              };
-            });
-          setCategoriesList(formatted);
-        }
-      } catch (err) {
-        console.error("Failed to load homepage categories dynamically:", err);
-      }
-    };
+          return {
+            id: cat.slug,
+            name: cat.name,
+            image: finalImage,
+            bgClass: preset.bgClass,
+            fadeClass: preset.fadeClass,
+            textColor: preset.textColor,
+          };
+        });
+      setCategoriesList(formatted);
+    }
+  }, [categoriesData]);
 
-    fetchCategories();
-  }, []);
-
-  // Static fallback if API is not loaded yet or fails
-  const displayCategories = categoriesList.length > 0 ? categoriesList : [
-    { id: "kitchen-utility", name: "Kitchen Utility", image: "/bronze-kadai.png", ...categoryStylePresets["kitchen-utility"] },
-    { id: "brass-cookware", name: "Brass Cookware", image: "/bronze-hero.png", ...categoryStylePresets["brass-cookware"] },
-    { id: "copper-products", name: "Copper Products", image: "/bronze-lota.png", ...categoryStylePresets["copper-products"] },
-    { id: "steel-essentials", name: "Steel Essentials", image: "/collection-tableware.png", ...categoryStylePresets["steel-essentials"] },
-    { id: "home-living", name: "Home Living", image: "/bronze-hero.png", ...categoryStylePresets["home-living"] }
-  ];
+  const displayCategories = categoriesList.length > 0 ? categoriesList : defaultCategoriesList;
 
   return (
     <section className="lazy-scroll-section pt-3 pb-2 md:pt-4 md:pb-3 relative overflow-hidden bg-surface border-y border-bronze-500/10">
@@ -168,7 +167,10 @@ export const ShopByCollections = () => {
                     src={cat.image || "/logo4.jpg"}
                     alt={cat.name}
                     fill
-                    sizes="(max-width: 640px) 50vw, 25vw"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    priority
+                    loading="eager"
+                    unoptimized={!(cat.image || "").includes("cloudinary")}
                     className="object-cover"
                   />
                   {/* Subtle fade transition between image and text */}

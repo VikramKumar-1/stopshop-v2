@@ -11,10 +11,10 @@ const categoryCards = [
     link: "/products?category=kitchen-utility",
     linkText: "Explore all",
     items: [
-      { name: "Brass Cookware", image: "/bronze-hero.png", href: "/products?category=brass-cookware" },
-      { name: "Copper Products", image: "/bronze-lota.png", href: "/products?category=copper-products" },
-      { name: "Steel Essentials", image: "/collection-tableware.png", href: "/products?category=steel-essentials" },
-      { name: "Kitchen Racks", image: "/bronze-kadai.png", href: "/products?category=kitchen-racks" },
+      { name: "Brass Cookware", image: "/bronze-hero.webp", href: "/products?category=brass-cookware" },
+      { name: "Copper Products", image: "/bronze-lota.webp", href: "/products?category=copper-products" },
+      { name: "Steel Essentials", image: "/collection-tableware.webp", href: "/products?category=steel-essentials" },
+      { name: "Kitchen Racks", image: "/bronze-kadai.webp", href: "/products?category=kitchen-racks" },
     ],
   },
   {
@@ -22,10 +22,10 @@ const categoryCards = [
     link: "/products?category=home-living",
     linkText: "See more",
     items: [
-      { name: "Home Living", image: "/bronze-hero.png", href: "/products?category=home-living" },
-      { name: "Bedroom Essentials", image: "/collection-tableware.png", href: "/products?category=bedroom-essentials" },
-      { name: "Living Room", image: "/bronze-hero.png", href: "/products?category=living-room" },
-      { name: "Handicrafts", image: "/bronze-kadai.png", href: "/products?category=handicrafts" },
+      { name: "Home Living", image: "/bronze-hero.webp", href: "/products?category=home-living" },
+      { name: "Bedroom Essentials", image: "/collection-tableware.webp", href: "/products?category=bedroom-essentials" },
+      { name: "Living Room", image: "/bronze-hero.webp", href: "/products?category=living-room" },
+      { name: "Handicrafts", image: "/bronze-kadai.webp", href: "/products?category=handicrafts" },
     ],
   },
   {
@@ -33,10 +33,10 @@ const categoryCards = [
     link: "/products?category=pooja-collection",
     linkText: "Explore all",
     items: [
-      { name: "Pooja Collection", image: "/collection-pooja.png", href: "/products?category=pooja-collection" },
-      { name: "Gifting Sets", image: "/collection-tableware.png", href: "/products?category=gifting" },
-      { name: "Drinkware", image: "/bronze-lota.png", href: "/products?category=drinkware" },
-      { name: "Decor Items", image: "/bronze-hero.png", href: "/products?category=handicrafts" },
+      { name: "Pooja Collection", image: "/collection-pooja.webp", href: "/products?category=pooja-collection" },
+      { name: "Gifting Sets", image: "/collection-tableware.webp", href: "/products?category=gifting" },
+      { name: "Drinkware", image: "/bronze-lota.webp", href: "/products?category=drinkware" },
+      { name: "Decor Items", image: "/bronze-hero.webp", href: "/products?category=handicrafts" },
     ],
   },
   {
@@ -44,10 +44,10 @@ const categoryCards = [
     link: "/products?sort=best-sellers",
     linkText: "See more",
     items: [
-      { name: "Brass Dinner Sets", image: "/collection-tableware.png", href: "/products?category=brass-cookware" },
-      { name: "Copper Bottles", image: "/bronze-lota.png", href: "/products?category=copper-products" },
-      { name: "Bronze Kadai", image: "/bronze-kadai.png", href: "/products?category=kitchen-utility" },
-      { name: "Artisan Decor", image: "/bronze-hero.png", href: "/products?category=handicrafts" },
+      { name: "Brass Dinner Sets", image: "/collection-tableware.webp", href: "/products?category=brass-cookware" },
+      { name: "Copper Bottles", image: "/bronze-lota.webp", href: "/products?category=copper-products" },
+      { name: "Bronze Kadai", image: "/bronze-kadai.webp", href: "/products?category=kitchen-utility" },
+      { name: "Artisan Decor", image: "/bronze-hero.webp", href: "/products?category=handicrafts" },
     ],
   },
 ];

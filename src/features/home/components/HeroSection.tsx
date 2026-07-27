@@ -6,25 +6,25 @@ import { ArrowRight, ChevronLeft, ChevronRight, Star, ShieldCheck, Package } fro
 
 const slides = [
   {
-    src: "/bronze-kadai.png",
+    src: "/bronze-kadai.webp",
     title: "Bronze Kadai",
     description: "Hand-hammered heavy-duty cooking kadai built for generations.",
     tag: "Best Seller"
   },
   {
-    src: "/collection-tableware.png",
+    src: "/collection-tableware.webp",
     title: "Brass Dinner Set",
     description: "Royal brass dining sets with intricate hand-etched artistry.",
     tag: "Premium Collection"
   },
   {
-    src: "/bronze-lota.png",
+    src: "/bronze-lota.webp",
     title: "Copper Water Bottle",
     description: "Pure copper drinkware for natural wellness and hydration.",
     tag: "Wellness Essentials"
   },
   {
-    src: "/bronze-hero.png",
+    src: "/bronze-hero.webp",
     title: "Home Living Decor",
     description: "Handcrafted bronze and brass pieces for elegant Indian homes.",
     tag: "Home & Living"

@@ -17,7 +17,7 @@ const products = [
     tagColor: "from-orange-500 to-red-500",
     description: "Heavy-duty pure bronze cooking kadai, hand-beaten by traditional coppersmiths for uniform heating.",
     specs: "Weight: 2.4 kg | Hand-Hammered",
-    image: "/bronze-kadai.png",
+    image: "/bronze-kadai.webp",
     rating: 4.9,
     reviews: 124,
     price: 2499,
@@ -33,7 +33,7 @@ const products = [
     tagColor: "from-blue-500 to-indigo-500",
     description: "Traditional wellness water vessel designed to naturally purify and alkaline drinking water overnight.",
     specs: "Capacity: 1.5 Litres | Pure Kansa",
-    image: "/bronze-lota.png",
+    image: "/bronze-lota.webp",
     rating: 4.8,
     reviews: 89,
     price: 1899,
@@ -49,7 +49,7 @@ const products = [
     tagColor: "from-purple-500 to-pink-500",
     description: "An exquisite multi-piece dining set fit for royalty, featuring intricate hand-etched rims.",
     specs: "7-Piece Set | Velvet Case Included",
-    image: "/bronze-hero.png",
+    image: "/bronze-hero.webp",
     rating: 5.0,
     reviews: 42,
     price: 5999,
@@ -65,7 +65,7 @@ const products = [
     tagColor: "from-emerald-500 to-teal-500",
     description: "Elegant deep-cooking pot with lid, perfect for slow-cooking biryanis and traditional curries.",
     specs: "Capacity: 3 Litres | Heavy Bottom",
-    image: "/bronze-hero.png",
+    image: "/bronze-hero.webp",
     rating: 4.7,
     reviews: 67,
     price: 3299,
@@ -81,7 +81,7 @@ const products = [
     tagColor: "from-rose-500 to-orange-500",
     description: "Decorative urli bowl used for wellness floating flowers or preparing traditional Ayurvedic oil baths.",
     specs: "Diameter: 12 inches | Solid Cast",
-    image: "/bronze-kadai.png",
+    image: "/bronze-kadai.webp",
     rating: 4.9,
     reviews: 31,
     price: 2199,
@@ -97,7 +97,7 @@ const products = [
     tagColor: "from-cyan-500 to-blue-500",
     description: "Set of premium bronze tumblers for serving lassi, water, or traditional drinks.",
     specs: "Set of 4 | 350ml each",
-    image: "/bronze-lota.png",
+    image: "/bronze-lota.webp",
     rating: 4.6,
     reviews: 58,
     price: 1599,
@@ -113,7 +113,7 @@ const products = [
     tagColor: "from-amber-500 to-orange-500",
     description: "Flat-bottomed classic bronze cooking vessel designed for boiling milk, preparing tea.",
     specs: "Weight: 1.8 kg | Pure Bronze",
-    image: "/bronze-hero.png",
+    image: "/bronze-hero.webp",
     rating: 4.8,
     reviews: 73,
     price: 1999,
@@ -129,7 +129,7 @@ const products = [
     tagColor: "from-orange-500 to-amber-500",
     description: "Complete brass dinner set with plates, bowls, and spoons in a luxury gift box.",
     specs: "12-Piece Set | Gift Box",
-    image: "/collection-tableware.png",
+    image: "/collection-tableware.webp",
     rating: 4.9,
     reviews: 96,
     price: 4999,
@@ -260,11 +260,12 @@ export const FeaturedProducts = ({ products: propProducts }: { products?: any[] 
                     </div>
                   )}
                   <Image
-                    src={product.image || "/bronze-kadai.png"}
+                    src={product.image || "/bronze-kadai.webp"}
                     alt={product.name || "Product"}
                     fill
                     sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 280px"
                     loading="lazy"
+                    unoptimized={!product.image?.includes("cloudinary")}
                     className="object-cover"
                   />
                 </div>

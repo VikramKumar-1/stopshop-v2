@@ -121,15 +121,15 @@ export const AdminPanel = () => {
   const [orderPage, setOrderPage] = useState(1);
   const [fetchingOrders, setFetchingOrders] = useState(false);
 
-  const { data: ordersData, mutate: mutateOrders, isLoading: isLoadingOrders } = useSWR(authorized ? `/api/orders?page=${orderPage}&limit=20&getStats=true` : null, fetcher);
+  const { data: ordersData, mutate: mutateOrders, isLoading: isLoadingOrders } = useSWR(authorized && (activeTab === "orders" || activeTab === "overview") ? `/api/orders?page=${orderPage}&limit=20&getStats=true` : null, fetcher);
   const orders = ordersData?.orders || [];
   const orderStats = ordersData?.stats || [];
   const orderTotalPages = ordersData?.pagination?.totalPages || 1;
 
-  const { data: returnsData, mutate: mutateReturns } = useSWR(authorized ? '/api/returns' : null, fetcher);
+  const { data: returnsData, mutate: mutateReturns } = useSWR(authorized && (activeTab === "returns" || activeTab === "overview") ? '/api/returns' : null, fetcher);
   const returns = returnsData?.returns || [];
 
-  const { data: settlementsData, mutate: mutateSettlements } = useSWR(authorized ? '/api/admin/settlements' : null, fetcher);
+  const { data: settlementsData, mutate: mutateSettlements } = useSWR(authorized && (activeTab === "settlements" || activeTab === "overview") ? '/api/admin/settlements' : null, fetcher);
   const settlements = settlementsData?.settlements || [];
   const apiGroupedSettlements = settlementsData?.groupedSettlements || [];
   const apiSettlementSummary = settlementsData?.summary || null;
@@ -191,13 +191,13 @@ export const AdminPanel = () => {
   const [settings, setSettings] = useState<any>(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const [inquiries, setInquiries] = useState<any[]>([]);
-  const { data: productsData, mutate: mutateProducts } = useSWR(authorized ? '/api/products' : null, fetcher);
+  const { data: productsData, mutate: mutateProducts } = useSWR(authorized && (activeTab === "products" || activeTab === "homepage") ? '/api/products' : null, fetcher);
   const products = productsData || [];
   
-  const { data: categoriesData, mutate: mutateCategories } = useSWR(authorized ? '/api/categories' : null, fetcher);
+  const { data: categoriesData, mutate: mutateCategories } = useSWR(authorized && (activeTab === "categories" || activeTab === "homepage" || activeTab === "products") ? '/api/categories' : null, fetcher);
   const dbCategories = categoriesData || [];
   
-  const { data: vendorsData, mutate: mutateVendors } = useSWR(authorized ? '/api/admin/vendors' : null, fetcher);
+  const { data: vendorsData, mutate: mutateVendors } = useSWR(authorized && (activeTab === "vendors" || activeTab === "overview") ? '/api/admin/vendors' : null, fetcher);
   const vendors = vendorsData?.vendors || [];
   const [selectedInquiryMessage, setSelectedInquiryMessage] = useState<string | null>(null);
   

@@ -169,14 +169,16 @@ export const BlinkitMobileSection = ({ banners: customBanners = [] }: { banners?
   };
   const onTouchEnd = () => {
     const diff = touchStartX.current - touchEndX.current;
-    if (diff > 40) next();
-    else if (diff < -40) prev();
+    if (Math.abs(diff) > 40) {
+      if (diff > 40) next();
+      else if (diff < -40) prev();
+    }
     timerRef.current = setInterval(next, 4000);
   };
 
   return (
-    <section className="lg:hidden">
-      {/* ── Category Grid (Blinkit style) ── */}
+    <section className="md:hidden">
+      {/* ── Mobile Category Icons Grid (Blinkit Style) ── */}
       <div className="bg-gradient-to-b from-orange-50/80 via-amber-50/40 to-transparent dark:from-orange-950/30 dark:via-amber-950/10 dark:to-transparent px-4 pt-4 pb-5">
         <div className="grid grid-cols-4 gap-y-5 gap-x-3">
           {mobileCategories.map((cat) => {
@@ -185,7 +187,8 @@ export const BlinkitMobileSection = ({ banners: customBanners = [] }: { banners?
               <Link
                 key={cat.id}
                 href={cat.href}
-                className="group flex flex-col items-center gap-1.5"
+                prefetch={true}
+                className="group flex flex-col items-center gap-1.5 touch-manipulation active:scale-95 transition-transform duration-100 cursor-pointer"
               >
                 {/* Circle */}
                 <div
@@ -228,7 +231,8 @@ export const BlinkitMobileSection = ({ banners: customBanners = [] }: { banners?
                 <Link
                   key={b.id || idx}
                   href={b.href || "#"}
-                  className="block flex-shrink-0"
+                  prefetch={true}
+                  className="block flex-shrink-0 touch-manipulation active:opacity-90"
                   style={{ width: `${100 / activeBanners.length}%` }}
                 >
                   {isImage ? (

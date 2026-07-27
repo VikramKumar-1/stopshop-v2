@@ -13,7 +13,7 @@ const giftSets = [
     tagColor: "from-orange-600 to-rose-600",
     description: "A complete dining set including thalis, katoris, tumblers, and spoons. Crafted in pure Bell Metal (Kansa) and packaged in a luxury wooden chest.",
     specs: "12 Items | Handcrafted Wood Box",
-    image: "/bronze-hero.png",
+    image: "/bronze-hero.webp",
     rating: 5.0,
     reviews: 28
   },
@@ -24,7 +24,7 @@ const giftSets = [
     tagColor: "from-teal-600 to-orange-600",
     description: "The ultimate wellness gift containing a handcrafted water lota, two healing cups, and pure bronze stirring spoons. Curated for health-conscious living.",
     specs: "5 Items | Eco-friendly Hard Box",
-    image: "/bronze-lota.png",
+    image: "/bronze-lota.webp",
     rating: 4.9,
     reviews: 19
   },
@@ -35,7 +35,7 @@ const giftSets = [
     tagColor: "from-purple-600 to-pink-600",
     description: "Add a touch of elegance to any setting with a grand hand-cast bronze urli bowl accompanied by four exquisite floating leaf diyas.",
     specs: "5 Items | Premium Gift Wrapping",
-    image: "/bronze-kadai.png",
+    image: "/bronze-kadai.webp",
     rating: 4.8,
     reviews: 14
   },
@@ -46,7 +46,7 @@ const giftSets = [
     tagColor: "from-emerald-600 to-bronze-600",
     description: "A beautiful starter package combining a heavy-duty bronze kadai and a traditional handi. The perfect wedding or housewarming registry gift.",
     specs: "2 Heavy Cookware | Custom Cotton Bags",
-    image: "/bronze-kadai.png",
+    image: "/bronze-kadai.webp",
     rating: 4.9,
     reviews: 35
   }

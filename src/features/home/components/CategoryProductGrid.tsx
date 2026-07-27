@@ -31,6 +31,7 @@ interface CategoryProductGridProps {
   products: Product[];
   viewAllLink: string;
   accentColor: string; // e.g. "bronze" | "rose" | "emerald"
+  isAboveFold?: boolean; // Only first section should set this to true
 }
 
 export const CategoryProductGrid = ({
@@ -38,7 +39,8 @@ export const CategoryProductGrid = ({
   tagLine,
   products,
   viewAllLink,
-  accentColor
+  accentColor,
+  isAboveFold = false
 }: CategoryProductGridProps) => {
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -193,8 +195,9 @@ export const CategoryProductGrid = ({
                     alt={product.name}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                    priority={index < 4}
-                    loading={index < 4 ? "eager" : "lazy"}
+                    priority={isAboveFold && index < 4}
+                    loading={isAboveFold && index < 4 ? "eager" : "lazy"}
+                    unoptimized={!product.image?.includes("cloudinary")}
                     className="object-cover"
                   />
 

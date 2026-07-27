@@ -37,7 +37,11 @@ export async function GET(req: NextRequest) {
       take,
     });
 
-    return NextResponse.json(products);
+    return NextResponse.json(products, {
+      headers: {
+        "Cache-Control": includeInactive || vendorId ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300"
+      }
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to fetch products" }, { status: 500 });
   }
@@ -55,6 +59,15 @@ export async function POST(req: NextRequest) {
     
     // Call service layer for validation and prisma creation
     const newProduct = await createProduct(body, session);
+
+    // Instant On-Demand Cache Invalidation
+    try {
+      const { revalidatePath } = require("next/cache");
+      revalidatePath("/");
+      revalidatePath("/products");
+      revalidatePath("/api/homepage");
+      revalidatePath("/api/products");
+    } catch (e) {}
 
     return NextResponse.json(newProduct);
   } catch (error: any) {

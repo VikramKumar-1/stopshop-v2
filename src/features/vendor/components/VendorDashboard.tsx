@@ -80,18 +80,6 @@ export const VendorDashboard = () => {
   const [inquiries, setInquiries] = useState<any[]>([]);
   const swrConfig = { revalidateOnFocus: false, revalidateOnReconnect: false };
 
-  const { data: productsData, mutate: mutateProducts } = useSWR(vendor?.id ? `/api/products?vendorId=${vendor.id}` : null, fetcher, swrConfig);
-  const products = productsData || [];
-  const [productSearch, setProductSearch] = useState("");
-  const [modalProduct, setModalProduct] = useState<any | null>(null);
-  const [modalMainImage, setModalMainImage] = useState<string>("");
-  const [modalMessage, setModalMessage] = useState<any | null>(null);
-  const [modalShipping, setModalShipping] = useState<any | null>(null);
-  const [modalTransaction, setModalTransaction] = useState<any | null>(null);
-  const [editStockValue, setEditStockValue] = useState("");
-  const [updatingStock, setUpdatingStock] = useState(false);
-  const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
-  const [approveReturnModal, setApproveReturnModal] = useState<any | null>(null);
   const [activeTab, _setActiveTab] = useState<"inquiries" | "history" | "products" | "add-product" | "admin-panel" | "direct-orders" | "settlements" | "returns-pending" | "returns-action" | "profile" | "promotions" | "workers">("inquiries");
 
   useEffect(() => {
@@ -106,11 +94,24 @@ export const VendorDashboard = () => {
     localStorage.setItem("vendorActiveTab", tab);
   };
 
-  const { data: returnsData, mutate: mutateReturns } = useSWR(vendor?.id ? `/api/vendor/returns` : null, fetcher, swrConfig);
+  const { data: productsData, mutate: mutateProducts } = useSWR(vendor?.id && (activeTab === "products" || activeTab === "add-product") ? `/api/products?vendorId=${vendor.id}` : null, fetcher, swrConfig);
+  const products = productsData || [];
+  const [productSearch, setProductSearch] = useState("");
+  const [modalProduct, setModalProduct] = useState<any | null>(null);
+  const [modalMainImage, setModalMainImage] = useState<string>("");
+  const [modalMessage, setModalMessage] = useState<any | null>(null);
+  const [modalShipping, setModalShipping] = useState<any | null>(null);
+  const [modalTransaction, setModalTransaction] = useState<any | null>(null);
+  const [editStockValue, setEditStockValue] = useState("");
+  const [updatingStock, setUpdatingStock] = useState(false);
+  const [deleteProductModal, setDeleteProductModal] = useState<number | null>(null);
+  const [approveReturnModal, setApproveReturnModal] = useState<any | null>(null);
+
+  const { data: returnsData, mutate: mutateReturns } = useSWR(vendor?.id && (activeTab === "returns-pending" || activeTab === "returns-action") ? `/api/vendor/returns` : null, fetcher, swrConfig);
   const returns = returnsData?.success ? returnsData.returns : [];
   const slaHours = returnsData?.success && returnsData.slaHours ? returnsData.slaHours : 24;
 
-  const { data: settlementsData, mutate: mutateSettlements } = useSWR(vendor?.id ? `/api/admin/settlements` : null, fetcher, swrConfig);
+  const { data: settlementsData, mutate: mutateSettlements } = useSWR(vendor?.id && activeTab === "settlements" ? `/api/admin/settlements` : null, fetcher, swrConfig);
   const settlements = settlementsData?.success ? settlementsData.settlements : [];
   const settlementSummary = settlementsData?.success ? settlementsData.summary : null;
   const settlementSettings = settlementsData?.success ? settlementsData.settings : null;
@@ -133,7 +134,7 @@ export const VendorDashboard = () => {
   const [orderTotalPages, setOrderTotalPages] = useState(1);
 
   const { data: ordData, isValidating: fetchingOrders, mutate: mutateOrders } = useSWR(
-    vendor?.id ? `/api/orders?vendorId=${vendor.id}&page=${orderPage}&limit=10` : null,
+    vendor?.id && (activeTab === "inquiries" || activeTab === "history" || activeTab === "direct-orders") ? `/api/orders?vendorId=${vendor.id}&page=${orderPage}&limit=10` : null,
     fetcher,
     swrConfig
   );
@@ -147,7 +148,7 @@ export const VendorDashboard = () => {
     }
   }, [ordData, orderPage]);
 
-  const { data: catData, isLoading: loadingCategories, mutate: mutateCategories } = useSWR("/api/categories", fetcher);
+  const { data: catData, isLoading: loadingCategories, mutate: mutateCategories } = useSWR(activeTab === "add-product" || activeTab === "products" ? "/api/categories" : null, fetcher);
   const dbCategories = catData || [];
 
   // Packing Modal State
