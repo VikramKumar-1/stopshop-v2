@@ -7,7 +7,7 @@ import { useRegion } from "@/context/RegionContext";
 import { useCart } from "@/context/CartContext";
 import { 
   CreditCard, ShieldCheck, ArrowLeft, Loader2, Coins, Building2, CheckCircle,
-  AlertCircle, Lock, Tag, Truck, MapPin, Plus, Trash2, Check, Edit2, Smartphone, Globe, Sparkles
+  AlertCircle, Lock, Tag, Truck, MapPin, Plus, Trash2, Check, Edit2, Smartphone, Globe, Sparkles, ChevronRight
 } from "lucide-react";
 import { countries } from "@/lib/countries";
 
@@ -389,7 +389,7 @@ function CheckoutPageInner() {
     }
   }, [availableCoupons, couponApplied]);
 
-  useEffect(() => {
+useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
@@ -399,6 +399,9 @@ function CheckoutPageInner() {
       // Do not redirect if we are attempting to fetch a Buy Now item
       const timer = setTimeout(() => router.push("/cart"), 2000);
       return () => clearTimeout(timer);
+    } else if (loaded && typeof window !== "undefined") {
+      // Save current checkout URL (including buyNow parameters) for failure retries
+      sessionStorage.setItem("lastCheckoutUrl", window.location.href);
     }
 
     const loadData = async () => {
@@ -503,7 +506,7 @@ function CheckoutPageInner() {
 
     let shipping = 0;
     if (isInternational) {
-       shipping = settings.internationalShippingPaise / 100;
+       shipping = getRawPrice(settings.internationalShippingPaise / 100, undefined, false, countryCode);
     } else {
        if (subtotal < (settings.shippingFreeAbove / 100)) {
           shipping = paymentMethod === "cod" 
@@ -893,9 +896,49 @@ function CheckoutPageInner() {
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <button onClick={() => router.back()} className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-orange-500 font-semibold mb-1 transition-colors">
-              <ArrowLeft size={14} /> Back to Cart
-            </button>
+            {/* Dynamic Breadcrumbs */}
+            <nav className="flex items-center gap-1.5 text-xs text-muted font-medium mb-1.5 overflow-x-auto whitespace-nowrap py-0.5">
+              <Link href="/" className="hover:text-orange-500 transition-colors">
+                Home
+              </Link>
+              <ChevronRight size={12} className="text-muted/60 shrink-0" />
+
+              {buyNowProductId && checkoutItems[0] ? (
+                <>
+                  <Link href="/products" className="hover:text-orange-500 transition-colors">
+                    Products
+                  </Link>
+                  <ChevronRight size={12} className="text-muted/60 shrink-0" />
+                  <Link 
+                    href={`/product/${checkoutItems[0].slug || checkoutItems[0].id}`} 
+                    className="hover:text-orange-500 transition-colors max-w-[150px] sm:max-w-[220px] truncate"
+                  >
+                    {checkoutItems[0].name || checkoutItems[0].productName || "Product"}
+                  </Link>
+                  <ChevronRight size={12} className="text-muted/60 shrink-0" />
+                </>
+              ) : buyNowBundleIds && checkoutItems[0] ? (
+                <>
+                  <Link href="/products" className="hover:text-orange-500 transition-colors">
+                    Products
+                  </Link>
+                  <ChevronRight size={12} className="text-muted/60 shrink-0" />
+                  <span className="text-muted max-w-[150px] sm:max-w-[220px] truncate">
+                    Combo Bundle
+                  </span>
+                  <ChevronRight size={12} className="text-muted/60 shrink-0" />
+                </>
+              ) : (
+                <>
+                  <Link href="/cart" className="hover:text-orange-500 transition-colors">
+                    Cart
+                  </Link>
+                  <ChevronRight size={12} className="text-muted/60 shrink-0" />
+                </>
+              )}
+
+              <span className="text-orange-500 font-bold">Checkout</span>
+            </nav>
             <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight text-heading">
               Secure <span className="gradient-text">Checkout</span>
             </h1>
@@ -1036,9 +1079,6 @@ function CheckoutPageInner() {
                   <span className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-[10px] font-black">3</span>
                   <h2 className="text-sm font-display font-bold text-heading uppercase tracking-wide">Review Products ({checkoutItems.length})</h2>
                 </div>
-                <Link href="/cart" className="text-[11px] font-bold text-orange-500 hover:underline flex items-center gap-1">
-                  <Edit2 size={11} /> Edit Cart
-                </Link>
               </div>
 
               <div className="space-y-2.5">
@@ -1285,7 +1325,7 @@ function CheckoutPageInner() {
                  ) : (
                    <>
                      <Lock size={16} />
-                     <span>Pay {formatPrice(pricing.total)} & Place Order</span>
+                     <span>Pay {formatPrice(pricing.total, countryCode)} & Place Order</span>
                    </>
                  )}
                </button>

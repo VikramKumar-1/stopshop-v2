@@ -1,4 +1,14 @@
 import { prisma } from '@/lib/db';
+import { countries } from '@/lib/countries';
+
+const countryNameToCodeMap: Record<string, string> = {};
+countries.forEach(c => {
+  countryNameToCodeMap[c.name.trim().toUpperCase()] = c.code.toUpperCase();
+});
+countryNameToCodeMap["USA"] = "US";
+countryNameToCodeMap["UK"] = "GB";
+countryNameToCodeMap["GREAT BRITAIN"] = "GB";
+countryNameToCodeMap["UAE"] = "AE";
 
 export interface PricingResult {
   subtotalPaise: number;
@@ -28,9 +38,9 @@ export async function calculateOrderPricing(
   isBundle?: boolean,
   userId?: number
 ): Promise<PricingResult> {
-  // Normalize country to handle "India", "INDIA", "in", "IN" as domestic
-  const normCountry = (country || "IN").trim().toUpperCase();
-  const finalCountry = (normCountry === "IN" || normCountry === "INDIA") ? "IN" : normCountry;
+  // Normalize country to handle full names (e.g. "United States", "Germany", "Japan") and ISO codes (e.g. "US", "DE", "JP")
+  const rawCountry = (country || "IN").trim().toUpperCase();
+  const finalCountry = countryNameToCodeMap[rawCountry] || rawCountry;
 
   // 1. Fetch settings
   const settings = await prisma.adminSettings.findFirst() || {
@@ -64,24 +74,22 @@ export async function calculateOrderPricing(
     let unitPrice = product.price; // Default price in INR
     if (finalCountry !== "IN" && product.prices) {
       const pricesConfig = typeof product.prices === 'string' ? JSON.parse(product.prices) : (product.prices as Record<string, any>);
-      if (pricesConfig[finalCountry] && pricesConfig[finalCountry].mrp !== undefined) {
-         const customMrp = parseFloat(pricesConfig[finalCountry].mrp);
-         const customDiscount = parseFloat(pricesConfig[finalCountry].discount) || 0;
+      const targetConfig = pricesConfig[finalCountry] || pricesConfig[rawCountry] || pricesConfig[country];
+      
+      if (targetConfig && targetConfig.mrp !== undefined) {
+         const customMrp = parseFloat(targetConfig.mrp);
+         const customDiscount = parseFloat(targetConfig.discount) || 0;
          if (!isNaN(customMrp)) {
            // This is the price in the foreign currency (e.g., USD)
            const foreignPrice = customMrp - (customMrp * customDiscount / 100);
            
            // Convert back to INR since the payment gateway processes in INR
-           // We use a hardcoded default rate for safety. 
-           // In a perfect world, we would fetch live rates or share the database.
            const defaultRates: Record<string, number> = {
              US: 83.5, GB: 105.0, EU: 90.0, AE: 22.7, CA: 61.0, 
              AU: 55.0, SA: 22.2, SG: 61.5, JP: 0.53
            };
            
-           // If the country code isn't perfectly matched, fallback to USD (83.5)
            const conversionRate = defaultRates[finalCountry] || 83.5;
-           
            unitPrice = foreignPrice * conversionRate;
          }
       }

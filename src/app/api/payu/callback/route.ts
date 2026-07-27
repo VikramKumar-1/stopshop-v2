@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import crypto from "crypto";
 import { PAYU_CONFIG } from "@/lib/paymentConfig";
 
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,19 +13,28 @@ export async function POST(req: NextRequest) {
       data[key] = value.toString();
     });
 
-    const { txnid, amount, productinfo, firstname, email, status, hash, mihpayid } = data;
+    const { txnid, amount, productinfo, firstname, email, status, hash, mihpayid, additionalCharges } = data;
 
     if (!txnid || !hash || !status) {
-      return NextResponse.redirect(new URL("/checkout/failure?reason=missing_data", req.url));
+      const failureUrl = req.nextUrl.clone();
+      failureUrl.pathname = "/checkout/failure";
+      failureUrl.searchParams.set("reason", "missing_data");
+      return NextResponse.redirect(failureUrl);
     }
 
     // 1. Verify Hash (Reverse order: SALT|status|||||||||||email|firstname|productinfo|amount|txnid|key)
-    const hashString = `${PAYU_CONFIG.merchantSalt}|${status}|||||||||||${email}|${firstname}|${productinfo}|${amount}|${txnid}|${PAYU_CONFIG.merchantKey}`;
+    let hashString = `${PAYU_CONFIG.merchantSalt}|${status}|||||||||||${email}|${firstname}|${productinfo}|${amount}|${txnid}|${PAYU_CONFIG.merchantKey}`;
+    if (additionalCharges) {
+      hashString = `${additionalCharges}|${hashString}`;
+    }
     const generatedHash = crypto.createHash("sha512").update(hashString).digest("hex");
 
     if (generatedHash !== hash) {
       console.error("PayU Hash Mismatch", { expected: generatedHash, received: hash });
-      return NextResponse.redirect(new URL("/checkout/failure?reason=invalid_signature", req.url));
+      const failureUrl = req.nextUrl.clone();
+      failureUrl.pathname = "/checkout/failure";
+      failureUrl.searchParams.set("reason", "invalid_signature");
+      return NextResponse.redirect(failureUrl);
     }
 
     if (status !== "success") {
@@ -32,7 +42,10 @@ export async function POST(req: NextRequest) {
         where: { paymentOrderId: txnid },
         data: { paymentStatus: "FAILED", paymentData: data }
       });
-      return NextResponse.redirect(new URL(`/checkout/failure?reason=${data.error_Message || 'payment_failed'}`, req.url));
+      const failureUrl = req.nextUrl.clone();
+      failureUrl.pathname = "/checkout/failure";
+      failureUrl.searchParams.set("reason", data.error_Message || "payment_failed");
+      return NextResponse.redirect(failureUrl);
     }
 
     // 2. Process Successful Payment (Atomic transaction)
@@ -139,7 +152,10 @@ export async function POST(req: NextRequest) {
          } catch (refundErr) {
             console.error("Failed to auto-refund out-of-stock order (PayU):", refundErr);
          }
-         return NextResponse.redirect(new URL("/checkout/failure?reason=out_of_stock_refunded", req.url));
+         const failureUrl = req.nextUrl.clone();
+         failureUrl.pathname = "/checkout/failure";
+         failureUrl.searchParams.set("reason", "out_of_stock_refunded");
+         return NextResponse.redirect(failureUrl);
       }
       throw txError;
     }
@@ -148,12 +164,20 @@ export async function POST(req: NextRequest) {
     const order = await prisma.order.findUnique({ where: { paymentOrderId: txnid } });
     if (order) {
        dbOrderId = order.id;
-       // Order confirmed; wait for vendor packing before creating Shiprocket shipment
     }
 
-    return NextResponse.redirect(new URL(`/checkout/success${dbOrderId ? `?orderId=${dbOrderId}` : ''}`, req.url));
+    const successUrl = req.nextUrl.clone();
+    successUrl.pathname = "/checkout/success";
+    if (dbOrderId) {
+      successUrl.searchParams.set("orderId", String(dbOrderId));
+    }
+    return NextResponse.redirect(successUrl);
   } catch (error) {
     console.error("PayU callback error:", error);
-    return NextResponse.redirect(new URL("/checkout/failure?reason=internal_error", req.url));
+    const failureUrl = req.nextUrl.clone();
+    failureUrl.pathname = "/checkout/failure";
+    failureUrl.searchParams.set("reason", "internal_error");
+    return NextResponse.redirect(failureUrl);
   }
 }
+

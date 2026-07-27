@@ -100,10 +100,46 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       format: "a4"
     });
 
-    const currencySymbol = order.currency === "USD" ? "$" : "Rs.";
+    const cleanCountry = (order.shippingCountry || "IN").trim().toUpperCase();
+    const isInternationalOrder = order.orderNumber.startsWith("SS-INTL-") || (cleanCountry !== "IN" && cleanCountry !== "INDIA");
+
+    const currencyMap: Record<string, { symbol: string; rate: number }> = {
+      IN: { symbol: "Rs.", rate: 1 },
+      INDIA: { symbol: "Rs.", rate: 1 },
+      US: { symbol: "$", rate: 83.5 },
+      USA: { symbol: "$", rate: 83.5 },
+      "UNITED STATES": { symbol: "$", rate: 83.5 },
+      GB: { symbol: "£", rate: 105.0 },
+      UK: { symbol: "£", rate: 105.0 },
+      "UNITED KINGDOM": { symbol: "£", rate: 105.0 },
+      EU: { symbol: "€", rate: 90.0 },
+      EUROPE: { symbol: "€", rate: 90.0 },
+      AE: { symbol: "AED", rate: 22.7 },
+      UAE: { symbol: "AED", rate: 22.7 },
+      "UNITED ARAB EMIRATES": { symbol: "AED", rate: 22.7 },
+      CA: { symbol: "C$", rate: 61.0 },
+      CANADA: { symbol: "C$", rate: 61.0 },
+      AU: { symbol: "A$", rate: 55.0 },
+      AUSTRALIA: { symbol: "A$", rate: 55.0 },
+      SG: { symbol: "S$", rate: 61.5 },
+      SINGAPORE: { symbol: "S$", rate: 61.5 },
+      JP: { symbol: "¥", rate: 0.53 },
+      JAPAN: { symbol: "¥", rate: 0.53 },
+      SA: { symbol: "SAR", rate: 22.2 },
+      "SAUDI ARABIA": { symbol: "SAR", rate: 22.2 }
+    };
+
+    const currencyConfig = isInternationalOrder 
+      ? (currencyMap[cleanCountry] || { symbol: "$", rate: 83.5 })
+      : { symbol: "Rs.", rate: 1 };
+
     const formatCurrency = (amtPaise: number) => {
-      const amt = (amtPaise || 0) / 100;
-      return `${currencySymbol} ${amt.toFixed(2)}`;
+      const amtInr = (amtPaise || 0) / 100;
+      if (currencyConfig.rate !== 1) {
+        const foreignAmt = amtInr / currencyConfig.rate;
+        return `${currencyConfig.symbol} ${foreignAmt.toFixed(2)}`;
+      }
+      return `${currencyConfig.symbol} ${amtInr.toFixed(2)}`;
     };
 
     const { locale, timeZone } = getLocaleAndTimeZone(order.shippingCountry);

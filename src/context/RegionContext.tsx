@@ -90,8 +90,21 @@ export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion
     document.cookie = `stopshop_region=${newRegion}; path=/; max-age=31536000`;
   };
 
+  const normalizeRegion = (raw?: string): string => {
+    if (!raw) return region;
+    const clean = raw.trim().toUpperCase();
+    const map: Record<string, string> = {
+      "UNITED STATES": "US", "USA": "US",
+      "UNITED KINGDOM": "GB", "UK": "GB", "GREAT BRITAIN": "GB",
+      "UNITED ARAB EMIRATES": "AE", "UAE": "AE",
+      "CANADA": "CA", "AUSTRALIA": "AU", "SAUDI ARABIA": "SA",
+      "SINGAPORE": "SG", "JAPAN": "JP", "INDIA": "IN"
+    };
+    return map[clean] || clean;
+  };
+
   const getRawPrice = (priceInInr: number, product?: any, isMrp?: boolean, targetRegion?: string): number => {
-    const activeRegion = targetRegion || region;
+    const activeRegion = normalizeRegion(targetRegion);
     if (product) {
       let pricesObj: any = null;
       if (product.prices) {
@@ -103,13 +116,14 @@ export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion
           pricesObj = product.prices;
         }
       }
-      if (pricesObj && pricesObj[activeRegion] && pricesObj[activeRegion].mrp !== undefined) {
-        const customMrp = parseFloat(pricesObj[activeRegion].mrp);
+      const targetConfig = pricesObj ? (pricesObj[activeRegion] || pricesObj[targetRegion || ""]) : null;
+      if (targetConfig && targetConfig.mrp !== undefined) {
+        const customMrp = parseFloat(targetConfig.mrp);
         if (!isNaN(customMrp)) {
           if (isMrp) {
             return customMrp;
           } else {
-            const regDiscountVal = pricesObj[activeRegion].discount;
+            const regDiscountVal = targetConfig.discount;
             const discount = (regDiscountVal !== undefined && regDiscountVal !== null && regDiscountVal !== "")
               ? parseFloat(regDiscountVal)
               : (parseFloat(product.discount) || 0);
@@ -136,7 +150,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion
   };
 
   const formatPrice = (value: number, targetRegion?: string): string => {
-    const activeRegion = targetRegion || region;
+    const activeRegion = normalizeRegion(targetRegion);
     const config = currencyDatabase[activeRegion] || { c: "USD", s: "$" };
     const formatted = value % 1 === 0 ? value.toLocaleString() : value.toFixed(2);
     if (config.p === "suffix") {
