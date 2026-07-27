@@ -22,8 +22,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Cart is empty" }, { status: 400 });
     }
 
+    const userId = user.id || user.userId;
+
     // 1. Server-side pricing calculation
-    const pricing = await calculateOrderPricing(cartItems, "payu", shippingInfo.country, couponCode, isBundle, user.userId);
+    const pricing = await calculateOrderPricing(cartItems, "payu", shippingInfo.country, couponCode, isBundle, userId);
 
     // 2. Create Order in Database (Enterprise International Format)
     const dateStr = new Date().toISOString().slice(2,10).replace(/-/g,'');
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
     const newOrder = await prisma.order.create({
       data: {
         orderNumber,
-        userId: user.userId,
+        userId: userId,
         paymentMethod: "payu",
         paymentGateway: "payu",
         paymentStatus: "PENDING",
@@ -71,17 +73,23 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // 3. Generate PayU Hash
+    // 3. Dynamic Origin Resolution for Callbacks (Avoids localhost fallback on Vercel)
+    const origin = req.headers.get("origin") || req.nextUrl.origin || process.env.NEXT_PUBLIC_BASE_URL || "https://stopshops.com";
+    const cleanOrigin = origin.endsWith("/") ? origin.slice(0, -1) : origin;
+    const surl = `${cleanOrigin}/api/payu/callback`;
+    const furl = `${cleanOrigin}/api/payu/callback`;
+
+    // 4. Generate PayU Hash
     // Format: key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||SALT
     const amount = (pricing.totalPaise / 100).toFixed(2);
     const productInfo = "StopShops Order";
-    const firstName = shippingInfo.name.split(" ")[0] || "Customer";
-    const email = shippingInfo.email || user.email;
+    const firstName = (shippingInfo.name || "Customer").split(" ")[0].trim();
+    const email = shippingInfo.email || user.email || "customer@stopshops.com";
 
     const hashString = `${PAYU_CONFIG.merchantKey}|${txnid}|${amount}|${productInfo}|${firstName}|${email}|||||||||||${PAYU_CONFIG.merchantSalt}`;
     const hash = crypto.createHash("sha512").update(hashString).digest("hex");
 
-    // 4. Return PayU Form Data
+    // 5. Return PayU Form Data
     return NextResponse.json({
       success: true,
       payuData: {
@@ -92,8 +100,8 @@ export async function POST(req: NextRequest) {
         firstname: firstName,
         email,
         phone: shippingInfo.phone,
-        surl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payu/callback`,
-        furl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payu/callback`,
+        surl,
+        furl,
         hash,
         action: `${PAYU_CONFIG.baseUrl}/_payment`,
       },
