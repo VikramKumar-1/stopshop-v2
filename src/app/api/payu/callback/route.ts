@@ -15,11 +15,13 @@ export async function POST(req: NextRequest) {
 
     const { txnid, amount, productinfo, firstname, email, status, hash, mihpayid, additionalCharges } = data;
 
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    const proto = req.headers.get("x-forwarded-proto") || "https";
+    const origin = host ? `${proto}://${host}` : req.nextUrl.origin;
+    const cleanOrigin = origin.endsWith("/") ? origin.slice(0, -1) : origin;
+
     if (!txnid || !hash || !status) {
-      const failureUrl = req.nextUrl.clone();
-      failureUrl.pathname = "/checkout/failure";
-      failureUrl.searchParams.set("reason", "missing_data");
-      return NextResponse.redirect(failureUrl);
+      return NextResponse.redirect(`${cleanOrigin}/checkout/failure?reason=missing_data`, 303);
     }
 
     // 1. Verify Hash (Reverse order: SALT|status|||||||||||email|firstname|productinfo|amount|txnid|key)
@@ -31,10 +33,7 @@ export async function POST(req: NextRequest) {
 
     if (generatedHash !== hash) {
       console.error("PayU Hash Mismatch", { expected: generatedHash, received: hash });
-      const failureUrl = req.nextUrl.clone();
-      failureUrl.pathname = "/checkout/failure";
-      failureUrl.searchParams.set("reason", "invalid_signature");
-      return NextResponse.redirect(failureUrl);
+      return NextResponse.redirect(`${cleanOrigin}/checkout/failure?reason=invalid_signature`, 303);
     }
 
     if (status !== "success") {
@@ -42,10 +41,7 @@ export async function POST(req: NextRequest) {
         where: { paymentOrderId: txnid },
         data: { paymentStatus: "FAILED", paymentData: data }
       });
-      const failureUrl = req.nextUrl.clone();
-      failureUrl.pathname = "/checkout/failure";
-      failureUrl.searchParams.set("reason", data.error_Message || "payment_failed");
-      return NextResponse.redirect(failureUrl);
+      return NextResponse.redirect(`${cleanOrigin}/checkout/failure?reason=${encodeURIComponent(data.error_Message || "payment_failed")}`, 303);
     }
 
     // 2. Process Successful Payment (Atomic transaction)
@@ -152,10 +148,7 @@ export async function POST(req: NextRequest) {
          } catch (refundErr) {
             console.error("Failed to auto-refund out-of-stock order (PayU):", refundErr);
          }
-         const failureUrl = req.nextUrl.clone();
-         failureUrl.pathname = "/checkout/failure";
-         failureUrl.searchParams.set("reason", "out_of_stock_refunded");
-         return NextResponse.redirect(failureUrl);
+         return NextResponse.redirect(`${cleanOrigin}/checkout/failure?reason=out_of_stock_refunded`, 303);
       }
       throw txError;
     }
@@ -166,18 +159,18 @@ export async function POST(req: NextRequest) {
        dbOrderId = order.id;
     }
 
-    const successUrl = req.nextUrl.clone();
-    successUrl.pathname = "/checkout/success";
-    if (dbOrderId) {
-      successUrl.searchParams.set("orderId", String(dbOrderId));
-    }
-    return NextResponse.redirect(successUrl);
+    const redirectTarget = dbOrderId 
+      ? `${cleanOrigin}/checkout/success?orderId=${dbOrderId}`
+      : `${cleanOrigin}/checkout/success`;
+
+    return NextResponse.redirect(redirectTarget, 303);
   } catch (error) {
     console.error("PayU callback error:", error);
-    const failureUrl = req.nextUrl.clone();
-    failureUrl.pathname = "/checkout/failure";
-    failureUrl.searchParams.set("reason", "internal_error");
-    return NextResponse.redirect(failureUrl);
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    const proto = req.headers.get("x-forwarded-proto") || "https";
+    const origin = host ? `${proto}://${host}` : req.nextUrl.origin;
+    const cleanOrigin = origin.endsWith("/") ? origin.slice(0, -1) : origin;
+    return NextResponse.redirect(`${cleanOrigin}/checkout/failure?reason=internal_error`, 303);
   }
 }
 
