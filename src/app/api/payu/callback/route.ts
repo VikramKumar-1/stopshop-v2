@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(`${cleanOrigin}/checkout/failure?reason=${encodeURIComponent(data.error_Message || "payment_failed")}`, 303);
     }
 
-    // 2. Process Successful Payment (Atomic transaction)
+    // 2. Process Successful Payment (Atomic transaction with 30s timeout)
     try {
       await prisma.$transaction(async (tx) => {
         const order = await tx.order.findUnique({
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
             }
           });
         }
-      });
+      }, { maxWait: 10000, timeout: 30000 });
     } catch (txError: any) {
       if (txError.message && txError.message.includes("OUT_OF_STOCK_ERROR")) {
          console.warn("PayU Out of stock race condition caught. Auto-refunding.");

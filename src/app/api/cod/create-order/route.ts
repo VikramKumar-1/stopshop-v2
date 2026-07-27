@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
       }
 
       return order;
-    });
+    }, { maxWait: 10000, timeout: 30000 });
 
     // Order confirmed; wait for vendor packing before creating Shiprocket shipment
 
