@@ -37,6 +37,7 @@ const COOKIE_REMEMBER_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
 export { COOKIE_MAX_AGE, COOKIE_REMEMBER_MAX_AGE };
 
 export interface TokenPayload {
+  id?: number;
   userId: number;
   email: string;
   role: string;

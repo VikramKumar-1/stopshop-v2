@@ -18,26 +18,28 @@ export async function GET(req: NextRequest) {
     let whereClause: any = {};
 
     const asVendor = searchParams.get("vendorId");
+    const targetVendorId = asVendor ? parseInt(asVendor) : null;
+    const effUserId = user.id || user.userId;
+    const currentVendorId = user.role === "vendor" ? effUserId : user.parentVendorId;
 
     if (user.role === "admin") {
-       if (asVendor) {
-           whereClause.items = { some: { vendorId: parseInt(asVendor) } };
-       }
-    } else if ((user.role === "vendor" || user.parentVendorId) && asVendor && parseInt(asVendor) === (user.role === "vendor" ? user.userId : user.parentVendorId)) {
-       const effVendorId = user.role === "vendor" ? user.userId : user.parentVendorId;
-       whereClause.items = {
-          some: { vendorId: effVendorId }
-       };
-       if (status) {
-          whereClause.status = status === "PENDING" ? { not: "PENDING" } : status;
-       } else {
-          whereClause.status = { not: "PENDING" };
-       }
+      if (targetVendorId) {
+        whereClause.items = { some: { vendorId: targetVendorId } };
+      }
+    } else if (currentVendorId && targetVendorId && targetVendorId === currentVendorId) {
+      whereClause.items = {
+        some: { vendorId: currentVendorId }
+      };
+      if (status) {
+        whereClause.status = status === "PENDING" ? { not: "PENDING" } : status;
+      } else {
+        whereClause.status = { not: "PENDING" };
+      }
     } else {
-       whereClause.userId = user.userId;
-       if (!status) {
-          whereClause.status = { not: "PENDING" };
-       }
+      whereClause.userId = effUserId;
+      if (!status) {
+        whereClause.status = { not: "PENDING" };
+      }
     }
 
     if (status && user.role !== "vendor") {

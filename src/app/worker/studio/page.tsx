@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Package, RefreshCcw, Plus, ArrowLeft, CheckCircle2, Loader2, Upload, AlertCircle, Sparkles, Image as ImageIcon, ShieldCheck, X, Search, ScanLine, LogOut } from "lucide-react";
 import BarcodeScanner from "@/features/vendor/components/BarcodeScanner";
@@ -20,6 +20,96 @@ export default function VendorCameraHubPage() {
   const showToast = (message: string, type: "success" | "error" | "info" = "info") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // ==================== LIVE WEBCAM / MOBILE IN-APP CAMERA STATES ====================
+  const [showLiveCameraModal, setShowLiveCameraModal] = useState(false);
+  const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const startLiveCamera = async (overrideFacing?: "environment" | "user") => {
+    const mode = overrideFacing || facingMode;
+    setShowLiveCameraModal(true);
+    try {
+      if (liveStream) {
+        liveStream.getTracks().forEach(t => t.stop());
+      }
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: mode }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+        });
+      } catch (e1) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
+        } catch (e2) {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
+      }
+      setLiveStream(stream);
+    } catch (err: any) {
+      showToast("Camera access denied or unavailable: " + (err.message || err), "error");
+      setShowLiveCameraModal(false);
+    }
+  };
+
+  const stopLiveCamera = () => {
+    if (liveStream) {
+      liveStream.getTracks().forEach(t => t.stop());
+      setLiveStream(null);
+    }
+    setShowLiveCameraModal(false);
+  };
+
+  useEffect(() => {
+    if (showLiveCameraModal && liveStream && videoRef.current) {
+      videoRef.current.srcObject = liveStream;
+    }
+  }, [showLiveCameraModal, liveStream]);
+
+  const captureLiveFrame = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      if (activeMode === "dispatch") {
+        setUploadingPacking(true);
+      } else {
+        setUploadingQc(true);
+      }
+      try {
+        const file = new File([blob], `snap_${Date.now()}.jpg`, { type: "image/jpeg" });
+        const comp = await compressImageToWebP(file);
+        const formData = new FormData();
+        formData.append("file", comp.file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.url) {
+          if (activeMode === "dispatch") {
+            setPackingImages(prev => [...prev, data.url]);
+          } else {
+            setQcImages(prev => [...prev, data.url]);
+          }
+          showToast("⚡ Snap captured & uploaded!", "success");
+        }
+      } catch (e: any) {
+        showToast(e.message || "Failed to capture photo", "error");
+      } finally {
+        setUploadingPacking(false);
+        setUploadingQc(false);
+      }
+    }, "image/jpeg", 0.9);
   };
 
   // ==================== MODE 2: DISPATCH PACKING STATES ====================
@@ -76,15 +166,17 @@ export default function VendorCameraHubPage() {
   }, [searchReturnId, returns]);
 
   const fetchVendorAuth = async () => {
-    setLoading(true);
     try {
-      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      const res = await fetch("/api/auth/me");
       const data = await res.json();
       if (res.ok && data.authenticated) {
         setVendor(data.user);
-        fetchCategories();
+        setLoading(false); // Unblock UI instantly!
         const effectiveVid = data.user.role === "user" && data.user.parentVendorId ? data.user.parentVendorId : data.user.id;
-        fetchOrdersAndReturns(effectiveVid);
+        Promise.all([
+          fetchCategories(),
+          fetchOrdersAndReturns(effectiveVid)
+        ]);
       } else {
         router.push("/login");
       }
@@ -360,22 +452,15 @@ export default function VendorCameraHubPage() {
                   <p className="text-[10px] text-muted leading-tight">Please upload clear photos of the item, bubble wrapping, box sealing, and shipping label.</p>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Live Camera Button */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      id="cam-packing-live"
-                      onChange={handleSnapPackingPhotos}
-                      className="sr-only"
-                    />
-                    <label
-                      htmlFor="cam-packing-live"
+                    {/* Live In-App Camera Viewfinder Button */}
+                    <button
+                      type="button"
+                      onClick={() => startLiveCamera()}
                       className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       {uploadingPacking ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
-                      <span>Snap Photo ({packingImages.length}/8)</span>
-                    </label>
+                      <span>Live In-App Cam</span>
+                    </button>
 
                     {/* Multi-Photo Gallery Selection */}
                     <input
@@ -391,7 +476,7 @@ export default function VendorCameraHubPage() {
                       className="w-full py-3 bg-surface hover:bg-surface-hover text-heading border border-border rounded-2xl font-bold text-xs shadow-sm transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       {uploadingPacking ? <Loader2 size={18} className="animate-spin text-orange-500" /> : <ImageIcon size={18} className="text-blue-500" />}
-                      <span>Select Multiple</span>
+                      <span>Select Gallery</span>
                     </label>
                   </div>
                 </div>
@@ -646,6 +731,103 @@ export default function VendorCameraHubPage() {
             setToast({ type: "success", message: `Scanned: ${text}` });
           }}
         />
+      )}
+
+      {/* Live In-App Camera Viewfinder Modal (WebRTC continuous stream) */}
+      {showLiveCameraModal && (
+        <div className="fixed inset-0 z-[10000] bg-black flex flex-col justify-between overflow-hidden">
+          {/* Top Camera Controls Bar */}
+          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4 flex items-center justify-between text-white">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+              <span className="text-xs font-black uppercase tracking-wider font-display">Live Camera Studio</span>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2.5 py-1 rounded-full">
+                {activeMode === "dispatch" ? packingImages.length : qcImages.length} / 8 Snaps
+              </span>
+              <button
+                onClick={stopLiveCamera}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center font-bold text-sm backdrop-blur-md cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Live Video Feed */}
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+            <canvas ref={canvasRef} className="hidden" />
+
+            {/* Viewfinder Guidelines */}
+            <div className="absolute inset-12 sm:inset-16 border-2 border-dashed border-orange-500/40 rounded-3xl pointer-events-none flex items-center justify-center">
+              <div className="w-5 h-5 border-t-2 border-l-2 border-orange-500 absolute top-0 left-0"></div>
+              <div className="w-5 h-5 border-t-2 border-r-2 border-orange-500 absolute top-0 right-0"></div>
+              <div className="w-5 h-5 border-b-2 border-l-2 border-orange-500 absolute bottom-0 left-0"></div>
+              <div className="w-5 h-5 border-b-2 border-r-2 border-orange-500 absolute bottom-0 right-0"></div>
+            </div>
+          </div>
+
+          {/* Bottom Controls Bar */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 space-y-4 flex flex-col items-center">
+            {/* Captured Photos Horizontal Thumbnails Strip */}
+            {((activeMode === "dispatch" ? packingImages : qcImages).length > 0) && (
+              <div className="flex items-center gap-2 overflow-x-auto max-w-full py-1 px-2 custom-scrollbar">
+                {(activeMode === "dispatch" ? packingImages : qcImages).map((img, idx) => (
+                  <div key={idx} className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-orange-500 flex-shrink-0 shadow-lg animate-in zoom-in-50">
+                    <img src={img} alt="snap" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-0 right-0 bg-orange-500 text-white text-[8px] font-black px-1 rounded-tl">#{idx + 1}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Shutter Button & Controls */}
+            <div className="flex items-center justify-around w-full max-w-xs pt-2">
+              <button
+                onClick={() => {
+                  const newMode = facingMode === "environment" ? "user" : "environment";
+                  setFacingMode(newMode);
+                  startLiveCamera(newMode);
+                }}
+                className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                title="Switch Camera"
+              >
+                <RefreshCcw size={20} />
+              </button>
+
+              {/* Shutter Button */}
+              <button
+                disabled={uploadingPacking || uploadingQc}
+                onClick={captureLiveFrame}
+                className="w-20 h-20 rounded-full bg-white p-1 shadow-[0_0_30px_rgba(249,115,22,0.6)] flex items-center justify-center active:scale-90 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <div className="w-full h-full rounded-full bg-orange-500 hover:bg-orange-600 flex items-center justify-center text-white">
+                  {uploadingPacking || uploadingQc ? (
+                    <Loader2 size={28} className="animate-spin text-white" />
+                  ) : (
+                    <Camera size={32} />
+                  )}
+                </div>
+              </button>
+
+              <button
+                onClick={stopLiveCamera}
+                className="px-4 py-2.5 rounded-2xl bg-emerald-500 text-white font-black text-xs shadow-lg active:scale-95 transition-all cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Sticky Mobile Bottom Navigation Switcher */}
