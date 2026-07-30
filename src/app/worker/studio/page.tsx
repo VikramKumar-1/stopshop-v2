@@ -129,6 +129,7 @@ export default function VendorCameraHubPage() {
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [packingImages, setPackingImages] = useState<string[]>([]);
   const [uploadingPacking, setUploadingPacking] = useState(false);
+  const [packingPending, setPackingPending] = useState(0);
   const [submittingDispatch, setSubmittingDispatch] = useState(false);
 
   // ==================== MODE 3: RETURN QC STATES ====================
@@ -138,6 +139,7 @@ export default function VendorCameraHubPage() {
   const [qcImages, setQcImages] = useState<string[]>([]);
   const [qcNotes, setQcNotes] = useState("");
   const [uploadingQc, setUploadingQc] = useState(false);
+  const [qcPending, setQcPending] = useState(0);
   const [submittingQc, setSubmittingQc] = useState(false);
 
   useEffect(() => {
@@ -231,28 +233,36 @@ export default function VendorCameraHubPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    setUploadingPacking(true);
-    try {
-      if (packingImages.length + files.length > 8) throw new Error("Max 8 photos allowed");
+    const fileArray = Array.from(files);
+    if (packingImages.length + fileArray.length > 8) {
+      showToast("Max 8 photos allowed", "error");
+      return;
+    }
 
-      const fileArray = Array.from(files);
-      const uploadPromises = fileArray.map(async (rawFile) => {
+    const localUrls = fileArray.map(f => URL.createObjectURL(f));
+    setPackingImages(prev => [...prev, ...localUrls]);
+    setPackingPending(prev => prev + fileArray.length);
+
+    fileArray.forEach(async (rawFile, index) => {
+      try {
         const comp = await compressImageToWebP(rawFile);
         const formData = new FormData();
         formData.append("file", comp.file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         const data = await res.json();
-        return data.url;
-      });
+        
+        if (data.url) {
+          setPackingImages(prev => prev.map(url => url === localUrls[index] ? data.url : url));
+        }
+      } catch (err: any) {
+        setPackingImages(prev => prev.filter(url => url !== localUrls[index]));
+        showToast("Packing photo upload failed", "error");
+      } finally {
+        setPackingPending(prev => prev - 1);
+      }
+    });
 
-      const urls = await Promise.all(uploadPromises);
-      setPackingImages(prev => [...prev, ...urls]);
-      showToast("⚡ Packing photo compressed & added!", "success");
-    } catch (err: any) {
-      showToast(err.message || "Photo snap failed", "error");
-    } finally {
-      setUploadingPacking(false);
-    }
+    e.target.value = "";
   };
 
   const handleConfirmDispatch = async () => {
@@ -302,28 +312,36 @@ export default function VendorCameraHubPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    setUploadingQc(true);
-    try {
-      if (qcImages.length + files.length > 8) throw new Error("Max 8 photos allowed");
+    const fileArray = Array.from(files);
+    if (qcImages.length + fileArray.length > 8) {
+      showToast("Max 8 photos allowed", "error");
+      return;
+    }
 
-      const fileArray = Array.from(files);
-      const uploadPromises = fileArray.map(async (rawFile) => {
+    const localUrls = fileArray.map(f => URL.createObjectURL(f));
+    setQcImages(prev => [...prev, ...localUrls]);
+    setQcPending(prev => prev + fileArray.length);
+
+    fileArray.forEach(async (rawFile, index) => {
+      try {
         const comp = await compressImageToWebP(rawFile);
         const formData = new FormData();
         formData.append("file", comp.file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         const data = await res.json();
-        return data.url;
-      });
+        
+        if (data.url) {
+          setQcImages(prev => prev.map(url => url === localUrls[index] ? data.url : url));
+        }
+      } catch (err: any) {
+        setQcImages(prev => prev.filter(url => url !== localUrls[index]));
+        showToast("QC photo upload failed", "error");
+      } finally {
+        setQcPending(prev => prev - 1);
+      }
+    });
 
-      const urls = await Promise.all(uploadPromises);
-      setQcImages(prev => [...prev, ...urls]);
-      showToast("⚡ Inspection photo compressed & added!", "success");
-    } catch (err: any) {
-      showToast(err.message || "QC photo snap failed", "error");
-    } finally {
-      setUploadingQc(false);
-    }
+    e.target.value = "";
   };
 
   const handleLogout = async () => {
@@ -475,17 +493,22 @@ export default function VendorCameraHubPage() {
                   <p className="text-[10px] text-muted leading-tight">Snap raw product from 4 angles (front, sides, bottom for dent proof), plus bubble wrap, box sealing & shipping label.</p>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Live In-App Camera Viewfinder Button */}
-                    <button
-                      type="button"
-                      onClick={() => startLiveCamera()}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      id="cam-packing-camera"
+                      onChange={handleSnapPackingPhotos}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="cam-packing-camera"
                       className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
-                      {uploadingPacking ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
-                      <span>Live In-App Cam</span>
-                    </button>
+                      <Camera size={18} />
+                      <span>Take Photo</span>
+                    </label>
 
-                    {/* Multi-Photo Gallery Selection */}
                     <input
                       type="file"
                       accept="image/*"
@@ -498,7 +521,7 @@ export default function VendorCameraHubPage() {
                       htmlFor="cam-packing-gallery"
                       className="w-full py-3 bg-surface hover:bg-surface-hover text-heading border border-border rounded-2xl font-bold text-xs shadow-sm transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
-                      {uploadingPacking ? <Loader2 size={18} className="animate-spin text-orange-500" /> : <ImageIcon size={18} className="text-blue-500" />}
+                      <ImageIcon size={18} className="text-blue-500" />
                       <span>Select Gallery</span>
                     </label>
                   </div>
@@ -507,19 +530,25 @@ export default function VendorCameraHubPage() {
                       <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${packingImages[idx] ? 'border-solid border-border' : 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400'}`}>
                         {packingImages[idx] ? (
                           <>
-                            <img src={packingImages[idx]} alt={`Packing ${idx + 1}`} onClick={() => setPreviewModalImage({ url: packingImages[idx], index: idx, type: "packing" })} className="w-full h-full object-cover cursor-pointer" />
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setPackingImages(prev => prev.filter((_, i) => i !== idx)); }}
-                              className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
-                            >
-                              ✕
-                            </button>
+                            <img src={packingImages[idx]} alt={`Packing ${idx + 1}`} onClick={() => !packingImages[idx].startsWith("blob:") && setPreviewModalImage({ url: packingImages[idx], index: idx, type: "packing" })} className="w-full h-full object-cover cursor-pointer" />
+                            {packingImages[idx].startsWith("blob:") ? (
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                <Loader2 className="animate-spin text-white" size={16} />
+                              </div>
+                            ) : (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setPackingImages(prev => prev.filter((_, i) => i !== idx)); }}
+                                className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
+                              >
+                                ✕
+                              </button>
+                            )}
                           </>
                         ) : (
-                          <>
+                          <label htmlFor="cam-packing-camera" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
                             <Camera size={18} className="mb-0.5 opacity-60" />
                             <span className="text-[10px] font-bold opacity-80">Req</span>
-                          </>
+                          </label>
                         )}
                       </div>
                     ))}
@@ -528,7 +557,7 @@ export default function VendorCameraHubPage() {
 
                 {/* Confirm Button */}
                 <button
-                  disabled={submittingDispatch || packingImages.length < 5}
+                  disabled={submittingDispatch || packingImages.length < 5 || packingPending > 0}
                   onClick={handleConfirmDispatch}
                   className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
                 >
@@ -652,19 +681,25 @@ export default function VendorCameraHubPage() {
                       <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${qcImages[idx] ? 'border-solid border-border' : 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400'}`}>
                         {qcImages[idx] ? (
                           <>
-                            <img src={qcImages[idx]} alt={`QC ${idx + 1}`} onClick={() => setPreviewModalImage({ url: qcImages[idx], index: idx, type: "qc" })} className="w-full h-full object-cover cursor-pointer" />
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setQcImages(prev => prev.filter((_, i) => i !== idx)); }}
-                              className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
-                            >
-                              ✕
-                            </button>
+                            <img src={qcImages[idx]} alt={`QC ${idx + 1}`} onClick={() => !qcImages[idx].startsWith("blob:") && setPreviewModalImage({ url: qcImages[idx], index: idx, type: "qc" })} className="w-full h-full object-cover cursor-pointer" />
+                            {qcImages[idx].startsWith("blob:") ? (
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                <Loader2 className="animate-spin text-white" size={16} />
+                              </div>
+                            ) : (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setQcImages(prev => prev.filter((_, i) => i !== idx)); }}
+                                className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
+                              >
+                                ✕
+                              </button>
+                            )}
                           </>
                         ) : (
-                          <>
+                          <label htmlFor="cam-qc-camera" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
                             <Camera size={18} className="mb-0.5 opacity-60" />
                             <span className="text-[10px] font-bold opacity-80">Req</span>
-                          </>
+                          </label>
                         )}
                       </div>
                     ))}
@@ -684,7 +719,7 @@ export default function VendorCameraHubPage() {
                       htmlFor="cam-qc-camera"
                       className="w-full py-3 bg-gradient-to-r from-red-500 to-red-600 hover:opacity-90 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
-                      {uploadingQc ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
+                      <Camera size={18} />
                       <span>Take Photo</span>
                     </label>
 
@@ -700,7 +735,7 @@ export default function VendorCameraHubPage() {
                       htmlFor="cam-qc-gallery"
                       className="w-full py-3 bg-surface hover:bg-surface-hover text-heading border border-border rounded-2xl font-bold text-xs shadow-sm transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
-                      {uploadingQc ? <Loader2 size={18} className="animate-spin text-red-500" /> : <ImageIcon size={18} className="text-blue-500" />}
+                      <ImageIcon size={18} className="text-blue-500" />
                       <span>Select Gallery</span>
                     </label>
                   </div>
@@ -721,7 +756,7 @@ export default function VendorCameraHubPage() {
                 {/* Action Buttons */}
                 <div className="pt-2">
                   <button
-                    disabled={submittingQc || qcImages.length < 5}
+                    disabled={submittingQc || qcImages.length < 5 || qcPending > 0}
                     onClick={() => handleSubmitQcReport("QC_UPLOAD")}
                     className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >

@@ -66,3 +66,6 @@ prisma/*.db-journal
 .tmp/
 tmp/
 *.log
+
+# Uploads
+/public/uploads/
