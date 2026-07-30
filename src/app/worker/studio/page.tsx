@@ -267,7 +267,7 @@ export default function VendorCameraHubPage() {
 
   const handleConfirmDispatch = async () => {
     if (!selectedOrder) return;
-    if (packingImages.length < 5) return showToast("Please upload at least 5 clear proof photos (Min 5 required)", "error");
+    if (packingImages.length < 3) return showToast("Please upload at least 3 clear proof photos (Min 3 required)", "error");
 
     setSubmittingDispatch(true);
     try {
@@ -355,8 +355,8 @@ export default function VendorCameraHubPage() {
 
   const handleSubmitQcReport = async (action: "QC_PASS" | "QC_UPLOAD") => {
     if (!selectedReturn || !selectedReturn.returnRequest) return;
-    if (action === "QC_UPLOAD" && qcImages.length < 5) {
-      return showToast("Please snap at least 5 proof photos showing the issue", "error");
+    if (action === "QC_UPLOAD" && qcImages.length < 3) {
+      return showToast("Please snap at least 3 proof photos showing the issue", "error");
     }
 
     setSubmittingQc(true);
@@ -526,7 +526,7 @@ export default function VendorCameraHubPage() {
                     </label>
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none pt-2">
-                    {Array.from({ length: Math.max(5, packingImages.length) }).map((_, idx) => (
+                    {Array.from({ length: Math.max(3, packingImages.length) }).map((_, idx) => (
                       <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${packingImages[idx] ? 'border-solid border-border' : 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400'}`}>
                         {packingImages[idx] ? (
                           <>
@@ -672,12 +672,12 @@ export default function VendorCameraHubPage() {
                     <label className="block text-[11px] font-bold text-heading uppercase">
                       Snap Return QC Inspection Photos *
                     </label>
-                    <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full">{qcImages.length} / 8 (Min 5 Req)</span>
+                    <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full">{qcImages.length} / 8 (Min 3 Req)</span>
                   </div>
 
                   {/* Dashed Box Grid UI */}
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                    {Array.from({ length: Math.max(5, qcImages.length) }).map((_, idx) => (
+                    {Array.from({ length: Math.max(3, qcImages.length) }).map((_, idx) => (
                       <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${qcImages[idx] ? 'border-solid border-border' : 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400'}`}>
                         {qcImages[idx] ? (
                           <>
@@ -756,7 +756,7 @@ export default function VendorCameraHubPage() {
                 {/* Action Buttons */}
                 <div className="pt-2">
                   <button
-                    disabled={submittingQc || qcImages.length < 5 || qcPending > 0}
+                    disabled={submittingQc || qcImages.length < 3 || qcPending > 0}
                     onClick={() => handleSubmitQcReport("QC_UPLOAD")}
                     className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
