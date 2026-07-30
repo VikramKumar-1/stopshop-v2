@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
     // We wrap in try-catch to catch specific Razorpay API errors
     let linkedAccount: any;
     try {
-        // Fallback to fetch if the SDK method isn't strictly typed for Route accounts
         const response = await fetch("https://api.razorpay.com/v2/accounts", {
             method: "POST",
             headers: {
@@ -66,16 +65,23 @@ export async function POST(req: NextRequest) {
         linkedAccount = await response.json();
         
         if (!response.ok) {
+            console.warn("Razorpay API Error:", linkedAccount.error);
             throw new Error(linkedAccount.error?.description || "Failed to create Linked Account in Razorpay");
         }
     } catch (err: any) {
         throw new Error(err.message);
     }
 
-    // Save the new razorpayAccountId (e.g., acc_XXXXX) to the vendor's profile
+    // Save the new razorpayAccountId, raw bank details, and set IN_REVIEW to trigger Admin KYC
     await prisma.user.update({
       where: { id: vendorId },
-      data: { razorpayAccountId: linkedAccount.id }
+      data: { 
+        razorpayAccountId: linkedAccount.id,
+        bankAccount: account_number,
+        bankIfsc: ifsc,
+        bankName: name,
+        vendorStatus: "IN_REVIEW"
+      }
     });
 
     return NextResponse.json({ 

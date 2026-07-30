@@ -46,6 +46,13 @@ export default function VendorProfilePage() {
   const [toastMessage, setToastMessage] = useState("");
   const [isErrorToast, setIsErrorToast] = useState(false);
   const [submittingKyc, setSubmittingKyc] = useState(false);
+  
+  // Bank Details States
+  const [bankName, setBankName] = useState("");
+  const [bankAccount, setBankAccount] = useState("");
+  const [bankIfsc, setBankIfsc] = useState("");
+  const [razorpayAccountId, setRazorpayAccountId] = useState("");
+  const [linkingBank, setLinkingBank] = useState(false);
 
   const displayToast = (msg: string, isError: boolean = false) => {
     setToastMessage(msg);
@@ -79,6 +86,7 @@ export default function VendorProfilePage() {
           setAadhaarUrl(meData.user.aadhaarUrl || "");
           setPanUrl(meData.user.panUrl || "");
           setDocUrl(meData.user.docUrl || "");
+          setRazorpayAccountId(meData.user.razorpayAccountId || "");
         } else {
           window.location.href = "/profile";
         }
@@ -192,6 +200,51 @@ export default function VendorProfilePage() {
     fetchProfile();
   }, []);
 
+  const handleLinkBank = async () => {
+    if (!bankName || !bankAccount || !bankIfsc) {
+      displayToast("Please fill all bank details", true);
+      return;
+    }
+
+    if (!/^\d{9,18}$/.test(bankAccount)) {
+      displayToast("Invalid Account Number. Must be 9 to 18 digits.", true);
+      return;
+    }
+    
+    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankIfsc)) {
+      displayToast("Invalid IFSC Code. Must be exactly 11 characters, 5th character '0'.", true);
+      return;
+    }
+
+    setLinkingBank(true);
+    try {
+      const res = await fetch("/api/vendor/razorpay-onboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: bankName,
+          email: user?.email,
+          account_number: bankAccount,
+          ifsc: bankIfsc
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRazorpayAccountId(data.accountId);
+        displayToast("Bank Account Linked Successfully!");
+        setBankName("");
+        setBankAccount("");
+        setBankIfsc("");
+      } else {
+        displayToast(data.error || "Failed to link bank", true);
+      }
+    } catch (err: any) {
+      displayToast(err.message || "Failed to link bank", true);
+    } finally {
+      setLinkingBank(false);
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "aadhaar" | "pan" | "doc") => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -243,6 +296,11 @@ export default function VendorProfilePage() {
     // All vendors must fill mandatory fields before submitting
     if (!mobile || !gstin || !aadhaar || !pan || !city || !stateName || !pincode || !workshopAddress || !workshopName) {
       displayToast("Please fill all the mandatory fields (*) before submitting for verification.", true);
+      return;
+    }
+
+    if (!aadhaarUrl || !panUrl) {
+      displayToast("Please upload both Aadhaar and PAN Card images.", true);
       return;
     }
 
@@ -402,6 +460,12 @@ export default function VendorProfilePage() {
                         </a>
                       </div>
                     )}
+
+                    <div className="flex items-center justify-between bg-zinc-900/50 p-1.5 rounded-lg border border-zinc-800/60 mt-4">
+                      <span className={razorpayAccountId ? "text-emerald-400" : "text-zinc-500"}>
+                        {razorpayAccountId ? "✔ Bank Account Linked" : "✘ Bank Details Missing"}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="pt-2 border-t border-zinc-800/60">
@@ -702,7 +766,7 @@ export default function VendorProfilePage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] font-bold text-muted uppercase tracking-wider block">Aadhaar Card Image</span>
+                        <span className="text-[9px] font-bold text-muted uppercase tracking-wider block">Aadhaar Card Front & Back Image (Merge both sides in one image) <span className="text-red-500">*</span></span>
                         <div className="flex items-center gap-3">
                           <label 
                             onClick={() => setIsEditing(true)}
@@ -757,7 +821,7 @@ export default function VendorProfilePage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] font-bold text-muted uppercase tracking-wider block">PAN Card Image</span>
+                        <span className="text-[9px] font-bold text-muted uppercase tracking-wider block">PAN Card Image <span className="text-red-500">*</span></span>
                         <div className="flex items-center gap-3">
                           <label 
                             onClick={() => setIsEditing(true)}
@@ -825,6 +889,78 @@ export default function VendorProfilePage() {
                     </div>
 
                   </div>
+                </div>
+
+                {/* Bank Details Section */}
+                <div className="bg-surface-card rounded-3xl p-6 shadow-sm border border-border mt-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                      <Store className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-heading uppercase tracking-wide">Bank Details (Payouts)</h3>
+                      <p className="text-[10px] text-muted">Your earnings will be auto-transferred here.</p>
+                    </div>
+                  </div>
+
+                  {razorpayAccountId ? (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl flex items-center gap-3">
+                      <CheckCircle className="text-emerald-500" size={24} />
+                      <div>
+                        <h4 className="text-xs font-bold text-emerald-600">Bank Account Linked Successfully</h4>
+                        <p className="text-[10px] text-emerald-600/80">Account ID: {razorpayAccountId}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-orange-500/10 border border-orange-500/30 p-4 rounded-2xl">
+                        <p className="text-[10px] text-orange-600 font-bold">⚠️ Note: We DO NOT store your account number. It is securely vaulted with our payment gateway (Razorpay) for automatic payouts.</p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Beneficiary Name <span className="text-red-500">*</span></label>
+                          <input
+                            type="text"
+                            value={bankName}
+                            onChange={(e) => setBankName(e.target.value)}
+                            placeholder="e.g. Rahul Kumar"
+                            className="w-full px-4 py-3 bg-surface border border-border/50 rounded-xl text-heading outline-none focus:border-emerald-500 transition-all text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Account Number <span className="text-red-500">*</span></label>
+                          <input
+                            type="text"
+                            maxLength={18}
+                            value={bankAccount}
+                            onChange={(e) => setBankAccount(e.target.value.replace(/\D/g, ""))}
+                            placeholder="e.g. 50100234567"
+                            className="w-full px-4 py-3 bg-surface border border-border/50 rounded-xl text-heading outline-none focus:border-emerald-500 transition-all text-xs font-mono"
+                          />
+                        </div>
+                        <div className="space-y-1 sm:col-span-2">
+                          <label className="text-[10px] font-bold text-muted uppercase tracking-wider">IFSC Code <span className="text-red-500">*</span></label>
+                          <input
+                            type="text"
+                            maxLength={11}
+                            value={bankIfsc}
+                            onChange={(e) => setBankIfsc(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                            placeholder="e.g. HDFC0001234"
+                            className="w-full px-4 py-3 bg-surface border border-border/50 rounded-xl text-heading outline-none focus:border-emerald-500 transition-all text-xs font-mono uppercase"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleLinkBank}
+                        disabled={linkingBank || !bankName || !bankAccount || !bankIfsc}
+                        className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                      >
+                        {linkingBank ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                        Securely Link Bank Account
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Single Submit/Save Button */}

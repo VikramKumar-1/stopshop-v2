@@ -90,6 +90,8 @@ export async function GET(req: NextRequest) {
           taxPaise: true,
           discountPaise: true,
           couponCode: true,
+          commissionPaise: true,
+          vendorPayoutPaise: true,
           user: {
             select: { id: true, name: true, email: true, mobile: true }
           },
@@ -106,7 +108,9 @@ export async function GET(req: NextRequest) {
            status: true,
            paymentGateway: true,
            paymentStatus: true,
-           totalPaise: true
+           totalPaise: true,
+           commissionPaise: true,
+           vendorPayoutPaise: true
         }
       }) : Promise.resolve(undefined)
     ]);

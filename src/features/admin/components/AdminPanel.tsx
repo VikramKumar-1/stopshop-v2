@@ -1272,9 +1272,19 @@ export const AdminPanel = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-red-500/10">
                   <div className="bg-surface/50 p-4 rounded-xl border border-red-500/10 flex flex-col justify-between">
                     <div>
-                       <p className="text-[10px] text-muted font-bold uppercase mb-2">Bank Details</p>
-                       <p className="text-xs font-mono font-bold text-heading mb-1">A/C: {v.bankAccount || "N/A"}</p>
-                       <p className="text-xs font-mono font-bold text-heading">IFSC: {v.bankIfsc || "N/A"}</p>
+                       <p className="text-[10px] text-muted font-bold uppercase mb-2">Bank Details (Vendor Payouts)</p>
+                       <p className="text-xs font-mono font-bold text-heading mb-0.5">Name: {v.bankName || "N/A"}</p>
+                       <p className="text-xs font-mono font-bold text-heading mb-0.5">A/C: {v.bankAccount || "N/A"}</p>
+                       <p className="text-xs font-mono font-bold text-heading mb-1">IFSC: {v.bankIfsc || "N/A"}</p>
+                       <p className="text-[10px] font-mono font-bold text-muted mb-1">
+                          {v.razorpayAccountId ? (
+                            <span className="text-emerald-500 flex items-center gap-1">
+                               ✓ Razorpay: {v.razorpayAccountId}
+                            </span>
+                          ) : (
+                            <span className="text-red-500">Not Linked to Razorpay</span>
+                          )}
+                       </p>
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-red-500/10 flex items-center justify-between">

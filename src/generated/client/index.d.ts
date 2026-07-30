@@ -2875,6 +2875,9 @@ export namespace Prisma {
     rejectionReason: string | null
     allowedCategories: string | null
     razorpayAccountId: string | null
+    bankAccount: string | null
+    bankIfsc: string | null
+    bankName: string | null
     payoutsPaused: boolean | null
   }
 
@@ -2899,6 +2902,9 @@ export namespace Prisma {
     rejectionReason: string | null
     allowedCategories: string | null
     razorpayAccountId: string | null
+    bankAccount: string | null
+    bankIfsc: string | null
+    bankName: string | null
     payoutsPaused: boolean | null
   }
 
@@ -2923,6 +2929,9 @@ export namespace Prisma {
     rejectionReason: number
     allowedCategories: number
     razorpayAccountId: number
+    bankAccount: number
+    bankIfsc: number
+    bankName: number
     payoutsPaused: number
     _all: number
   }
@@ -2959,6 +2968,9 @@ export namespace Prisma {
     rejectionReason?: true
     allowedCategories?: true
     razorpayAccountId?: true
+    bankAccount?: true
+    bankIfsc?: true
+    bankName?: true
     payoutsPaused?: true
   }
 
@@ -2983,6 +2995,9 @@ export namespace Prisma {
     rejectionReason?: true
     allowedCategories?: true
     razorpayAccountId?: true
+    bankAccount?: true
+    bankIfsc?: true
+    bankName?: true
     payoutsPaused?: true
   }
 
@@ -3007,6 +3022,9 @@ export namespace Prisma {
     rejectionReason?: true
     allowedCategories?: true
     razorpayAccountId?: true
+    bankAccount?: true
+    bankIfsc?: true
+    bankName?: true
     payoutsPaused?: true
     _all?: true
   }
@@ -3118,6 +3136,9 @@ export namespace Prisma {
     rejectionReason: string | null
     allowedCategories: string | null
     razorpayAccountId: string | null
+    bankAccount: string | null
+    bankIfsc: string | null
+    bankName: string | null
     payoutsPaused: boolean
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
@@ -3161,6 +3182,9 @@ export namespace Prisma {
     rejectionReason?: boolean
     allowedCategories?: boolean
     razorpayAccountId?: boolean
+    bankAccount?: boolean
+    bankIfsc?: boolean
+    bankName?: boolean
     payoutsPaused?: boolean
     products?: boolean | User$productsArgs<ExtArgs>
     orders?: boolean | User$ordersArgs<ExtArgs>
@@ -3195,6 +3219,9 @@ export namespace Prisma {
     rejectionReason?: boolean
     allowedCategories?: boolean
     razorpayAccountId?: boolean
+    bankAccount?: boolean
+    bankIfsc?: boolean
+    bankName?: boolean
     payoutsPaused?: boolean
   }
 
@@ -3243,6 +3270,9 @@ export namespace Prisma {
       rejectionReason: string | null
       allowedCategories: string | null
       razorpayAccountId: string | null
+      bankAccount: string | null
+      bankIfsc: string | null
+      bankName: string | null
       payoutsPaused: boolean
     }, ExtArgs["result"]["user"]>
     composites: {}
@@ -3641,6 +3671,9 @@ export namespace Prisma {
     readonly rejectionReason: FieldRef<"User", 'String'>
     readonly allowedCategories: FieldRef<"User", 'String'>
     readonly razorpayAccountId: FieldRef<"User", 'String'>
+    readonly bankAccount: FieldRef<"User", 'String'>
+    readonly bankIfsc: FieldRef<"User", 'String'>
+    readonly bankName: FieldRef<"User", 'String'>
     readonly payoutsPaused: FieldRef<"User", 'Boolean'>
   }
     
@@ -25629,6 +25662,9 @@ export namespace Prisma {
     rejectionReason: 'rejectionReason',
     allowedCategories: 'allowedCategories',
     razorpayAccountId: 'razorpayAccountId',
+    bankAccount: 'bankAccount',
+    bankIfsc: 'bankIfsc',
+    bankName: 'bankName',
     payoutsPaused: 'payoutsPaused'
   };
 
@@ -26164,6 +26200,9 @@ export namespace Prisma {
     rejectionReason?: StringNullableFilter<"User"> | string | null
     allowedCategories?: StringNullableFilter<"User"> | string | null
     razorpayAccountId?: StringNullableFilter<"User"> | string | null
+    bankAccount?: StringNullableFilter<"User"> | string | null
+    bankIfsc?: StringNullableFilter<"User"> | string | null
+    bankName?: StringNullableFilter<"User"> | string | null
     payoutsPaused?: BoolFilter<"User"> | boolean
     products?: ProductListRelationFilter
     orders?: OrderListRelationFilter
@@ -26196,6 +26235,9 @@ export namespace Prisma {
     rejectionReason?: SortOrderInput | SortOrder
     allowedCategories?: SortOrderInput | SortOrder
     razorpayAccountId?: SortOrderInput | SortOrder
+    bankAccount?: SortOrderInput | SortOrder
+    bankIfsc?: SortOrderInput | SortOrder
+    bankName?: SortOrderInput | SortOrder
     payoutsPaused?: SortOrder
     products?: ProductOrderByRelationAggregateInput
     orders?: OrderOrderByRelationAggregateInput
@@ -26231,6 +26273,9 @@ export namespace Prisma {
     rejectionReason?: StringNullableFilter<"User"> | string | null
     allowedCategories?: StringNullableFilter<"User"> | string | null
     razorpayAccountId?: StringNullableFilter<"User"> | string | null
+    bankAccount?: StringNullableFilter<"User"> | string | null
+    bankIfsc?: StringNullableFilter<"User"> | string | null
+    bankName?: StringNullableFilter<"User"> | string | null
     payoutsPaused?: BoolFilter<"User"> | boolean
     products?: ProductListRelationFilter
     orders?: OrderListRelationFilter
@@ -26263,6 +26308,9 @@ export namespace Prisma {
     rejectionReason?: SortOrderInput | SortOrder
     allowedCategories?: SortOrderInput | SortOrder
     razorpayAccountId?: SortOrderInput | SortOrder
+    bankAccount?: SortOrderInput | SortOrder
+    bankIfsc?: SortOrderInput | SortOrder
+    bankName?: SortOrderInput | SortOrder
     payoutsPaused?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
@@ -26295,6 +26343,9 @@ export namespace Prisma {
     rejectionReason?: StringNullableWithAggregatesFilter<"User"> | string | null
     allowedCategories?: StringNullableWithAggregatesFilter<"User"> | string | null
     razorpayAccountId?: StringNullableWithAggregatesFilter<"User"> | string | null
+    bankAccount?: StringNullableWithAggregatesFilter<"User"> | string | null
+    bankIfsc?: StringNullableWithAggregatesFilter<"User"> | string | null
+    bankName?: StringNullableWithAggregatesFilter<"User"> | string | null
     payoutsPaused?: BoolWithAggregatesFilter<"User"> | boolean
   }
 
@@ -28472,6 +28523,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductCreateNestedManyWithoutVendorInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -28504,6 +28558,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductUncheckedCreateNestedManyWithoutVendorInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -28535,6 +28592,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUpdateManyWithoutVendorNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -28567,6 +28627,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -28599,6 +28662,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
   }
 
@@ -28622,6 +28688,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
   }
 
@@ -28646,6 +28715,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
   }
 
@@ -31251,6 +31323,9 @@ export namespace Prisma {
     rejectionReason?: SortOrder
     allowedCategories?: SortOrder
     razorpayAccountId?: SortOrder
+    bankAccount?: SortOrder
+    bankIfsc?: SortOrder
+    bankName?: SortOrder
     payoutsPaused?: SortOrder
   }
 
@@ -31280,6 +31355,9 @@ export namespace Prisma {
     rejectionReason?: SortOrder
     allowedCategories?: SortOrder
     razorpayAccountId?: SortOrder
+    bankAccount?: SortOrder
+    bankIfsc?: SortOrder
+    bankName?: SortOrder
     payoutsPaused?: SortOrder
   }
 
@@ -31304,6 +31382,9 @@ export namespace Prisma {
     rejectionReason?: SortOrder
     allowedCategories?: SortOrder
     razorpayAccountId?: SortOrder
+    bankAccount?: SortOrder
+    bankIfsc?: SortOrder
+    bankName?: SortOrder
     payoutsPaused?: SortOrder
   }
 
@@ -35276,6 +35357,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     orders?: OrderCreateNestedManyWithoutUserInput
     addresses?: AddressCreateNestedManyWithoutUserInput
@@ -35307,6 +35391,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
@@ -35600,6 +35687,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     orders?: OrderUpdateManyWithoutUserNestedInput
     addresses?: AddressUpdateManyWithoutUserNestedInput
@@ -35631,6 +35721,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
@@ -35816,6 +35909,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductCreateNestedManyWithoutVendorInput
     addresses?: AddressCreateNestedManyWithoutUserInput
@@ -35847,6 +35943,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductUncheckedCreateNestedManyWithoutVendorInput
     addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
@@ -36029,6 +36128,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUpdateManyWithoutVendorNestedInput
     addresses?: AddressUpdateManyWithoutUserNestedInput
@@ -36060,6 +36162,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
     addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
@@ -37044,6 +37149,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductCreateNestedManyWithoutVendorInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -37075,6 +37183,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductUncheckedCreateNestedManyWithoutVendorInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -37121,6 +37232,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUpdateManyWithoutVendorNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -37152,6 +37266,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -37182,6 +37299,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductCreateNestedManyWithoutVendorInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -37213,6 +37333,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductUncheckedCreateNestedManyWithoutVendorInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -37329,6 +37452,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUpdateManyWithoutVendorNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -37360,6 +37486,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -37536,6 +37665,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductCreateNestedManyWithoutVendorInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -37567,6 +37699,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductUncheckedCreateNestedManyWithoutVendorInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -37689,6 +37824,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUpdateManyWithoutVendorNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -37720,6 +37858,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -37750,6 +37891,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductCreateNestedManyWithoutVendorInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -37781,6 +37925,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductUncheckedCreateNestedManyWithoutVendorInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -37897,6 +38044,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUpdateManyWithoutVendorNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -37928,6 +38078,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -38034,6 +38187,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductCreateNestedManyWithoutVendorInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -38065,6 +38221,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductUncheckedCreateNestedManyWithoutVendorInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -38181,6 +38340,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUpdateManyWithoutVendorNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -38212,6 +38374,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -38464,6 +38629,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductCreateNestedManyWithoutVendorInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -38495,6 +38663,9 @@ export namespace Prisma {
     rejectionReason?: string | null
     allowedCategories?: string | null
     razorpayAccountId?: string | null
+    bankAccount?: string | null
+    bankIfsc?: string | null
+    bankName?: string | null
     payoutsPaused?: boolean
     products?: ProductUncheckedCreateNestedManyWithoutVendorInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -38566,6 +38737,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUpdateManyWithoutVendorNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -38597,6 +38771,9 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     allowedCategories?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    bankAccount?: NullableStringFieldUpdateOperationsInput | string | null
+    bankIfsc?: NullableStringFieldUpdateOperationsInput | string | null
+    bankName?: NullableStringFieldUpdateOperationsInput | string | null
     payoutsPaused?: BoolFieldUpdateOperationsInput | boolean
     products?: ProductUncheckedUpdateManyWithoutVendorNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput

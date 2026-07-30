@@ -143,6 +143,9 @@ exports.Prisma.UserScalarFieldEnum = {
   rejectionReason: 'rejectionReason',
   allowedCategories: 'allowedCategories',
   razorpayAccountId: 'razorpayAccountId',
+  bankAccount: 'bankAccount',
+  bankIfsc: 'bankIfsc',
+  bankName: 'bankName',
   payoutsPaused: 'payoutsPaused'
 };
 

@@ -777,30 +777,40 @@ export default function VendorCameraHubPage() {
                     className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-red-500 font-mono"
                   />
                 </div>
-                {returns.filter(r => !searchReturnId || r.id.toString() === searchReturnId).length === 0 ? (
-                  <div className="p-8 text-center text-xs text-muted font-bold bg-surface-card rounded-2xl border border-dashed border-border">
-                    No pending returns to inspect.
-                  </div>
-                ) : (
-                  returns.filter(r => !searchReturnId || r.id.toString() === searchReturnId).map(ret => (
-                    <div
-                      key={ret.id}
-                      onClick={() => { setSelectedReturn(ret); setQcImages([]); }}
-                      className="p-4 bg-surface-card border border-border/80 hover:border-red-500/80 rounded-2xl flex items-center justify-between cursor-pointer transition-all shadow-sm"
-                    >
-                      <div>
-                        <span className="text-[10px] font-mono font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded">
-                          Return #{ret.id}
-                        </span>
-                        <h4 className="text-xs font-bold text-heading mt-1">{ret.reason || "Return Inquiry"}</h4>
-                        <p className="text-[10px] text-muted">Status: {ret.status}</p>
+                {(() => {
+                  const workerReturns = returns.filter(r => !["REFUND_INITIATED", "REFUNDED", "REJECTED", "REJECTED_PRE_PICKUP", "COMPLETED", "QC_PASS", "QC_FAIL", "QC_FAILED", "REFUND_FAILED"].includes(r.status));
+                  const filtered = workerReturns.filter(r => !searchReturnId || r.id.toString() === searchReturnId);
+                  
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="p-8 text-center text-xs text-muted font-bold bg-surface-card rounded-2xl border border-dashed border-border">
+                        No pending returns to inspect.
                       </div>
-                      <span className="px-3 py-1.5 bg-red-500 text-white rounded-xl text-[10px] font-bold flex items-center gap-1">
-                        <Camera size={12} /> QC Snap
-                      </span>
-                    </div>
-                  ))
-                )}
+                    );
+                  }
+
+                  return filtered.map(ret => {
+                    const isRaised = ret.status === "RECEIVED_AT_WAREHOUSE";
+                    return (
+                      <div
+                        key={ret.id}
+                        onClick={() => { if (!isRaised) { setSelectedReturn(ret); setQcImages([]); } }}
+                        className={`p-4 bg-surface-card border border-border/80 rounded-2xl flex items-center justify-between transition-all shadow-sm ${isRaised ? 'opacity-60 cursor-not-allowed' : 'hover:border-red-500/80 cursor-pointer'}`}
+                      >
+                        <div>
+                          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${isRaised ? 'bg-orange-500/10 text-orange-500' : 'bg-red-500/10 text-red-500'}`}>
+                            Return #{ret.id}
+                          </span>
+                          <h4 className="text-xs font-bold text-heading mt-1">{ret.reason || "Return Inquiry"}</h4>
+                          <p className="text-[10px] text-muted">Status: {ret.status}</p>
+                        </div>
+                        <span className={`px-3 py-1.5 text-white rounded-xl text-[10px] font-bold flex items-center gap-1 ${isRaised ? 'bg-orange-500' : 'bg-red-500'}`}>
+                          {isRaised ? <><ShieldAlert size={12} /> Raised to Admin</> : <><Camera size={12} /> QC Snap</>}
+                        </span>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>

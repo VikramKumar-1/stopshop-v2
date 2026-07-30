@@ -31,6 +31,9 @@ model User {
   rejectionReason String? // Note from admin explaining why vendor was rejected
   allowedCategories String? // Comma-separated list of category slugs allowed for vendor
   razorpayAccountId String? // For Razorpay Route Linked Accounts (Vendor Payouts)
+  bankAccount    String? // Store raw account number for admin review
+  bankIfsc       String? // Store raw IFSC for admin review
+  bankName       String? // Store beneficiary name
   payoutsPaused Boolean @default(false) // Admin override to hold vendor money
 
   products   Product[]

@@ -29,6 +29,10 @@ export async function GET(req: NextRequest) {
         allowedCategories: true,
         rejectionReason: true,
         createdAt: true,
+        razorpayAccountId: true,
+        bankAccount: true,
+        bankIfsc: true,
+        bankName: true,
       },
       orderBy: { createdAt: "desc" },
     });
