@@ -234,8 +234,8 @@ export default function VendorCameraHubPage() {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
-    if (packingImages.length + fileArray.length > 8) {
-      showToast("Max 8 photos allowed", "error");
+    if (packingImages.length + fileArray.length > 6) {
+      showToast("Max 6 photos allowed", "error");
       return;
     }
 
@@ -313,8 +313,8 @@ export default function VendorCameraHubPage() {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
-    if (qcImages.length + fileArray.length > 8) {
-      showToast("Max 8 photos allowed", "error");
+    if (qcImages.length + fileArray.length > 6) {
+      showToast("Max 6 photos allowed", "error");
       return;
     }
 
@@ -354,14 +354,14 @@ export default function VendorCameraHubPage() {
   };
 
   const handleSubmitQcReport = async (action: "QC_PASS" | "QC_UPLOAD") => {
-    if (!selectedReturn || !selectedReturn.returnRequest) return;
+    if (!selectedReturn) return;
     if (action === "QC_UPLOAD" && qcImages.length < 3) {
       return showToast("Please snap at least 3 proof photos showing the issue", "error");
     }
 
     setSubmittingQc(true);
     try {
-      const res = await fetch(`/api/returns/${selectedReturn.returnRequest.id}`, {
+      const res = await fetch(`/api/returns/${selectedReturn.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, qcImages, qcNotes })
@@ -526,8 +526,8 @@ export default function VendorCameraHubPage() {
                     </label>
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none pt-2">
-                    {Array.from({ length: Math.max(3, packingImages.length) }).map((_, idx) => (
-                      <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${packingImages[idx] ? 'border-solid border-border' : 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400'}`}>
+                    {Array.from({ length: Math.max(6, packingImages.length) }).map((_, idx) => (
+                      <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${packingImages[idx] ? 'border-solid border-border' : (idx < 3 ? 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400' : 'border-dashed border-border bg-surface-hover text-muted')}`}>
                         {packingImages[idx] ? (
                           <>
                             <img src={packingImages[idx]} alt={`Packing ${idx + 1}`} onClick={() => !packingImages[idx].startsWith("blob:") && setPreviewModalImage({ url: packingImages[idx], index: idx, type: "packing" })} className="w-full h-full object-cover cursor-pointer" />
@@ -547,7 +547,7 @@ export default function VendorCameraHubPage() {
                         ) : (
                           <label htmlFor="cam-packing-camera" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
                             <Camera size={18} className="mb-0.5 opacity-60" />
-                            <span className="text-[10px] font-bold opacity-80">Req</span>
+                            <span className="text-[10px] font-bold opacity-80">{idx < 3 ? 'Req' : 'Opt'}</span>
                           </label>
                         )}
                       </div>
@@ -672,13 +672,13 @@ export default function VendorCameraHubPage() {
                     <label className="block text-[11px] font-bold text-heading uppercase">
                       Snap Return QC Inspection Photos *
                     </label>
-                    <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full">{qcImages.length} / 8 (Min 3 Req)</span>
+                    <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full">{qcImages.length} / 6 (Min 3 Req)</span>
                   </div>
 
                   {/* Dashed Box Grid UI */}
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                    {Array.from({ length: Math.max(3, qcImages.length) }).map((_, idx) => (
-                      <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${qcImages[idx] ? 'border-solid border-border' : 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400'}`}>
+                    {Array.from({ length: Math.max(6, qcImages.length) }).map((_, idx) => (
+                      <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${qcImages[idx] ? 'border-solid border-border' : (idx < 3 ? 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400' : 'border-dashed border-border bg-surface-hover text-muted')}`}>
                         {qcImages[idx] ? (
                           <>
                             <img src={qcImages[idx]} alt={`QC ${idx + 1}`} onClick={() => !qcImages[idx].startsWith("blob:") && setPreviewModalImage({ url: qcImages[idx], index: idx, type: "qc" })} className="w-full h-full object-cover cursor-pointer" />
@@ -698,7 +698,7 @@ export default function VendorCameraHubPage() {
                         ) : (
                           <label htmlFor="cam-qc-camera" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
                             <Camera size={18} className="mb-0.5 opacity-60" />
-                            <span className="text-[10px] font-bold opacity-80">Req</span>
+                            <span className="text-[10px] font-bold opacity-80">{idx < 3 ? 'Req' : 'Opt'}</span>
                           </label>
                         )}
                       </div>
