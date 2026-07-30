@@ -112,15 +112,24 @@ export async function POST(req: NextRequest) {
           const settings = await prisma.adminSettings.findFirst();
           const pickupLocation = settings?.shiprocketPickupLocation || "Primary";
           const srOrder = await ShiprocketService.createOrder(targetOrder, allItems, pickupLocation);
+          
+          // Auto-generate AWB, Label, and Schedule Pickup immediately
+          const courier = await ShiprocketService.assignCourier(srOrder.shipment_id);
+          const labelUrl = await ShiprocketService.generateLabel(srOrder.shipment_id);
+          await ShiprocketService.schedulePickup(srOrder.shipment_id);
+
           await prisma.order.update({
             where: { id: targetOrder.id },
             data: {
               shiprocketOrderId: srOrder.shiprocket_order_id,
               shiprocketShipmentId: srOrder.shipment_id,
+              awbCode: courier.awb_code,
+              courierName: courier.courier_name,
+              shippingLabelUrl: labelUrl
             }
           });
           shiprocketCreated = true;
-          console.log(`[Shiprocket Auto-Ping Success] Order ${targetOrder.id} registered in Shiprocket with Shipment ID: ${srOrder.shipment_id}`);
+          console.log(`[Shiprocket Auto-Ping Success] Order ${targetOrder.id} registered. AWB: ${courier.awb_code}`);
         } catch (srErr: any) {
           console.error("[Shiprocket Auto-Ping Error]:", srErr);
           shiprocketError = srErr.message || "Shiprocket integration error";
