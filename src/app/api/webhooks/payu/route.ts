@@ -33,6 +33,13 @@ export async function POST(req: NextRequest) {
         });
 
         if (order && order.status === "PENDING" && order.paymentStatus === "PENDING") {
+           // Acquire lock
+           const lock = await tx.order.updateMany({
+              where: { id: order.id, paymentStatus: "PENDING" },
+              data: { paymentStatus: "PROCESSING" }
+           });
+           if (lock.count === 0) return; // Processed concurrently
+
            // Verify amount matches roughly (amount from PayU is string "499.00")
            const paidPaise = Math.round(parseFloat(amount) * 100);
            if (Math.abs(order.totalPaise - paidPaise) <= 100) { // allow 1 rupee diff due to float

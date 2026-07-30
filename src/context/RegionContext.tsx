@@ -105,7 +105,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion
     };
     const config = currencyDatabase[activeRegion] || { c: "USD" };
     const rate = rates[config.c] || defaultRates[config.c] || 1 / 96.0;
-    return Math.round(priceInInr * rate);
+    return priceInInr * rate;
   };
 
   const formatPrice = (value: number, targetRegion?: string): string => {

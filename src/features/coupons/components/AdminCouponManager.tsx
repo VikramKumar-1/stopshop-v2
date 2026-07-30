@@ -388,7 +388,21 @@ export const AdminCouponManager = () => {
             </div>
             <div>
               <label className="block text-xs font-bold text-muted mb-1 uppercase">Discount Value *</label>
-              <input required type="number" step="0.01" value={formData.discountValue} onChange={e => setFormData({...formData, discountValue: e.target.value})} placeholder="e.g. 15" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
+              <input 
+                required 
+                type="number" 
+                step="0.01" 
+                min="0"
+                value={formData.discountValue} 
+                onKeyDown={(e) => { if (['-', 'e', 'E', '+'].includes(e.key)) e.preventDefault(); }}
+                onChange={e => {
+                   let val = e.target.value;
+                   if (val && Number(val) < 0) val = "0";
+                   setFormData({...formData, discountValue: val})
+                }} 
+                placeholder="e.g. 15" 
+                className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" 
+              />
             </div>
             <div>
               <label className="block text-xs font-bold text-muted mb-1 uppercase">Min Order Amount (₹)</label>

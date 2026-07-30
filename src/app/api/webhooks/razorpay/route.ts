@@ -36,6 +36,13 @@ export async function POST(req: NextRequest) {
         });
 
         if (order && order.status === "PENDING" && order.paymentStatus === "PENDING") {
+           // Acquire lock
+           const lock = await tx.order.updateMany({
+              where: { id: order.id, paymentStatus: "PENDING" },
+              data: { paymentStatus: "PROCESSING" }
+           });
+           if (lock.count === 0) return; // Processed concurrently
+
            // Verify amount matches
            if (order.totalPaise === paymentEntity.amount) {
               // Same logic as verify endpoint

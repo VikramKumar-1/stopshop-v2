@@ -1,14 +1,7 @@
 const { PrismaClient } = require('./src/generated/client');
 const prisma = new PrismaClient();
-
 async function main() {
-  const intents = await prisma.userIntent.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 10
-  });
-  console.log(JSON.stringify(intents, null, 2));
+  const orders = await prisma.order.findMany({ take: 3, orderBy: { createdAt: 'desc' }, select: { id: true, paymentStatus: true, status: true, orderNumber: true } });
+  console.log(orders);
 }
-
-main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+main().then(() => prisma.$disconnect());

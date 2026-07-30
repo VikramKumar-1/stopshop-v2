@@ -724,8 +724,14 @@ export default function AddProductTab({
                         <label className="font-bold text-muted uppercase tracking-wider text-[10px]">Discount Value</label>
                         <input
                           type="number"
+                          min="0"
                           value={productForm.bundleDiscountValue}
-                          onChange={(e) => setProductForm({ ...productForm, bundleDiscountValue: e.target.value })}
+                          onKeyDown={(e) => { if (['-', 'e', 'E', '+'].includes(e.key)) e.preventDefault(); }}
+                          onChange={(e) => {
+                             let val = e.target.value;
+                             if (val && Number(val) < 0) val = "0";
+                             setProductForm({ ...productForm, bundleDiscountValue: val })
+                          }}
                           placeholder={productForm.bundleDiscountType === "PERCENTAGE" ? "e.g. 10 (for 10%)" : "e.g. 500 (for ₹500 off)"}
                           className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-heading focus:outline-none"
                         />

@@ -41,9 +41,17 @@ export async function POST(req: NextRequest) {
         throw new Error("Order not found");
       }
 
-      if (order.status !== "PENDING" && order.paymentStatus === "PAID") {
+      if (order.status !== "PENDING" || order.paymentStatus !== "PENDING") {
          return order; // Already verified (maybe webhook hit first)
       }
+
+      // Acquire lock and prevent concurrent webhook processing
+      const lock = await tx.order.updateMany({
+         where: { id: order.id, paymentStatus: "PENDING" },
+         data: { paymentStatus: "PROCESSING" }
+      });
+
+      if (lock.count === 0) return order; // Another process grabbed it
 
       // 3. Deduct Stock (Atomic Concurrency Safe)
       for (const item of order.items) {

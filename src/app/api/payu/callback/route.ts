@@ -37,12 +37,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (status !== "success") {
+      console.log(`[PAYU CALLBACK] Status not success for txnid ${txnid}: ${status}`);
       await prisma.order.update({
         where: { paymentOrderId: txnid },
         data: { paymentStatus: "FAILED", paymentData: data }
       });
       return NextResponse.redirect(`${cleanOrigin}/checkout/failure?reason=${encodeURIComponent(data.error_Message || "payment_failed")}`, 303);
     }
+
+    console.log(`[PAYU CALLBACK] Starting successful processing for txnid ${txnid}`);
 
     // 2. Process Successful Payment (Atomic transaction with 30s timeout)
     try {
@@ -52,8 +55,27 @@ export async function POST(req: NextRequest) {
           include: { items: true }
         });
 
-        if (!order) throw new Error("Order not found");
-        if (order.status !== "PENDING" && order.paymentStatus === "PAID") return; // Already processed
+        if (!order) {
+           console.log(`[PAYU CALLBACK] Order not found for txnid ${txnid}`);
+           throw new Error("Order not found");
+        }
+        console.log(`[PAYU CALLBACK] Found order ${order.id}. Current status: ${order.status}, paymentStatus: ${order.paymentStatus}`);
+        if (order.status !== "PENDING" || order.paymentStatus !== "PENDING") {
+           console.log(`[PAYU CALLBACK] Order already processed. Skipping transaction.`);
+           return; // Already processed
+        }
+
+        // Acquire lock and prevent concurrent webhook processing
+        const lock = await tx.order.updateMany({
+           where: { id: order.id, paymentStatus: "PENDING" },
+           data: { paymentStatus: "PROCESSING" }
+        });
+
+        console.log(`[PAYU CALLBACK] Acquired lock for order ${order.id}. lock.count = ${lock.count}`);
+        if (lock.count === 0) {
+           console.log(`[PAYU CALLBACK] lock.count is 0, returning early!`);
+           return; // Another process grabbed it
+        }
 
         // Deduct Stock (Atomic Concurrency Safe)
         for (const item of order.items) {
@@ -91,6 +113,7 @@ export async function POST(req: NextRequest) {
         const commissionRate = settings?.defaultCommissionRate || 10;
         const commissionPaise = Math.round(order.totalPaise * (commissionRate / 100));
 
+        console.log(`[PAYU CALLBACK] Updating order ${order.id} to PAID...`);
         await tx.order.update({
           where: { id: order.id },
           data: {
@@ -104,6 +127,7 @@ export async function POST(req: NextRequest) {
             settlementStatus: "HOLD",
           }
         });
+        console.log(`[PAYU CALLBACK] Order ${order.id} updated to PAID successfully.`);
 
         // Create Settlements
         const vendorTotals: Record<number, number> = {};
@@ -150,6 +174,7 @@ export async function POST(req: NextRequest) {
          }
          return NextResponse.redirect(`${cleanOrigin}/checkout/failure?reason=out_of_stock_refunded`, 303);
       }
+      console.error("[PAYU CALLBACK] Throwing txError from inside try-catch:", txError);
       throw txError;
     }
 
@@ -165,7 +190,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.redirect(redirectTarget, 303);
   } catch (error) {
-    console.error("PayU callback error:", error);
+    console.error("[PAYU CALLBACK] Top-level callback error:", error);
     const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
     const proto = req.headers.get("x-forwarded-proto") || "https";
     const origin = host ? `${proto}://${host}` : req.nextUrl.origin;

@@ -522,7 +522,7 @@ useEffect(() => {
 
     let tax = 0;
     if (settings.taxRate > 0) {
-       tax = subtotal * (settings.taxRate / 100);
+       tax = Math.round(subtotal * (settings.taxRate / 100));
     }
 
     let discount = 0;
@@ -532,7 +532,7 @@ useEffect(() => {
        const mainProduct = checkoutItems[0];
        if (mainProduct && (mainProduct.bundleDiscountType === "PERCENTAGE" || mainProduct.bundleDiscountType === "FLAT")) {
           if (mainProduct.bundleDiscountType === "PERCENTAGE") {
-             discount += subtotal * (mainProduct.bundleDiscountValue || 0) / 100;
+             discount += Math.round(subtotal * (mainProduct.bundleDiscountValue || 0) / 100);
           } else if (mainProduct.bundleDiscountType === "FLAT") {
              discount += (mainProduct.bundleDiscountValue || 0) * mainProduct.quantity;
           }
@@ -540,7 +540,7 @@ useEffect(() => {
     }
 
     if (couponApplied) {
-       discount += couponApplied.discountPaise / 100;
+       discount += getRawPrice(couponApplied.discountPaise / 100, undefined, false, countryCode);
        // Ensure total discount doesn't exceed subtotal
        if (discount > subtotal) discount = subtotal;
     }
@@ -1090,7 +1090,7 @@ useEffect(() => {
                      const rawPrice = getRawPrice(item.price, item, false, countryCode);
                      let itemDiscount = 0;
                      if (offer) {
-                       if (offer.discountPct) itemDiscount = rawPrice * (offer.discountPct / 100);
+                       if (offer.discountPct) itemDiscount = Math.round(rawPrice * (offer.discountPct / 100));
                        if (offer.discountAmt) itemDiscount = Math.min(rawPrice, offer.discountAmt);
                      }
                      const discountQuantity = offer ? (offer.productId ? 1 : item.quantity) : 0;

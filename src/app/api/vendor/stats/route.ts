@@ -26,25 +26,39 @@ export async function GET(req: NextRequest) {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    // Run parallel count queries using Prisma
-    // We count items directly that belong to this vendor
-    const [
-      totalPending,
-      totalPacked,
-      totalDispatched,
-      totalDelivered,
-      totalReturned,
-      totalCancelled,
-      todayOrders
-    ] = await Promise.all([
-      prisma.orderItem.count({ where: { vendorId, order: { status: "CONFIRMED" } } }),
-      prisma.orderItem.count({ where: { vendorId, order: { status: "PACKED" } } }),
-      prisma.orderItem.count({ where: { vendorId, order: { status: "DISPATCHED" } } }),
-      prisma.orderItem.count({ where: { vendorId, order: { status: "DELIVERED" } } }),
-      prisma.orderItem.count({ where: { vendorId, order: { status: "RETURNED" } } }),
-      prisma.orderItem.count({ where: { vendorId, order: { status: { in: ["CANCELLED", "RETURN_REJECTED"] } } } }),
-      prisma.orderItem.count({ where: { vendorId, order: { createdAt: { gte: startOfToday } } } })
-    ]);
+    // Fetch only the necessary fields (status, createdAt) for orders belonging to this vendor
+    const vendorOrders = await prisma.order.findMany({
+      where: {
+        items: {
+          some: { vendorId }
+        }
+      },
+      select: {
+        status: true,
+        createdAt: true
+      }
+    });
+
+    let totalPending = 0;
+    let totalPacked = 0;
+    let totalDispatched = 0;
+    let totalDelivered = 0;
+    let totalReturned = 0;
+    let totalCancelled = 0;
+    let todayOrders = 0;
+
+    for (const order of vendorOrders) {
+      if (order.status === "CONFIRMED") totalPending++;
+      else if (order.status === "PACKED") totalPacked++;
+      else if (order.status === "DISPATCHED") totalDispatched++;
+      else if (order.status === "DELIVERED") totalDelivered++;
+      else if (order.status === "RETURNED") totalReturned++;
+      else if (order.status === "CANCELLED" || order.status === "RETURN_REJECTED") totalCancelled++;
+
+      if (order.createdAt >= startOfToday) {
+        todayOrders++;
+      }
+    }
 
     return NextResponse.json({
       success: true,

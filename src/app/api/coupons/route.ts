@@ -118,6 +118,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, coupon: newCoupon });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to create coupon" }, { status: 500 });
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: "A coupon with this code already exists. Please use a unique code." }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Failed to create coupon. Please try again." }, { status: 500 });
   }
 }

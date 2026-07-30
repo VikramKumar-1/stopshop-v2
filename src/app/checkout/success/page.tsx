@@ -132,21 +132,21 @@ function CheckoutSuccessContent() {
             <div className="flex justify-between items-center gap-2">
               <span className="text-zinc-400 shrink-0">Order number</span>
               <span className="font-bold text-white truncate max-w-[170px] sm:max-w-[200px]">
-                {order ? order.orderNumber : `SS-${Date.now().toString().slice(-8)}`}
+                {order ? order.orderNumber : "Loading..."}
               </span>
             </div>
 
             <div className="flex justify-between items-center gap-2">
               <span className="text-zinc-400 shrink-0">Payment method</span>
               <span className="font-bold text-emerald-400 uppercase text-[11px] truncate">
-                {order ? (order.paymentMethod === "cod" ? "Cash on Delivery" : order.paymentMethod || "RAZORPAY") : "RAZORPAY"}
+                {order ? (order.paymentMethod === "cod" ? "Cash on Delivery" : order.paymentMethod || "ONLINE") : "Loading..."}
               </span>
             </div>
 
             <div className="flex justify-between items-center gap-2">
               <span className="text-zinc-400 shrink-0">Transaction ID</span>
               <span className="font-mono text-[10px] text-zinc-300 truncate max-w-[150px] sm:max-w-[190px]">
-                {order?.razorpayPaymentId || order?.paymentOrderId || `pay_TAALp7iAwfuFP6`}
+                {order ? (order.razorpayPaymentId || order.paymentOrderId || "-") : "Loading..."}
               </span>
             </div>
 
@@ -178,7 +178,7 @@ function CheckoutSuccessContent() {
                   <div className="flex justify-between items-center text-zinc-400 gap-2">
                     <span className="shrink-0">Item total</span>
                     <span className="font-medium text-white">
-                      {renderPrice(order?.subtotalPaise || order?.totalPaise || 400000)}
+                      {order ? renderPrice(order.subtotalPaise || order.totalPaise || 0) : "Loading..."}
                     </span>
                   </div>
 
@@ -208,7 +208,7 @@ function CheckoutSuccessContent() {
                     <span className="text-zinc-200 font-bold text-xs shrink-0">Total paid</span>
                     <div className="text-right">
                       <span className="font-black text-[#22c55e] text-sm sm:text-base block">
-                        {order ? renderPrice(order.totalPaise) : "$109.46"}
+                        {order ? renderPrice(order.totalPaise) : "Loading..."}
                       </span>
                       {isIntl && order?.totalPaise && (
                         <span className="text-[10px] text-zinc-400 font-medium block">
@@ -235,7 +235,7 @@ function CheckoutSuccessContent() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-white truncate text-xs">
-                  {order?.items?.[0]?.productName || "VIKU copper water bottle"}
+                  {order ? (order.items?.[0]?.productName || "Product") : "Loading..."}
                 </p>
                 <p className="text-[10px] text-zinc-400">
                   {order?.items?.length > 1 ? `+${order.items.length - 1} more items` : `Qty ${order?.items?.[0]?.quantity || 1}`}

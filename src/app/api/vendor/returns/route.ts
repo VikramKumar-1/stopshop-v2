@@ -13,28 +13,47 @@ export async function GET(req: NextRequest) {
     }
     const vendorId = user.role === "vendor" ? user.userId : user.parentVendorId;
 
-    // Fetch return requests that belong to this vendor's items.
-    // A return request might contain items from multiple vendors in theory,
-    // but we can fetch requests where the linked order has items from this vendor.
-    const returnRequests = await prisma.returnRequest.findMany({
-      where: {
-        order: {
-          items: {
-            some: {
-              vendorId: vendorId
+    // Fetch return requests + admin settings in parallel
+    const [returnRequests, settings] = await Promise.all([
+      prisma.returnRequest.findMany({
+        where: {
+          order: {
+            items: {
+              some: {
+                vendorId: vendorId
+              }
             }
           }
-        }
-      },
-      include: {
-        order: {
-          include: {
-            items: true
+        },
+        include: {
+          order: {
+            select: {
+              id: true,
+              orderNumber: true,
+              status: true,
+              items: {
+                select: {
+                  id: true,
+                  productId: true,
+                  vendorId: true,
+                  productName: true,
+                  productImage: true,
+                  quantity: true,
+                  unitPaise: true,
+                  totalPaise: true,
+                  returnQuantity: true,
+                  returnStatus: true,
+                  productMaterial: true,
+                  dispatchImages: true
+                }
+              }
+            }
           }
-        }
-      },
-      orderBy: { createdAt: "desc" }
-    });
+        },
+        orderBy: { createdAt: "desc" }
+      }),
+      prisma.adminSettings.findFirst({ select: { vendorReturnSlaHours: true } })
+    ]);
 
     // Since a single order can have multiple items from multiple vendors,
     // we should filter the returnItems JSON to only include the items 
@@ -44,10 +63,23 @@ export async function GET(req: NextRequest) {
        let itemsToReturn = Array.isArray(ret.returnItems) ? ret.returnItems : [];
        
        // Map itemsToReturn to the actual OrderItems to check vendorId
-       const myItems = itemsToReturn.filter((reqItem: any) => {
-          const orderItem = ret.order.items.find(i => i.id === reqItem.orderItemId);
+       let myItems = itemsToReturn.filter((reqItem: any) => {
+          const orderItem = ret.order.items.find(i => 
+            i.id === reqItem.orderItemId || 
+            i.productId === reqItem.productId || 
+            i.productId === reqItem.id ||
+            i.id === reqItem.id
+          );
           return orderItem && orderItem.vendorId === vendorId;
        });
+
+       // Fallback: If returnItems JSON doesn't directly map IDs, check if order items belong to vendor
+       if (myItems.length === 0) {
+          const vendorOrderItems = ret.order.items.filter(i => i.vendorId === vendorId);
+          if (vendorOrderItems.length > 0) {
+             myItems = vendorOrderItems;
+          }
+       }
 
        return {
          ...ret,
@@ -55,7 +87,6 @@ export async function GET(req: NextRequest) {
        };
     }).filter(ret => ret.returnItems.length > 0); // Only keep requests that have items for this vendor
 
-    const settings = await prisma.adminSettings.findFirst();
     const slaHours = settings?.vendorReturnSlaHours || 24;
 
     return NextResponse.json({ success: true, returns: filteredReturns, slaHours });

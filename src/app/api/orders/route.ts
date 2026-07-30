@@ -19,18 +19,22 @@ export async function GET(req: NextRequest) {
     let whereClause: any = {};
 
     const asVendor = searchParams.get("vendorId");
-    const targetVendorId = asVendor ? parseInt(asVendor) : null;
-    const effUserId = user.id || user.userId;
-    const currentVendorId = user.role === "vendor" ? effUserId : user.parentVendorId;
+    const effUserId = Number(user.id || user.userId);
+    const currentVendorId = user.role === "vendor" ? effUserId : (user.parentVendorId ? Number(user.parentVendorId) : null);
+
+    const targetVendorId = asVendor ? Number(asVendor) : null;
 
     if (user.role === "admin") {
       if (targetVendorId) {
         whereClause.items = { some: { vendorId: targetVendorId } };
       }
-    } else if (currentVendorId && targetVendorId && targetVendorId === currentVendorId) {
-      whereClause.items = {
-        some: { vendorId: currentVendorId }
-      };
+    } else if (user.role === "vendor" || currentVendorId) {
+      const vId = targetVendorId || currentVendorId;
+      if (vId) {
+        whereClause.items = {
+          some: { vendorId: vId }
+        };
+      }
       if (status) {
         whereClause.status = status === "PENDING" ? { not: "PENDING" } : status;
       } else {
@@ -43,7 +47,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (status && user.role !== "vendor") {
+    if (status && user.role !== "vendor" && user.role !== "admin") {
        whereClause.status = status;
     }
 
@@ -53,25 +57,44 @@ export async function GET(req: NextRequest) {
       prisma.order.count({ where: whereClause }),
       prisma.order.findMany({
         where: whereClause,
-        include: {
-           user: {
-              select: { id: true, name: true, email: true, mobile: true }
-           },
-           items: {
-              include: {
-                 product: {
-                    select: {
-                       id: true,
-                       name: true,
-                       slug: true,
-                       image: true,
-                       images: true,
-                       vendorId: true
-                    }
-                 }
-              }
-           },
-           returnRequest: true
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          paymentStatus: true,
+          paymentMethod: true,
+          totalPaise: true,
+          shippingName: true,
+          shippingCity: true,
+          shippingState: true,
+          shippingPhone: true,
+          shippingEmail: true,
+          shippingAddress: true,
+          shippingPincode: true,
+          shippingCountry: true,
+          createdAt: true,
+          updatedAt: true,
+          awbCode: true,
+          courierName: true,
+          returnAwbCode: true,
+          returnCourierName: true,
+          shippingLabelUrl: true,
+          deliveryDate: true,
+          deliveredAt: true,
+          trackingId: true,
+          paymentGateway: true,
+          razorpayPaymentId: true,
+          subtotalPaise: true,
+          shippingPaise: true,
+          codChargePaise: true,
+          taxPaise: true,
+          discountPaise: true,
+          couponCode: true,
+          user: {
+            select: { id: true, name: true, email: true, mobile: true }
+          },
+          items: true,
+          returnRequest: true
         },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
@@ -81,11 +104,9 @@ export async function GET(req: NextRequest) {
         where: whereClause,
         select: {
            status: true,
-           paymentMethod: true,
+           paymentGateway: true,
            paymentStatus: true,
-           currency: true,
-           totalPaise: true,
-           commissionPaise: true
+           totalPaise: true
         }
       }) : Promise.resolve(undefined)
     ]);

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Edit2, Loader2, Tag, CheckCircle2 } from "lucide-react";
 import { TargetedRetargetingPanel } from "./TargetedRetargetingPanel";
+import { PremiumDateTimePicker } from "@/components/ui/PremiumDateTimePicker";
 
 export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -187,11 +188,12 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-muted mb-1 uppercase">Promo Code</label>
-              <input required value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})} placeholder="e.g. MYSALE10" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold focus:border-orange-500 focus:outline-none uppercase" />
+              <input required maxLength={12} value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})} placeholder="e.g. MYSALE10" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold focus:border-orange-500 focus:outline-none uppercase tracking-widest" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-muted mb-1 uppercase">Description</label>
-              <input value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="e.g. 10% off my store" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
+              <label className="block text-xs font-bold text-muted mb-0.5 uppercase">Description</label>
+              <span className="block text-[10px] text-zinc-500 mb-2 normal-case leading-tight">Short description for the coupon card. Max 18 characters. ({formData.description.length}/18)</span>
+              <input maxLength={18} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="e.g. 10% off my store" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
             </div>
             <div>
               <label className="block text-xs font-bold text-muted mb-1 uppercase">Discount Type</label>
@@ -202,15 +204,39 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
             </div>
             <div>
               <label className="block text-xs font-bold text-muted mb-1 uppercase">Discount Value</label>
-              <input required type="number" step="0.01" value={formData.discountValue} onChange={e => setFormData({...formData, discountValue: e.target.value})} placeholder="e.g. 10" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
+              <input required type="text" inputMode="numeric" value={formData.discountValue} 
+              onKeyDown={(e) => {
+                if (['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) || e.ctrlKey || e.metaKey) return;
+                if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+              }}
+              onChange={e => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val !== '') {
+                  const maxLimit = formData.discountType === 'PERCENTAGE' ? 15 : 500;
+                  if (parseInt(val, 10) > maxLimit) {
+                    val = maxLimit.toString();
+                  }
+                }
+                setFormData({...formData, discountValue: val});
+              }} placeholder="e.g. 10" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-muted mb-1 uppercase">Min Order Amount (₹)</label>
-              <input type="number" value={formData.minOrderPaise} onChange={e => setFormData({...formData, minOrderPaise: e.target.value})} placeholder="0 for no minimum" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
+              <label className="block text-xs font-bold text-muted mb-0.5 uppercase">Min Order Amount (₹)</label>
+              <span className="block text-[10px] text-zinc-500 mb-2 normal-case leading-tight">Customer must spend at least this amount to apply the coupon. Leave empty or 0 for no minimum.</span>
+              <input type="text" inputMode="numeric" value={formData.minOrderPaise} 
+              onKeyDown={(e) => {
+                if (['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) || e.ctrlKey || e.metaKey) return;
+                if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+              }}
+              onChange={e => setFormData({...formData, minOrderPaise: e.target.value.replace(/[-.]/g, '')})} placeholder="e.g. 500" className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none" />
             </div>
             <div>
               <label className="block text-xs font-bold text-muted mb-1 uppercase">Expiry Date (Optional)</label>
-              <input type="datetime-local" value={formData.expiresAt} onChange={e => setFormData({...formData, expiresAt: e.target.value})} className="w-full bg-surface-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold focus:border-orange-500 focus:outline-none" />
+              <PremiumDateTimePicker 
+                value={formData.expiresAt} 
+                onChange={val => setFormData({...formData, expiresAt: val})} 
+                placeholder="Select Expiry Date"
+              />
             </div>
             <div className="md:col-span-2 space-y-2">
               <label className="block text-xs font-bold text-muted uppercase">Target Region / Country Applicability</label>
