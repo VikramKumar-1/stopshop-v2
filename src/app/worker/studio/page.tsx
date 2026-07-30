@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Package, RefreshCcw, Plus, ArrowLeft, CheckCircle2, Loader2, Upload, AlertCircle, Sparkles, Image as ImageIcon, ShieldCheck, X, Search, ScanLine, LogOut } from "lucide-react";
+import { Camera, Package, RefreshCcw, Plus, ArrowLeft, CheckCircle2, Loader2, Upload, AlertCircle, Sparkles, Image as ImageIcon, ShieldCheck, ShieldAlert, X, Search, ScanLine, LogOut } from "lucide-react";
 import BarcodeScanner from "@/features/vendor/components/BarcodeScanner";
 import { compressImageToWebP } from "@/lib/imageCompressor";
 
@@ -502,32 +502,29 @@ export default function VendorCameraHubPage() {
                       <span>Select Gallery</span>
                     </label>
                   </div>
-                </div>
-
-                {/* Photos Grid */}
-                {packingImages.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 pt-2">
-                    {packingImages.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-border group cursor-pointer">
-                        <img 
-                          src={img} 
-                          alt="packing" 
-                          onClick={() => setPreviewModalImage({ url: img, index: idx, type: "packing" })}
-                          className="w-full h-full object-cover transition-transform group-hover:scale-105" 
-                        />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPackingImages(prev => prev.filter((_, i) => i !== idx));
-                          }}
-                          className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center font-bold shadow"
-                        >
-                          ✕
-                        </button>
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none pt-2">
+                    {Array.from({ length: Math.max(5, packingImages.length) }).map((_, idx) => (
+                      <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${packingImages[idx] ? 'border-solid border-border' : 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400'}`}>
+                        {packingImages[idx] ? (
+                          <>
+                            <img src={packingImages[idx]} alt={`Packing ${idx + 1}`} onClick={() => setPreviewModalImage({ url: packingImages[idx], index: idx, type: "packing" })} className="w-full h-full object-cover cursor-pointer" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setPackingImages(prev => prev.filter((_, i) => i !== idx)); }}
+                              className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
+                            >
+                              ✕
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <Camera size={18} className="mb-0.5 opacity-60" />
+                            <span className="text-[10px] font-bold opacity-80">Req</span>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
-                )}
+                </div>
 
                 {/* Confirm Button */}
                 <button
@@ -641,43 +638,73 @@ export default function VendorCameraHubPage() {
                 </div>
 
                 {/* Snap Proof Photos */}
-                <div className="space-y-2">
-                  <label className="block text-[11px] font-bold text-muted uppercase">
-                    Snap Return QC Inspection Photos *
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    id="cam-qc-photos"
-                    onChange={handleSnapQcPhotos}
-                    className="sr-only"
-                  />
-                  <label
-                    htmlFor="cam-qc-photos"
-                    className="w-full py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {uploadingQc ? <Loader2 size={16} className="animate-spin" /> : <Camera size={18} />}
-                    <span>Snap QC Inspection Photo ({qcImages.length}/8)</span>
-                  </label>
-                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-bold text-heading uppercase">
+                      Snap Return QC Inspection Photos *
+                    </label>
+                    <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full">{qcImages.length} / 8 (Min 5 Req)</span>
+                  </div>
 
-                {/* QC Photos Grid */}
-                {qcImages.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 pt-2">
-                    {qcImages.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-border">
-                        <img src={img} alt="qc" className="w-full h-full object-cover" />
-                        <button
-                          onClick={() => setQcImages(prev => prev.filter((_, i) => i !== idx))}
-                          className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
-                        >
-                          ✕
-                        </button>
+                  {/* Dashed Box Grid UI */}
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    {Array.from({ length: Math.max(5, qcImages.length) }).map((_, idx) => (
+                      <div key={idx} className={`flex-shrink-0 w-20 h-20 rounded-xl border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all ${qcImages[idx] ? 'border-solid border-border' : 'border-dashed border-red-300 bg-red-50 dark:bg-red-500/10 text-red-400'}`}>
+                        {qcImages[idx] ? (
+                          <>
+                            <img src={qcImages[idx]} alt={`QC ${idx + 1}`} onClick={() => setPreviewModalImage({ url: qcImages[idx], index: idx, type: "qc" })} className="w-full h-full object-cover cursor-pointer" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setQcImages(prev => prev.filter((_, i) => i !== idx)); }}
+                              className="absolute top-1 right-1 bg-black/80 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
+                            >
+                              ✕
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <Camera size={18} className="mb-0.5 opacity-60" />
+                            <span className="text-[10px] font-bold opacity-80">Req</span>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
-                )}
+
+                  {/* Separate Camera and Gallery Actions */}
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      id="cam-qc-camera"
+                      onChange={handleSnapQcPhotos}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="cam-qc-camera"
+                      className="w-full py-3 bg-gradient-to-r from-red-500 to-red-600 hover:opacity-90 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      {uploadingQc ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
+                      <span>Take Photo</span>
+                    </label>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      id="cam-qc-gallery"
+                      onChange={handleSnapQcPhotos}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="cam-qc-gallery"
+                      className="w-full py-3 bg-surface hover:bg-surface-hover text-heading border border-border rounded-2xl font-bold text-xs shadow-sm transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      {uploadingQc ? <Loader2 size={18} className="animate-spin text-red-500" /> : <ImageIcon size={18} className="text-blue-500" />}
+                      <span>Select Gallery</span>
+                    </label>
+                  </div>
+                </div>
 
                 {/* Notes Input */}
                 <div>
@@ -692,20 +719,14 @@ export default function VendorCameraHubPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <button
-                    disabled={submittingQc}
-                    onClick={() => handleSubmitQcReport("QC_PASS")}
-                    className="py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
-                  >
-                    Pass QC (Restock)
-                  </button>
+                <div className="pt-2">
                   <button
                     disabled={submittingQc || qcImages.length < 5}
                     onClick={() => handleSubmitQcReport("QC_UPLOAD")}
-                    className="py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer disabled:opacity-40"
+                    className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    Reject Return (Fake/Damaged)
+                    <ShieldAlert size={16} />
+                    Upload & Raise to Admin
                   </button>
                 </div>
               </div>

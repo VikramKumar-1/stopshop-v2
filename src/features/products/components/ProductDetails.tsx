@@ -603,7 +603,7 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
         {/* Frequently Bought Together / Recommendations */}
         <RecommendedSection 
           productId={product.id} 
-          category={product.category} 
+          category={product.categoryName} 
           material={product.material}
           productSlug={product.slug || product.id.toString()}
           productName={product.name}

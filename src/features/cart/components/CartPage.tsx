@@ -58,6 +58,7 @@ export const CartPage = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const [targetedOffers, setTargetedOffers] = useState<any[]>([]);
 
@@ -462,15 +463,19 @@ export const CartPage = () => {
 
                 <button
                   type="button"
+                  disabled={isRedirecting}
                   onClick={() => {
                     if (cart.length > 0) {
-                      router.push(`/checkout`);
+                      setIsRedirecting(true);
+                      setTimeout(() => {
+                        router.push(`/checkout`);
+                      }, 50);
                     }
                   }}
-                  className="w-full py-4 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-4 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
                 >
                   <ShoppingBag size={16} />
-                  Buy Now
+                  {isRedirecting ? "Redirecting..." : "Buy Now"}
                 </button>
               </div>
             </div>

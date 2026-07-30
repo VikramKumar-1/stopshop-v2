@@ -42,12 +42,16 @@ export default function ProductClientActions({ product, allImages, bundleProduct
   const handleAddBundleToCart = () => {
     setIsRedirecting(true);
     const ids = [product.id, ...bundleProducts.map((p: any) => p.id)].join(",");
-    router.push(`/checkout?bundleIds=${ids}&qty=${quantity}`);
+    setTimeout(() => {
+      router.push(`/checkout?bundleIds=${ids}&qty=${quantity}`);
+    }, 50);
   };
 
   const handleBuyNow = () => {
     setIsRedirecting(true);
-    router.push(`/checkout?productId=${product.id}&qty=${quantity}`);
+    setTimeout(() => {
+      router.push(`/checkout?productId=${product.id}&qty=${quantity}`);
+    }, 50);
   };
 
   const handleQtyChange = (type: "inc" | "dec") => {
