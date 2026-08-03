@@ -2861,6 +2861,8 @@ export namespace Prisma {
     password: string | null
     role: string | null
     createdAt: Date | null
+    resetOtp: string | null
+    resetOtpExpiry: Date | null
     mobile: string | null
     location: string | null
     artisanId: string | null
@@ -2888,6 +2890,8 @@ export namespace Prisma {
     password: string | null
     role: string | null
     createdAt: Date | null
+    resetOtp: string | null
+    resetOtpExpiry: Date | null
     mobile: string | null
     location: string | null
     artisanId: string | null
@@ -2915,6 +2919,8 @@ export namespace Prisma {
     password: number
     role: number
     createdAt: number
+    resetOtp: number
+    resetOtpExpiry: number
     mobile: number
     location: number
     artisanId: number
@@ -2954,6 +2960,8 @@ export namespace Prisma {
     password?: true
     role?: true
     createdAt?: true
+    resetOtp?: true
+    resetOtpExpiry?: true
     mobile?: true
     location?: true
     artisanId?: true
@@ -2981,6 +2989,8 @@ export namespace Prisma {
     password?: true
     role?: true
     createdAt?: true
+    resetOtp?: true
+    resetOtpExpiry?: true
     mobile?: true
     location?: true
     artisanId?: true
@@ -3008,6 +3018,8 @@ export namespace Prisma {
     password?: true
     role?: true
     createdAt?: true
+    resetOtp?: true
+    resetOtpExpiry?: true
     mobile?: true
     location?: true
     artisanId?: true
@@ -3122,6 +3134,8 @@ export namespace Prisma {
     password: string
     role: string
     createdAt: Date
+    resetOtp: string | null
+    resetOtpExpiry: Date | null
     mobile: string | null
     location: string | null
     artisanId: string | null
@@ -3168,6 +3182,8 @@ export namespace Prisma {
     password?: boolean
     role?: boolean
     createdAt?: boolean
+    resetOtp?: boolean
+    resetOtpExpiry?: boolean
     mobile?: boolean
     location?: boolean
     artisanId?: boolean
@@ -3205,6 +3221,8 @@ export namespace Prisma {
     password?: boolean
     role?: boolean
     createdAt?: boolean
+    resetOtp?: boolean
+    resetOtpExpiry?: boolean
     mobile?: boolean
     location?: boolean
     artisanId?: boolean
@@ -3256,6 +3274,8 @@ export namespace Prisma {
       password: string
       role: string
       createdAt: Date
+      resetOtp: string | null
+      resetOtpExpiry: Date | null
       mobile: string | null
       location: string | null
       artisanId: string | null
@@ -3657,6 +3677,8 @@ export namespace Prisma {
     readonly password: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
+    readonly resetOtp: FieldRef<"User", 'String'>
+    readonly resetOtpExpiry: FieldRef<"User", 'DateTime'>
     readonly mobile: FieldRef<"User", 'String'>
     readonly location: FieldRef<"User", 'String'>
     readonly artisanId: FieldRef<"User", 'String'>
@@ -13058,6 +13080,10 @@ export namespace Prisma {
     shippingChargePaise: number | null
     codShippingChargePaise: number | null
     internationalShippingPaise: number | null
+    shippingPolicy: string | null
+    refundPolicy: string | null
+    privacyPolicy: string | null
+    termsPolicy: string | null
     codEnabled: boolean | null
     codMaxAmountPaise: number | null
     codSurchargePaise: number | null
@@ -13093,6 +13119,10 @@ export namespace Prisma {
     shippingChargePaise: number | null
     codShippingChargePaise: number | null
     internationalShippingPaise: number | null
+    shippingPolicy: string | null
+    refundPolicy: string | null
+    privacyPolicy: string | null
+    termsPolicy: string | null
     codEnabled: boolean | null
     codMaxAmountPaise: number | null
     codSurchargePaise: number | null
@@ -13128,6 +13158,10 @@ export namespace Prisma {
     shippingChargePaise: number
     codShippingChargePaise: number
     internationalShippingPaise: number
+    shippingPolicy: number
+    refundPolicy: number
+    privacyPolicy: number
+    termsPolicy: number
     codEnabled: number
     codMaxAmountPaise: number
     codSurchargePaise: number
@@ -13199,6 +13233,10 @@ export namespace Prisma {
     shippingChargePaise?: true
     codShippingChargePaise?: true
     internationalShippingPaise?: true
+    shippingPolicy?: true
+    refundPolicy?: true
+    privacyPolicy?: true
+    termsPolicy?: true
     codEnabled?: true
     codMaxAmountPaise?: true
     codSurchargePaise?: true
@@ -13234,6 +13272,10 @@ export namespace Prisma {
     shippingChargePaise?: true
     codShippingChargePaise?: true
     internationalShippingPaise?: true
+    shippingPolicy?: true
+    refundPolicy?: true
+    privacyPolicy?: true
+    termsPolicy?: true
     codEnabled?: true
     codMaxAmountPaise?: true
     codSurchargePaise?: true
@@ -13269,6 +13311,10 @@ export namespace Prisma {
     shippingChargePaise?: true
     codShippingChargePaise?: true
     internationalShippingPaise?: true
+    shippingPolicy?: true
+    refundPolicy?: true
+    privacyPolicy?: true
+    termsPolicy?: true
     codEnabled?: true
     codMaxAmountPaise?: true
     codSurchargePaise?: true
@@ -13393,6 +13439,10 @@ export namespace Prisma {
     shippingChargePaise: number
     codShippingChargePaise: number
     internationalShippingPaise: number
+    shippingPolicy: string | null
+    refundPolicy: string | null
+    privacyPolicy: string | null
+    termsPolicy: string | null
     codEnabled: boolean
     codMaxAmountPaise: number
     codSurchargePaise: number
@@ -13449,6 +13499,10 @@ export namespace Prisma {
     shippingChargePaise?: boolean
     codShippingChargePaise?: boolean
     internationalShippingPaise?: boolean
+    shippingPolicy?: boolean
+    refundPolicy?: boolean
+    privacyPolicy?: boolean
+    termsPolicy?: boolean
     codEnabled?: boolean
     codMaxAmountPaise?: boolean
     codSurchargePaise?: boolean
@@ -13487,6 +13541,10 @@ export namespace Prisma {
     shippingChargePaise?: boolean
     codShippingChargePaise?: boolean
     internationalShippingPaise?: boolean
+    shippingPolicy?: boolean
+    refundPolicy?: boolean
+    privacyPolicy?: boolean
+    termsPolicy?: boolean
     codEnabled?: boolean
     codMaxAmountPaise?: boolean
     codSurchargePaise?: boolean
@@ -13528,6 +13586,10 @@ export namespace Prisma {
       shippingChargePaise: number
       codShippingChargePaise: number
       internationalShippingPaise: number
+      shippingPolicy: string | null
+      refundPolicy: string | null
+      privacyPolicy: string | null
+      termsPolicy: string | null
       codEnabled: boolean
       codMaxAmountPaise: number
       codSurchargePaise: number
@@ -13931,6 +13993,10 @@ export namespace Prisma {
     readonly shippingChargePaise: FieldRef<"AdminSettings", 'Int'>
     readonly codShippingChargePaise: FieldRef<"AdminSettings", 'Int'>
     readonly internationalShippingPaise: FieldRef<"AdminSettings", 'Int'>
+    readonly shippingPolicy: FieldRef<"AdminSettings", 'String'>
+    readonly refundPolicy: FieldRef<"AdminSettings", 'String'>
+    readonly privacyPolicy: FieldRef<"AdminSettings", 'String'>
+    readonly termsPolicy: FieldRef<"AdminSettings", 'String'>
     readonly codEnabled: FieldRef<"AdminSettings", 'Boolean'>
     readonly codMaxAmountPaise: FieldRef<"AdminSettings", 'Int'>
     readonly codSurchargePaise: FieldRef<"AdminSettings", 'Int'>
@@ -25648,6 +25714,8 @@ export namespace Prisma {
     password: 'password',
     role: 'role',
     createdAt: 'createdAt',
+    resetOtp: 'resetOtp',
+    resetOtpExpiry: 'resetOtpExpiry',
     mobile: 'mobile',
     location: 'location',
     artisanId: 'artisanId',
@@ -25889,6 +25957,10 @@ export namespace Prisma {
     shippingChargePaise: 'shippingChargePaise',
     codShippingChargePaise: 'codShippingChargePaise',
     internationalShippingPaise: 'internationalShippingPaise',
+    shippingPolicy: 'shippingPolicy',
+    refundPolicy: 'refundPolicy',
+    privacyPolicy: 'privacyPolicy',
+    termsPolicy: 'termsPolicy',
     codEnabled: 'codEnabled',
     codMaxAmountPaise: 'codMaxAmountPaise',
     codSurchargePaise: 'codSurchargePaise',
@@ -26186,6 +26258,8 @@ export namespace Prisma {
     password?: StringFilter<"User"> | string
     role?: StringFilter<"User"> | string
     createdAt?: DateTimeFilter<"User"> | Date | string
+    resetOtp?: StringNullableFilter<"User"> | string | null
+    resetOtpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     mobile?: StringNullableFilter<"User"> | string | null
     location?: StringNullableFilter<"User"> | string | null
     artisanId?: StringNullableFilter<"User"> | string | null
@@ -26221,6 +26295,8 @@ export namespace Prisma {
     password?: SortOrder
     role?: SortOrder
     createdAt?: SortOrder
+    resetOtp?: SortOrderInput | SortOrder
+    resetOtpExpiry?: SortOrderInput | SortOrder
     mobile?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     artisanId?: SortOrderInput | SortOrder
@@ -26259,6 +26335,8 @@ export namespace Prisma {
     password?: StringFilter<"User"> | string
     role?: StringFilter<"User"> | string
     createdAt?: DateTimeFilter<"User"> | Date | string
+    resetOtp?: StringNullableFilter<"User"> | string | null
+    resetOtpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     mobile?: StringNullableFilter<"User"> | string | null
     location?: StringNullableFilter<"User"> | string | null
     artisanId?: StringNullableFilter<"User"> | string | null
@@ -26294,6 +26372,8 @@ export namespace Prisma {
     password?: SortOrder
     role?: SortOrder
     createdAt?: SortOrder
+    resetOtp?: SortOrderInput | SortOrder
+    resetOtpExpiry?: SortOrderInput | SortOrder
     mobile?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     artisanId?: SortOrderInput | SortOrder
@@ -26329,6 +26409,8 @@ export namespace Prisma {
     password?: StringWithAggregatesFilter<"User"> | string
     role?: StringWithAggregatesFilter<"User"> | string
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+    resetOtp?: StringNullableWithAggregatesFilter<"User"> | string | null
+    resetOtpExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     mobile?: StringNullableWithAggregatesFilter<"User"> | string | null
     location?: StringNullableWithAggregatesFilter<"User"> | string | null
     artisanId?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -27411,6 +27493,10 @@ export namespace Prisma {
     shippingChargePaise?: IntFilter<"AdminSettings"> | number
     codShippingChargePaise?: IntFilter<"AdminSettings"> | number
     internationalShippingPaise?: IntFilter<"AdminSettings"> | number
+    shippingPolicy?: StringNullableFilter<"AdminSettings"> | string | null
+    refundPolicy?: StringNullableFilter<"AdminSettings"> | string | null
+    privacyPolicy?: StringNullableFilter<"AdminSettings"> | string | null
+    termsPolicy?: StringNullableFilter<"AdminSettings"> | string | null
     codEnabled?: BoolFilter<"AdminSettings"> | boolean
     codMaxAmountPaise?: IntFilter<"AdminSettings"> | number
     codSurchargePaise?: IntFilter<"AdminSettings"> | number
@@ -27448,6 +27534,10 @@ export namespace Prisma {
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
     internationalShippingPaise?: SortOrder
+    shippingPolicy?: SortOrderInput | SortOrder
+    refundPolicy?: SortOrderInput | SortOrder
+    privacyPolicy?: SortOrderInput | SortOrder
+    termsPolicy?: SortOrderInput | SortOrder
     codEnabled?: SortOrder
     codMaxAmountPaise?: SortOrder
     codSurchargePaise?: SortOrder
@@ -27488,6 +27578,10 @@ export namespace Prisma {
     shippingChargePaise?: IntFilter<"AdminSettings"> | number
     codShippingChargePaise?: IntFilter<"AdminSettings"> | number
     internationalShippingPaise?: IntFilter<"AdminSettings"> | number
+    shippingPolicy?: StringNullableFilter<"AdminSettings"> | string | null
+    refundPolicy?: StringNullableFilter<"AdminSettings"> | string | null
+    privacyPolicy?: StringNullableFilter<"AdminSettings"> | string | null
+    termsPolicy?: StringNullableFilter<"AdminSettings"> | string | null
     codEnabled?: BoolFilter<"AdminSettings"> | boolean
     codMaxAmountPaise?: IntFilter<"AdminSettings"> | number
     codSurchargePaise?: IntFilter<"AdminSettings"> | number
@@ -27525,6 +27619,10 @@ export namespace Prisma {
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
     internationalShippingPaise?: SortOrder
+    shippingPolicy?: SortOrderInput | SortOrder
+    refundPolicy?: SortOrderInput | SortOrder
+    privacyPolicy?: SortOrderInput | SortOrder
+    termsPolicy?: SortOrderInput | SortOrder
     codEnabled?: SortOrder
     codMaxAmountPaise?: SortOrder
     codSurchargePaise?: SortOrder
@@ -27570,6 +27668,10 @@ export namespace Prisma {
     shippingChargePaise?: IntWithAggregatesFilter<"AdminSettings"> | number
     codShippingChargePaise?: IntWithAggregatesFilter<"AdminSettings"> | number
     internationalShippingPaise?: IntWithAggregatesFilter<"AdminSettings"> | number
+    shippingPolicy?: StringNullableWithAggregatesFilter<"AdminSettings"> | string | null
+    refundPolicy?: StringNullableWithAggregatesFilter<"AdminSettings"> | string | null
+    privacyPolicy?: StringNullableWithAggregatesFilter<"AdminSettings"> | string | null
+    termsPolicy?: StringNullableWithAggregatesFilter<"AdminSettings"> | string | null
     codEnabled?: BoolWithAggregatesFilter<"AdminSettings"> | boolean
     codMaxAmountPaise?: IntWithAggregatesFilter<"AdminSettings"> | number
     codSurchargePaise?: IntWithAggregatesFilter<"AdminSettings"> | number
@@ -28509,6 +28611,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -28544,6 +28648,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -28578,6 +28684,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28613,6 +28721,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28648,6 +28758,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -28674,6 +28786,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28701,6 +28815,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -29974,6 +30090,10 @@ export namespace Prisma {
     shippingChargePaise?: number
     codShippingChargePaise?: number
     internationalShippingPaise?: number
+    shippingPolicy?: string | null
+    refundPolicy?: string | null
+    privacyPolicy?: string | null
+    termsPolicy?: string | null
     codEnabled?: boolean
     codMaxAmountPaise?: number
     codSurchargePaise?: number
@@ -30011,6 +30131,10 @@ export namespace Prisma {
     shippingChargePaise?: number
     codShippingChargePaise?: number
     internationalShippingPaise?: number
+    shippingPolicy?: string | null
+    refundPolicy?: string | null
+    privacyPolicy?: string | null
+    termsPolicy?: string | null
     codEnabled?: boolean
     codMaxAmountPaise?: number
     codSurchargePaise?: number
@@ -30048,6 +30172,10 @@ export namespace Prisma {
     shippingChargePaise?: IntFieldUpdateOperationsInput | number
     codShippingChargePaise?: IntFieldUpdateOperationsInput | number
     internationalShippingPaise?: IntFieldUpdateOperationsInput | number
+    shippingPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    refundPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    privacyPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    termsPolicy?: NullableStringFieldUpdateOperationsInput | string | null
     codEnabled?: BoolFieldUpdateOperationsInput | boolean
     codMaxAmountPaise?: IntFieldUpdateOperationsInput | number
     codSurchargePaise?: IntFieldUpdateOperationsInput | number
@@ -30085,6 +30213,10 @@ export namespace Prisma {
     shippingChargePaise?: IntFieldUpdateOperationsInput | number
     codShippingChargePaise?: IntFieldUpdateOperationsInput | number
     internationalShippingPaise?: IntFieldUpdateOperationsInput | number
+    shippingPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    refundPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    privacyPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    termsPolicy?: NullableStringFieldUpdateOperationsInput | string | null
     codEnabled?: BoolFieldUpdateOperationsInput | boolean
     codMaxAmountPaise?: IntFieldUpdateOperationsInput | number
     codSurchargePaise?: IntFieldUpdateOperationsInput | number
@@ -30122,6 +30254,10 @@ export namespace Prisma {
     shippingChargePaise?: number
     codShippingChargePaise?: number
     internationalShippingPaise?: number
+    shippingPolicy?: string | null
+    refundPolicy?: string | null
+    privacyPolicy?: string | null
+    termsPolicy?: string | null
     codEnabled?: boolean
     codMaxAmountPaise?: number
     codSurchargePaise?: number
@@ -30159,6 +30295,10 @@ export namespace Prisma {
     shippingChargePaise?: IntFieldUpdateOperationsInput | number
     codShippingChargePaise?: IntFieldUpdateOperationsInput | number
     internationalShippingPaise?: IntFieldUpdateOperationsInput | number
+    shippingPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    refundPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    privacyPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    termsPolicy?: NullableStringFieldUpdateOperationsInput | string | null
     codEnabled?: BoolFieldUpdateOperationsInput | boolean
     codMaxAmountPaise?: IntFieldUpdateOperationsInput | number
     codSurchargePaise?: IntFieldUpdateOperationsInput | number
@@ -30196,6 +30336,10 @@ export namespace Prisma {
     shippingChargePaise?: IntFieldUpdateOperationsInput | number
     codShippingChargePaise?: IntFieldUpdateOperationsInput | number
     internationalShippingPaise?: IntFieldUpdateOperationsInput | number
+    shippingPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    refundPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    privacyPolicy?: NullableStringFieldUpdateOperationsInput | string | null
+    termsPolicy?: NullableStringFieldUpdateOperationsInput | string | null
     codEnabled?: BoolFieldUpdateOperationsInput | boolean
     codMaxAmountPaise?: IntFieldUpdateOperationsInput | number
     codSurchargePaise?: IntFieldUpdateOperationsInput | number
@@ -31206,6 +31350,17 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | null
+    notIn?: Date[] | string[] | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type IntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | null
@@ -31309,6 +31464,8 @@ export namespace Prisma {
     password?: SortOrder
     role?: SortOrder
     createdAt?: SortOrder
+    resetOtp?: SortOrder
+    resetOtpExpiry?: SortOrder
     mobile?: SortOrder
     location?: SortOrder
     artisanId?: SortOrder
@@ -31341,6 +31498,8 @@ export namespace Prisma {
     password?: SortOrder
     role?: SortOrder
     createdAt?: SortOrder
+    resetOtp?: SortOrder
+    resetOtpExpiry?: SortOrder
     mobile?: SortOrder
     location?: SortOrder
     artisanId?: SortOrder
@@ -31368,6 +31527,8 @@ export namespace Prisma {
     password?: SortOrder
     role?: SortOrder
     createdAt?: SortOrder
+    resetOtp?: SortOrder
+    resetOtpExpiry?: SortOrder
     mobile?: SortOrder
     location?: SortOrder
     artisanId?: SortOrder
@@ -31455,6 +31616,20 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
     _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | null
+    notIn?: Date[] | string[] | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -31795,17 +31970,6 @@ export namespace Prisma {
     id?: SortOrder
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | null
-    notIn?: Date[] | string[] | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type UserRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
@@ -32014,20 +32178,6 @@ export namespace Prisma {
     courierId?: SortOrder
     returnShiprocketId?: SortOrder
     discountPaise?: SortOrder
-  }
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | null
-    notIn?: Date[] | string[] | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type OrderRelationFilter = {
@@ -32380,6 +32530,10 @@ export namespace Prisma {
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
     internationalShippingPaise?: SortOrder
+    shippingPolicy?: SortOrder
+    refundPolicy?: SortOrder
+    privacyPolicy?: SortOrder
+    termsPolicy?: SortOrder
     codEnabled?: SortOrder
     codMaxAmountPaise?: SortOrder
     codSurchargePaise?: SortOrder
@@ -32433,6 +32587,10 @@ export namespace Prisma {
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
     internationalShippingPaise?: SortOrder
+    shippingPolicy?: SortOrder
+    refundPolicy?: SortOrder
+    privacyPolicy?: SortOrder
+    termsPolicy?: SortOrder
     codEnabled?: SortOrder
     codMaxAmountPaise?: SortOrder
     codSurchargePaise?: SortOrder
@@ -32468,6 +32626,10 @@ export namespace Prisma {
     shippingChargePaise?: SortOrder
     codShippingChargePaise?: SortOrder
     internationalShippingPaise?: SortOrder
+    shippingPolicy?: SortOrder
+    refundPolicy?: SortOrder
+    privacyPolicy?: SortOrder
+    termsPolicy?: SortOrder
     codEnabled?: SortOrder
     codMaxAmountPaise?: SortOrder
     codSurchargePaise?: SortOrder
@@ -33229,6 +33391,10 @@ export namespace Prisma {
     set?: string | null
   }
 
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -33893,10 +34059,6 @@ export namespace Prisma {
     connect?: SettlementWhereUniqueInput | SettlementWhereUniqueInput[]
   }
 
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
-  }
-
   export type UserUpdateOneRequiredWithoutOrdersNestedInput = {
     create?: XOR<UserCreateWithoutOrdersInput, UserUncheckedCreateWithoutOrdersInput>
     connectOrCreate?: UserCreateOrConnectWithoutOrdersInput
@@ -34315,6 +34477,17 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | null
+    notIn?: Date[] | string[] | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type NestedIntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | null
@@ -34406,6 +34579,20 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | null
+    notIn?: Date[] | string[] | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | null
@@ -34493,31 +34680,6 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
-  }
-
-  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | null
-    notIn?: Date[] | string[] | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | null
-    notIn?: Date[] | string[] | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
   export type NestedJsonFilter<$PrismaModel = never> = 
     | PatchUndefined<
@@ -35343,6 +35505,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -35377,6 +35541,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -35673,6 +35839,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -35707,6 +35875,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -35895,6 +36065,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -35929,6 +36101,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -36114,6 +36288,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -36148,6 +36324,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37135,6 +37313,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -37169,6 +37349,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -37218,6 +37400,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37252,6 +37436,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37285,6 +37471,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -37319,6 +37507,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -37438,6 +37628,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37472,6 +37664,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37651,6 +37845,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -37685,6 +37881,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -37810,6 +38008,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37844,6 +38044,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -37877,6 +38079,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -37911,6 +38115,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -38030,6 +38236,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38064,6 +38272,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38173,6 +38383,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -38207,6 +38419,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -38326,6 +38540,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38360,6 +38576,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38615,6 +38833,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -38649,6 +38869,8 @@ export namespace Prisma {
     password: string
     role?: string
     createdAt?: Date | string
+    resetOtp?: string | null
+    resetOtpExpiry?: Date | string | null
     mobile?: string | null
     location?: string | null
     artisanId?: string | null
@@ -38723,6 +38945,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38757,6 +38981,8 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resetOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    resetOtpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     mobile?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     artisanId?: NullableStringFieldUpdateOperationsInput | string | null

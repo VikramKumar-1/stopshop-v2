@@ -120,6 +120,11 @@ export default function WorkerLogin() {
                 className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-orange-500 text-sm transition-colors"
                 placeholder="••••••••"
               />
+              {isLogin && (
+                <div className="flex justify-end pt-1">
+                  <a href="/forgot-password" className="text-[10px] font-bold text-orange-500 hover:text-orange-600 uppercase tracking-wider">Forgot Password?</a>
+                </div>
+              )}
             </div>
 
             {!isLogin && (

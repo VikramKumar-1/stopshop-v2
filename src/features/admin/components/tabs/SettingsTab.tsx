@@ -227,13 +227,77 @@ export function SettingsTab({
                             </div>
                          </div>
 
-                         <div className="pt-2">
-                            <button type="submit" disabled={savingSettings} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50">
-                               {savingSettings ? "Saving..." : "Save Company Profile"}
-                            </button>
-                         </div>
-                      </form>
-                   </div>            )}
+                          <div className="pt-2">
+                             <button type="submit" disabled={savingSettings} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50">
+                                {savingSettings ? "Saving..." : "Save Company Profile"}
+                             </button>
+                          </div>
+                       </form>
+
+                       {/* Section 3: Store Policies */}
+                       <form onSubmit={handleSavePlatformSettings} className="bg-surface-card border border-border rounded-3xl p-6 md:p-8 space-y-6">
+                          <div className="flex items-center gap-2 border-b border-border pb-4">
+                             <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                             <h2 className="text-lg font-bold text-heading">Store Policies</h2>
+                          </div>
+                          
+                          <div className="space-y-6">
+                             <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Shipping Policy (Markdown Supported)</label>
+                                <textarea 
+                                   value={settings.shippingPolicy || ""} 
+                                   onChange={e => setSettings({...settings, shippingPolicy: e.target.value})} 
+                                   placeholder="Enter your shipping policy here..."
+                                   rows={8}
+                                   className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-sm text-heading focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                                />
+                                <p className="text-[10px] text-muted mt-1">This text will be displayed publicly on the /shipping-policy page.</p>
+                             </div>
+
+                             <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Return & Refund Policy (Markdown Supported)</label>
+                                <textarea 
+                                   value={settings.refundPolicy || ""} 
+                                   onChange={e => setSettings({...settings, refundPolicy: e.target.value})} 
+                                   placeholder="Enter your return and refund policy here..."
+                                   rows={8}
+                                   className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-sm text-heading focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                                />
+                                <p className="text-[10px] text-muted mt-1">This text will be displayed publicly on the /refund-policy page.</p>
+                             </div>
+
+                             <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Privacy Policy (Markdown Supported)</label>
+                                <textarea 
+                                   value={settings.privacyPolicy || ""} 
+                                   onChange={e => setSettings({...settings, privacyPolicy: e.target.value})} 
+                                   placeholder="Enter your privacy policy here..."
+                                   rows={8}
+                                   className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-sm text-heading focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                                />
+                                <p className="text-[10px] text-muted mt-1">This text will be displayed publicly on the /privacy-policy page.</p>
+                             </div>
+
+                             <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Terms & Conditions (Markdown Supported)</label>
+                                <textarea 
+                                   value={settings.termsPolicy || ""} 
+                                   onChange={e => setSettings({...settings, termsPolicy: e.target.value})} 
+                                   placeholder="Enter your terms and conditions here..."
+                                   rows={8}
+                                   className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-sm text-heading focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                                />
+                                <p className="text-[10px] text-muted mt-1">This text will be displayed publicly on the /terms-and-conditions page.</p>
+                             </div>
+                          </div>
+
+                          <div className="pt-2">
+                             <button type="submit" disabled={savingSettings} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50">
+                                {savingSettings ? "Saving..." : "Save Policies"}
+                             </button>
+                          </div>
+                       </form>
+                    </div>            )}
               </>
   );
 }

@@ -87,6 +87,9 @@ export const VendorLogin = () => {
               />
               <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
             </div>
+            <div className="flex justify-end pt-1">
+              <a href="/forgot-password" className="text-[10px] font-bold text-orange-500 hover:text-orange-600 uppercase tracking-wider">Forgot Password?</a>
+            </div>
           </div>
 
           {/* Submit */}

@@ -17,7 +17,7 @@ const footerLinks = {
     { href: "/shipping-policy", label: "Shipping Policy" },
     { href: "/returns", label: "Returns & Refunds" },
     { href: "/privacy-policy", label: "Privacy Policy" },
-    { href: "/terms", label: "Terms & Conditions" },
+    { href: "/terms-and-conditions", label: "Terms & Conditions" },
   ],
   categories: [
     { href: "/category/kitchen-utility", label: "Kitchen Utility" },
@@ -76,6 +76,7 @@ export const Footer = () => {
   const isCheckoutStatusPage = pathname.startsWith("/checkout/success") || pathname.startsWith("/checkout/failure");
 
   return (
+    <>
     <footer className={`bg-bronze-950 text-bronze-100 [contain:paint] ${isCheckoutStatusPage ? "hidden md:block" : ""}`}>
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -145,6 +146,15 @@ export const Footer = () => {
                   </Link>
                 </li>
               ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setIsSupportOpen(true)}
+                  className="text-bronze-400 hover:text-bronze-200 transition-colors text-sm cursor-pointer text-left"
+                >
+                  Help & Support
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -192,23 +202,27 @@ export const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-bronze-900/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-bronze-400">
-          <p>&copy; {new Date().getFullYear()} StopShop Inc. All rights reserved.</p>
-          <div className="flex items-center gap-6 font-semibold">
-            <button 
-              type="button" 
-              onClick={() => setIsSupportOpen(true)}
-              className="hover:text-orange-400 transition-colors flex items-center gap-1.5 cursor-pointer text-orange-400 font-bold"
-            >
-              <LifeBuoy size={14} />
-              <span>Help & Support</span>
-            </button>
-            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-            <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
+          
+          <p className="text-center sm:text-left">&copy; {new Date().getFullYear()} StopShop Inc. All rights reserved.</p>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 font-semibold">
+            <p className="font-normal text-bronze-400">
+              Designed & Developed by{" "}
+              <a 
+                href="https://www.globalwebify.com/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-bronze-200 font-medium hover:text-orange-400 transition-colors"
+              >
+                Global Webify
+              </a>
+            </p>
           </div>
+
         </div>
       </div>
-      <HelpSupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
     </footer>
+    <HelpSupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
+    </>
   );
 };

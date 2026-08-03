@@ -17,6 +17,50 @@ import { HomepageTab } from "./tabs/HomepageTab";
 import { InquiriesTab } from "./tabs/InquiriesTab";
 import SystemHealthTab from "./tabs/SystemHealthTab";
 import { HelpSupportTab } from "./tabs/HelpSupportTab";
+const numberToIndianWords = (num: number): string => {
+  if (num === 0) return "Zero Rupees Only";
+  const a = [
+    '', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '
+  ];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  const inWords = (n: number): string => {
+    let str = '';
+    if (n > 9999999) {
+      str += inWords(Math.floor(n / 10000000)) + 'Crore ';
+      n %= 10000000;
+    }
+    if (n > 99999) {
+      str += inWords(Math.floor(n / 100000)) + 'Lakh ';
+      n %= 100000;
+    }
+    if (n > 999) {
+      str += inWords(Math.floor(n / 1000)) + 'Thousand ';
+      n %= 1000;
+    }
+    if (n > 99) {
+      str += a[Math.floor(n / 100)] + 'Hundred ';
+      n %= 100;
+    }
+    if (n > 0) {
+      if (n < 20) str += a[n];
+      else {
+        str += b[Math.floor(n / 10)] + ' ';
+        if (n % 10 > 0) str += a[n % 10];
+      }
+    }
+    return str;
+  };
+
+  const integerPart = Math.floor(num);
+  const decimalPart = Math.round((num - integerPart) * 100);
+  
+  let res = inWords(integerPart) + 'Rupees';
+  if (decimalPart > 0) {
+    res += ' and ' + inWords(decimalPart) + 'Paise';
+  }
+  return res.trim() + ' Only';
+};
 
 export const AdminPanel = () => {
   // Premium Toast Notification State
@@ -1344,8 +1388,13 @@ export const AdminPanel = () => {
                 {/* Total Revenue */}
                 <div className="bg-surface-card border border-border rounded-2xl p-6 flex flex-col items-center justify-center text-center">
                   <Award size={32} className="text-emerald-500 mb-2 opacity-80" />
-                  <p className="text-4xl font-black text-emerald-500">₹{(vendorProducts.reduce((acc, p) => acc + (p.revenuePaise || 0), 0) / 100).toLocaleString()}</p>
+                  <p className="text-4xl font-black text-emerald-500">
+                    ₹{(vendorProducts.reduce((acc, p) => acc + (p.revenuePaise || 0), 0) / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted mt-1">Total Money Generated</p>
+                  <p className="text-[9px] font-mono text-emerald-600/80 mt-1 italic opacity-75">
+                    {numberToIndianWords(vendorProducts.reduce((acc, p) => acc + (p.revenuePaise || 0), 0) / 100)}
+                  </p>
                 </div>
 
                 {/* Category Permissions */}

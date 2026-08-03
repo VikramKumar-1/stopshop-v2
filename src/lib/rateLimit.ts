@@ -149,3 +149,9 @@ export const apiLimiter = createRateLimiter({
   windowMs: 60 * 1000,
   max: 100,
 });
+
+/** Forgot Password: 3 attempts per 15 minutes per IP */
+export const forgotPasswordLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+});

@@ -341,6 +341,9 @@ function ProfilePageInner() {
                 />
                 <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Remember Me</span>
               </label>
+              {isLogin && (
+                <a href="/forgot-password" className="text-[10px] font-bold text-orange-500 hover:text-orange-600 uppercase tracking-wider">Forgot Password?</a>
+              )}
             </div>
 
             <button

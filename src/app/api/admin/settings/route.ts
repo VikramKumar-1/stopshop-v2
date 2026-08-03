@@ -59,7 +59,8 @@ export async function PATCH(req: NextRequest) {
        "shiprocketCourierPriority", "payoutSchedule", "payoutCustomDays",
         "companyName", "companyAddress", "companyGstin", "companyPan",
         "companyCity", "companyState", "companyCountry", "companyPincode",
-        "commissionGstRate", "commissionSacCode", "invoiceTemplate"
+        "commissionGstRate", "commissionSacCode", "invoiceTemplate",
+        "shippingPolicy", "refundPolicy", "privacyPolicy", "termsPolicy"
     ];
 
     for (const field of allowedFields) {

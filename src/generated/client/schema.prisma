@@ -17,6 +17,8 @@ model User {
   createdAt DateTime @default(now())
 
   // Vendor details & verification documents
+  resetOtp          String?
+  resetOtpExpiry    DateTime?
   mobile            String?
   location          String?
   artisanId         String?
@@ -27,11 +29,14 @@ model User {
   aadhaarUrl        String?
   panUrl            String?
   docUrl            String?
-  vendorStatus      String  @default("PENDING") // PENDING, IN_REVIEW, APPROVED, REJECTED
+  vendorStatus      String    @default("PENDING") // PENDING, IN_REVIEW, APPROVED, REJECTED
   rejectionReason   String? // Note from admin explaining why vendor was rejected
   allowedCategories String? // Comma-separated list of category slugs allowed for vendor
   razorpayAccountId String? // For Razorpay Route Linked Accounts (Vendor Payouts)
-  payoutsPaused     Boolean @default(false) // Admin override to hold vendor money
+  bankAccount       String? // Store raw account number for admin review
+  bankIfsc          String? // Store raw IFSC for admin review
+  bankName          String? // Store beneficiary name
+  payoutsPaused     Boolean   @default(false) // Admin override to hold vendor money
 
   products       Product[]
   orders         Order[]
@@ -360,10 +365,14 @@ model AdminSettings {
   lockdownMode Boolean @default(false)
 
   // Shipping (admin manipulates these)
-  shippingFreeAbove          Int @default(99900) // Free shipping above ₹999 (in paise)
-  shippingChargePaise        Int @default(4900) // ₹49 default
-  codShippingChargePaise     Int @default(4900) // COD shipping (can be different)
-  internationalShippingPaise Int @default(49900) // International ₹499
+  shippingFreeAbove          Int     @default(99900) // Free shipping above ₹999 (in paise)
+  shippingChargePaise        Int     @default(4900) // ₹49 default
+  codShippingChargePaise     Int     @default(4900) // COD shipping (can be different)
+  internationalShippingPaise Int     @default(49900) // International ₹499
+  shippingPolicy             String? @db.Text // Dynamic markdown shipping policy
+  refundPolicy               String? @db.Text // Dynamic markdown refund policy
+  privacyPolicy              String? @db.Text // Dynamic markdown privacy policy
+  termsPolicy                String? @db.Text // Dynamic markdown terms policy
 
   // COD
   codEnabled        Boolean @default(true)

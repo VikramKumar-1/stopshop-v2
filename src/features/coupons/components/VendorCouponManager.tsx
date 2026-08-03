@@ -272,7 +272,14 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
           {coupons.map(c => (
             <div key={c.id} className={`bg-surface-card border ${c.creatorRole === 'ADMIN' ? 'border-blue-500/30' : 'border-border/80'} rounded-2xl p-4 relative group flex flex-col justify-between shadow-sm max-w-xs sm:max-w-none`}>
-              <div>
+              
+              {c.expiresAt && (
+                <div className={`absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[9px] font-bold shadow-sm uppercase tracking-wider whitespace-nowrap z-10 ${new Date(c.expiresAt) < new Date() ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'}`}>
+                  {new Date(c.expiresAt) < new Date() ? 'Expired' : `Expires: ${new Date(c.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                </div>
+              )}
+
+              <div className={c.expiresAt ? "pt-2" : ""}>
                 <div className="flex justify-between items-start mb-1.5">
                   <h3 className="text-sm font-bold text-heading uppercase tracking-wider font-mono">{c.code}</h3>
                   <div className="flex gap-1.5">
@@ -293,8 +300,6 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
                 <div className="space-y-0.5 text-[11px] text-muted font-medium">
                   <p>Uses: <span className="font-bold text-heading">{c.usedCount}</span> / <span className="font-bold text-heading">{c.maxUses || "∞"}</span></p>
                   <p>Status: <span className="font-bold text-heading">{c.vendorStatus || "ACTIVE"}</span></p>
-                  {c.expiresAt && <p>Expires: <span className="font-bold text-orange-500">{new Date(c.expiresAt).toLocaleDateString()}</span></p>}
-                  {c.expiresAt && new Date(c.expiresAt) < new Date() && <p className="text-red-500 font-bold">⚠️ EXPIRED</p>}
                   {c.isAutoApply && <p className="text-orange-500 font-bold">★ Auto-Applies to cart</p>}
                 </div>
               </div>

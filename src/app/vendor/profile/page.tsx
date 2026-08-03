@@ -53,6 +53,7 @@ export default function VendorProfilePage() {
   const [bankIfsc, setBankIfsc] = useState("");
   const [razorpayAccountId, setRazorpayAccountId] = useState("");
   const [linkingBank, setLinkingBank] = useState(false);
+  const [isEditingBank, setIsEditingBank] = useState(false);
 
   const displayToast = (msg: string, isError: boolean = false) => {
     setToastMessage(msg);
@@ -903,13 +904,22 @@ export default function VendorProfilePage() {
                     </div>
                   </div>
 
-                  {razorpayAccountId ? (
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl flex items-center gap-3">
-                      <CheckCircle className="text-emerald-500" size={24} />
-                      <div>
-                        <h4 className="text-xs font-bold text-emerald-600">Bank Account Linked Successfully</h4>
-                        <p className="text-[10px] text-emerald-600/80">Account ID: {razorpayAccountId}</p>
+                  {razorpayAccountId && !isEditingBank ? (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="text-emerald-500" size={24} />
+                        <div>
+                          <h4 className="text-xs font-bold text-emerald-600">Bank Account Linked Successfully</h4>
+                          <p className="text-[10px] text-emerald-600/80">Account ID: {razorpayAccountId}</p>
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingBank(true)}
+                        className="px-4 py-2 bg-white text-xs font-bold text-heading rounded-lg border border-border shadow-sm flex items-center gap-2"
+                      >
+                        <Edit3 size={14} /> Change Bank
+                      </button>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -950,15 +960,26 @@ export default function VendorProfilePage() {
                           />
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={handleLinkBank}
-                        disabled={linkingBank || !bankName || !bankAccount || !bankIfsc}
-                        className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                      >
-                        {linkingBank ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-                        Securely Link Bank Account
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleLinkBank}
+                          disabled={linkingBank || !bankName || !bankAccount || !bankIfsc}
+                          className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                        >
+                          {linkingBank ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                          Securely Link Bank Account
+                        </button>
+                        {isEditingBank && (
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingBank(false)}
+                            className="px-6 py-3 bg-surface hover:bg-surface-hover border border-border text-heading rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -17,6 +17,8 @@ model User {
   createdAt  DateTime  @default(now())
 
   // Vendor details & verification documents
+  resetOtp       String?
+  resetOtpExpiry DateTime?
   mobile     String?
   location   String?
   artisanId  String?
@@ -368,6 +370,10 @@ model AdminSettings {
   shippingChargePaise   Int      @default(4900)   // ₹49 default
   codShippingChargePaise Int     @default(4900)   // COD shipping (can be different)
   internationalShippingPaise Int @default(49900)  // International ₹499
+  shippingPolicy        String?  @db.Text         // Dynamic markdown shipping policy
+  refundPolicy          String?  @db.Text         // Dynamic markdown refund policy
+  privacyPolicy         String?  @db.Text         // Dynamic markdown privacy policy
+  termsPolicy           String?  @db.Text         // Dynamic markdown terms policy
   
   // COD
   codEnabled            Boolean  @default(true)

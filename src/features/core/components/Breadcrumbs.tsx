@@ -16,7 +16,11 @@ export const Breadcrumbs = () => {
     pathname.startsWith("/product") ||
     pathname.startsWith("/vendor") ||
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/worker")
+    pathname.startsWith("/worker") ||
+    pathname.startsWith("/shipping-policy") ||
+    pathname.startsWith("/returns") ||
+    pathname.startsWith("/privacy-policy") ||
+    pathname.startsWith("/terms-and-conditions")
   ) {
     return null;
   }

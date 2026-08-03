@@ -7,9 +7,10 @@ interface PremiumDateTimePickerProps {
   value: string; // Format: "YYYY-MM-DDThh:mm"
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export function PremiumDateTimePicker({ value, onChange, placeholder = "Select date & time" }: PremiumDateTimePickerProps) {
+export function PremiumDateTimePicker({ value, onChange, placeholder = "Select date & time", disabled = false }: PremiumDateTimePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -109,10 +110,10 @@ export function PremiumDateTimePicker({ value, onChange, placeholder = "Select d
     <div className="relative w-full" ref={containerRef}>
       {/* Input Field */}
       <div 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`w-full bg-surface-card border rounded-xl px-4 py-2.5 text-sm flex items-center justify-between cursor-pointer transition-all ${
           isOpen ? "border-orange-500 shadow-[0_0_0_2px_rgba(249,115,22,0.1)]" : "border-border hover:border-orange-500/50"
-        }`}
+        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <div className="flex items-center gap-2">
           <CalendarIcon size={16} className={value ? "text-orange-500" : "text-muted"} />
@@ -122,6 +123,7 @@ export function PremiumDateTimePicker({ value, onChange, placeholder = "Select d
         </div>
         {value && (
           <button 
+            type="button"
             onClick={(e) => { e.stopPropagation(); handleClear(); }}
             className="text-muted hover:text-red-500 transition-colors p-1"
           >
@@ -136,13 +138,13 @@ export function PremiumDateTimePicker({ value, onChange, placeholder = "Select d
           
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <button onClick={handlePrevMonth} className="p-1.5 rounded-lg hover:bg-orange-500/10 text-muted hover:text-orange-500 transition-colors">
+            <button type="button" onClick={handlePrevMonth} className="p-1.5 rounded-lg hover:bg-orange-500/10 text-muted hover:text-orange-500 transition-colors">
               <ChevronLeft size={18} />
             </button>
             <div className="font-bold text-sm text-heading">
               {monthNames[currentMonth]} {currentYear}
             </div>
-            <button onClick={handleNextMonth} className="p-1.5 rounded-lg hover:bg-orange-500/10 text-muted hover:text-orange-500 transition-colors">
+            <button type="button" onClick={handleNextMonth} className="p-1.5 rounded-lg hover:bg-orange-500/10 text-muted hover:text-orange-500 transition-colors">
               <ChevronRight size={18} />
             </button>
           </div>
@@ -168,6 +170,7 @@ export function PremiumDateTimePicker({ value, onChange, placeholder = "Select d
 
               return (
                 <button
+                  type="button"
                   key={day}
                   onClick={() => handleDateSelect(day)}
                   className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium transition-all ${
@@ -213,6 +216,7 @@ export function PremiumDateTimePicker({ value, onChange, placeholder = "Select d
 
           {/* Apply Button */}
           <button 
+            type="button"
             onClick={handleApply}
             disabled={!selectedDate}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"

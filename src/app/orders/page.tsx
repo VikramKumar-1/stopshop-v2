@@ -228,6 +228,11 @@ export default function OrdersPage() {
             )}
             <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email Address" className="w-full px-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl outline-none" />
             <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl outline-none" />
+            {isLogin && (
+              <div className="flex justify-end">
+                <a href="/forgot-password" className="text-[10px] font-bold text-orange-500 hover:text-orange-600 uppercase tracking-wider">Forgot Password?</a>
+              </div>
+            )}
             
             <button type="submit" disabled={authLoading} className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl flex items-center justify-center gap-1.5">
               {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isLogin ? "Sign In" : "Register")}

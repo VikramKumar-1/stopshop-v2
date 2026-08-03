@@ -95,7 +95,7 @@ import { usePathname } from "next/navigation";
 export const CategoryStrip = () => {
   const pathname = usePathname();
   if (pathname.startsWith("/worker")) return null;
-  if (pathname.startsWith("/vendor") || pathname.startsWith("/admin") || pathname === "/contact" || pathname.startsWith("/product") || pathname.startsWith("/profile") || pathname === "/cart" || pathname.startsWith("/checkout") || pathname.startsWith("/store") || pathname.startsWith("/worker")) return null;
+  if (pathname.startsWith("/vendor") || pathname.startsWith("/admin") || pathname === "/contact" || pathname.startsWith("/product") || pathname.startsWith("/profile") || pathname === "/cart" || pathname.startsWith("/checkout") || pathname.startsWith("/store") || pathname.startsWith("/worker") || pathname.startsWith("/forgot-password") || pathname.startsWith("/shipping-policy") || pathname.startsWith("/returns") || pathname.startsWith("/privacy-policy") || pathname.startsWith("/terms-and-conditions")) return null;
   const { cartCount } = useCart();
   const { region } = useRegion();
 
