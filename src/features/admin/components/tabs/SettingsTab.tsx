@@ -1,5 +1,94 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
+
+const PREVIEW_COUNTRIES = [
+  { code: "US", flag: "🇺🇸", name: "USA", currency: "USD", symbol: "$" },
+  { code: "GB", flag: "🇬🇧", name: "UK", currency: "GBP", symbol: "£" },
+  { code: "CA", flag: "🇨🇦", name: "Canada", currency: "CAD", symbol: "C$" },
+  { code: "AE", flag: "🇦🇪", name: "UAE", currency: "AED", symbol: "د.إ" },
+  { code: "TH", flag: "🇹🇭", name: "Thailand", currency: "THB", symbol: "฿" },
+  { code: "BD", flag: "🇧🇩", name: "Bangladesh", currency: "BDT", symbol: "৳" },
+  { code: "NP", flag: "🇳🇵", name: "Nepal", currency: "NPR", symbol: "Rs" },
+  { code: "LK", flag: "🇱🇰", name: "Sri Lanka", currency: "LKR", symbol: "Rs" },
+];
+
+function InternationalShippingField({ settings, setSettings }: { settings: any; setSettings: (val: any) => void }) {
+  const [rates, setRates] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRates = async () => {
+      try {
+        const res = await fetch("https://open.er-api.com/v6/latest/INR");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.rates) setRates(data.rates);
+        }
+      } catch (e) {
+        console.error("Failed to fetch exchange rates:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRates();
+  }, []);
+
+  const inrValue = settings.internationalShippingPaise === "" ? "" : (settings.internationalShippingPaise !== undefined ? settings.internationalShippingPaise / 100 : 499);
+
+  return (
+    <div className="space-y-2 md:col-span-2">
+      <div className="space-y-1">
+        <label className="text-[10px] font-bold uppercase tracking-wider text-blue-500">International Shipping (₹)</label>
+        <input
+          type="number"
+          min="0"
+          value={inrValue}
+          onChange={e => {
+            const v = e.target.value;
+            if (v === "") {
+               setSettings({ ...settings, internationalShippingPaise: "" });
+            } else {
+               const val = parseInt(v);
+               setSettings({ ...settings, internationalShippingPaise: isNaN(val) ? "" : Math.max(0, val * 100) });
+            }
+          }}
+          className="w-full px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 font-bold"
+        />
+      </div>
+      <div className="bg-gradient-to-r from-blue-500/5 to-indigo-500/5 border border-blue-500/15 rounded-xl p-3">
+        <p className="text-[9px] font-bold text-blue-500 uppercase tracking-wider mb-2">
+          🌍 Live Preview — What users will see
+        </p>
+        {loading ? (
+          <p className="text-[10px] text-muted animate-pulse">Fetching live rates...</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            {PREVIEW_COUNTRIES.map(c => {
+              const rate = rates[c.currency];
+              const numericInrValue = typeof inrValue === 'number' ? inrValue : 0;
+              const converted = rate ? (numericInrValue * rate) : null;
+              return (
+                <div key={c.code} className="flex items-center gap-1.5 bg-surface border border-border/60 rounded-lg px-2 py-1.5">
+                  <span className="text-sm leading-none">{c.flag}</span>
+                  <div className="min-w-0">
+                    <p className="text-[9px] text-muted leading-none truncate">{c.name}</p>
+                    <p className="text-[11px] font-bold text-heading leading-tight">
+                      {converted !== null
+                        ? `${c.symbol}${converted < 10 ? converted.toFixed(2) : Math.round(converted).toLocaleString()}`
+                        : "—"
+                      }
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <p className="text-[8px] text-muted mt-2">Rates are live from Open Exchange Rates API. Actual charge is always ₹{inrValue} converted at checkout.</p>
+      </div>
+    </div>
+  );
+}
 
 export function SettingsTab({
   settings,
@@ -44,8 +133,20 @@ export function SettingsTab({
                                <input type="text" value={settings.commissionSacCode} onChange={e => setSettings({...settings, commissionSacCode: e.target.value})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
                             </div>
                             <div className="space-y-1">
-                               <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Global Tax Rate (%)</label>
-                               <input type="number" step="0.1" value={settings.taxRate || 0} onChange={e => setSettings({...settings, taxRate: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" />
+                               <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">International Tax Rate (%)</label>
+                               <div className="relative">
+                                 <input type="number" min="0" step="1" value={settings.taxRate === "" ? "" : (settings.taxRate ?? 0)} onChange={e => {
+                                    const v = e.target.value;
+                                    if (v === "") {
+                                       setSettings({...settings, taxRate: ""});
+                                    } else {
+                                       const val = parseInt(v);
+                                       setSettings({...settings, taxRate: isNaN(val) ? "" : Math.max(0, val)});
+                                    }
+                                 }} className="w-full px-3 py-2 pr-8 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" />
+                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-xs">%</span>
+                               </div>
+                               <p className="text-[9px] text-muted">Applied only to non-India orders (e.g. Customs/VAT). 0% for no tax.</p>
                             </div>
                             <div className="space-y-1">
                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Free Shipping Above (₹)</label>
@@ -59,6 +160,7 @@ export function SettingsTab({
                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">COD Shipping Charge (₹)</label>
                                <input type="number" value={settings.codShippingChargePaise / 100} onChange={e => setSettings({...settings, codShippingChargePaise: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />
                             </div>
+                            <InternationalShippingField settings={settings} setSettings={setSettings} />
                             <div className="space-y-1">
                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Max COD Amount (₹)</label>
                                <input type="number" value={settings.codMaxAmountPaise / 100} onChange={e => setSettings({...settings, codMaxAmountPaise: parseInt(e.target.value)*100})} className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs" />

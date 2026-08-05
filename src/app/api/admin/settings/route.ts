@@ -7,30 +7,27 @@ export async function GET(req: NextRequest) {
     const admin = requireRole(req, ["admin"]);
     if (admin instanceof NextResponse) return admin;
 
-    let settings = await prisma.adminSettings.findFirst();
-    
-    if (!settings) {
-       // Seed default if missing
-       settings = await prisma.adminSettings.create({
-          data: {
-             defaultCommissionRate: 10,
-             commissionGstRate: 18,
-             commissionSacCode: "996111",
-             shippingFreeAbove: 99900,
-             shippingChargePaise: 4900,
-             codShippingChargePaise: 4900,
-             internationalShippingPaise: 49900,
-             codEnabled: true,
-             codMaxAmountPaise: 1000000,
-             codSurchargePaise: 0,
-             returnWindowDays: 7,
-             returnEnabled: true,
-             vendorReturnSlaHours: 24,
-             shiprocketAutoAssign: true,
-             shiprocketCourierPriority: "cheapest"
-          }
-       });
-    }
+    const settings = await prisma.adminSettings.upsert({
+       where: { id: 1 },
+       update: {},
+       create: {
+          defaultCommissionRate: 10,
+          commissionGstRate: 18,
+          commissionSacCode: "996111",
+          shippingFreeAbove: 99900,
+          shippingChargePaise: 4900,
+          codShippingChargePaise: 4900,
+          internationalShippingPaise: 49900,
+          codEnabled: true,
+          codMaxAmountPaise: 1000000,
+          codSurchargePaise: 0,
+          returnWindowDays: 7,
+          returnEnabled: true,
+          vendorReturnSlaHours: 24,
+          shiprocketAutoAssign: true,
+          shiprocketCourierPriority: "cheapest"
+       }
+    });
 
     return NextResponse.json({ success: true, settings });
   } catch (error: any) {

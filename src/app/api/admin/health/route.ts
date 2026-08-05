@@ -28,8 +28,11 @@ export async function GET(req: Request) {
     const dbLatencyMs = Math.round(performance.now() - dbStart);
 
     // 3. Fetch Admin Settings (Lockdown Mode)
-    const settings = await prisma.adminSettings.findUnique({ where: { id: 1 } });
-    if (!settings) throw new Error("Admin settings not found");
+    const settings = await prisma.adminSettings.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {}
+    });
 
     // 4. Server Node.js Metrics
     const freeMemory = os.freemem();
@@ -224,9 +227,10 @@ export async function POST(req: Request) {
 
     const { lockdownMode } = await req.json();
 
-    const updated = await prisma.adminSettings.update({
+    const updated = await prisma.adminSettings.upsert({
       where: { id: 1 },
-      data: { lockdownMode: Boolean(lockdownMode) }
+      update: { lockdownMode: Boolean(lockdownMode) },
+      create: { lockdownMode: Boolean(lockdownMode) }
     });
 
     return NextResponse.json({ success: true, lockdownMode: updated.lockdownMode });

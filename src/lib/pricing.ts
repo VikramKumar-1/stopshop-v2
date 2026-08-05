@@ -133,9 +133,12 @@ export async function calculateOrderPricing(
     codChargePaise = settings.codSurchargePaise;
   }
 
-  // 5. Calculate Tax
-  const taxRate = settings.taxRate || 0;
-  const taxPaise = Math.round(subtotalPaise * (taxRate / 100));
+  // 5. Calculate Tax (Only for International Orders)
+  let taxPaise = 0;
+  if (finalCountry !== "IN") {
+    const taxRate = settings.taxRate || 0;
+    taxPaise = Math.round(subtotalPaise * (taxRate / 100));
+  }
 
   // 5.5 Handle Bundle Discount (Secure Backend Validation)
   let bundleDiscountPaise = 0;

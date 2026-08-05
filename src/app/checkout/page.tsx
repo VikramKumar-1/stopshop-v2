@@ -521,8 +521,8 @@ useEffect(() => {
     }
 
     let tax = 0;
-    if (settings.taxRate > 0) {
-       tax = Math.round(subtotal * (settings.taxRate / 100));
+    if (settings.taxRate > 0 && isInternational) {
+       tax = subtotal * (settings.taxRate / 100);
     }
 
     let discount = 0;
@@ -1228,15 +1228,24 @@ useEffect(() => {
                    <span className="text-xs font-bold text-heading flex items-center gap-1.5">
                      <Tag size={13} className="text-orange-500" /> Offers & Coupons
                    </span>
-                   {!couponApplied && availableCoupons.length > 0 && (
+                   {loadingCoupons ? (
+                     <span className="text-[10px] text-muted flex items-center gap-1">
+                        <Loader2 size={10} className="animate-spin" /> Checking...
+                     </span>
+                   ) : !couponApplied && availableCoupons.length > 0 ? (
                      <span className="text-[10px] text-orange-600 font-bold bg-orange-500/10 px-2 py-0.5 rounded-full">
                        {availableCoupons.length} available
                      </span>
-                   )}
+                   ) : null}
                  </div>
 
                  {/* Compact Available Coupons Carousel */}
-                 {!couponApplied && availableCoupons.length > 0 && (
+                 {loadingCoupons && !couponApplied ? (
+                    <div className="flex gap-2 overflow-hidden pb-1">
+                       <div className="w-[160px] h-[48px] bg-surface border border-border rounded-xl animate-pulse shrink-0"></div>
+                       <div className="w-[160px] h-[48px] bg-surface border border-border rounded-xl animate-pulse shrink-0"></div>
+                    </div>
+                 ) : !couponApplied && availableCoupons.length > 0 && (
                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none snap-x">
                      {availableCoupons.map((c, i) => (
                        <button
@@ -1388,7 +1397,12 @@ useEffect(() => {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-surface" />}>
+    <Suspense fallback={
+      <div className="min-h-[75vh] w-full flex flex-col items-center justify-center gap-4 bg-surface text-center">
+        <div className="w-12 h-12 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+        <p className="text-sm font-bold text-heading">Loading Checkout...</p>
+      </div>
+    }>
       <CheckoutPageInner />
     </Suspense>
   );

@@ -560,7 +560,7 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
             ) : (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-6">
-                  {products.slice(0, visibleCount).map((product) => {
+                  {products.slice(0, visibleCount).map((product, index) => {
                   const rawMrp = getRawPrice(product.mrp, product, true);
                   const rawPrice = getRawPrice(product.price, product, false);
                   const savedAmount = Math.max(0, rawMrp - rawPrice);
@@ -594,11 +594,13 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                           {product.category?.name || product.categoryName?.replace(/-/g, " ") || "Premium"}
                         </span>
 
-                        <img
+                        <Image
                           src={product.image}
                           alt={product.name}
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          priority={index < 8}
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          loading="lazy"
                         />
                       </Link>
 
@@ -681,24 +683,10 @@ export const ProductCatalog = ({ initialMaterialOverride }: ProductCatalogProps)
                           </button>
                           <button
                             type="button"
-                            onClick={async (e) => {
+                            onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              try {
-                                const res = await fetch("/api/auth/me");
-                                if (res.ok) {
-                                  const data = await res.json();
-                                  if (data.authenticated) {
-                                    window.location.href = `/checkout?productId=${product.id}`;
-                                  } else {
-                                    window.location.href = `/profile?redirect=${encodeURIComponent(window.location.pathname)}&reason=inquiry`;
-                                  }
-                                } else {
-                                  window.location.href = `/checkout?productId=${product.id}`;
-                                }
-                              } catch (err) {
-                                window.location.href = `/checkout?productId=${product.id}`;
-                              }
+                              router.push(`/checkout?productId=${product.id}`);
                             }}
                             className="flex-grow inline-flex items-center justify-center gap-1 py-2 rounded-lg sm:rounded-xl bg-gradient-to-r from-bronze-500 to-bronze-600 hover:from-bronze-400 hover:to-bronze-500 text-white font-bold transition-all duration-300 text-[10px] sm:text-xs active:scale-[0.97] cursor-pointer text-center"
                           >

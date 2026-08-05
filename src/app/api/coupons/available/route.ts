@@ -59,6 +59,26 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    // Batch fetch user's usage for all these coupons in ONE query (fixes N+1 slowness)
+    let userUsageMap: Record<string, number> = {};
+    if (user && activeCoupons.some(c => c.maxUsesPerUser)) {
+      const usageData = await prisma.order.groupBy({
+        by: ['couponCode'],
+        where: {
+          userId: user.userId,
+          couponCode: { in: activeCoupons.map(c => c.code) },
+          status: { notIn: ["PENDING", "CANCELLED", "FAILED"] }
+        },
+        _count: {
+          couponCode: true
+        }
+      });
+      userUsageMap = usageData.reduce((acc, curr) => {
+        if (curr.couponCode) acc[curr.couponCode] = curr._count.couponCode;
+        return acc;
+      }, {} as Record<string, number>);
+    }
+
     // Filter out coupons that the user has already maxed out or region mismatch
     const availableCoupons = [];
     
@@ -88,13 +108,7 @@ export async function POST(req: NextRequest) {
 
       let userEligible = true;
       if (user && coupon.maxUsesPerUser) {
-        const userUses = await prisma.order.count({
-          where: {
-            userId: user.userId,
-            couponCode: coupon.code,
-            status: { notIn: ["PENDING", "CANCELLED", "FAILED"] }
-          }
-        });
+        const userUses = userUsageMap[coupon.code] || 0;
         if (userUses >= coupon.maxUsesPerUser) {
           userEligible = false;
         }

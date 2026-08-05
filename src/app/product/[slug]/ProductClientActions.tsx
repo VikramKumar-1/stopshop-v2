@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ShoppingCart, Heart, Check, ShieldAlert, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
@@ -12,6 +13,7 @@ interface ProductClientActionsProps {
 }
 
 export default function ProductClientActions({ product, allImages, bundleProducts = [] }: ProductClientActionsProps) {
+  const router = useRouter();
   const { convertPrice } = useRegion();
   const [selectedImage, setSelectedImage] = useState(allImages[0]);
   const [quantity, setQuantity] = useState(1);
@@ -120,7 +122,7 @@ export default function ProductClientActions({ product, allImages, bundleProduct
               <div className="flex flex-row gap-2 w-full xl:w-auto xl:flex-1">
                 <button
                   onClick={() => {
-                    window.location.href = `/checkout?productId=${product.id}&qty=${quantity}`;
+                    router.push(`/checkout?productId=${product.id}&qty=${quantity}`);
                   }}
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-black shadow-md hover:shadow-lg transition-all duration-300 text-[11px] sm:text-xs active:scale-[0.98] whitespace-nowrap"
                 >
