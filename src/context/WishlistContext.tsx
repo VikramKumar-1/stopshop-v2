@@ -89,7 +89,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       intentQueue.track({ productId: product.id, vendorId, type: "WISHLIST" });
     }
 
-    setToastMessage(`"${product.name}" added to wishlist!`);
+    setToastMessage("Saved to wishlist");
     const timer = setTimeout(() => setToastMessage(null), 3000);
     return () => clearTimeout(timer);
   };
@@ -99,7 +99,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const newWishlist = wishlist.filter((item) => item.id !== productId);
     saveWishlist(newWishlist);
     if (item) {
-      setToastMessage(`"${item.name}" removed from wishlist.`);
+      setToastMessage("Removed from wishlist");
       const timer = setTimeout(() => setToastMessage(null), 3000);
       return () => clearTimeout(timer);
     }
@@ -124,11 +124,11 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     >
       {children}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-[9999] bg-gradient-to-r from-orange-500 to-orange-600 dark:from-bronze-600 dark:to-bronze-700 text-white font-bold text-xs px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
-          <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-            <CheckCircle2 size={12} className="text-white" />
+        <div className="fixed z-[9999] bottom-24 lg:bottom-6 left-1/2 lg:left-auto lg:right-6 -translate-x-1/2 lg:translate-x-0 bg-zinc-900/95 dark:bg-zinc-800/95 backdrop-blur-md text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-2xl border border-white/10 flex items-center gap-2 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+          <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={11} strokeWidth={3} />
           </div>
-          <span>{toastMessage}</span>
+          <span className="whitespace-nowrap">{toastMessage}</span>
         </div>
       )}
     </WishlistContext.Provider>
