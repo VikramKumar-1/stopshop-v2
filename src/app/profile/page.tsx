@@ -58,7 +58,7 @@ function ProfilePageInner() {
 
   const fetchProfileAndOrders = async () => {
     try {
-      const meRes = await fetch("/api/auth/me");
+      const meRes = await fetch("/api/auth/me", { cache: "no-store" });
       if (meRes.ok) {
         const meData = await meRes.json();
         if (meData.authenticated) {
