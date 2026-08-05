@@ -86,6 +86,13 @@ export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?:
 
   const [homepageSections, setHomepageSections] = useState<any[]>([]);
   const [mobileBanners, setMobileBanners] = useState<any[]>([]);
+  const [showBelowFold, setShowBelowFold] = useState(false);
+
+  useEffect(() => {
+    // Defer rendering of heavy below-the-fold grids to ensure instant tab switching on mobile
+    const timer = setTimeout(() => setShowBelowFold(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (hpData) {
@@ -146,9 +153,11 @@ export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?:
       <FeaturedProducts products={bestSellerProducts.length > 0 ? bestSellerProducts : undefined} />
 
       {/* 4. Shop by Material */}
-      <ShopByMaterial />
+      {showBelowFold && (
+        <>
+          <ShopByMaterial />
 
-      {/* 5. Dynamic Category Product Grids (Loaded from DB) */}
+          {/* 5. Dynamic Category Product Grids (Loaded from DB) */}
       {loading ? (
         <section className="pt-8 pb-12 relative overflow-hidden section-glass-ambient ambient-gold border-b border-border/40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
@@ -310,6 +319,8 @@ export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?:
 
       {/* 15. FAQ Section */}
       <FAQSection />
+        </>
+      )}
     </>
   );
 };

@@ -316,9 +316,13 @@ export const CategoryStrip = () => {
   return (
     <div
       className={`fixed lg:sticky z-40 w-full border-b border-orange-500/30 dark:border-orange-500/40 bg-orange-100 dark:bg-orange-950 lg:bg-white/85 lg:dark:bg-[#141414]/85 lg:backdrop-blur-md shadow-sm transition-[transform,opacity] duration-300 ease-out top-[95px] lg:top-[112px] ${
-        isMobile
-          ? (showMobileStrip ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none")
-          : ((scrollingDown || searchExpanded) ? "-translate-y-[80px]" : "translate-y-0")
+        showMobileStrip 
+          ? "max-lg:translate-y-0 max-lg:opacity-100" 
+          : "max-lg:-translate-y-full max-lg:opacity-0 max-lg:pointer-events-none"
+      } ${
+        (scrollingDown || searchExpanded) 
+          ? "lg:-translate-y-[80px]" 
+          : "lg:translate-y-0"
       }`}
     >
 

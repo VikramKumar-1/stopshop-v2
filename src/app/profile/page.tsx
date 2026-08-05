@@ -73,6 +73,10 @@ function ProfilePageInner() {
             window.location.href = "/admin/profile";
             return;
           }
+          if (meData.user.parentVendorId) {
+            window.location.href = "/worker/studio";
+            return;
+          }
 
           setUser(meData.user);
           setProfileName(meData.user.name || "");
@@ -432,11 +436,11 @@ function ProfilePageInner() {
               <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-orange-300/80">
                 <div className="flex items-center gap-1">
                   <Mail size={12} className="text-orange-400 shrink-0" />
-                  <span>{user.email}</span>
+                  <span>{user.email?.startsWith("worker_") ? "Vendor Staff Account" : user.email}</span>
                 </div>
                 <span className="hidden sm:inline text-orange-400/40">|</span>
                 <span className="font-bold text-orange-400 uppercase tracking-wider text-[10px] bg-orange-500/15 px-2 py-0.5 rounded-md shrink-0">
-                  {user.role} Account
+                  {user.email?.startsWith("worker_") ? "WORKER" : user.role} Account
                 </span>
               </div>
             </div>
@@ -514,11 +518,13 @@ function ProfilePageInner() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Email Address - Read Only */}
               <div className="space-y-1 sm:col-span-2">
-                <label className="text-[10px] font-bold text-muted uppercase tracking-wider">Email Address</label>
+                <label className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                  {user?.email?.startsWith("worker_") ? "Worker Login ID" : "Email Address"}
+                </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                   <input
-                    type="email"
+                    type="text"
                     readOnly
                     value={user?.email || ""}
                     className="w-full pl-10 pr-4 py-3 bg-surface/30 border border-border/40 rounded-xl text-muted outline-none cursor-not-allowed select-none"

@@ -744,13 +744,23 @@ export const Navbar = () => {
 
                         {/* Menu List Options */}
                         <div className="p-1 space-y-0.5">
-                          {!isDashboard && (
+                          {!isDashboard && !user?.parentVendorId && (
                             <Link
                               href="/profile"
                               className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl"
                             >
                               <User size={15} className="text-muted" />
                               <span>My Profile</span>
+                            </Link>
+                          )}
+
+                          {user?.parentVendorId && (
+                            <Link
+                              href="/worker/studio"
+                              className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-body hover:bg-surface-hover hover:text-orange-600 dark:hover:text-bronze-300 rounded-xl transition-all"
+                            >
+                              <LayoutDashboard size={15} className="text-muted" />
+                              <span>Worker Studio</span>
                             </Link>
                           )}
                           
@@ -1089,14 +1099,27 @@ export const Navbar = () => {
                     User website homepage
                   </Link>
                 )}
-                 <Link
-                  href={user ? "/profile" : "/profile?mode=login&reason=profile&redirect=/profile"}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
-                >
-                  <User size={16} />
-                  My Account / Profile
-                </Link>
+                 {!user?.parentVendorId && (
+                   <Link
+                    href={user ? "/profile" : "/profile?mode=login&reason=profile&redirect=/profile"}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
+                  >
+                    <User size={16} />
+                    My Account / Profile
+                  </Link>
+                 )}
+
+                 {user?.parentVendorId && (
+                   <Link
+                    href="/worker/studio"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-body hover:text-heading hover:bg-surface-hover font-medium transition-all"
+                  >
+                    <LayoutDashboard size={16} />
+                    Worker Studio
+                  </Link>
+                 )}
 
                 {(!user || user.role !== "vendor") && (
                   <Link
@@ -1247,20 +1270,36 @@ export const Navbar = () => {
                 <span className={`relative z-10 text-[10px] font-bold ${pathname === "/cart" ? "text-orange-500 font-extrabold" : "text-gray-400 dark:text-gray-400"}`}>Cart</span>
               </Link>
 
-              {/* Profile */}
-              <Link 
-                href={user ? "/profile" : "/profile?mode=login&reason=profile&redirect=/profile"} 
-                prefetch={true}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
-              >
-                {pathname.startsWith("/profile") && (
-                  <div 
-                    className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
-                  />
-                )}
-                <User size={20} className={`relative z-10 ${pathname.startsWith("/profile") ? "text-orange-500" : "text-gray-400 dark:text-gray-400"}`} strokeWidth={pathname.startsWith("/profile") ? 2.4 : 1.8} />
-                <span className={`relative z-10 text-[10px] font-bold ${pathname.startsWith("/profile") ? "text-orange-500 font-extrabold" : "text-gray-400 dark:text-gray-400"}`}>Profile</span>
-              </Link>
+              {/* Profile or Worker Studio */}
+              {!user?.parentVendorId ? (
+                <Link 
+                  href={user ? "/profile" : "/profile?mode=login&reason=profile&redirect=/profile"} 
+                  prefetch={true}
+                  className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
+                >
+                  {pathname.startsWith("/profile") && (
+                    <div 
+                      className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
+                    />
+                  )}
+                  <User size={20} className={`relative z-10 ${pathname.startsWith("/profile") ? "text-orange-500" : "text-gray-400 dark:text-gray-400"}`} strokeWidth={pathname.startsWith("/profile") ? 2.4 : 1.8} />
+                  <span className={`relative z-10 text-[10px] font-bold ${pathname.startsWith("/profile") ? "text-orange-500 font-extrabold" : "text-gray-400 dark:text-gray-400"}`}>Profile</span>
+                </Link>
+              ) : (
+                <Link 
+                  href="/worker/studio" 
+                  prefetch={true}
+                  className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
+                >
+                  {pathname.startsWith("/worker") && (
+                    <div 
+                      className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
+                    />
+                  )}
+                  <LayoutDashboard size={20} className={`relative z-10 ${pathname.startsWith("/worker") ? "text-orange-500" : "text-gray-400 dark:text-gray-400"}`} strokeWidth={pathname.startsWith("/worker") ? 2.4 : 1.8} />
+                  <span className={`relative z-10 text-[10px] font-bold ${pathname.startsWith("/worker") ? "text-orange-500 font-extrabold" : "text-gray-400 dark:text-gray-400"}`}>Studio</span>
+                </Link>
+              )}
           </div>
         </div>
       )}
