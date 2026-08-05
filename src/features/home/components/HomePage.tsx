@@ -62,19 +62,7 @@ export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?:
   const { data: allProducts, isLoading: loadingProducts } = useSWR('/api/products?take=60', fetcher, { fallbackData: initialProducts });
   const { data: hpData, isLoading: loadingSections } = useSWR('/api/homepage', fetcher, { fallbackData: initialHpData });
 
-  const [groupedProducts, setGroupedProducts] = useState<Record<string, any[]>>(() => ({
-    "Kitchen Utility": mockKitchenUtility,
-    "Pooja Collection": mockPoojaCollection,
-    "Brass Cookware": mockBrassCookware,
-    "Copper Products": mockCopperProducts,
-    "Steel Essentials": mockSteelEssentials,
-    "Dinner Sets": mockDinnerSets,
-  }));
-  const [homepageSections, setHomepageSections] = useState<any[]>([]);
-  const [mobileBanners, setMobileBanners] = useState<any[]>([]);
-
-  // Group products when data arrives
-  useEffect(() => {
+  const groupedProducts = React.useMemo(() => {
     if (allProducts && Array.isArray(allProducts) && allProducts.length > 0) {
       const groups: Record<string, any[]> = {};
       allProducts.forEach((product: any) => {
@@ -84,9 +72,20 @@ export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?:
         }
         groups[catName].push(product);
       });
-      setGroupedProducts(groups);
+      return groups;
     }
+    return {
+      "Kitchen Utility": mockKitchenUtility,
+      "Pooja Collection": mockPoojaCollection,
+      "Brass Cookware": mockBrassCookware,
+      "Copper Products": mockCopperProducts,
+      "Steel Essentials": mockSteelEssentials,
+      "Dinner Sets": mockDinnerSets,
+    };
   }, [allProducts]);
+
+  const [homepageSections, setHomepageSections] = useState<any[]>([]);
+  const [mobileBanners, setMobileBanners] = useState<any[]>([]);
 
   useEffect(() => {
     if (hpData) {

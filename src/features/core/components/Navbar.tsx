@@ -1202,9 +1202,7 @@ export const Navbar = () => {
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
               >
                 {pathname === "/" && (
-                  <motion.div 
-                    layoutId="bottom-nav-active-pill"
-                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  <div 
                     className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
                   />
                 )}
@@ -1219,9 +1217,7 @@ export const Navbar = () => {
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
               >
                 {pathname === "/products" && (
-                  <motion.div 
-                    layoutId="bottom-nav-active-pill"
-                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  <div 
                     className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
                   />
                 )}
@@ -1236,9 +1232,7 @@ export const Navbar = () => {
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
               >
                 {pathname === "/cart" && (
-                  <motion.div 
-                    layoutId="bottom-nav-active-pill"
-                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  <div 
                     className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
                   />
                 )}
@@ -1260,9 +1254,7 @@ export const Navbar = () => {
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 mx-0.5 rounded-xl relative active:scale-90 transition-transform duration-100 ease-out touch-manipulation cursor-pointer"
               >
                 {pathname.startsWith("/profile") && (
-                  <motion.div 
-                    layoutId="bottom-nav-active-pill"
-                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  <div 
                     className="absolute inset-0 rounded-xl bg-orange-500/15 dark:bg-orange-500/25 border border-orange-500/35 shadow-[0_2px_12px_rgba(249,115,22,0.25)]"
                   />
                 )}
