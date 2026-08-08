@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { SearchCommand } from "./SearchCommand";
 import { Breadcrumbs } from "./Breadcrumbs";
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
