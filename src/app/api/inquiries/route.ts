@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getInquiries, createInquiry, confirmInquiryItemSale } from "@/features/inquiries/services/inquiry";
+import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
+
+// Rate limit: 5 inquiries per hour per IP
+const inquiryLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, max: 5 });
 
 // POST to submit inquiry
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const ip = getClientIp(req);
+    const rl = inquiryLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Too many inquiries. Please try again later." }, { status: 429 });
+    }
+
     const body = await req.json();
 
     // Call service layer for validation and DB creation

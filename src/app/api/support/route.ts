@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
+
+// Rate limit: 5 support tickets per hour per IP
+const supportLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, max: 5 });
 
 export async function POST(req: Request) {
   try {
+    // Rate limiting
+    const ip = getClientIp(req);
+    const rl = supportLimiter.check(ip);
+    if (!rl.allowed) {
+      return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const body = await req.json();
     const { name, email, mobile, description } = body;
 
@@ -20,13 +31,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Description/Message is required" }, { status: 400 });
     }
 
-    // Save ticket to Database
+    // Save ticket to Database (with length caps)
     const ticket = await prisma.supportTicket.create({
       data: {
-        name: name.trim(),
-        email: email.trim(),
-        mobile: mobile.trim(),
-        description: description.trim(),
+        name: name.trim().slice(0, 100),
+        email: email.trim().slice(0, 254),
+        mobile: mobile.trim().slice(0, 15),
+        description: description.trim().slice(0, 3000),
         status: "OPEN"
       }
     });

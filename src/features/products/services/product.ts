@@ -357,16 +357,31 @@ export async function createProduct(body: any, session: TokenPayload) {
     throw new Error("Missing required fields");
   }
 
+  // Input length validation
+  const safeName = String(name).trim().slice(0, 150);
+  const safeDesc = String(description).trim().slice(0, 5000);
+  const safeSpecs = specs ? String(specs).trim().slice(0, 5000) : "";
+  const safeCategoryName = String(categoryName).trim().slice(0, 100);
+  const safeMaterial = String(material).trim().slice(0, 100);
+  
+  // Limit images array to max 10
+  const safeImages = (images && Array.isArray(images)) ? images.slice(0, 10) : [];
+  const safeImage = image ? String(image).trim().slice(0, 500) : "/bronze-kadai.png";
+
   const parsedPrice = parseFloat(price);
-  if (isNaN(parsedPrice)) {
-    throw new Error("Invalid price value: Must be a number");
+  if (isNaN(parsedPrice) || parsedPrice < 0 || parsedPrice > 10000000) {
+    throw new Error("Invalid price value: Must be a number between 0 and 1,00,00,000");
   }
 
   const parsedMrp = mrp ? (parseFloat(mrp) || parsedPrice) : parsedPrice;
   const parsedDiscount = discount ? (parseFloat(discount) || 0) : 0;
   const parsedStock = stock ? (parseInt(stock) || 0) : 10;
 
-  let baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  if (parsedStock < 0 || parsedStock > 100000) {
+    throw new Error("Invalid stock value");
+  }
+
+  let baseSlug = safeName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   let slug = baseSlug;
   let counter = 1;
   while (true) {
@@ -413,18 +428,18 @@ export async function createProduct(body: any, session: TokenPayload) {
 
   return prisma.product.create({
     data: {
-      name,
+      name: safeName,
       slug,
-      description,
-      specs,
-      image: image || "/bronze-kadai.png",
-      images: images ? JSON.parse(JSON.stringify(images)) : [],
+      description: safeDesc,
+      specs: safeSpecs,
+      image: safeImage,
+      images: safeImages.length > 0 ? JSON.parse(JSON.stringify(safeImages)) : [],
       prices: parsedPrices,
       price: parsedPrice,
       mrp: parsedMrp,
       discount: parsedDiscount,
-      categoryName,
-      material,
+      categoryName: safeCategoryName,
+      material: safeMaterial,
       stock: parsedStock,
       featured: !!featured,
       newLaunch: !!newLaunch,

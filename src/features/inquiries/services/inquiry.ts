@@ -43,15 +43,18 @@ export async function createInquiry(body: any) {
     }
   }
 
+  // Cap items array to max 20 items
+  const safeItems = (items && Array.isArray(items)) ? items.slice(0, 20) : [];
+
   const newInquiry = await prisma.inquiry.create({
     data: {
-      name,
-      email,
-      phone,
-      companyName: companyName || null,
-      country: country || null,
-      items: items ? JSON.parse(JSON.stringify(items)) : [],
-      message,
+      name: String(name).trim().slice(0, 100),
+      email: String(email).trim().slice(0, 254),
+      phone: String(phone).trim().slice(0, 15),
+      companyName: companyName ? String(companyName).trim().slice(0, 200) : null,
+      country: country ? String(country).trim().slice(0, 100) : null,
+      items: safeItems.length > 0 ? JSON.parse(JSON.stringify(safeItems)) : [],
+      message: String(message).trim().slice(0, 3000),
     },
   });
 
