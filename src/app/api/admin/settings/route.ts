@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 
@@ -25,7 +26,20 @@ export async function GET(req: NextRequest) {
           returnEnabled: true,
           vendorReturnSlaHours: 24,
           shiprocketAutoAssign: true,
-          shiprocketCourierPriority: "cheapest"
+          shiprocketCourierPriority: "cheapest",
+          exportProgramContent: "StopShop Export Program helps international buyers source authentic Indian handicrafts in bulk directly from artisans. We handle QA, customs, and global logistics.",
+          footerAboutText: "India's premium marketplace for kitchen, home, and lifestyle products. Trusted by buyers across 20+ countries for quality and authenticity.",
+          footerContacts: [
+            { id: "1", type: "email", value: "export@stopshop.com", isVisible: true },
+            { id: "2", type: "phone", value: "+91 98765 43210", isVisible: true },
+            { id: "3", type: "address", value: "India", isVisible: true }
+          ],
+          footerSocialLinks: [
+            { id: "1", name: "Instagram", icon: "📸", url: "#", isVisible: true },
+            { id: "2", name: "Facebook", icon: "👤", url: "#", isVisible: true },
+            { id: "3", name: "YouTube", icon: "🎥", url: "#", isVisible: true },
+            { id: "4", name: "WhatsApp", icon: "💬", url: "#", isVisible: true }
+          ]
        }
     });
 
@@ -57,7 +71,8 @@ export async function PATCH(req: NextRequest) {
         "companyName", "companyAddress", "companyGstin", "companyPan",
         "companyCity", "companyState", "companyCountry", "companyPincode",
         "commissionGstRate", "commissionSacCode", "invoiceTemplate",
-        "shippingPolicy", "refundPolicy", "privacyPolicy", "termsPolicy"
+        "shippingPolicy", "refundPolicy", "privacyPolicy", "termsPolicy",
+        "exportProgramContent", "footerAboutText", "footerContacts", "footerSocialLinks"
     ];
 
     for (const field of allowedFields) {
@@ -73,6 +88,9 @@ export async function PATCH(req: NextRequest) {
        where: { id: settings.id },
        data: updates
     });
+
+    // Invalidate the cache for the layout and all pages so that footer and policy changes reflect immediately
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true, settings: updated });
   } catch (error: any) {

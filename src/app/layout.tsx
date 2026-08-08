@@ -49,7 +49,7 @@ import { WishlistProvider } from "@/context/WishlistContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { headers, cookies } from "next/headers";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -62,6 +62,17 @@ export default function RootLayout({
   const vercelCountry = headersList.get("x-vercel-ip-country");
   
   const serverRegion = (cookieRegion || cfCountry || vercelCountry || "IN").toUpperCase();
+  
+  let footerData = null;
+  try {
+    const res = await fetch(`${baseUrl}/api/settings/public`, { next: { revalidate: 3600 } });
+    if (res.ok) {
+      const data = await res.json();
+      footerData = data?.settings || null;
+    }
+  } catch (e) {
+    console.error("Failed to fetch footer data in layout:", e);
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -107,7 +118,7 @@ export default function RootLayout({
                   <ErrorBoundary>
                     <MainLayout>{children}</MainLayout>
                   </ErrorBoundary>
-                  <Footer />
+                  <Footer footerData={footerData} />
                 </SmoothScroll>
               </WishlistProvider>
             </CartProvider>

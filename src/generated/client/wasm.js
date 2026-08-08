@@ -363,6 +363,10 @@ exports.Prisma.AdminSettingsScalarFieldEnum = {
   shiprocketCourierPriority: 'shiprocketCourierPriority',
   homepageSections: 'homepageSections',
   mobileBanners: 'mobileBanners',
+  exportProgramContent: 'exportProgramContent',
+  footerAboutText: 'footerAboutText',
+  footerContacts: 'footerContacts',
+  footerSocialLinks: 'footerSocialLinks',
   updatedAt: 'updatedAt'
 };
 

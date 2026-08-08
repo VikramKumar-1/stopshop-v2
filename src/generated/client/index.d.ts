@@ -13096,6 +13096,8 @@ export namespace Prisma {
     shiprocketPickupLocation: string | null
     shiprocketAutoAssign: boolean | null
     shiprocketCourierPriority: string | null
+    exportProgramContent: string | null
+    footerAboutText: string | null
     updatedAt: Date | null
   }
 
@@ -13135,6 +13137,8 @@ export namespace Prisma {
     shiprocketPickupLocation: string | null
     shiprocketAutoAssign: boolean | null
     shiprocketCourierPriority: string | null
+    exportProgramContent: string | null
+    footerAboutText: string | null
     updatedAt: Date | null
   }
 
@@ -13176,6 +13180,10 @@ export namespace Prisma {
     shiprocketCourierPriority: number
     homepageSections: number
     mobileBanners: number
+    exportProgramContent: number
+    footerAboutText: number
+    footerContacts: number
+    footerSocialLinks: number
     updatedAt: number
     _all: number
   }
@@ -13249,6 +13257,8 @@ export namespace Prisma {
     shiprocketPickupLocation?: true
     shiprocketAutoAssign?: true
     shiprocketCourierPriority?: true
+    exportProgramContent?: true
+    footerAboutText?: true
     updatedAt?: true
   }
 
@@ -13288,6 +13298,8 @@ export namespace Prisma {
     shiprocketPickupLocation?: true
     shiprocketAutoAssign?: true
     shiprocketCourierPriority?: true
+    exportProgramContent?: true
+    footerAboutText?: true
     updatedAt?: true
   }
 
@@ -13329,6 +13341,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: true
     homepageSections?: true
     mobileBanners?: true
+    exportProgramContent?: true
+    footerAboutText?: true
+    footerContacts?: true
+    footerSocialLinks?: true
     updatedAt?: true
     _all?: true
   }
@@ -13457,6 +13473,10 @@ export namespace Prisma {
     shiprocketCourierPriority: string
     homepageSections: JsonValue | null
     mobileBanners: JsonValue | null
+    exportProgramContent: string | null
+    footerAboutText: string | null
+    footerContacts: JsonValue | null
+    footerSocialLinks: JsonValue | null
     updatedAt: Date
     _count: AdminSettingsCountAggregateOutputType | null
     _avg: AdminSettingsAvgAggregateOutputType | null
@@ -13517,6 +13537,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: boolean
     homepageSections?: boolean
     mobileBanners?: boolean
+    exportProgramContent?: boolean
+    footerAboutText?: boolean
+    footerContacts?: boolean
+    footerSocialLinks?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["adminSettings"]>
 
@@ -13559,6 +13583,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: boolean
     homepageSections?: boolean
     mobileBanners?: boolean
+    exportProgramContent?: boolean
+    footerAboutText?: boolean
+    footerContacts?: boolean
+    footerSocialLinks?: boolean
     updatedAt?: boolean
   }
 
@@ -13604,6 +13632,10 @@ export namespace Prisma {
       shiprocketCourierPriority: string
       homepageSections: Prisma.JsonValue | null
       mobileBanners: Prisma.JsonValue | null
+      exportProgramContent: string | null
+      footerAboutText: string | null
+      footerContacts: Prisma.JsonValue | null
+      footerSocialLinks: Prisma.JsonValue | null
       updatedAt: Date
     }, ExtArgs["result"]["adminSettings"]>
     composites: {}
@@ -14011,6 +14043,10 @@ export namespace Prisma {
     readonly shiprocketCourierPriority: FieldRef<"AdminSettings", 'String'>
     readonly homepageSections: FieldRef<"AdminSettings", 'Json'>
     readonly mobileBanners: FieldRef<"AdminSettings", 'Json'>
+    readonly exportProgramContent: FieldRef<"AdminSettings", 'String'>
+    readonly footerAboutText: FieldRef<"AdminSettings", 'String'>
+    readonly footerContacts: FieldRef<"AdminSettings", 'Json'>
+    readonly footerSocialLinks: FieldRef<"AdminSettings", 'Json'>
     readonly updatedAt: FieldRef<"AdminSettings", 'DateTime'>
   }
     
@@ -25975,6 +26011,10 @@ export namespace Prisma {
     shiprocketCourierPriority: 'shiprocketCourierPriority',
     homepageSections: 'homepageSections',
     mobileBanners: 'mobileBanners',
+    exportProgramContent: 'exportProgramContent',
+    footerAboutText: 'footerAboutText',
+    footerContacts: 'footerContacts',
+    footerSocialLinks: 'footerSocialLinks',
     updatedAt: 'updatedAt'
   };
 
@@ -27511,6 +27551,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: StringFilter<"AdminSettings"> | string
     homepageSections?: JsonNullableFilter<"AdminSettings">
     mobileBanners?: JsonNullableFilter<"AdminSettings">
+    exportProgramContent?: StringNullableFilter<"AdminSettings"> | string | null
+    footerAboutText?: StringNullableFilter<"AdminSettings"> | string | null
+    footerContacts?: JsonNullableFilter<"AdminSettings">
+    footerSocialLinks?: JsonNullableFilter<"AdminSettings">
     updatedAt?: DateTimeFilter<"AdminSettings"> | Date | string
   }
 
@@ -27552,6 +27596,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: SortOrder
     homepageSections?: SortOrderInput | SortOrder
     mobileBanners?: SortOrderInput | SortOrder
+    exportProgramContent?: SortOrderInput | SortOrder
+    footerAboutText?: SortOrderInput | SortOrder
+    footerContacts?: SortOrderInput | SortOrder
+    footerSocialLinks?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
   }
 
@@ -27596,6 +27644,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: StringFilter<"AdminSettings"> | string
     homepageSections?: JsonNullableFilter<"AdminSettings">
     mobileBanners?: JsonNullableFilter<"AdminSettings">
+    exportProgramContent?: StringNullableFilter<"AdminSettings"> | string | null
+    footerAboutText?: StringNullableFilter<"AdminSettings"> | string | null
+    footerContacts?: JsonNullableFilter<"AdminSettings">
+    footerSocialLinks?: JsonNullableFilter<"AdminSettings">
     updatedAt?: DateTimeFilter<"AdminSettings"> | Date | string
   }, "id">
 
@@ -27637,6 +27689,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: SortOrder
     homepageSections?: SortOrderInput | SortOrder
     mobileBanners?: SortOrderInput | SortOrder
+    exportProgramContent?: SortOrderInput | SortOrder
+    footerAboutText?: SortOrderInput | SortOrder
+    footerContacts?: SortOrderInput | SortOrder
+    footerSocialLinks?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     _count?: AdminSettingsCountOrderByAggregateInput
     _avg?: AdminSettingsAvgOrderByAggregateInput
@@ -27686,6 +27742,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: StringWithAggregatesFilter<"AdminSettings"> | string
     homepageSections?: JsonNullableWithAggregatesFilter<"AdminSettings">
     mobileBanners?: JsonNullableWithAggregatesFilter<"AdminSettings">
+    exportProgramContent?: StringNullableWithAggregatesFilter<"AdminSettings"> | string | null
+    footerAboutText?: StringNullableWithAggregatesFilter<"AdminSettings"> | string | null
+    footerContacts?: JsonNullableWithAggregatesFilter<"AdminSettings">
+    footerSocialLinks?: JsonNullableWithAggregatesFilter<"AdminSettings">
     updatedAt?: DateTimeWithAggregatesFilter<"AdminSettings"> | Date | string
   }
 
@@ -30108,6 +30168,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: string
     homepageSections?: NullableJsonNullValueInput | InputJsonValue
     mobileBanners?: NullableJsonNullValueInput | InputJsonValue
+    exportProgramContent?: string | null
+    footerAboutText?: string | null
+    footerContacts?: NullableJsonNullValueInput | InputJsonValue
+    footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
     updatedAt?: Date | string
   }
 
@@ -30149,6 +30213,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: string
     homepageSections?: NullableJsonNullValueInput | InputJsonValue
     mobileBanners?: NullableJsonNullValueInput | InputJsonValue
+    exportProgramContent?: string | null
+    footerAboutText?: string | null
+    footerContacts?: NullableJsonNullValueInput | InputJsonValue
+    footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
     updatedAt?: Date | string
   }
 
@@ -30190,6 +30258,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: StringFieldUpdateOperationsInput | string
     homepageSections?: NullableJsonNullValueInput | InputJsonValue
     mobileBanners?: NullableJsonNullValueInput | InputJsonValue
+    exportProgramContent?: NullableStringFieldUpdateOperationsInput | string | null
+    footerAboutText?: NullableStringFieldUpdateOperationsInput | string | null
+    footerContacts?: NullableJsonNullValueInput | InputJsonValue
+    footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -30231,6 +30303,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: StringFieldUpdateOperationsInput | string
     homepageSections?: NullableJsonNullValueInput | InputJsonValue
     mobileBanners?: NullableJsonNullValueInput | InputJsonValue
+    exportProgramContent?: NullableStringFieldUpdateOperationsInput | string | null
+    footerAboutText?: NullableStringFieldUpdateOperationsInput | string | null
+    footerContacts?: NullableJsonNullValueInput | InputJsonValue
+    footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -30272,6 +30348,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: string
     homepageSections?: NullableJsonNullValueInput | InputJsonValue
     mobileBanners?: NullableJsonNullValueInput | InputJsonValue
+    exportProgramContent?: string | null
+    footerAboutText?: string | null
+    footerContacts?: NullableJsonNullValueInput | InputJsonValue
+    footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
     updatedAt?: Date | string
   }
 
@@ -30313,6 +30393,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: StringFieldUpdateOperationsInput | string
     homepageSections?: NullableJsonNullValueInput | InputJsonValue
     mobileBanners?: NullableJsonNullValueInput | InputJsonValue
+    exportProgramContent?: NullableStringFieldUpdateOperationsInput | string | null
+    footerAboutText?: NullableStringFieldUpdateOperationsInput | string | null
+    footerContacts?: NullableJsonNullValueInput | InputJsonValue
+    footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -30354,6 +30438,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: StringFieldUpdateOperationsInput | string
     homepageSections?: NullableJsonNullValueInput | InputJsonValue
     mobileBanners?: NullableJsonNullValueInput | InputJsonValue
+    exportProgramContent?: NullableStringFieldUpdateOperationsInput | string | null
+    footerAboutText?: NullableStringFieldUpdateOperationsInput | string | null
+    footerContacts?: NullableJsonNullValueInput | InputJsonValue
+    footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -32548,6 +32636,10 @@ export namespace Prisma {
     shiprocketCourierPriority?: SortOrder
     homepageSections?: SortOrder
     mobileBanners?: SortOrder
+    exportProgramContent?: SortOrder
+    footerAboutText?: SortOrder
+    footerContacts?: SortOrder
+    footerSocialLinks?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -32603,6 +32695,8 @@ export namespace Prisma {
     shiprocketPickupLocation?: SortOrder
     shiprocketAutoAssign?: SortOrder
     shiprocketCourierPriority?: SortOrder
+    exportProgramContent?: SortOrder
+    footerAboutText?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -32642,6 +32736,8 @@ export namespace Prisma {
     shiprocketPickupLocation?: SortOrder
     shiprocketAutoAssign?: SortOrder
     shiprocketCourierPriority?: SortOrder
+    exportProgramContent?: SortOrder
+    footerAboutText?: SortOrder
     updatedAt?: SortOrder
   }
 

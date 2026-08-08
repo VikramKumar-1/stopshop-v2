@@ -45,38 +45,38 @@ export const ExportProgram = () => {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
           {/* Left — Content */}
           <div
-            className="space-y-6"
+            className="space-y-5"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-light text-xs font-semibold text-orange-700 dark:text-bronze-300 tracking-wider uppercase">
               <Globe size={14} className="text-bronze-500" />
               Unique Differentiator
             </div>
 
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-heading leading-[1.15]">
+            <h2 className="text-2xl sm:text-3xl font-display font-bold text-heading leading-[1.15]">
               Export With{" "}
               <span className="gradient-text">StopShop</span>
             </h2>
 
             {/* Export Services List */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-2 pt-1">
               {exportServices.map((service, index) => {
                 const Icon = service.icon;
                 return (
                   <div
                     key={index}
-                    className="group flex items-start gap-3.5 p-3 sm:p-4 rounded-xl bg-surface-card border border-bronze-500/10 hover:border-bronze-500/20 hover:shadow-md"
+                    className="group flex items-start gap-3 p-2 sm:p-3 rounded-xl bg-surface-card border border-bronze-500/10 hover:border-bronze-500/20 hover:shadow-md"
                   >
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-bronze-500/15 to-bronze-600/10 flex items-center justify-center flex-shrink-0 group-hover:from-bronze-500/25 group-hover:to-bronze-600/15">
-                      <Icon size={18} className="text-bronze-500 dark:text-bronze-400" />
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bronze-500/15 to-bronze-600/10 flex items-center justify-center flex-shrink-0 group-hover:from-bronze-500/25 group-hover:to-bronze-600/15">
+                      <Icon size={16} className="text-bronze-500 dark:text-bronze-400" />
                     </div>
                     <div>
-                      <h4 className="text-sm sm:text-base font-bold text-heading mb-0.5">{service.title}</h4>
-                      <p className="text-xs sm:text-sm text-muted leading-relaxed">{service.description}</p>
+                      <h4 className="text-sm font-bold text-heading mb-0.5">{service.title}</h4>
+                      <p className="text-xs text-muted leading-relaxed">{service.description}</p>
                     </div>
                   </div>
                 );
@@ -100,28 +100,30 @@ export const ExportProgram = () => {
           <div
             className="relative"
           >
-            <div className="glass rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 gradient-border space-y-8">
+            <div className="glass rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-8 gradient-border space-y-5 sm:space-y-6">
               {/* Header */}
-              <div className="text-center space-y-2">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-bronze-500/20 to-bronze-600/10 flex items-center justify-center mx-auto">
-                  <Truck size={28} className="text-bronze-500 dark:text-bronze-400" />
+              <div className="text-center space-y-1.5">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-bronze-500/20 to-bronze-600/10 flex items-center justify-center mx-auto">
+                  <Truck size={24} className="text-bronze-500 dark:text-bronze-400" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-display font-bold text-heading">Why Export With Us?</h3>
-                <p className="text-xs sm:text-sm text-muted max-w-sm mx-auto">Trusted by buyers in 20+ countries for quality and reliability.</p>
+                <h3 className="text-lg sm:text-xl font-display font-bold text-heading">Why Export With Us?</h3>
+                <p className="text-[11px] sm:text-xs text-muted max-w-sm mx-auto">Trusted by buyers in 20+ countries for quality and reliability.</p>
               </div>
 
               {/* Stats grid */}
-              <div className="grid grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {[
                   { value: "20+", label: "Countries Served", emoji: "🌍" },
                   { value: "500+", label: "Orders Delivered", emoji: "📦" },
                   { value: "48hr", label: "Quote Response", emoji: "⚡" },
                   { value: "100%", label: "Quality Checked", emoji: "✅" },
                 ].map((stat, i) => (
-                  <div key={i} className="text-center p-3 sm:p-4 rounded-xl bg-surface-card/50 border border-bronze-500/10">
-                    <span className="text-xl sm:text-2xl mb-1 block">{stat.emoji}</span>
-                    <p className="text-xl sm:text-2xl font-display font-bold gradient-text">{stat.value}</p>
-                    <p className="text-[10px] sm:text-xs text-muted font-medium mt-1">{stat.label}</p>
+                  <div key={i} className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-surface-card/50 border border-bronze-500/10 text-left">
+                    <span className="text-xl sm:text-2xl flex-shrink-0">{stat.emoji}</span>
+                    <div>
+                      <p className="text-sm sm:text-base font-display font-bold gradient-text leading-none mb-1">{stat.value}</p>
+                      <p className="text-[9px] sm:text-[10px] text-muted font-medium leading-none">{stat.label}</p>
+                    </div>
                   </div>
                 ))}
               </div>

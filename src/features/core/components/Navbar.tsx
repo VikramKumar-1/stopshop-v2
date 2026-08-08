@@ -376,22 +376,8 @@ export const Navbar = () => {
           }
         }
       } else {
-        // Standard page behavior: hide when scrolling down, show when scrolling up
-        const isStickyPage = window.location.pathname.startsWith("/product") || (window.location.pathname.startsWith("/profile") && !user) || window.location.pathname === "/cart" || window.location.pathname.startsWith("/checkout");
-        if (isStickyPage) {
-          setVisible(true);
-        } else if (currentScrollY <= 60) {
-          setVisible(true);
-        } else {
-          const diff = currentScrollY - lastScrollY;
-          if (Math.abs(diff) > 10) { // 10px threshold to prevent flickering
-            if (diff > 0) {
-              setVisible(false);
-            } else {
-              setVisible(true);
-            }
-          }
-        }
+        // Standard page behavior: always keep navbar visible (persistently sticky)
+        setVisible(true);
       }
 
       // Handle mobile bottom navbar scroll visibility (Blinkit style) with threshold to prevent flickering

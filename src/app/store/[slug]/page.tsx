@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Store, Star, ShieldCheck, ArrowLeft, Package, MapPin, CheckCircle2, Search, SlidersHorizontal, ArrowUpDown, ChevronDown, Check, X } from "lucide-react";
+import { Store, Star, ShieldCheck, ArrowLeft, Package, MapPin, CheckCircle2, Search, SlidersHorizontal, ArrowUpDown, ChevronDown, Check, X, Home, ChevronRight } from "lucide-react";
 import { useRegion } from "@/context/RegionContext";
 
 export default function PublicVendorStore({ params }: { params: { slug: string } }) {
@@ -21,6 +21,10 @@ export default function PublicVendorStore({ params }: { params: { slug: string }
 
   const [loading, setLoading] = useState<boolean>(true);
   const { convertPrice, formatPrice } = useRegion();
+
+  const fallbackDisplayName = React.useMemo(() => {
+    return decodeURIComponent(params.slug).replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+  }, [params.slug]);
 
   const materials = [
     { name: "All Materials", value: "" },
@@ -156,17 +160,28 @@ export default function PublicVendorStore({ params }: { params: { slug: string }
   }
 
   return (
-    <div className="min-h-screen bg-surface pb-16 pt-6 sm:pt-10 overflow-x-hidden">
+    <div className="min-h-screen bg-surface pb-16 pt-0 overflow-x-hidden">
       {/* Top Navigation */}
       <div className="bg-surface-card border-b border-border py-4 px-4 sm:px-8 relative z-10 shadow-sm">
         <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-2 text-xs font-bold text-muted hover:text-heading transition-colors"
-          >
-            <ArrowLeft size={16} />
-            <span>Back to Marketplace</span>
-          </Link>
+          <nav aria-label="Breadcrumb" className="flex items-center text-[10px] sm:text-xs font-semibold text-muted flex-wrap">
+            <ol itemScope itemType="https://schema.org/BreadcrumbList" className="flex items-center gap-1.5 flex-wrap list-none p-0 m-0">
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center gap-1.5">
+                <Link href="/" itemProp="item" className="hover:text-heading transition-colors flex items-center gap-1"><Home size={12} /><span itemProp="name">Home</span></Link>
+                <meta itemProp="position" content="1" />
+                <ChevronRight size={12} className="text-muted/50" />
+              </li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center gap-1.5">
+                <Link href="/products" itemProp="item" className="hover:text-heading transition-colors"><span itemProp="name">Store</span></Link>
+                <meta itemProp="position" content="2" />
+                <ChevronRight size={12} className="text-muted/50" />
+              </li>
+              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center gap-1.5">
+                <span itemProp="name" className="text-heading" aria-current="page">{vendor?.name || fallbackDisplayName}</span>
+                <meta itemProp="position" content="3" />
+              </li>
+            </ol>
+          </nav>
           <span className="text-xs font-bold text-orange-500 bg-orange-500/10 px-3 py-1 rounded-full flex items-center gap-1">
             <CheckCircle2 size={13} />
             <span>Verified StopShop Artisan</span>
@@ -174,45 +189,45 @@ export default function PublicVendorStore({ params }: { params: { slug: string }
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8 min-w-0 w-full">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-4 min-w-0 w-full">
         {/* Vendor Header Card */}
-        <div className="bg-surface-card rounded-3xl p-6 sm:p-8 border border-border shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden max-w-[calc(100vw-32px)] sm:max-w-full">
+        <div className="bg-surface-card rounded-2xl p-3 sm:p-4 border border-border shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative overflow-hidden max-w-[calc(100vw-32px)] sm:max-w-full">
           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="flex items-center gap-4 sm:gap-5 z-10 w-full min-w-0">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shrink-0">
-              <Store size={36} />
+          <div className="flex items-center gap-3 z-10 w-full min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow shrink-0">
+              <Store size={20} />
             </div>
-            <div className="space-y-1.5 min-w-0 flex-1">
-              <span className="inline-block text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
-                Official Brand Store
+            <div className="space-y-0.5 min-w-0 flex-1">
+              <span className="inline-block text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                {vendor?.storeType || vendor?.type || "Artisan Store"}
               </span>
-              <h1 className="text-xl sm:text-3xl font-black text-heading font-display truncate">
-                {vendor?.name || "Verified Artisan Partner"}
+              <h1 className="text-base sm:text-xl font-bold text-heading font-display truncate">
+                {vendor?.name || fallbackDisplayName}
               </h1>
-              <div className="flex items-start sm:items-center gap-1.5 opacity-90 mt-1 text-xs text-muted">
-                <MapPin size={14} className="text-orange-500 shrink-0 mt-0.5 sm:mt-0" />
-                <span className="line-clamp-2">{vendor?.location || "Not Provided"}</span>
+              <div className="flex items-start sm:items-center gap-1 opacity-90 text-[10px] sm:text-xs text-muted min-w-0">
+                <MapPin size={12} className="text-orange-500 shrink-0 mt-0.5 sm:mt-0" />
+                <span className="truncate">{vendor?.location || "Not Provided"}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6 bg-surface p-4 rounded-2xl border border-border/80 z-10 w-full md:w-auto justify-around">
-            <div className="text-center">
-              <span className="font-black text-heading text-sm sm:text-base block">{products.length}</span>
-              <span className="text-[10px] text-muted font-bold block mt-0.5">Catalog Products</span>
+          <div className="flex flex-wrap items-center gap-3 bg-surface p-2 sm:p-3 rounded-lg border border-border/80 z-10 w-full md:w-auto justify-around">
+            <div className="text-center px-2">
+              <span className="font-black text-heading text-xs sm:text-sm block">{products.length}</span>
+              <span className="text-[8px] sm:text-[9px] text-muted font-bold block mt-0.5">Catalog Products</span>
             </div>
-            <div className="w-px h-8 bg-border hidden sm:block" />
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-emerald-600 dark:text-emerald-400 font-black text-sm sm:text-base">
-                <ShieldCheck size={16} />
+            <div className="w-px h-6 bg-border hidden sm:block" />
+            <div className="text-center px-2">
+              <div className="flex items-center justify-center gap-1 text-emerald-600 dark:text-emerald-400 font-black text-xs sm:text-sm">
+                <ShieldCheck size={12} />
                 <span>Verified</span>
               </div>
-              <span className="text-[10px] text-muted font-bold block mt-0.5">Quality Assured</span>
+              <span className="text-[8px] sm:text-[9px] text-muted font-bold block mt-0.5">Quality Assured</span>
             </div>
-            <div className="w-px h-8 bg-border hidden sm:block" />
-            <div className="text-center">
-              <span className="font-black text-heading text-sm sm:text-base block">Export</span>
-              <span className="text-[10px] text-muted font-bold block mt-0.5">Global Packaging</span>
+            <div className="w-px h-6 bg-border hidden sm:block" />
+            <div className="text-center px-2">
+              <span className="font-black text-heading text-xs sm:text-sm block">Export</span>
+              <span className="text-[8px] sm:text-[9px] text-muted font-bold block mt-0.5">Global Packaging</span>
             </div>
           </div>
         </div>

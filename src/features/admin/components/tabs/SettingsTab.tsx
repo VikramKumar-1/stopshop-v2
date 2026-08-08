@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { MarkdownHelpGuide } from "./MarkdownHelpGuide";
+import { CMSContentSettings } from "./CMSContentSettings";
 
 const PREVIEW_COUNTRIES = [
   { code: "US", flag: "🇺🇸", name: "USA", currency: "USD", symbol: "$" },
@@ -89,19 +91,20 @@ function InternationalShippingField({ settings, setSettings }: { settings: any; 
     </div>
   );
 }
-
 export function SettingsTab({
   settings,
   setSettings,
   savingSettings,
   handleSavePlatformSettings,
   handleSaveCompanyProfile,
+  handleSaveCMSContent,
 }: {
   settings: any;
   setSettings: (val: any) => void;
   savingSettings: boolean;
   handleSavePlatformSettings: (e: React.FormEvent) => void;
   handleSaveCompanyProfile: (e: React.FormEvent) => void;
+  handleSaveCMSContent: (e: React.FormEvent) => void;
 }) {
   return (
               <>
@@ -343,6 +346,7 @@ export function SettingsTab({
                              <h2 className="text-lg font-bold text-heading">Store Policies</h2>
                           </div>
                           
+                          <MarkdownHelpGuide />
                           <div className="space-y-6">
                              <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Shipping Policy (Markdown Supported)</label>
@@ -393,12 +397,19 @@ export function SettingsTab({
                              </div>
                           </div>
 
-                          <div className="pt-2">
+                           <div className="pt-2">
                              <button type="submit" disabled={savingSettings} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50">
                                 {savingSettings ? "Saving..." : "Save Policies"}
                              </button>
                           </div>
                        </form>
+                       
+                       <CMSContentSettings 
+                         settings={settings}
+                         setSettings={setSettings}
+                         savingSettings={savingSettings}
+                         handleSave={handleSaveCMSContent}
+                       />
                     </div>            )}
               </>
   );

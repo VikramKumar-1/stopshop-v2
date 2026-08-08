@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, Mail, Phone, MapPin, LifeBuoy } from "lucide-react";
+import { Globe, Mail, Phone, MapPin, LifeBuoy, Instagram, Facebook, Youtube, Twitter, Linkedin, Link as LinkIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HelpSupportModal } from "./HelpSupportModal";
 
@@ -29,13 +29,27 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { name: "Instagram", href: "#", icon: "📸" },
-  { name: "Facebook", href: "#", icon: "👤" },
-  { name: "YouTube", href: "#", icon: "🎥" },
-  { name: "WhatsApp", href: "#", icon: "💬" },
+  { name: "Instagram", href: "#", icon: <Instagram size={18} /> },
+  { name: "Facebook", href: "#", icon: <Facebook size={18} /> },
+  { name: "YouTube", href: "#", icon: <Youtube size={18} /> },
+  { name: "Twitter", href: "#", icon: <Twitter size={18} /> },
 ];
 
-export const Footer = () => {
+function getSocialIcon(url: string, fallbackName?: string) {
+  const lowerUrl = (url || "").toLowerCase();
+  const lowerName = (fallbackName || "").toLowerCase();
+  
+  if (lowerUrl.includes("instagram.com") || lowerName.includes("instagram")) return <Instagram size={18} />;
+  if (lowerUrl.includes("facebook.com") || lowerName.includes("facebook")) return <Facebook size={18} />;
+  if (lowerUrl.includes("youtube.com") || lowerName.includes("youtube")) return <Youtube size={18} />;
+  if (lowerUrl.includes("twitter.com") || lowerUrl.includes("x.com") || lowerName.includes("twitter")) return <Twitter size={18} />;
+  if (lowerUrl.includes("linkedin.com") || lowerName.includes("linkedin")) return <Linkedin size={18} />;
+  if (lowerUrl.includes("whatsapp.com") || lowerName.includes("whatsapp")) return <Phone size={18} />;
+  
+  return <LinkIcon size={18} />;
+}
+
+export const Footer = ({ footerData }: { footerData?: any }) => {
   const pathname = usePathname();
   if (pathname.startsWith("/worker")) return null;
   const isDashboard = pathname.startsWith("/vendor") || pathname.startsWith("/admin");
@@ -95,38 +109,65 @@ export const Footer = () => {
               </span>
             </Link>
             <p className="text-bronze-300 max-w-sm leading-relaxed text-sm">
-              India&apos;s premium marketplace for kitchen, home, and lifestyle products. Trusted by buyers across 20+ countries for quality and authenticity.
+              {footerData?.footerAboutText || "India's premium marketplace for kitchen, home, and lifestyle products. Trusted by buyers across 20+ countries for quality and authenticity."}
             </p>
 
             {/* Contact info */}
             <div className="space-y-2.5">
-              <div className="flex items-center gap-3 text-sm">
-                <Mail size={14} className="text-bronze-400 flex-shrink-0" />
-                <span className="text-bronze-300">export@stopshop.com</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Phone size={14} className="text-bronze-400 flex-shrink-0" />
-                <span className="text-bronze-300">+91 98765 43210</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <MapPin size={14} className="text-bronze-400 flex-shrink-0" />
-                <span className="text-bronze-300">India</span>
-              </div>
+              {footerData?.footerContacts?.filter((c: any) => c.isVisible).length > 0 ? (
+                footerData.footerContacts.filter((c: any) => c.isVisible).map((contact: any, i: number) => (
+                  <div key={contact.id || i} className="flex items-center gap-3 text-sm">
+                    {contact.type === "email" && <Mail size={14} className="text-bronze-400 flex-shrink-0" />}
+                    {contact.type === "phone" && <Phone size={14} className="text-bronze-400 flex-shrink-0" />}
+                    {contact.type === "address" && <MapPin size={14} className="text-bronze-400 flex-shrink-0" />}
+                    <span className="text-bronze-300">{contact.value}</span>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 text-sm">
+                    <Mail size={14} className="text-bronze-400 flex-shrink-0" />
+                    <span className="text-bronze-300">export@stopshop.com</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <Phone size={14} className="text-bronze-400 flex-shrink-0" />
+                    <span className="text-bronze-300">+91 98765 43210</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <MapPin size={14} className="text-bronze-400 flex-shrink-0" />
+                    <span className="text-bronze-300">India</span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Social links */}
             <div className="flex items-center gap-3 pt-2">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  className="w-9 h-9 rounded-lg bg-bronze-900 hover:bg-bronze-800 flex items-center justify-center text-sm transition-colors"
-                  aria-label={social.name}
-                  title={social.name}
-                >
-                  {social.icon}
-                </a>
-              ))}
+              {footerData?.footerSocialLinks?.filter((s: any) => s.isVisible).length > 0 ? (
+                footerData.footerSocialLinks.filter((s: any) => s.isVisible).map((social: any, i: number) => (
+                  <a
+                    key={social.id || i}
+                    href={social.url}
+                    className="w-9 h-9 rounded-lg bg-bronze-900 hover:bg-bronze-800 flex items-center justify-center text-sm transition-colors text-bronze-300 hover:text-white"
+                    aria-label={social.name}
+                    title={social.name}
+                  >
+                    {getSocialIcon(social.url, social.name)}
+                  </a>
+                ))
+              ) : (
+                socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    className="w-9 h-9 rounded-lg bg-bronze-900 hover:bg-bronze-800 flex items-center justify-center text-sm transition-colors text-bronze-300 hover:text-white"
+                    aria-label={social.name}
+                    title={social.name}
+                  >
+                    {social.icon}
+                  </a>
+                ))
+              )}
             </div>
           </div>
 

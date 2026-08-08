@@ -396,6 +396,14 @@ model AdminSettings {
   homepageSections Json? // Array of { title, productIds: [] }
   mobileBanners    Json? // Array of mobile banners
 
+  // Export Program CMS
+  exportProgramContent String? @db.Text
+
+  // Footer CMS
+  footerAboutText   String? @db.Text
+  footerContacts    Json? // Array of { id, type, value, isVisible }
+  footerSocialLinks Json? // Array of { id, name, icon, url, isVisible }
+
   updatedAt DateTime @updatedAt
 }
 

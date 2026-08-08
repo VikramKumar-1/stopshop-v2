@@ -689,11 +689,11 @@ export const AdminPanel = () => {
      e.preventDefault();
      setSavingSettings(true);
      try {
-        const { defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, internationalShippingPaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate } = settings;
+        const { defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, internationalShippingPaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate, shippingPolicy, refundPolicy, privacyPolicy, termsPolicy } = settings;
         const res = await fetch("/api/admin/settings", {
            method: "PATCH",
            headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, internationalShippingPaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate })
+           body: JSON.stringify({ defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, internationalShippingPaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate, shippingPolicy, refundPolicy, privacyPolicy, termsPolicy })
         });
         if (res.ok) showToast("Platform Settings saved successfully!", "success");
         else showToast("Failed to save settings", "error");
@@ -718,6 +718,25 @@ export const AdminPanel = () => {
         else showToast("Failed to save profile", "error");
      } catch (e) {
         showToast("Error saving profile", "error");
+     } finally {
+        setSavingSettings(false);
+     }
+  };
+
+  const handleSaveCMSContent = async (e: React.FormEvent) => {
+     e.preventDefault();
+     setSavingSettings(true);
+     try {
+        const { exportProgramContent, footerAboutText, footerContacts, footerSocialLinks } = settings;
+        const res = await fetch("/api/admin/settings", {
+           method: "PATCH",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ exportProgramContent, footerAboutText, footerContacts, footerSocialLinks })
+        });
+        if (res.ok) showToast("CMS Content saved successfully!", "success");
+        else showToast("Failed to save CMS Content", "error");
+     } catch (e) {
+        showToast("Error saving CMS Content", "error");
      } finally {
         setSavingSettings(false);
      }
@@ -1067,6 +1086,7 @@ export const AdminPanel = () => {
               savingSettings={savingSettings}
               handleSavePlatformSettings={handleSavePlatformSettings}
               handleSaveCompanyProfile={handleSaveCompanyProfile}
+              handleSaveCMSContent={handleSaveCMSContent}
             />
           )}
 

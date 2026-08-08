@@ -13,6 +13,10 @@ export async function GET() {
         internationalShippingPaise: settings?.internationalShippingPaise || 49900,
         codSurchargePaise: settings?.codSurchargePaise || 0,
         taxRate: settings?.taxRate || 0,
+        exportProgramContent: settings?.exportProgramContent || "",
+        footerAboutText: settings?.footerAboutText || "",
+        footerContacts: settings?.footerContacts || [],
+        footerSocialLinks: settings?.footerSocialLinks || []
       }
     });
   } catch (error) {

@@ -14,6 +14,8 @@ export const Breadcrumbs = () => {
     pathname === "/" ||
     pathname.startsWith("/products") ||
     pathname.startsWith("/product") ||
+    pathname.startsWith("/store") ||
+    pathname.startsWith("/checkout") ||
     pathname.startsWith("/vendor") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/worker") ||
