@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 import {
   HeroSection,
@@ -59,8 +59,22 @@ import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 
 export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?: any[]; initialHpData?: any }) => {
-  const { data: allProducts, isLoading: loadingProducts } = useSWR('/api/products?take=60', fetcher, { fallbackData: initialProducts });
-  const { data: hpData, isLoading: loadingSections } = useSWR('/api/homepage', fetcher, { fallbackData: initialHpData });
+  const { data: allProducts, isLoading: loadingProducts } = useSWR('/api/products?take=60', fetcher, {
+    fallbackData: initialProducts,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: false,
+    revalidateOnMount: !initialProducts,
+    dedupingInterval: 60000,
+    keepPreviousData: true,
+  });
+  const { data: hpData, isLoading: loadingSections } = useSWR('/api/homepage', fetcher, {
+    fallbackData: initialHpData,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: false,
+    revalidateOnMount: !initialHpData,
+    dedupingInterval: 60000,
+    keepPreviousData: true,
+  });
 
   const groupedProducts = React.useMemo(() => {
     if (allProducts && Array.isArray(allProducts) && allProducts.length > 0) {
@@ -84,22 +98,8 @@ export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?:
     };
   }, [allProducts]);
 
-  const [homepageSections, setHomepageSections] = useState<any[]>([]);
-  const [mobileBanners, setMobileBanners] = useState<any[]>([]);
-  const [showBelowFold, setShowBelowFold] = useState(false);
-
-  useEffect(() => {
-    // Defer rendering of heavy below-the-fold grids to ensure instant tab switching on mobile
-    const timer = setTimeout(() => setShowBelowFold(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (hpData) {
-      if (hpData.sections) setHomepageSections(hpData.sections);
-      if (hpData.mobileBanners) setMobileBanners(hpData.mobileBanners);
-    }
-  }, [hpData]);
+  const homepageSections = hpData?.sections || [];
+  const mobileBanners = hpData?.mobileBanners || [];
 
   const loading = (loadingProducts || loadingSections) && Object.keys(groupedProducts).length === 0;
 
@@ -152,9 +152,8 @@ export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?:
       {/* 3. Best Sellers */}
       <FeaturedProducts products={bestSellerProducts.length > 0 ? bestSellerProducts : undefined} />
 
+
       {/* 4. Shop by Material */}
-      {showBelowFold && (
-        <>
           <ShopByMaterial />
 
           {/* 5. Dynamic Category Product Grids (Loaded from DB) */}
@@ -319,8 +318,6 @@ export const HomePage = ({ initialProducts, initialHpData }: { initialProducts?:
 
       {/* 15. FAQ Section */}
       <FAQSection />
-        </>
-      )}
     </>
   );
 };

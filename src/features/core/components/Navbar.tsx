@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { useState, useEffect, useRef } from "react";
 import { Menu, X, Search, User, Heart, ShoppingCart, ChevronDown, LogOut, Store, PhoneCall, LayoutDashboard, Package, Home, Grid, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 
@@ -351,49 +350,60 @@ export const Navbar = () => {
 
     let lastScrollY = window.scrollY;
     let ticking = false;
+    // Track visibility via local vars to avoid calling setState on every frame
+    let prevVisible = true;
+    let prevBottomVisible = true;
 
     const updateNavbar = () => {
       const currentScrollY = window.scrollY;
       const isHomepage = window.location.pathname === "/";
-      const isMobile = window.matchMedia("(max-width: 1023px)").matches;
+      const isMobile = window.innerWidth < 1024;
       
+      let nextVisible = prevVisible;
       if (isMobile) {
-        setVisible(true);
+        nextVisible = true;
       } else if (isHomepage) {
         const hero = document.getElementById("hero-section");
         const heroHeight = hero ? hero.offsetHeight : 600;
         
         if (currentScrollY <= 60) {
-          setVisible(true);
+          nextVisible = true;
         } else {
           const diff = currentScrollY - lastScrollY;
           if (Math.abs(diff) > 10) {
             if (diff > 0) {
-              setVisible(false);
+              nextVisible = false;
             } else if (currentScrollY <= heroHeight) {
-              setVisible(true);
+              nextVisible = true;
             }
           }
         }
       } else {
         // Standard page behavior: always keep navbar visible (persistently sticky)
-        setVisible(true);
+        nextVisible = true;
       }
 
-      // Handle mobile bottom navbar scroll visibility (Blinkit style) with threshold to prevent flickering
+      // Handle mobile bottom navbar scroll visibility (Blinkit style)
+      let nextBottomVisible = prevBottomVisible;
       if (currentScrollY <= 10) {
-        setBottomVisible(true);
+        nextBottomVisible = true;
       } else {
         const diff = currentScrollY - lastScrollY;
         if (Math.abs(diff) > 15) {
-          if (currentScrollY > lastScrollY) {
-            setBottomVisible(false);
-          } else {
-            setBottomVisible(true);
-          }
+          nextBottomVisible = currentScrollY <= lastScrollY;
         }
       }
       
+      // Only call setState when value actually changes — prevents React re-renders during scroll
+      if (nextVisible !== prevVisible) {
+        prevVisible = nextVisible;
+        setVisible(nextVisible);
+      }
+      if (nextBottomVisible !== prevBottomVisible) {
+        prevBottomVisible = nextBottomVisible;
+        setBottomVisible(nextBottomVisible);
+      }
+
       lastScrollY = currentScrollY;
       ticking = false;
     };

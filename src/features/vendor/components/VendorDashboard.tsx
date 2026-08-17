@@ -2524,16 +2524,15 @@ export const VendorDashboard = () => {
                         className="text-xs bg-surface border border-border rounded-lg px-3 py-1.5 focus:outline-none focus:border-orange-500 w-48"
                       />
                     </div>
-                    <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                    <div className="flex flex-col gap-2 max-h-56 overflow-y-auto p-1 custom-scrollbar">
                       {products.length === 0 && <span className="text-xs text-muted">No other products available.</span>}
                       {products
                         .filter((p: any) => p.name !== editForm.name && p.name.toLowerCase().includes(editBundleSearch.toLowerCase()))
                         .map((p: any) => {
                         const isSelected = editForm.crossSellIds.includes(p.id);
                         return (
-                          <button
+                          <div
                             key={p.id}
-                            type="button"
                             onClick={() => {
                               setEditForm((prev: any) => {
                                 const newIds = isSelected
@@ -2542,14 +2541,36 @@ export const VendorDashboard = () => {
                                 return { ...prev, crossSellIds: newIds };
                               });
                             }}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                            className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-all ${
                               isSelected
-                                ? "bg-bronze-500/10 border-bronze-500 text-bronze-700 dark:text-bronze-300"
-                                : "bg-surface-card border-border hover:border-bronze-500/40 text-muted hover:text-heading"
+                                ? "bg-emerald-500/10 border-emerald-500/50"
+                                : "bg-surface-card border-border hover:border-bronze-500/50"
                             }`}
                           >
-                            {isSelected ? "✓ " : "+ "}{p.name}
-                          </button>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface shrink-0 relative">
+                                {p.image ? (
+                                  <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-bronze-500/20 flex items-center justify-center">
+                                    <span className="text-xs text-bronze-500">No Img</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-xs font-semibold text-heading line-clamp-1">{p.name}</span>
+                                <span className="text-[10px] text-muted font-medium">₹{p.price}</span>
+                              </div>
+                            </div>
+                            
+                            <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border ${
+                              isSelected ? "bg-emerald-500 border-emerald-500 text-white" : "bg-surface border-border text-transparent"
+                            }`}>
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          </div>
                         );
                       })}
                     </div>

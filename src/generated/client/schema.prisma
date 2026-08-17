@@ -637,3 +637,17 @@ model SupportTicket {
   @@index([email])
   @@index([status])
 }
+
+// ==================== WEBHOOKS ====================
+
+model WebhookEvent {
+  id        Int      @id @default(autoincrement())
+  eventId   String // The unique event ID from the provider (e.g., ev_XXXXX)
+  provider  String // e.g., "razorpay", "payu", "shiprocket"
+  status    String   @default("PROCESSED") // PROCESSED, FAILED
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, provider])
+  @@index([provider])
+}

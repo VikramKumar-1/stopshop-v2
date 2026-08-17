@@ -206,40 +206,48 @@ export const CategoryStrip = () => {
   // ─── SOLID SCROLL EFFECT WITH BOUNCE PROTECTION ───────────────────────────
   useEffect(() => {
     let lastScrollY = window.scrollY;
+    // Track previous values to avoid unnecessary setState calls during scroll
+    let prevShowMobileStrip = false;
+    let prevScrollingDown = false;
 
     const handleScroll = () => {
       if (rafRef.current) return;
       rafRef.current = requestAnimationFrame(() => {
         const currentScrollY = window.scrollY;
         const isHomepage = window.location.pathname === "/";
-        const mobileMode = window.matchMedia("(max-width: 1023px)").matches;
+        const mobileMode = window.innerWidth < 1024;
 
         if (mobileMode) {
           const hero = document.getElementById("hero-section");
           const heroHeight = hero ? hero.offsetHeight : 600;
           const threshold = isHomepage ? (heroHeight - 88) : 100;
 
-          // Introduce a 10px buffer to prevent continuous toggle bouncing when hovering at the threshold boundary
+          let nextShowMobileStrip = prevShowMobileStrip;
           if (currentScrollY > threshold + 10) {
-            setShowMobileStrip(true);
+            nextShowMobileStrip = true;
           } else if (currentScrollY < threshold - 10) {
-            setShowMobileStrip(false);
+            nextShowMobileStrip = false;
+          }
+          if (nextShowMobileStrip !== prevShowMobileStrip) {
+            prevShowMobileStrip = nextShowMobileStrip;
+            setShowMobileStrip(nextShowMobileStrip);
           }
         } else {
+          let nextScrollingDown = prevScrollingDown;
           if (isHomepage) {
             const hero = document.getElementById("hero-section");
             const heroHeight = hero ? hero.offsetHeight : 600;
             
             if (currentScrollY <= 120) {
-              setScrollingDown(false);
-              setSearchExpanded(false);
+              nextScrollingDown = false;
+              if (!searchExpandedRef.current) setSearchExpanded(false);
             } else {
               const diff = currentScrollY - lastScrollY;
               if (Math.abs(diff) > 10) {
                 if (diff > 0) {
-                  setScrollingDown(true);
+                  nextScrollingDown = true;
                 } else if (currentScrollY <= heroHeight) {
-                  setScrollingDown(false);
+                  nextScrollingDown = false;
                   if (!searchExpandedRef.current) setSearchExpanded(false);
                 }
               }
@@ -248,20 +256,20 @@ export const CategoryStrip = () => {
             // Other pages
             const isStickyPage = window.location.pathname.startsWith("/product") || window.location.pathname.startsWith("/profile") || window.location.pathname === "/cart" || window.location.pathname.startsWith("/checkout");
             if (isStickyPage) {
-              setScrollingDown(false);
+              nextScrollingDown = false;
             } else if (currentScrollY <= 120) {
-              setScrollingDown(false);
+              nextScrollingDown = false;
               if (!searchExpandedRef.current) setSearchExpanded(false);
             } else {
               const diff = currentScrollY - lastScrollY;
-              if (Math.abs(diff) > 10) { // 10px threshold to prevent bouncing
-                if (diff > 0) {
-                  setScrollingDown(true);
-                } else {
-                  setScrollingDown(false);
-                }
+              if (Math.abs(diff) > 10) {
+                nextScrollingDown = diff > 0;
               }
             }
+          }
+          if (nextScrollingDown !== prevScrollingDown) {
+            prevScrollingDown = nextScrollingDown;
+            setScrollingDown(nextScrollingDown);
           }
         }
         lastScrollY = currentScrollY;

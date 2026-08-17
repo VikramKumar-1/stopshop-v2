@@ -30,8 +30,7 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      // Return 200 even if user not found to prevent email enumeration
-      return NextResponse.json({ message: 'If that email is registered, we have sent a password reset OTP.' });
+      return NextResponse.json({ error: 'This email is not registered with us.' }, { status: 404 });
     }
 
     const otp = generateOTP();
@@ -62,7 +61,7 @@ export async function POST(req: Request) {
 
     await sendMail(email, 'StopShop - Password Reset OTP', emailHtml);
 
-    return NextResponse.json({ message: 'If that email is registered, we have sent a password reset OTP.' });
+    return NextResponse.json({ message: 'Password reset OTP has been sent to your email.' });
   } catch (error) {
     console.error('Forgot password error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

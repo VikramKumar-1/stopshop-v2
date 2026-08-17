@@ -26,7 +26,34 @@ export async function POST(req: NextRequest) {
     }
 
     const event = JSON.parse(body);
+    const razorpayEventId = req.headers.get("x-razorpay-event-id") || `evt_${Date.now()}_${Math.random()}`;
 
+    // --- IDEMPOTENCY CHECK ---
+    try {
+      const existingEvent = await prisma.webhookEvent.findUnique({
+        where: {
+          eventId_provider: { eventId: razorpayEventId, provider: "razorpay" }
+        }
+      });
+
+      if (existingEvent) {
+        return NextResponse.json({ success: true, message: "Already processed" });
+      }
+
+      await prisma.webhookEvent.create({
+        data: {
+          eventId: razorpayEventId,
+          provider: "razorpay",
+          status: "PROCESSING",
+          payload: event
+        }
+      });
+    } catch (e) {
+       // If unique constraint fails here, it means another thread just created it (race condition)
+       return NextResponse.json({ success: true, message: "Already processing concurrently" });
+    }
+
+    // --- PROCESS EVENTS ---
     if (event.event === "order.paid") {
       const paymentPayload = event.payload.payment.entity;
       const orderPayload = event.payload.order.entity;
@@ -34,15 +61,13 @@ export async function POST(req: NextRequest) {
       const razorpay_payment_id = paymentPayload.id;
 
       try {
-        const result = await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx) => {
           const order = await tx.order.findUnique({
             where: { paymentOrderId: razorpay_order_id },
             include: { items: true }
           });
 
-          if (!order) {
-            throw new Error("Order not found");
-          }
+          if (!order) throw new Error("Order not found");
 
           if (order.status !== "PENDING" && order.paymentStatus === "PAID") {
              return order; // Already verified by frontend
@@ -86,7 +111,7 @@ export async function POST(req: NextRequest) {
           const vendorPayoutPaise = order.totalPaise - commissionPaise;
 
           // Update Order
-          const updatedOrder = await tx.order.update({
+          await tx.order.update({
             where: { id: order.id },
             data: {
               paymentStatus: "PAID",
@@ -121,8 +146,6 @@ export async function POST(req: NextRequest) {
                 }
              });
           }
-
-          return updatedOrder;
         });
       } catch (txError: any) {
         console.error("Razorpay webhook transaction error:", txError);
@@ -155,9 +178,86 @@ export async function POST(req: NextRequest) {
            } catch (refundErr) {
               console.error("Failed to auto-refund out-of-stock order via Webhook:", refundErr);
            }
+        } else {
+           throw txError; // Propagate other errors to mark webhook as failed
         }
       }
+    } else if (event.event === "refund.processed") {
+       // --- REFUND WEBHOOK LOGIC ---
+       const refundEntity = event.payload.refund.entity;
+       const razorpay_payment_id = refundEntity.payment_id;
+
+       const order = await prisma.order.findFirst({
+         where: { razorpayPaymentId: razorpay_payment_id }
+       });
+
+       if (order) {
+          // Update Order Payment Status
+          await prisma.order.update({
+             where: { id: order.id },
+             data: { paymentStatus: "REFUNDED" }
+          });
+
+          // Also update Return Request if exists
+          const returnReq = await prisma.returnRequest.findUnique({
+             where: { orderId: order.id }
+          });
+
+          if (returnReq) {
+             await prisma.returnRequest.update({
+                where: { id: returnReq.id },
+                data: { status: "REFUND_COMPLETED" }
+             });
+          }
+       }
+    } else if (event.event === "transfer.processed") {
+       // --- TRANSFER / PAYOUT WEBHOOK LOGIC ---
+       const transferEntity = event.payload.transfer.entity;
+       const transferId = transferEntity.id;
+       
+       const settlement = await prisma.settlement.findFirst({
+          where: { vendorPaymentRef: transferId }
+       });
+
+       if (settlement) {
+          await prisma.settlement.update({
+             where: { id: settlement.id },
+             data: { status: "SETTLED" }
+          });
+
+          // Check if we need to update the parent Order
+          const otherSettlements = await prisma.settlement.findMany({
+             where: { orderId: settlement.orderId, id: { not: settlement.id } }
+          });
+          
+          if (otherSettlements.every(os => ["SETTLED", "CANCELLED"].includes(os.status))) {
+             await prisma.order.update({
+                where: { id: settlement.orderId },
+                data: { settlementStatus: "SETTLED" }
+             });
+          }
+       }
+    } else if (event.event === "transfer.failed") {
+       const transferEntity = event.payload.transfer.entity;
+       const transferId = transferEntity.id;
+       
+       const settlement = await prisma.settlement.findFirst({
+          where: { vendorPaymentRef: transferId }
+       });
+
+       if (settlement) {
+          await prisma.settlement.update({
+             where: { id: settlement.id },
+             data: { status: "FAILED", notes: transferEntity.error_description || "Razorpay transfer failed" }
+          });
+       }
     }
+
+    // Mark event as PROCESSED successfully
+    await prisma.webhookEvent.update({
+      where: { eventId_provider: { eventId: razorpayEventId, provider: "razorpay" } },
+      data: { status: "PROCESSED" }
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

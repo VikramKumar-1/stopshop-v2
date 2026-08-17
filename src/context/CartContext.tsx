@@ -109,6 +109,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const parseCrossSellIds = (ids: any): number[] => {
+    if (!ids) return [];
+    if (Array.isArray(ids)) return ids.map(id => Number(id)).filter(id => !isNaN(id));
+    if (typeof ids === "string") {
+      try {
+        const parsed = JSON.parse(ids);
+        if (Array.isArray(parsed)) return parsed.map(id => Number(id)).filter(id => !isNaN(id));
+      } catch (e) {
+        return ids.split(",").map(s => Number(s.trim())).filter(id => !isNaN(id));
+      }
+    }
+    return [];
+  };
+
   const addToCart = async (product: any, quantity: number = 1) => {
     const stock = product.stock !== undefined ? product.stock : 10;
     const price = product.price || Math.round(product.id * 100 + 299);
@@ -138,7 +152,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           quantity: qtyToAdd,
           stock,
           vendorId: product.vendorId || product.vendor?.id,
-          crossSellIds: product.crossSellIds,
+          crossSellIds: parseCrossSellIds(product.crossSellIds),
           bundleDiscountType: product.bundleDiscountType,
           bundleDiscountValue: product.bundleDiscountValue,
         });
@@ -200,7 +214,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             quantity: Math.min(quantity, stock),
             stock,
             vendorId: product.vendorId || product.vendor?.id,
-            crossSellIds: product.crossSellIds,
+            crossSellIds: parseCrossSellIds(product.crossSellIds),
             bundleDiscountType: product.bundleDiscountType,
             bundleDiscountValue: product.bundleDiscountValue,
           });

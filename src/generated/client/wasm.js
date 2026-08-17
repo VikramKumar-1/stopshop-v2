@@ -511,6 +511,15 @@ exports.Prisma.SupportTicketScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.WebhookEventScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  provider: 'provider',
+  status: 'status',
+  payload: 'payload',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -559,7 +568,8 @@ exports.Prisma.ModelName = {
   Cart: 'Cart',
   CartItem: 'CartItem',
   IPBlacklist: 'IPBlacklist',
-  SupportTicket: 'SupportTicket'
+  SupportTicket: 'SupportTicket',
+  WebhookEvent: 'WebhookEvent'
 };
 
 /**

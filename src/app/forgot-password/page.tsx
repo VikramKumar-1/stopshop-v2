@@ -112,11 +112,6 @@ export default function ForgotPasswordPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-surface-card border border-border sm:rounded-3xl p-6 sm:p-8 shadow-xl">
-          {error && (
-            <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          )}
           {message && (
             <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
               <p className="text-sm text-green-700">{message}</p>
@@ -137,9 +132,17 @@ export default function ForgotPasswordPage() {
                     autoComplete="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl outline-none text-heading text-sm transition-colors"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError('');
+                    }}
+                    className={`w-full px-4 py-2.5 bg-surface border ${error ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-orange-500'} rounded-xl outline-none text-heading text-sm transition-colors`}
                   />
+                  {error && (
+                    <span className="text-red-500 text-[11px] mt-1.5 inline-block font-medium">
+                      {error}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -168,10 +171,18 @@ export default function ForgotPasswordPage() {
                     type="text"
                     required
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl outline-none text-heading text-xl text-center tracking-widest transition-colors"
+                    onChange={(e) => {
+                      setOtp(e.target.value);
+                      setError('');
+                    }}
+                    className={`w-full px-4 py-2.5 bg-surface border ${error ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-orange-500'} rounded-xl outline-none text-heading text-xl text-center tracking-widest transition-colors`}
                     maxLength={6}
                   />
+                  {error && (
+                    <span className="text-red-500 text-[11px] mt-1.5 inline-block font-medium">
+                      {error}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -200,9 +211,17 @@ export default function ForgotPasswordPage() {
                     type="password"
                     required
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-surface border border-border focus:border-orange-500 rounded-xl outline-none text-heading text-sm transition-colors"
+                    onChange={(e) => {
+                      setNewPassword(e.target.value);
+                      setError('');
+                    }}
+                    className={`w-full px-4 py-2.5 bg-surface border ${error ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-orange-500'} rounded-xl outline-none text-heading text-sm transition-colors`}
                   />
+                  {error && (
+                    <span className="text-red-500 text-[11px] mt-1.5 inline-block font-medium">
+                      {error}
+                    </span>
+                  )}
                 </div>
               </div>
 

@@ -2,7 +2,7 @@ import React from "react";
 import { HomePage } from "@/features/home";
 import { prisma } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // ISR: regenerate page every 60 seconds
 
 export default async function HomeRoute() {
   try {

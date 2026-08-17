@@ -27,6 +27,17 @@ export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion
 
   // Fetch live exchange rates relative to INR on mount
   useEffect(() => {
+    // Load cached rates immediately for instant display
+    try {
+      const cached = localStorage.getItem("stopshop_exchange_rates");
+      if (cached) {
+        const { rates: cachedRates, ts } = JSON.parse(cached);
+        if (cachedRates) setRates(cachedRates);
+        // If cache is less than 6 hours old, skip network fetch
+        if (ts && Date.now() - ts < 6 * 60 * 60 * 1000) return;
+      }
+    } catch (_) {}
+
     const fetchRates = async () => {
       try {
         const res = await fetch("https://open.er-api.com/v6/latest/INR");
@@ -34,6 +45,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode; initialRegion
           const data = await res.json();
           if (data && data.rates) {
             setRates(data.rates);
+            localStorage.setItem("stopshop_exchange_rates", JSON.stringify({ rates: data.rates, ts: Date.now() }));
           }
         }
       } catch (e) {
