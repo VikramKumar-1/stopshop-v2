@@ -71,12 +71,45 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
     }
     const allImages = [product.image, ...additionalImages];
 
-    // Fetch cross-sell bundle products
+    // Fetch cross-sell bundle products with robust JSON/Array/String parsing & production fallback
     let bundleProducts: any[] = [];
-    if (product.crossSellIds && Array.isArray(product.crossSellIds) && product.crossSellIds.length > 0) {
+    let crossSellIdsList: number[] = [];
+
+    if (product.crossSellIds) {
+      if (Array.isArray(product.crossSellIds)) {
+        crossSellIdsList = product.crossSellIds.map((id: any) => Number(id)).filter((id: number) => !isNaN(id) && id > 0);
+      } else if (typeof product.crossSellIds === "string") {
+        try {
+          const parsed = JSON.parse(product.crossSellIds);
+          if (Array.isArray(parsed)) {
+            crossSellIdsList = parsed.map((id: any) => Number(id)).filter((id: number) => !isNaN(id) && id > 0);
+          }
+        } catch (e) {
+          crossSellIdsList = (product.crossSellIds as string).split(",").map((s: string) => Number(s.trim())).filter((id: number) => !isNaN(id) && id > 0);
+        }
+      }
+    }
+
+    if (crossSellIdsList.length > 0) {
       bundleProducts = await prisma.product.findMany({
-        where: { id: { in: product.crossSellIds as number[] }, active: true },
-        select: { id: true, name: true, image: true, price: true, mrp: true }
+        where: { id: { in: crossSellIdsList }, active: true },
+        select: { id: true, name: true, image: true, price: true, mrp: true, slug: true }
+      });
+    }
+
+    // Fallback: If no custom crossSellIds configured in production DB, fetch 1-2 matching active products from same category/material
+    if (bundleProducts.length === 0) {
+      bundleProducts = await prisma.product.findMany({
+        where: {
+          id: { not: product.id },
+          active: true,
+          OR: [
+            { categoryName: product.categoryName },
+            { material: product.material }
+          ]
+        },
+        take: 2,
+        select: { id: true, name: true, image: true, price: true, mrp: true, slug: true }
       });
     }
 

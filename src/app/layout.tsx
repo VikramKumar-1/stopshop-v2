@@ -65,10 +65,14 @@ export default async function RootLayout({
   
   let footerData = null;
   try {
-    const res = await fetch(`${baseUrl}/api/settings/public`, { next: { revalidate: 3600 } });
-    if (res.ok) {
-      const data = await res.json();
-      footerData = data?.settings || null;
+    const { prisma } = await import("@/lib/db");
+    const settings = await prisma.adminSettings.findFirst();
+    if (settings) {
+      footerData = {
+        footerAboutText: settings.footerAboutText || "",
+        footerContacts: settings.footerContacts || [],
+        footerSocialLinks: settings.footerSocialLinks || []
+      };
     }
   } catch (e) {
     console.error("Failed to fetch footer data in layout:", e);

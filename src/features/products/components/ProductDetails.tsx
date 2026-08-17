@@ -240,16 +240,16 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
           </nav>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-surface-card border border-border p-4 sm:p-8 rounded-3xl">
+        {/* Product Grid - Compact 5:7 Desktop Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start bg-surface-card border border-border/80 p-4 sm:p-7 rounded-3xl shadow-sm">
           
-          {/* Left Column: Image Gallery (Client Actions Component) */}
-          <div className="lg:col-span-6 flex flex-col gap-4">
+          {/* Left Column: Image Gallery (Compact Sticky Desktop Column) */}
+          <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-24 self-start flex flex-col gap-4">
             <ProductClientActions product={product} allImages={allImages} bundleProducts={bundleProducts} />
           </div>
 
           {/* Right Column: Product Specs & Purchase info */}
-          <div className="lg:col-span-6 flex flex-col space-y-5">
+          <div className="lg:col-span-7 xl:col-span-7 flex flex-col space-y-5">
             <div className="space-y-4">
               
               {/* Category & Rating */}
@@ -388,9 +388,9 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
               <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-3 sm:pt-4">
                 
                 {/* Badge 1: Global Shipping */}
-                <div className="bg-blue-50 dark:bg-blue-950/30 p-2.5 sm:p-3.5 rounded-2xl border border-blue-200/60 dark:border-blue-500/20 hover:border-blue-400/60 transition-colors duration-300 group">
+                <div className="bg-surface-card p-2.5 sm:p-3.5 rounded-2xl border border-border/80 hover:border-orange-500/30 transition-all duration-300 shadow-2xs group">
                   <div className="flex flex-col items-center text-center gap-1.5 sm:gap-2">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-300">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-300">
                       <Truck size={16} className="text-white sm:w-5 sm:h-5" />
                     </div>
                     <div className="flex flex-col overflow-hidden min-w-0">
@@ -405,9 +405,9 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
                 </div>
 
                 {/* Badge 2: Pure Metal */}
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 p-2.5 sm:p-3.5 rounded-2xl border border-emerald-200/60 dark:border-emerald-500/20 hover:border-emerald-400/60 transition-colors duration-300 group">
+                <div className="bg-surface-card p-2.5 sm:p-3.5 rounded-2xl border border-border/80 hover:border-emerald-500/30 transition-all duration-300 shadow-2xs group">
                   <div className="flex flex-col items-center text-center gap-1.5 sm:gap-2">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-300">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-300">
                       <ShieldCheck size={16} className="text-white sm:w-5 sm:h-5" />
                     </div>
                     <div className="flex flex-col overflow-hidden min-w-0">
@@ -422,9 +422,9 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
                 </div>
 
                 {/* Badge 3: Artisanal Craft */}
-                <div className="bg-amber-50 dark:bg-amber-950/30 p-2.5 sm:p-3.5 rounded-2xl border border-amber-200/60 dark:border-amber-500/20 hover:border-amber-400/60 transition-colors duration-300 group">
+                <div className="bg-surface-card p-2.5 sm:p-3.5 rounded-2xl border border-border/80 hover:border-amber-500/30 transition-all duration-300 shadow-2xs group">
                   <div className="flex flex-col items-center text-center gap-1.5 sm:gap-2">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-300">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-300">
                       <Award size={16} className="text-white sm:w-5 sm:h-5" />
                     </div>
                     <div className="flex flex-col overflow-hidden min-w-0">
@@ -441,42 +441,37 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
               </div>
             </div>
 
-            {/* OFFERS & COUPONS WIDGET — Lightweight Premium */}
-            <div className="bg-amber-50 dark:bg-stone-900 border-2 border-orange-300/40 dark:border-orange-500/20 rounded-3xl p-4 sm:p-5 space-y-4">
+            {/* OFFERS & COUPONS WIDGET — Minimalist */}
+            <div className="bg-surface-card/50 border border-border/60 rounded-2xl p-4 space-y-3">
 
                 {/* Header */}
-                <div className="flex items-center justify-between gap-2 pb-3 border-b border-orange-300/30 dark:border-orange-500/15">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-sm">
-                      <Tag size={15} className="text-white sm:w-[17px] sm:h-[17px]" />
-                    </div>
-                    <h3 className="font-display font-black text-xs sm:text-sm text-heading uppercase tracking-wide">
-                      {availableCoupons.length > 0 ? "⚡ Available Offers & Coupons" : "🛡️ StopShop Buyer Guarantees"}
+                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border/50">
+                  <div className="flex items-center gap-2">
+                    <Tag size={15} className="text-orange-500 shrink-0" />
+                    <h3 className="font-display font-bold text-xs text-heading uppercase tracking-wide">
+                      {availableCoupons.length > 0 ? "Available Offers & Coupons" : "StopShop Buyer Guarantees"}
                     </h3>
                   </div>
-                  <span className="hidden sm:inline-flex text-[9px] sm:text-[10px] font-extrabold text-orange-700 dark:text-orange-300 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-400/25 dark:border-orange-500/20">
+                  <span className="hidden sm:inline-flex text-[9px] font-semibold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2.5 py-0.5 rounded-full border border-orange-500/20">
                     {availableCoupons.length > 0 ? "Instant Savings" : "100% Protected"}
                   </span>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {/* Dynamic Coupon Cards */}
                   {availableCoupons.map((coupon, index) => (
-                    <div key={coupon.code || index} className="p-3 sm:p-4 bg-white dark:bg-surface-card rounded-2xl border border-amber-200/50 dark:border-amber-500/15 hover:border-orange-400/50 transition-colors duration-300 flex items-center justify-between gap-2 sm:gap-3">
-                      <div className="flex items-start gap-2 sm:gap-3 overflow-hidden flex-1 min-w-0">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0 border border-amber-300/30 dark:border-amber-500/15">
-                          <Gift size={16} className="text-amber-600 dark:text-amber-400 sm:w-[18px] sm:h-[18px]" />
+                    <div key={coupon.code || index} className="p-3 bg-surface rounded-xl border border-border/60 hover:border-orange-500/30 transition-all flex items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/15">
+                          <Gift size={14} className="text-orange-500" />
                         </div>
                         <div className="overflow-hidden min-w-0">
-                          <span className="text-[8px] sm:text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-[0.08em] block">
-                            {coupon.isFallback ? "Welcome Bonus" : (product.vendor ? `${product.vendor.name?.substring(0, 15)} Special` : "Store Offer")}
+                          <span className="text-[8px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider block">
+                            {product.vendor ? `${product.vendor.name?.substring(0, 15)} Special` : "Store Offer"}
                           </span>
-                          <h4 className="text-[11px] sm:text-xs font-bold text-heading truncate leading-snug mt-0.5">
+                          <h4 className="text-[11px] font-semibold text-heading truncate leading-tight mt-0.5">
                             {coupon.description}
                           </h4>
-                          <p className="text-[9px] sm:text-[10px] text-muted mt-0.5">
-                            {coupon.minOrderPaise ? `Min order: ${convertPrice(coupon.minOrderPaise / 100, product, false)}` : "Applicable at final checkout bill"}
-                          </p>
                         </div>
                       </div>
 
@@ -486,10 +481,10 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
                           setCopiedCode(coupon.code);
                           setTimeout(() => setCopiedCode(null), 2000);
                         }}
-                        className={`px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl font-black text-[9px] sm:text-[10px] uppercase tracking-wider transition-all duration-300 shrink-0 flex items-center gap-1 sm:gap-1.5 active:scale-95 cursor-pointer border-2 border-dashed ${
+                        className={`px-2.5 py-1.5 rounded-lg font-bold text-[9px] uppercase tracking-wider transition-all shrink-0 flex items-center gap-1 cursor-pointer border border-dashed ${
                           copiedCode === coupon.code 
                             ? "bg-emerald-500 text-white border-emerald-500 border-solid" 
-                            : "bg-orange-500/10 hover:bg-orange-500 text-orange-600 hover:text-white dark:text-orange-400 dark:hover:text-white border-orange-400/40 hover:border-solid"
+                            : "bg-orange-500/10 hover:bg-orange-500 text-orange-600 hover:text-white dark:text-orange-400 dark:hover:text-white border-orange-500/30 hover:border-solid"
                         }`}
                       >
                         {copiedCode === coupon.code ? (
@@ -512,26 +507,21 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
                     const freeAboveINR = shippingSettings.shippingFreeAbove / 100;
                     const isFreeShipping = product.price >= freeAboveINR || shippingSettings.shippingFreeAbove === 0;
                     return (
-                      <div className="p-3 sm:p-4 bg-white dark:bg-surface-card rounded-2xl border border-emerald-200/50 dark:border-emerald-500/15 hover:border-emerald-400/50 transition-colors duration-300 flex items-center justify-between gap-2 sm:gap-3">
-                        <div className="flex items-start gap-2 sm:gap-3 overflow-hidden flex-1 min-w-0">
-                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0 border border-emerald-300/30 dark:border-emerald-500/15">
-                            <Truck size={16} className="text-emerald-600 dark:text-emerald-400 sm:w-[18px] sm:h-[18px]" />
+                      <div className="p-3 bg-surface rounded-xl border border-border/60 hover:border-emerald-500/30 transition-all flex items-center justify-between gap-2.5">
+                        <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/15">
+                            <Truck size={14} className="text-emerald-500" />
                           </div>
                           <div className="overflow-hidden min-w-0">
-                            <span className="text-[8px] sm:text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.08em] block">
+                            <span className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
                               StopShop Guarantee
                             </span>
-                            <h4 className="text-[11px] sm:text-xs font-bold text-heading truncate leading-snug mt-0.5">
+                            <h4 className="text-[11px] font-semibold text-heading truncate leading-tight mt-0.5">
                               {isFreeShipping ? "Free Insured Global Delivery" : "Insured Global Delivery"}
                             </h4>
-                            <p className="text-[9px] sm:text-[10px] text-muted mt-0.5 line-clamp-2">
-                              {isFreeShipping
-                                ? `Order qualifies for 100% Free Shipping (Orders above ${convertPrice(freeAboveINR, product, false)})!`
-                                : `Free shipping on orders above ${convertPrice(freeAboveINR, product, false)}! Standard shipping: ${convertPrice(shippingSettings.shippingChargePaise / 100, product, false)}.`}
-                            </p>
                           </div>
                         </div>
-                        <span className="px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 rounded-xl border border-emerald-400/25 dark:border-emerald-500/20 shrink-0 whitespace-nowrap">
+                        <span className="px-2.5 py-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-lg border border-emerald-500/20 shrink-0 whitespace-nowrap">
                           {isFreeShipping ? "Free Delivery" : "Fast Delivery"}
                         </span>
                       </div>
@@ -539,12 +529,10 @@ export default function ProductDetails({ product, allImages, bundleProducts = []
                   })()}
 
                   {/* Smart Stacking Pill */}
-                  <div className="p-3 sm:p-3.5 bg-purple-50 dark:bg-purple-950/20 rounded-2xl border border-purple-300/30 dark:border-purple-500/20 flex items-center gap-2 sm:gap-3 text-xs">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center shrink-0">
-                      <Zap size={13} className="text-white sm:w-[14px] sm:h-[14px]" />
-                    </div>
-                    <span className="text-muted font-medium text-[10px] sm:text-[11px] leading-relaxed">
-                      <strong className="text-purple-600 dark:text-purple-400 font-extrabold">Smart Stacking:</strong> {availableCoupons.length > 0 ? "Personalized discount & Combo savings auto-stack with these coupons!" : "Personalized discount & Bundle combo savings will be automatically applied at checkout!"}
+                  <div className="p-2.5 bg-purple-500/[0.03] dark:bg-purple-950/20 rounded-xl border border-purple-500/15 flex items-center gap-2 text-xs">
+                    <Zap size={13} className="text-purple-500 shrink-0" />
+                    <span className="text-muted font-medium text-[10px] leading-tight">
+                      <strong className="text-purple-600 dark:text-purple-400 font-bold">Smart Stacking:</strong> {availableCoupons.length > 0 ? "Personalized discounts & combo savings auto-stack with coupons." : "Discounts & bundle savings auto-apply at checkout."}
                     </span>
                   </div>
                 </div>
