@@ -887,7 +887,12 @@ export const AdminPanel = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             {loginError && <div className="p-3 bg-red-500/5 text-red-500 text-xs border border-red-500/20 rounded-xl">{loginError}</div>}
             <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-xs outline-none" />
-            <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-xs outline-none" />
+            <div>
+              <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full bg-surface border border-border focus:border-orange-500 rounded-xl px-4 py-2.5 text-xs outline-none" />
+              <div className="flex justify-end mt-2">
+                <a href="/forgot-password" className="text-orange-500 hover:text-orange-600 text-[11px] font-medium">Forgot Password?</a>
+              </div>
+            </div>
             <button type="submit" disabled={loading} className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all disabled:opacity-50">
               {loading ? "Logging in..." : "Login"}
             </button>

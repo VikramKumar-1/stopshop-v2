@@ -255,7 +255,7 @@ function CheckoutPageInner() {
 
   const [loading, setLoading] = useState(true);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("razorpay"); // "razorpay" | "payu" | "cod"
+  const [paymentMethod, setPaymentMethod] = useState("cod"); // "razorpay" | "payu" | "cod"
   const [paying, setPaying] = useState(false);
 
   // UI Alert Popup Modal State
@@ -480,17 +480,17 @@ useEffect(() => {
   const isInternational = countryCode !== "IN";
 
   // Auto-switch payment method based on country of selected address
-  useEffect(() => {
-    if (isInternational) {
-      if (paymentMethod !== "payu") {
-        setPaymentMethod("payu");
-      }
-    } else {
-      if (paymentMethod === "payu") {
-        setPaymentMethod("razorpay");
-      }
-    }
-  }, [isInternational, paymentMethod]);
+  // useEffect(() => {
+  //   if (isInternational) {
+  //     if (paymentMethod !== "payu") {
+  //       setPaymentMethod("payu");
+  //     }
+  //   } else {
+  //     if (paymentMethod === "payu") {
+  //       setPaymentMethod("razorpay");
+  //     }
+  //   }
+  // }, [isInternational, paymentMethod]);
 
   // Recalculate Pricing
   useEffect(() => {
@@ -1022,7 +1022,7 @@ useEffect(() => {
             </div>
 
             {/* Payment Method */}
-            <div className="bg-surface-card border border-border/90 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+            <div className="hidden bg-surface-card border border-border/90 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
               <div className="flex items-center gap-2 border-b border-border pb-3">
                 <span className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-[10px] font-black">2</span>
                 <h2 className="text-sm font-display font-bold text-heading uppercase tracking-wide">Payment Method</h2>
@@ -1329,7 +1329,7 @@ useEffect(() => {
                  ) : paymentMethod === "cod" ? (
                    <>
                      <CheckCircle size={16} />
-                     <span>Place Order (Cash on Delivery)</span>
+                     <span>Place Order</span>
                    </>
                  ) : (
                    <>
