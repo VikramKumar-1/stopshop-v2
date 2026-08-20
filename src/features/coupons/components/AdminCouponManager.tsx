@@ -106,8 +106,8 @@ export const AdminCouponManager = () => {
       const payload = {
         ...formData,
         vendorId: formData.vendorId || null,
-        startsAt: formData.startsAt || null,
-        expiresAt: formData.expiresAt || null,
+        startsAt: formData.startsAt ? new Date(formData.startsAt).toISOString() : null,
+        expiresAt: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
         applicableCategories: formData.applicableCategories || null,
         applicableMaterials: formData.applicableMaterials || null,
         isAutoApply: formData.isAutoApply,
@@ -181,8 +181,8 @@ export const AdminCouponManager = () => {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          startsAt: editFormData.startsAt || null,
-          expiresAt: editFormData.expiresAt || null,
+          startsAt: editFormData.startsAt ? new Date(editFormData.startsAt).toISOString() : null,
+          expiresAt: editFormData.expiresAt ? new Date(editFormData.expiresAt).toISOString() : null,
           isActive: editFormData.isActive,
           description: editFormData.description,
           applicableCategories: editFormData.applicableCategories || null,

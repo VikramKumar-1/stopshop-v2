@@ -97,21 +97,21 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       });
     }
 
-    // Fallback: If no custom crossSellIds configured in production DB, fetch 1-2 matching active products from same category/material
-    if (bundleProducts.length === 0) {
-      bundleProducts = await prisma.product.findMany({
-        where: {
-          id: { not: product.id },
-          active: true,
-          OR: [
-            { categoryName: product.categoryName },
-            { material: product.material }
-          ]
-        },
-        take: 2,
-        select: { id: true, name: true, image: true, price: true, mrp: true, slug: true }
-      });
-    }
+    // Fallback logic removed: Bundles will now ONLY show if explicitly assigned by the vendor.
+    // if (bundleProducts.length === 0) {
+    //   bundleProducts = await prisma.product.findMany({
+    //     where: {
+    //       id: { not: product.id },
+    //       active: true,
+    //       OR: [
+    //         { categoryName: product.categoryName },
+    //         { material: product.material }
+    //       ]
+    //     },
+    //     take: 2,
+    //     select: { id: true, name: true, image: true, price: true, mrp: true, slug: true }
+    //   });
+    // }
 
     return <ProductDetails product={product} allImages={allImages} bundleProducts={bundleProducts} />;
   } catch (error: any) {
