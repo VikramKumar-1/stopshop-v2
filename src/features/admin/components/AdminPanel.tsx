@@ -689,11 +689,11 @@ export const AdminPanel = () => {
      e.preventDefault();
      setSavingSettings(true);
      try {
-        const { defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, internationalShippingPaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate, shippingPolicy, refundPolicy, privacyPolicy, termsPolicy } = settings;
+        const { defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, internationalShippingPaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate, shippingPolicy, refundPolicy, privacyPolicy, termsPolicy, seoTitle, seoDescription, seoKeywords } = settings;
         const res = await fetch("/api/admin/settings", {
            method: "PATCH",
            headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, internationalShippingPaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate, shippingPolicy, refundPolicy, privacyPolicy, termsPolicy })
+           body: JSON.stringify({ defaultCommissionRate, taxRate, commissionGstRate, commissionSacCode, shippingFreeAbove, shippingChargePaise, codShippingChargePaise, internationalShippingPaise, codMaxAmountPaise, returnWindowDays, vendorReturnSlaHours, payoutSchedule, payoutCustomDays, codEnabled, returnEnabled, shiprocketAutoAssign, invoiceTemplate, shippingPolicy, refundPolicy, privacyPolicy, termsPolicy, seoTitle, seoDescription, seoKeywords })
         });
         if (res.ok) showToast("Platform Settings saved successfully!", "success");
         else showToast("Failed to save settings", "error");
