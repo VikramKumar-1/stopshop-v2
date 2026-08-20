@@ -370,6 +370,12 @@ exports.Prisma.AdminSettingsScalarFieldEnum = {
   seoTitle: 'seoTitle',
   seoDescription: 'seoDescription',
   seoKeywords: 'seoKeywords',
+  seoCategoryTitleTemplate: 'seoCategoryTitleTemplate',
+  seoCategoryDescTemplate: 'seoCategoryDescTemplate',
+  seoMaterialTitleTemplate: 'seoMaterialTitleTemplate',
+  seoMaterialDescTemplate: 'seoMaterialDescTemplate',
+  seoMaterialCategoryTitleTemplate: 'seoMaterialCategoryTitleTemplate',
+  seoMaterialCategoryDescTemplate: 'seoMaterialCategoryDescTemplate',
   updatedAt: 'updatedAt'
 };
 

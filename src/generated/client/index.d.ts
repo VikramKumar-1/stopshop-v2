@@ -13183,6 +13183,12 @@ export namespace Prisma {
     seoTitle: string | null
     seoDescription: string | null
     seoKeywords: string | null
+    seoCategoryTitleTemplate: string | null
+    seoCategoryDescTemplate: string | null
+    seoMaterialTitleTemplate: string | null
+    seoMaterialDescTemplate: string | null
+    seoMaterialCategoryTitleTemplate: string | null
+    seoMaterialCategoryDescTemplate: string | null
     updatedAt: Date | null
   }
 
@@ -13227,6 +13233,12 @@ export namespace Prisma {
     seoTitle: string | null
     seoDescription: string | null
     seoKeywords: string | null
+    seoCategoryTitleTemplate: string | null
+    seoCategoryDescTemplate: string | null
+    seoMaterialTitleTemplate: string | null
+    seoMaterialDescTemplate: string | null
+    seoMaterialCategoryTitleTemplate: string | null
+    seoMaterialCategoryDescTemplate: string | null
     updatedAt: Date | null
   }
 
@@ -13275,6 +13287,12 @@ export namespace Prisma {
     seoTitle: number
     seoDescription: number
     seoKeywords: number
+    seoCategoryTitleTemplate: number
+    seoCategoryDescTemplate: number
+    seoMaterialTitleTemplate: number
+    seoMaterialDescTemplate: number
+    seoMaterialCategoryTitleTemplate: number
+    seoMaterialCategoryDescTemplate: number
     updatedAt: number
     _all: number
   }
@@ -13353,6 +13371,12 @@ export namespace Prisma {
     seoTitle?: true
     seoDescription?: true
     seoKeywords?: true
+    seoCategoryTitleTemplate?: true
+    seoCategoryDescTemplate?: true
+    seoMaterialTitleTemplate?: true
+    seoMaterialDescTemplate?: true
+    seoMaterialCategoryTitleTemplate?: true
+    seoMaterialCategoryDescTemplate?: true
     updatedAt?: true
   }
 
@@ -13397,6 +13421,12 @@ export namespace Prisma {
     seoTitle?: true
     seoDescription?: true
     seoKeywords?: true
+    seoCategoryTitleTemplate?: true
+    seoCategoryDescTemplate?: true
+    seoMaterialTitleTemplate?: true
+    seoMaterialDescTemplate?: true
+    seoMaterialCategoryTitleTemplate?: true
+    seoMaterialCategoryDescTemplate?: true
     updatedAt?: true
   }
 
@@ -13445,6 +13475,12 @@ export namespace Prisma {
     seoTitle?: true
     seoDescription?: true
     seoKeywords?: true
+    seoCategoryTitleTemplate?: true
+    seoCategoryDescTemplate?: true
+    seoMaterialTitleTemplate?: true
+    seoMaterialDescTemplate?: true
+    seoMaterialCategoryTitleTemplate?: true
+    seoMaterialCategoryDescTemplate?: true
     updatedAt?: true
     _all?: true
   }
@@ -13580,6 +13616,12 @@ export namespace Prisma {
     seoTitle: string
     seoDescription: string
     seoKeywords: string
+    seoCategoryTitleTemplate: string
+    seoCategoryDescTemplate: string
+    seoMaterialTitleTemplate: string
+    seoMaterialDescTemplate: string
+    seoMaterialCategoryTitleTemplate: string
+    seoMaterialCategoryDescTemplate: string
     updatedAt: Date
     _count: AdminSettingsCountAggregateOutputType | null
     _avg: AdminSettingsAvgAggregateOutputType | null
@@ -13647,6 +13689,12 @@ export namespace Prisma {
     seoTitle?: boolean
     seoDescription?: boolean
     seoKeywords?: boolean
+    seoCategoryTitleTemplate?: boolean
+    seoCategoryDescTemplate?: boolean
+    seoMaterialTitleTemplate?: boolean
+    seoMaterialDescTemplate?: boolean
+    seoMaterialCategoryTitleTemplate?: boolean
+    seoMaterialCategoryDescTemplate?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["adminSettings"]>
 
@@ -13696,6 +13744,12 @@ export namespace Prisma {
     seoTitle?: boolean
     seoDescription?: boolean
     seoKeywords?: boolean
+    seoCategoryTitleTemplate?: boolean
+    seoCategoryDescTemplate?: boolean
+    seoMaterialTitleTemplate?: boolean
+    seoMaterialDescTemplate?: boolean
+    seoMaterialCategoryTitleTemplate?: boolean
+    seoMaterialCategoryDescTemplate?: boolean
     updatedAt?: boolean
   }
 
@@ -13748,6 +13802,12 @@ export namespace Prisma {
       seoTitle: string
       seoDescription: string
       seoKeywords: string
+      seoCategoryTitleTemplate: string
+      seoCategoryDescTemplate: string
+      seoMaterialTitleTemplate: string
+      seoMaterialDescTemplate: string
+      seoMaterialCategoryTitleTemplate: string
+      seoMaterialCategoryDescTemplate: string
       updatedAt: Date
     }, ExtArgs["result"]["adminSettings"]>
     composites: {}
@@ -14162,6 +14222,12 @@ export namespace Prisma {
     readonly seoTitle: FieldRef<"AdminSettings", 'String'>
     readonly seoDescription: FieldRef<"AdminSettings", 'String'>
     readonly seoKeywords: FieldRef<"AdminSettings", 'String'>
+    readonly seoCategoryTitleTemplate: FieldRef<"AdminSettings", 'String'>
+    readonly seoCategoryDescTemplate: FieldRef<"AdminSettings", 'String'>
+    readonly seoMaterialTitleTemplate: FieldRef<"AdminSettings", 'String'>
+    readonly seoMaterialDescTemplate: FieldRef<"AdminSettings", 'String'>
+    readonly seoMaterialCategoryTitleTemplate: FieldRef<"AdminSettings", 'String'>
+    readonly seoMaterialCategoryDescTemplate: FieldRef<"AdminSettings", 'String'>
     readonly updatedAt: FieldRef<"AdminSettings", 'DateTime'>
   }
     
@@ -27006,6 +27072,12 @@ export namespace Prisma {
     seoTitle: 'seoTitle',
     seoDescription: 'seoDescription',
     seoKeywords: 'seoKeywords',
+    seoCategoryTitleTemplate: 'seoCategoryTitleTemplate',
+    seoCategoryDescTemplate: 'seoCategoryDescTemplate',
+    seoMaterialTitleTemplate: 'seoMaterialTitleTemplate',
+    seoMaterialDescTemplate: 'seoMaterialDescTemplate',
+    seoMaterialCategoryTitleTemplate: 'seoMaterialCategoryTitleTemplate',
+    seoMaterialCategoryDescTemplate: 'seoMaterialCategoryDescTemplate',
     updatedAt: 'updatedAt'
   };
 
@@ -28561,6 +28633,12 @@ export namespace Prisma {
     seoTitle?: StringFilter<"AdminSettings"> | string
     seoDescription?: StringFilter<"AdminSettings"> | string
     seoKeywords?: StringFilter<"AdminSettings"> | string
+    seoCategoryTitleTemplate?: StringFilter<"AdminSettings"> | string
+    seoCategoryDescTemplate?: StringFilter<"AdminSettings"> | string
+    seoMaterialTitleTemplate?: StringFilter<"AdminSettings"> | string
+    seoMaterialDescTemplate?: StringFilter<"AdminSettings"> | string
+    seoMaterialCategoryTitleTemplate?: StringFilter<"AdminSettings"> | string
+    seoMaterialCategoryDescTemplate?: StringFilter<"AdminSettings"> | string
     updatedAt?: DateTimeFilter<"AdminSettings"> | Date | string
   }
 
@@ -28609,6 +28687,12 @@ export namespace Prisma {
     seoTitle?: SortOrder
     seoDescription?: SortOrder
     seoKeywords?: SortOrder
+    seoCategoryTitleTemplate?: SortOrder
+    seoCategoryDescTemplate?: SortOrder
+    seoMaterialTitleTemplate?: SortOrder
+    seoMaterialDescTemplate?: SortOrder
+    seoMaterialCategoryTitleTemplate?: SortOrder
+    seoMaterialCategoryDescTemplate?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -28660,6 +28744,12 @@ export namespace Prisma {
     seoTitle?: StringFilter<"AdminSettings"> | string
     seoDescription?: StringFilter<"AdminSettings"> | string
     seoKeywords?: StringFilter<"AdminSettings"> | string
+    seoCategoryTitleTemplate?: StringFilter<"AdminSettings"> | string
+    seoCategoryDescTemplate?: StringFilter<"AdminSettings"> | string
+    seoMaterialTitleTemplate?: StringFilter<"AdminSettings"> | string
+    seoMaterialDescTemplate?: StringFilter<"AdminSettings"> | string
+    seoMaterialCategoryTitleTemplate?: StringFilter<"AdminSettings"> | string
+    seoMaterialCategoryDescTemplate?: StringFilter<"AdminSettings"> | string
     updatedAt?: DateTimeFilter<"AdminSettings"> | Date | string
   }, "id">
 
@@ -28708,6 +28798,12 @@ export namespace Prisma {
     seoTitle?: SortOrder
     seoDescription?: SortOrder
     seoKeywords?: SortOrder
+    seoCategoryTitleTemplate?: SortOrder
+    seoCategoryDescTemplate?: SortOrder
+    seoMaterialTitleTemplate?: SortOrder
+    seoMaterialDescTemplate?: SortOrder
+    seoMaterialCategoryTitleTemplate?: SortOrder
+    seoMaterialCategoryDescTemplate?: SortOrder
     updatedAt?: SortOrder
     _count?: AdminSettingsCountOrderByAggregateInput
     _avg?: AdminSettingsAvgOrderByAggregateInput
@@ -28764,6 +28860,12 @@ export namespace Prisma {
     seoTitle?: StringWithAggregatesFilter<"AdminSettings"> | string
     seoDescription?: StringWithAggregatesFilter<"AdminSettings"> | string
     seoKeywords?: StringWithAggregatesFilter<"AdminSettings"> | string
+    seoCategoryTitleTemplate?: StringWithAggregatesFilter<"AdminSettings"> | string
+    seoCategoryDescTemplate?: StringWithAggregatesFilter<"AdminSettings"> | string
+    seoMaterialTitleTemplate?: StringWithAggregatesFilter<"AdminSettings"> | string
+    seoMaterialDescTemplate?: StringWithAggregatesFilter<"AdminSettings"> | string
+    seoMaterialCategoryTitleTemplate?: StringWithAggregatesFilter<"AdminSettings"> | string
+    seoMaterialCategoryDescTemplate?: StringWithAggregatesFilter<"AdminSettings"> | string
     updatedAt?: DateTimeWithAggregatesFilter<"AdminSettings"> | Date | string
   }
 
@@ -31253,6 +31355,12 @@ export namespace Prisma {
     seoTitle?: string
     seoDescription?: string
     seoKeywords?: string
+    seoCategoryTitleTemplate?: string
+    seoCategoryDescTemplate?: string
+    seoMaterialTitleTemplate?: string
+    seoMaterialDescTemplate?: string
+    seoMaterialCategoryTitleTemplate?: string
+    seoMaterialCategoryDescTemplate?: string
     updatedAt?: Date | string
   }
 
@@ -31301,6 +31409,12 @@ export namespace Prisma {
     seoTitle?: string
     seoDescription?: string
     seoKeywords?: string
+    seoCategoryTitleTemplate?: string
+    seoCategoryDescTemplate?: string
+    seoMaterialTitleTemplate?: string
+    seoMaterialDescTemplate?: string
+    seoMaterialCategoryTitleTemplate?: string
+    seoMaterialCategoryDescTemplate?: string
     updatedAt?: Date | string
   }
 
@@ -31349,6 +31463,12 @@ export namespace Prisma {
     seoTitle?: StringFieldUpdateOperationsInput | string
     seoDescription?: StringFieldUpdateOperationsInput | string
     seoKeywords?: StringFieldUpdateOperationsInput | string
+    seoCategoryTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoCategoryDescTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialDescTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialCategoryTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialCategoryDescTemplate?: StringFieldUpdateOperationsInput | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31397,6 +31517,12 @@ export namespace Prisma {
     seoTitle?: StringFieldUpdateOperationsInput | string
     seoDescription?: StringFieldUpdateOperationsInput | string
     seoKeywords?: StringFieldUpdateOperationsInput | string
+    seoCategoryTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoCategoryDescTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialDescTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialCategoryTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialCategoryDescTemplate?: StringFieldUpdateOperationsInput | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31445,6 +31571,12 @@ export namespace Prisma {
     seoTitle?: string
     seoDescription?: string
     seoKeywords?: string
+    seoCategoryTitleTemplate?: string
+    seoCategoryDescTemplate?: string
+    seoMaterialTitleTemplate?: string
+    seoMaterialDescTemplate?: string
+    seoMaterialCategoryTitleTemplate?: string
+    seoMaterialCategoryDescTemplate?: string
     updatedAt?: Date | string
   }
 
@@ -31493,6 +31625,12 @@ export namespace Prisma {
     seoTitle?: StringFieldUpdateOperationsInput | string
     seoDescription?: StringFieldUpdateOperationsInput | string
     seoKeywords?: StringFieldUpdateOperationsInput | string
+    seoCategoryTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoCategoryDescTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialDescTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialCategoryTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialCategoryDescTemplate?: StringFieldUpdateOperationsInput | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31541,6 +31679,12 @@ export namespace Prisma {
     seoTitle?: StringFieldUpdateOperationsInput | string
     seoDescription?: StringFieldUpdateOperationsInput | string
     seoKeywords?: StringFieldUpdateOperationsInput | string
+    seoCategoryTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoCategoryDescTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialDescTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialCategoryTitleTemplate?: StringFieldUpdateOperationsInput | string
+    seoMaterialCategoryDescTemplate?: StringFieldUpdateOperationsInput | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -33802,6 +33946,12 @@ export namespace Prisma {
     seoTitle?: SortOrder
     seoDescription?: SortOrder
     seoKeywords?: SortOrder
+    seoCategoryTitleTemplate?: SortOrder
+    seoCategoryDescTemplate?: SortOrder
+    seoMaterialTitleTemplate?: SortOrder
+    seoMaterialDescTemplate?: SortOrder
+    seoMaterialCategoryTitleTemplate?: SortOrder
+    seoMaterialCategoryDescTemplate?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -33862,6 +34012,12 @@ export namespace Prisma {
     seoTitle?: SortOrder
     seoDescription?: SortOrder
     seoKeywords?: SortOrder
+    seoCategoryTitleTemplate?: SortOrder
+    seoCategoryDescTemplate?: SortOrder
+    seoMaterialTitleTemplate?: SortOrder
+    seoMaterialDescTemplate?: SortOrder
+    seoMaterialCategoryTitleTemplate?: SortOrder
+    seoMaterialCategoryDescTemplate?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -33906,6 +34062,12 @@ export namespace Prisma {
     seoTitle?: SortOrder
     seoDescription?: SortOrder
     seoKeywords?: SortOrder
+    seoCategoryTitleTemplate?: SortOrder
+    seoCategoryDescTemplate?: SortOrder
+    seoMaterialTitleTemplate?: SortOrder
+    seoMaterialDescTemplate?: SortOrder
+    seoMaterialCategoryTitleTemplate?: SortOrder
+    seoMaterialCategoryDescTemplate?: SortOrder
     updatedAt?: SortOrder
   }
 

@@ -73,7 +73,10 @@ export async function PATCH(req: NextRequest) {
         "commissionGstRate", "commissionSacCode", "invoiceTemplate",
         "shippingPolicy", "refundPolicy", "privacyPolicy", "termsPolicy",
         "exportProgramContent", "footerAboutText", "footerContacts", "footerSocialLinks",
-        "seoTitle", "seoDescription", "seoKeywords"
+        "seoTitle", "seoDescription", "seoKeywords",
+        "seoCategoryTitleTemplate", "seoCategoryDescTemplate", 
+        "seoMaterialTitleTemplate", "seoMaterialDescTemplate",
+        "seoMaterialCategoryTitleTemplate", "seoMaterialCategoryDescTemplate"
     ];
 
     for (const field of allowedFields) {

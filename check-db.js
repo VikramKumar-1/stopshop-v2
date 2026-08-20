@@ -1,0 +1,1 @@
+﻿const { PrismaClient } = require('./src/generated/client'); const prisma = new PrismaClient(); prisma.adminSettings.findFirst().then(function(s) { console.log('SEO Settings in DB:', { seoTitle: s.seoTitle, seoDescription: s.seoDescription, seoKeywords: s.seoKeywords }); process.exit(0); }).catch(function(e) { console.error(e); process.exit(1); })

@@ -410,6 +410,14 @@ model AdminSettings {
   seoDescription        String   @default("India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.")
   seoKeywords           String   @default("bronze cookware, bartan, export, premium kitchenware, handmade, copper, brass, StopShop")
   
+  // Dynamic SEO Templates (Use [Category] and [Material] as placeholders)
+  seoCategoryTitleTemplate String @default("Buy [Category] Online | Best Kitchen Utensils | StopShop")
+  seoCategoryDescTemplate  String @default("Explore our wide range of premium [Category]. Durable, food-grade, and stylish kitchenware at the best prices.")
+  seoMaterialTitleTemplate String @default("Buy Premium [Material] Utensils & Cookware Online | StopShop")
+  seoMaterialDescTemplate  String @default("Shop authentic and premium [Material] kitchenware, utensils, and bartan. Best prices and worldwide shipping.")
+  seoMaterialCategoryTitleTemplate String @default("Shop [Material] [Category] Online at Best Prices | StopShop")
+  seoMaterialCategoryDescTemplate  String @default("Explore our wide range of premium [Material] [Category]. Durable, food-grade, and stylish kitchenware at the best prices.")
+  
   updatedAt             DateTime @updatedAt
 }
 

@@ -448,8 +448,42 @@ export function SettingsTab({
                                 <p className="text-[10px] text-muted mt-1">Comma-separated list of target keywords.</p>
                              </div>
                           </div>
+
+                          <div className="mt-8">
+                             <h3 className="text-sm font-bold text-heading mb-4">Dynamic SEO Templates</h3>
+                             <p className="text-xs text-muted mb-6">Use <code className="text-orange-500 bg-orange-500/10 px-1 rounded">[Category]</code> and <code className="text-orange-500 bg-orange-500/10 px-1 rounded">[Material]</code> exactly like this in the text. The system will auto-replace them.</p>
+                             
+                             <div className="space-y-4">
+                                <div className="space-y-1">
+                                   <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Category Title Template</label>
+                                   <input type="text" value={settings.seoCategoryTitleTemplate || ""} onChange={e => setSettings({...settings, seoCategoryTitleTemplate: e.target.value})} className="w-full px-4 py-2 bg-surface border border-border rounded-xl text-sm text-heading" placeholder="Buy [Category] Online | Best Kitchen Utensils | StopShop" />
+                                </div>
+                                <div className="space-y-1">
+                                   <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Category Description Template</label>
+                                   <textarea value={settings.seoCategoryDescTemplate || ""} onChange={e => setSettings({...settings, seoCategoryDescTemplate: e.target.value})} className="w-full px-4 py-2 bg-surface border border-border rounded-xl text-sm text-heading" rows={2} placeholder="Explore our wide range of premium [Category]..." />
+                                </div>
+                                
+                                <div className="space-y-1 mt-4">
+                                   <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Material Title Template</label>
+                                   <input type="text" value={settings.seoMaterialTitleTemplate || ""} onChange={e => setSettings({...settings, seoMaterialTitleTemplate: e.target.value})} className="w-full px-4 py-2 bg-surface border border-border rounded-xl text-sm text-heading" placeholder="Buy Premium [Material] Utensils & Cookware Online | StopShop" />
+                                </div>
+                                <div className="space-y-1">
+                                   <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Material Description Template</label>
+                                   <textarea value={settings.seoMaterialDescTemplate || ""} onChange={e => setSettings({...settings, seoMaterialDescTemplate: e.target.value})} className="w-full px-4 py-2 bg-surface border border-border rounded-xl text-sm text-heading" rows={2} placeholder="Shop authentic and premium [Material] kitchenware..." />
+                                </div>
+
+                                <div className="space-y-1 mt-4">
+                                   <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Material + Category Title Template</label>
+                                   <input type="text" value={settings.seoMaterialCategoryTitleTemplate || ""} onChange={e => setSettings({...settings, seoMaterialCategoryTitleTemplate: e.target.value})} className="w-full px-4 py-2 bg-surface border border-border rounded-xl text-sm text-heading" placeholder="Shop [Material] [Category] Online at Best Prices | StopShop" />
+                                </div>
+                                <div className="space-y-1">
+                                   <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Material + Category Description Template</label>
+                                   <textarea value={settings.seoMaterialCategoryDescTemplate || ""} onChange={e => setSettings({...settings, seoMaterialCategoryDescTemplate: e.target.value})} className="w-full px-4 py-2 bg-surface border border-border rounded-xl text-sm text-heading" rows={2} placeholder="Explore our wide range of premium [Material] [Category]..." />
+                                </div>
+                             </div>
+                          </div>
                           
-                          <div className="pt-2">
+                          <div className="pt-4 border-t border-border mt-6">
                              <button type="submit" disabled={savingSettings} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50">
                                 {savingSettings ? "Saving..." : "Save SEO Settings"}
                              </button>
