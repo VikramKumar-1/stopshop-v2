@@ -496,14 +496,14 @@ export const Navbar = () => {
 
                 <Link 
                   href={(pathname.startsWith("/vendor") && !pathname.startsWith("/vendor-shop")) ? "/vendor/dashboard" : pathname.startsWith("/admin") ? "/admin" : "/"} 
-                  className={`flex items-center gap-2.5 sm:gap-3 group ${searchOpen ? "hidden" : "flex"}`}
+                  className={`flex flex-row items-center gap-2.5 sm:gap-3 group ${searchOpen ? "hidden" : "flex"}`}
                 >
                   <img 
                     src="/logo.webp" 
                     alt="StopShop Logo" 
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl sm:rounded-2xl object-contain shadow-sm group-hover:scale-105 transition-transform shrink-0"
+                    className="order-1 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl sm:rounded-2xl object-contain shadow-sm group-hover:scale-105 transition-transform shrink-0"
                   />
-                  <span className="inline-block text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tight text-heading">
+                  <span className="order-2 inline-block text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tight text-heading">
                     Stop<span className="gradient-text">Shop</span>
                   </span>
                 </Link>
