@@ -138,6 +138,7 @@ export const CategoryCards = () => {
                 {/* See More Link */}
                 <Link
                   href={card.link}
+                  aria-label={`See more in ${card.title}`}
                   className="inline-block mt-4 text-sm font-semibold text-bronze-600 dark:text-bronze-400"
                 >
                   {card.linkText}

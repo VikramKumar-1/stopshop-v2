@@ -299,6 +299,7 @@ export const CategoryProductGrid = ({
         <div className="mt-2 md:mt-3 text-center">
           <Link
             href={viewAllLink}
+            aria-label={`See more products in ${title}`}
             className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 rounded-full bg-gradient-to-r from-bronze-500/10 to-orange-500/10 hover:from-bronze-500/20 hover:to-orange-500/20 border border-bronze-500/20 hover:border-bronze-500/40 text-orange-600 dark:text-orange-400 text-xs sm:text-sm font-semibold shadow-sm"
           >
             See More
