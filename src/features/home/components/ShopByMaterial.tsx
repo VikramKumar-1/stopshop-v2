@@ -1,6 +1,7 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import React, { useRef } from "react";
 
 const materials = [
@@ -146,12 +147,13 @@ export const ShopByMaterial = () => {
                 </div>
 
                 {/* Right Side Image */}
-                <img
+                <Image
                   src={material.image}
                   alt={material.name}
+                  width={200}
+                  height={300}
                   className="absolute bottom-3.5 right-2 sm:right-3 w-[45%] h-[78%] object-cover object-bottom rounded-2xl z-0 select-none pointer-events-none"
                   loading="lazy"
-                  decoding="async"
                 />
               </Link>
             </div>
