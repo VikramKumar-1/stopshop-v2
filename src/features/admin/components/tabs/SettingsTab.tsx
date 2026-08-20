@@ -405,10 +405,13 @@ export function SettingsTab({
                        </form>
                        
                        {/* Section 4: SEO Settings */}
-                       <form onSubmit={handleSavePlatformSettings} className="bg-surface-card border border-border rounded-3xl p-6 md:p-8 space-y-6">
-                          <div className="flex items-center gap-2 border-b border-border pb-4">
-                             <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
-                             <h2 className="text-lg font-bold text-heading">SEO & Metadata</h2>
+                       <form onSubmit={handleSavePlatformSettings} className="bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border border-indigo-500/30 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm relative overflow-hidden">
+                          {/* Decorative background glow */}
+                          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+                          <div className="flex items-center gap-2 border-b border-indigo-500/20 pb-4 relative z-10">
+                             <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+                             <h2 className="text-lg font-bold text-indigo-700 dark:text-indigo-400">SEO & Metadata Center</h2>
                           </div>
                           
                           <div className="space-y-4">
