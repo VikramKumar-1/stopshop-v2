@@ -1,16 +1,6 @@
 import React from "react";
-import { Metadata } from "next";
 import { HomePage } from "@/features/home";
 import { prisma } from "@/lib/db";
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
-export const metadata: Metadata = {
-  alternates: {
-    canonical: baseUrl,
-  },
-};
 
 export const revalidate = 60; // ISR: regenerate page every 60 seconds
 

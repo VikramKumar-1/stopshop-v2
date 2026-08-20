@@ -21,24 +21,32 @@ const outfit = Outfit({
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
-export const metadata: Metadata = {
-  metadataBase: new URL(baseUrl),
-  title: "StopShop — Premium Bronze & Bartan Export",
-  description:
-    "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
-  keywords: "bronze cookware, bartan, export, premium kitchenware, handmade, copper, brass, StopShop",
-  authors: [{ name: "StopShop" }],
-  publisher: "StopShop",
-  robots: "index, follow",
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await import("next/headers").then(m => m.headers());
+  const currentPath = headersList.get("x-current-path") || "/";
+
+  return {
+    metadataBase: new URL(baseUrl),
     title: "StopShop — Premium Bronze & Bartan Export",
-    description: "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
-    url: baseUrl,
-    siteName: "StopShop",
-    locale: "en_US",
-    type: "website",
-  },
-};
+    description:
+      "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
+    keywords: "bronze cookware, bartan, export, premium kitchenware, handmade, copper, brass, StopShop",
+    authors: [{ name: "StopShop" }],
+    publisher: "StopShop",
+    robots: "index, follow",
+    alternates: {
+      canonical: `${baseUrl}${currentPath}`,
+    },
+    openGraph: {
+      title: "StopShop — Premium Bronze & Bartan Export",
+      description: "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
+      url: `${baseUrl}${currentPath}`,
+      siteName: "StopShop",
+      locale: "en_US",
+      type: "website",
+    },
+  };
+}
 
 import { MainLayout } from "@/features/core/components/MainLayout";
 import { RegionProvider } from "@/context/RegionContext";

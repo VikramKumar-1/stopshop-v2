@@ -114,7 +114,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  // Pass full URL path + query to layout for dynamic canonical tag
+  const fullPath = request.nextUrl.pathname + (request.nextUrl.search || "");
+  response.headers.set("x-current-path", fullPath);
+  return response;
 }
 
 export const config = {
