@@ -451,7 +451,11 @@ export function SettingsTab({
 
                           <div className="mt-8">
                              <h3 className="text-sm font-bold text-heading mb-4">Dynamic SEO Templates</h3>
-                             <p className="text-xs text-muted mb-6">Use <code className="text-orange-500 bg-orange-500/10 px-1 rounded">[Category]</code> and <code className="text-orange-500 bg-orange-500/10 px-1 rounded">[Material]</code> exactly like this in the text. The system will auto-replace them.</p>
+                             <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-6">
+                                <p className="text-xs text-blue-600 font-medium mb-2">💡 How does this work?</p>
+                                <p className="text-[10px] text-blue-600/80 mb-2">This is a "fill-in-the-blanks" system. Instead of writing SEO tags for 50+ categories manually, write one template here. The system will automatically replace the exact words <code className="bg-blue-500/20 font-bold px-1 rounded">[Category]</code> and <code className="bg-blue-500/20 font-bold px-1 rounded">[Material]</code> with the actual page names.</p>
+                                <p className="text-[10px] text-blue-600/80"><strong>Example:</strong> If your template is <span className="italic">"Buy [Material] [Category] Online"</span>,<br/>When a customer visits the Copper Dinner Sets page, the title automatically becomes: <span className="font-bold">"Buy Copper Dinner Sets Online"</span>.</p>
+                             </div>
                              
                              <div className="space-y-4">
                                 <div className="space-y-1">
