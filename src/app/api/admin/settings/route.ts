@@ -72,7 +72,8 @@ export async function PATCH(req: NextRequest) {
         "companyCity", "companyState", "companyCountry", "companyPincode",
         "commissionGstRate", "commissionSacCode", "invoiceTemplate",
         "shippingPolicy", "refundPolicy", "privacyPolicy", "termsPolicy",
-        "exportProgramContent", "footerAboutText", "footerContacts", "footerSocialLinks"
+        "exportProgramContent", "footerAboutText", "footerContacts", "footerSocialLinks",
+        "seoTitle", "seoDescription", "seoKeywords"
     ];
 
     for (const field of allowedFields) {

@@ -367,6 +367,9 @@ exports.Prisma.AdminSettingsScalarFieldEnum = {
   footerAboutText: 'footerAboutText',
   footerContacts: 'footerContacts',
   footerSocialLinks: 'footerSocialLinks',
+  seoTitle: 'seoTitle',
+  seoDescription: 'seoDescription',
+  seoKeywords: 'seoKeywords',
   updatedAt: 'updatedAt'
 };
 

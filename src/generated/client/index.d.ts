@@ -13180,6 +13180,9 @@ export namespace Prisma {
     shiprocketCourierPriority: string | null
     exportProgramContent: string | null
     footerAboutText: string | null
+    seoTitle: string | null
+    seoDescription: string | null
+    seoKeywords: string | null
     updatedAt: Date | null
   }
 
@@ -13221,6 +13224,9 @@ export namespace Prisma {
     shiprocketCourierPriority: string | null
     exportProgramContent: string | null
     footerAboutText: string | null
+    seoTitle: string | null
+    seoDescription: string | null
+    seoKeywords: string | null
     updatedAt: Date | null
   }
 
@@ -13266,6 +13272,9 @@ export namespace Prisma {
     footerAboutText: number
     footerContacts: number
     footerSocialLinks: number
+    seoTitle: number
+    seoDescription: number
+    seoKeywords: number
     updatedAt: number
     _all: number
   }
@@ -13341,6 +13350,9 @@ export namespace Prisma {
     shiprocketCourierPriority?: true
     exportProgramContent?: true
     footerAboutText?: true
+    seoTitle?: true
+    seoDescription?: true
+    seoKeywords?: true
     updatedAt?: true
   }
 
@@ -13382,6 +13394,9 @@ export namespace Prisma {
     shiprocketCourierPriority?: true
     exportProgramContent?: true
     footerAboutText?: true
+    seoTitle?: true
+    seoDescription?: true
+    seoKeywords?: true
     updatedAt?: true
   }
 
@@ -13427,6 +13442,9 @@ export namespace Prisma {
     footerAboutText?: true
     footerContacts?: true
     footerSocialLinks?: true
+    seoTitle?: true
+    seoDescription?: true
+    seoKeywords?: true
     updatedAt?: true
     _all?: true
   }
@@ -13559,6 +13577,9 @@ export namespace Prisma {
     footerAboutText: string | null
     footerContacts: JsonValue | null
     footerSocialLinks: JsonValue | null
+    seoTitle: string
+    seoDescription: string
+    seoKeywords: string
     updatedAt: Date
     _count: AdminSettingsCountAggregateOutputType | null
     _avg: AdminSettingsAvgAggregateOutputType | null
@@ -13623,6 +13644,9 @@ export namespace Prisma {
     footerAboutText?: boolean
     footerContacts?: boolean
     footerSocialLinks?: boolean
+    seoTitle?: boolean
+    seoDescription?: boolean
+    seoKeywords?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["adminSettings"]>
 
@@ -13669,6 +13693,9 @@ export namespace Prisma {
     footerAboutText?: boolean
     footerContacts?: boolean
     footerSocialLinks?: boolean
+    seoTitle?: boolean
+    seoDescription?: boolean
+    seoKeywords?: boolean
     updatedAt?: boolean
   }
 
@@ -13718,6 +13745,9 @@ export namespace Prisma {
       footerAboutText: string | null
       footerContacts: Prisma.JsonValue | null
       footerSocialLinks: Prisma.JsonValue | null
+      seoTitle: string
+      seoDescription: string
+      seoKeywords: string
       updatedAt: Date
     }, ExtArgs["result"]["adminSettings"]>
     composites: {}
@@ -14129,6 +14159,9 @@ export namespace Prisma {
     readonly footerAboutText: FieldRef<"AdminSettings", 'String'>
     readonly footerContacts: FieldRef<"AdminSettings", 'Json'>
     readonly footerSocialLinks: FieldRef<"AdminSettings", 'Json'>
+    readonly seoTitle: FieldRef<"AdminSettings", 'String'>
+    readonly seoDescription: FieldRef<"AdminSettings", 'String'>
+    readonly seoKeywords: FieldRef<"AdminSettings", 'String'>
     readonly updatedAt: FieldRef<"AdminSettings", 'DateTime'>
   }
     
@@ -26970,6 +27003,9 @@ export namespace Prisma {
     footerAboutText: 'footerAboutText',
     footerContacts: 'footerContacts',
     footerSocialLinks: 'footerSocialLinks',
+    seoTitle: 'seoTitle',
+    seoDescription: 'seoDescription',
+    seoKeywords: 'seoKeywords',
     updatedAt: 'updatedAt'
   };
 
@@ -28522,6 +28558,9 @@ export namespace Prisma {
     footerAboutText?: StringNullableFilter<"AdminSettings"> | string | null
     footerContacts?: JsonNullableFilter<"AdminSettings">
     footerSocialLinks?: JsonNullableFilter<"AdminSettings">
+    seoTitle?: StringFilter<"AdminSettings"> | string
+    seoDescription?: StringFilter<"AdminSettings"> | string
+    seoKeywords?: StringFilter<"AdminSettings"> | string
     updatedAt?: DateTimeFilter<"AdminSettings"> | Date | string
   }
 
@@ -28567,6 +28606,9 @@ export namespace Prisma {
     footerAboutText?: SortOrderInput | SortOrder
     footerContacts?: SortOrderInput | SortOrder
     footerSocialLinks?: SortOrderInput | SortOrder
+    seoTitle?: SortOrder
+    seoDescription?: SortOrder
+    seoKeywords?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -28615,6 +28657,9 @@ export namespace Prisma {
     footerAboutText?: StringNullableFilter<"AdminSettings"> | string | null
     footerContacts?: JsonNullableFilter<"AdminSettings">
     footerSocialLinks?: JsonNullableFilter<"AdminSettings">
+    seoTitle?: StringFilter<"AdminSettings"> | string
+    seoDescription?: StringFilter<"AdminSettings"> | string
+    seoKeywords?: StringFilter<"AdminSettings"> | string
     updatedAt?: DateTimeFilter<"AdminSettings"> | Date | string
   }, "id">
 
@@ -28660,6 +28705,9 @@ export namespace Prisma {
     footerAboutText?: SortOrderInput | SortOrder
     footerContacts?: SortOrderInput | SortOrder
     footerSocialLinks?: SortOrderInput | SortOrder
+    seoTitle?: SortOrder
+    seoDescription?: SortOrder
+    seoKeywords?: SortOrder
     updatedAt?: SortOrder
     _count?: AdminSettingsCountOrderByAggregateInput
     _avg?: AdminSettingsAvgOrderByAggregateInput
@@ -28713,6 +28761,9 @@ export namespace Prisma {
     footerAboutText?: StringNullableWithAggregatesFilter<"AdminSettings"> | string | null
     footerContacts?: JsonNullableWithAggregatesFilter<"AdminSettings">
     footerSocialLinks?: JsonNullableWithAggregatesFilter<"AdminSettings">
+    seoTitle?: StringWithAggregatesFilter<"AdminSettings"> | string
+    seoDescription?: StringWithAggregatesFilter<"AdminSettings"> | string
+    seoKeywords?: StringWithAggregatesFilter<"AdminSettings"> | string
     updatedAt?: DateTimeWithAggregatesFilter<"AdminSettings"> | Date | string
   }
 
@@ -31199,6 +31250,9 @@ export namespace Prisma {
     footerAboutText?: string | null
     footerContacts?: NullableJsonNullValueInput | InputJsonValue
     footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
+    seoTitle?: string
+    seoDescription?: string
+    seoKeywords?: string
     updatedAt?: Date | string
   }
 
@@ -31244,6 +31298,9 @@ export namespace Prisma {
     footerAboutText?: string | null
     footerContacts?: NullableJsonNullValueInput | InputJsonValue
     footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
+    seoTitle?: string
+    seoDescription?: string
+    seoKeywords?: string
     updatedAt?: Date | string
   }
 
@@ -31289,6 +31346,9 @@ export namespace Prisma {
     footerAboutText?: NullableStringFieldUpdateOperationsInput | string | null
     footerContacts?: NullableJsonNullValueInput | InputJsonValue
     footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
+    seoTitle?: StringFieldUpdateOperationsInput | string
+    seoDescription?: StringFieldUpdateOperationsInput | string
+    seoKeywords?: StringFieldUpdateOperationsInput | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31334,6 +31394,9 @@ export namespace Prisma {
     footerAboutText?: NullableStringFieldUpdateOperationsInput | string | null
     footerContacts?: NullableJsonNullValueInput | InputJsonValue
     footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
+    seoTitle?: StringFieldUpdateOperationsInput | string
+    seoDescription?: StringFieldUpdateOperationsInput | string
+    seoKeywords?: StringFieldUpdateOperationsInput | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31379,6 +31442,9 @@ export namespace Prisma {
     footerAboutText?: string | null
     footerContacts?: NullableJsonNullValueInput | InputJsonValue
     footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
+    seoTitle?: string
+    seoDescription?: string
+    seoKeywords?: string
     updatedAt?: Date | string
   }
 
@@ -31424,6 +31490,9 @@ export namespace Prisma {
     footerAboutText?: NullableStringFieldUpdateOperationsInput | string | null
     footerContacts?: NullableJsonNullValueInput | InputJsonValue
     footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
+    seoTitle?: StringFieldUpdateOperationsInput | string
+    seoDescription?: StringFieldUpdateOperationsInput | string
+    seoKeywords?: StringFieldUpdateOperationsInput | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31469,6 +31538,9 @@ export namespace Prisma {
     footerAboutText?: NullableStringFieldUpdateOperationsInput | string | null
     footerContacts?: NullableJsonNullValueInput | InputJsonValue
     footerSocialLinks?: NullableJsonNullValueInput | InputJsonValue
+    seoTitle?: StringFieldUpdateOperationsInput | string
+    seoDescription?: StringFieldUpdateOperationsInput | string
+    seoKeywords?: StringFieldUpdateOperationsInput | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -33727,6 +33799,9 @@ export namespace Prisma {
     footerAboutText?: SortOrder
     footerContacts?: SortOrder
     footerSocialLinks?: SortOrder
+    seoTitle?: SortOrder
+    seoDescription?: SortOrder
+    seoKeywords?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -33784,6 +33859,9 @@ export namespace Prisma {
     shiprocketCourierPriority?: SortOrder
     exportProgramContent?: SortOrder
     footerAboutText?: SortOrder
+    seoTitle?: SortOrder
+    seoDescription?: SortOrder
+    seoKeywords?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -33825,6 +33903,9 @@ export namespace Prisma {
     shiprocketCourierPriority?: SortOrder
     exportProgramContent?: SortOrder
     footerAboutText?: SortOrder
+    seoTitle?: SortOrder
+    seoDescription?: SortOrder
+    seoKeywords?: SortOrder
     updatedAt?: SortOrder
   }
 

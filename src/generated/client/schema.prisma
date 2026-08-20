@@ -404,6 +404,11 @@ model AdminSettings {
   footerContacts    Json? // Array of { id, type, value, isVisible }
   footerSocialLinks Json? // Array of { id, name, icon, url, isVisible }
 
+  // SEO (Admin-controlled site metadata)
+  seoTitle       String @default("StopShop — Premium Bronze & Bartan Export")
+  seoDescription String @default("India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.")
+  seoKeywords    String @default("bronze cookware, bartan, export, premium kitchenware, handmade, copper, brass, StopShop")
+
   updatedAt DateTime @updatedAt
 }
 

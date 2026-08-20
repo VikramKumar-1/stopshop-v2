@@ -18,6 +18,8 @@ const outfit = Outfit({
   variable: "--font-outfit",
 });
 
+import { prisma } from "@/lib/db";
+
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
@@ -25,12 +27,20 @@ export async function generateMetadata(): Promise<Metadata> {
   const headersList = await import("next/headers").then(m => m.headers());
   const currentPath = headersList.get("x-current-path") || "/";
 
+  // Fetch SEO settings from database
+  const settings = await prisma.adminSettings.findFirst({
+    select: { seoTitle: true, seoDescription: true, seoKeywords: true }
+  });
+
+  const title = settings?.seoTitle || "StopShop — Premium Bronze & Bartan Export";
+  const description = settings?.seoDescription || "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.";
+  const keywords = settings?.seoKeywords || "bronze cookware, bartan, export, premium kitchenware, handmade, copper, brass, StopShop";
+
   return {
     metadataBase: new URL(baseUrl),
-    title: "StopShop — Premium Bronze & Bartan Export",
-    description:
-      "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
-    keywords: "bronze cookware, bartan, export, premium kitchenware, handmade, copper, brass, StopShop",
+    title,
+    description,
+    keywords,
     authors: [{ name: "StopShop" }],
     publisher: "StopShop",
     robots: "index, follow",
@@ -38,8 +48,8 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: `${baseUrl}${currentPath}`,
     },
     openGraph: {
-      title: "StopShop — Premium Bronze & Bartan Export",
-      description: "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",
+      title,
+      description,
       url: `${baseUrl}${currentPath}`,
       siteName: "StopShop",
       locale: "en_US",

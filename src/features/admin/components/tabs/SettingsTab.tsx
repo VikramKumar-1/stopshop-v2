@@ -404,6 +404,58 @@ export function SettingsTab({
                           </div>
                        </form>
                        
+                       {/* Section 4: SEO Settings */}
+                       <form onSubmit={handleSavePlatformSettings} className="bg-surface-card border border-border rounded-3xl p-6 md:p-8 space-y-6">
+                          <div className="flex items-center gap-2 border-b border-border pb-4">
+                             <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                             <h2 className="text-lg font-bold text-heading">SEO & Metadata</h2>
+                          </div>
+                          
+                          <div className="space-y-4">
+                             <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Global SEO Title</label>
+                                <input 
+                                   type="text" 
+                                   value={settings.seoTitle || ""} 
+                                   onChange={e => setSettings({...settings, seoTitle: e.target.value})} 
+                                   placeholder="e.g. StopShop — Premium Bronze & Bartan Export"
+                                   className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-sm text-heading focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                                />
+                                <p className="text-[10px] text-muted mt-1">This appears in browser tabs and search engine results globally.</p>
+                             </div>
+
+                             <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Global SEO Description</label>
+                                <textarea 
+                                   value={settings.seoDescription || ""} 
+                                   onChange={e => setSettings({...settings, seoDescription: e.target.value})} 
+                                   placeholder="Enter the main meta description for the site..."
+                                   rows={3}
+                                   className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-sm text-heading focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                                />
+                                <p className="text-[10px] text-muted mt-1">150-160 characters recommended for optimal search engine display.</p>
+                             </div>
+
+                             <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted">Global SEO Keywords</label>
+                                <textarea 
+                                   value={settings.seoKeywords || ""} 
+                                   onChange={e => setSettings({...settings, seoKeywords: e.target.value})} 
+                                   placeholder="e.g. bronze cookware, bartan, export, premium kitchenware"
+                                   rows={2}
+                                   className="w-full px-4 py-3 bg-surface border border-border rounded-xl text-sm text-heading focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                                />
+                                <p className="text-[10px] text-muted mt-1">Comma-separated list of target keywords.</p>
+                             </div>
+                          </div>
+                          
+                          <div className="pt-2">
+                             <button type="submit" disabled={savingSettings} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50">
+                                {savingSettings ? "Saving..." : "Save SEO Settings"}
+                             </button>
+                          </div>
+                       </form>
+
                        <CMSContentSettings 
                          settings={settings}
                          setSettings={setSettings}
