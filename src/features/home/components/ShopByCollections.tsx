@@ -168,9 +168,6 @@ export const ShopByCollections = ({ categoriesData }: { categoriesData?: any[] }
                     alt={cat.name}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                    priority
-                    loading="eager"
-                    unoptimized={!(cat.image || "").includes("cloudinary")}
                     className="object-cover"
                   />
                   {/* Subtle fade transition between image and text */}

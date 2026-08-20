@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, FormEvent, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ThemeToggle } from "./ThemeToggle";
 import {
   GlassWater,
@@ -348,9 +349,12 @@ export const CategoryStrip = () => {
           {(scrollingDown || searchExpanded) && (
             <div className="hidden lg:flex items-center gap-2 flex-shrink-0 overflow-hidden animate-in fade-in slide-in-from-left-4 duration-200">
               <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
-                <img
+                <Image
                   src="/logo.webp"
                   alt="StopShop Logo"
+                  width={44}
+                  height={44}
+                  priority
                   className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl object-contain shadow-sm group-hover:scale-105 transition-transform shrink-0"
                 />
                 <span className="text-lg sm:text-xl font-display font-bold tracking-tight text-heading">
@@ -507,9 +511,11 @@ export const CategoryStrip = () => {
                                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface-hover rounded-xl cursor-pointer group"
                                 >
                                   {product.image || product.images?.[0] ? (
-                                    <img
+                                    <Image
                                       src={product.image || product.images[0]}
                                       alt={product.name}
+                                      width={40}
+                                      height={40}
                                       className="w-10 h-10 object-cover rounded-lg border border-border bg-white shrink-0"
                                     />
                                   ) : (
