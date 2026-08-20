@@ -30,9 +30,6 @@ export const metadata: Metadata = {
   authors: [{ name: "StopShop" }],
   publisher: "StopShop",
   robots: "index, follow",
-  alternates: {
-    canonical: baseUrl,
-  },
   openGraph: {
     title: "StopShop — Premium Bronze & Bartan Export",
     description: "India's finest bronze cookware & bartan, exported globally. Premium quality, trusted by international buyers.",

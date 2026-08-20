@@ -1,12 +1,20 @@
-"use client";
-
-import { useParams } from "next/navigation";
 import { ProductCatalog } from "@/features/products/components/ProductCatalog";
 import { Suspense } from "react";
+import { Metadata } from "next";
 
-export default function MaterialProductsPage() {
-  const params = useParams();
-  const rawMaterial = params.materialName as string;
+export async function generateMetadata({ params }: { params: { materialName: string } }): Promise<Metadata> {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  
+  return {
+    alternates: {
+      canonical: `${baseUrl}/products/material/${params.materialName}`,
+    },
+  };
+}
+
+export default function MaterialProductsPage({ params }: { params: { materialName: string } }) {
+  const rawMaterial = params.materialName;
 
   // Capitalize first letter to match database values (e.g. copper -> Copper)
   const formattedMaterial = rawMaterial
