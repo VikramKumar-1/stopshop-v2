@@ -2,6 +2,8 @@ import { ProductCatalog } from "@/features/products/components/ProductCatalog";
 import { Suspense } from "react";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/db";
 
 type Props = {
