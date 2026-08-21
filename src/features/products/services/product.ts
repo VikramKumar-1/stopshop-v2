@@ -617,7 +617,7 @@ export async function getCategories() {
 
 export async function getProductsForSitemap() {
   return prisma.product.findMany({
-    select: { id: true, createdAt: true },
+    select: { id: true, slug: true, createdAt: true },
   });
 }
 
