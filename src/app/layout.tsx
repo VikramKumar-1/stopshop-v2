@@ -45,12 +45,12 @@ export async function generateMetadata(): Promise<Metadata> {
     publisher: "StopShop",
     robots: "index, follow",
     alternates: {
-      canonical: `${baseUrl}${currentPath}`,
+      canonical: `${baseUrl.replace(/\/+$/, '')}${currentPath === '/' ? '/' : currentPath.replace(/\/+$/, '')}`,
     },
     openGraph: {
       title,
       description,
-      url: `${baseUrl}${currentPath}`,
+      url: `${baseUrl.replace(/\/+$/, '')}${currentPath === '/' ? '/' : currentPath.replace(/\/+$/, '')}`,
       siteName: "StopShop",
       locale: "en_US",
       type: "website",
