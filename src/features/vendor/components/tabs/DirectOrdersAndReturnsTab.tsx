@@ -12,7 +12,7 @@ interface DirectOrdersAndReturnsTabProps {
   savingOrderId: any;
   editingDirectDelivery: any;
   setEditingDirectDelivery: any;
-  handleUpdateDirectOrderStatus: any;
+  handleUpdateDirectOrderStatus: (orderId: string, status: string, deliveryDate?: string, cancellationReason?: string) => Promise<void>;
   formatDateTime: any;
   setModalShipping: (order: any) => void;
   setModalTransaction: (order: any) => void;
@@ -409,14 +409,33 @@ export default function DirectOrdersAndReturnsTab({
                     {/* Actions */}
                     <td className="p-4 text-right whitespace-nowrap space-x-2">
                       {["PENDING", "CONFIRMED"].includes(currentStatus) && (
-                        <button
-                          type="button"
-                          disabled={savingOrderId === order.id}
-                          onClick={() => setShowPackingModal(order)}
-                          className={`px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold shadow-sm shadow-blue-500/10 transition-all duration-200 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          Start Packing (Upload Photos)
-                        </button>
+                        <div className="flex items-center gap-2 justify-end">
+                          <button
+                            type="button"
+                            disabled={savingOrderId === order.id}
+                            onClick={() => {
+                              const reason = window.prompt("Reason for cancellation (e.g., Fake address, Out of stock):");
+                              if (reason !== null) {
+                                if (reason.trim() === "") {
+                                  alert("Remark is required to cancel the order.");
+                                  return;
+                                }
+                                handleUpdateDirectOrderStatus(order.id, "CANCELLED", undefined, reason);
+                              }
+                            }}
+                            className={`px-3 py-1.5 text-[10px] text-red-600 bg-red-50 hover:bg-red-500 hover:text-white border border-red-500/20 rounded-xl font-bold shadow-sm transition-all duration-200 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={savingOrderId === order.id}
+                            onClick={() => setShowPackingModal(order)}
+                            className={`px-3 py-1.5 text-[10px] text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold shadow-sm shadow-blue-500/10 transition-all duration-200 ${savingOrderId === order.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            Start Packing (Upload Photos)
+                          </button>
+                        </div>
                       )}
                       {currentStatus === "PACKED" && (
                         <div className="flex items-center gap-2 justify-end">

@@ -33,7 +33,7 @@ export const VendorCouponManager = ({ vendorId }: { vendorId: number }) => {
   const fetchCoupons = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const res = await fetch("/api/coupons?limit=50");
+      const res = await fetch("/api/coupons?limit=50", { cache: "no-store" });
       const data = await res.json();
       if (data.success) {
         setCoupons(data.coupons || []);

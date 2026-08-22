@@ -232,6 +232,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   deliveredAt: 'deliveredAt',
   trackingId: 'trackingId',
   returnWindowDays: 'returnWindowDays',
+  cancellationReason: 'cancellationReason',
   shiprocketOrderId: 'shiprocketOrderId',
   shiprocketShipmentId: 'shiprocketShipmentId',
   awbCode: 'awbCode',

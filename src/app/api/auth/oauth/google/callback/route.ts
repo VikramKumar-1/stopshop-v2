@@ -120,7 +120,7 @@ export async function GET(req: NextRequest) {
     // Redirect destination (defaults to homepage, vendor dashboard, or the saved redirect path)
     const destination = redirectDest 
       ? `${appUrl}${redirectDest}` 
-      : (user.role === "vendor" ? `${appUrl}/vendor/dashboard` : `${appUrl}/`);
+      : (targetRole === "vendor" ? `${appUrl}/vendor/dashboard` : `${appUrl}/`);
 
     const response = NextResponse.redirect(destination);
 

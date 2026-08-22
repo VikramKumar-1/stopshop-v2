@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, Suspense, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useRegion } from "@/context/RegionContext";
@@ -242,7 +242,21 @@ function AddressForm({ initialData, onSubmit, onCancel, isSaving }: AddressFormP
 function CheckoutPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const buyNowProductId = searchParams.get("productId");
+  const pathname = usePathname();
+  
+  let extractedProductId = searchParams.get("productId");
+  if (!extractedProductId && pathname && pathname.startsWith('/checkout/') && !pathname.includes('/success') && !pathname.includes('/failure')) {
+    const slug = pathname.replace('/checkout/', '');
+    const lastDash = slug.lastIndexOf('-');
+    if (lastDash !== -1) {
+      const idStr = slug.substring(lastDash + 1);
+      if (!isNaN(parseInt(idStr))) {
+        extractedProductId = idStr;
+      }
+    }
+  }
+
+  const buyNowProductId = extractedProductId;
   const buyNowBundleIds = searchParams.get("bundleIds");
   const buyNowQty = parseInt(searchParams.get("qty") || "1");
 
@@ -255,7 +269,7 @@ function CheckoutPageInner() {
 
   const [loading, setLoading] = useState(true);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("cod"); // "razorpay" | "payu" | "cod"
+  const [paymentMethod, setPaymentMethod] = useState("razorpay"); // "razorpay" | "payu" | "cod"
   const [paying, setPaying] = useState(false);
 
   // UI Alert Popup Modal State
@@ -427,10 +441,10 @@ useEffect(() => {
           }
         })();
 
-        const userPromise = fetch("/api/auth/me").then(r => r.ok ? r.json() : null).catch(() => null);
-        const offersPromise = fetch("/api/targeted-offers?asBuyer=true").then(r => r.ok ? r.json() : null).catch(() => null);
-        const addrPromise = fetch("/api/addresses").then(r => r.ok ? r.json() : null).catch(() => null);
-        const settingsPromise = fetch("/api/settings/public").then(r => r.ok ? r.json() : null).catch(() => null);
+        const userPromise = fetch("/api/auth/me", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
+        const offersPromise = fetch("/api/targeted-offers?asBuyer=true", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
+        const addrPromise = fetch("/api/addresses", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
+        const settingsPromise = fetch("/api/settings/public", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
 
         const [_, userData, offersData, addrData, settingsData] = await Promise.all([
           productFetchPromise,
@@ -481,17 +495,17 @@ useEffect(() => {
   const isInternational = countryCode !== "IN";
 
   // Auto-switch payment method based on country of selected address
-  // useEffect(() => {
-  //   if (isInternational) {
-  //     if (paymentMethod !== "payu") {
-  //       setPaymentMethod("payu");
-  //     }
-  //   } else {
-  //     if (paymentMethod === "payu") {
-  //       setPaymentMethod("razorpay");
-  //     }
-  //   }
-  // }, [isInternational, paymentMethod]);
+  useEffect(() => {
+    if (isInternational) {
+      if (paymentMethod !== "payu") {
+        setPaymentMethod("payu");
+      }
+    } else {
+      if (paymentMethod === "payu") {
+        setPaymentMethod("razorpay");
+      }
+    }
+  }, [isInternational]);
 
   // Recalculate Pricing
   useEffect(() => {
@@ -1023,7 +1037,7 @@ useEffect(() => {
             </div>
 
             {/* Payment Method */}
-            <div className="hidden bg-surface-card border border-border/90 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+            <div className="bg-surface-card border border-border/90 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
               <div className="flex items-center gap-2 border-b border-border pb-3">
                 <span className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-[10px] font-black">2</span>
                 <h2 className="text-sm font-display font-bold text-heading uppercase tracking-wide">Payment Method</h2>
@@ -1241,12 +1255,7 @@ useEffect(() => {
                  </div>
 
                  {/* Compact Available Coupons Carousel */}
-                 {loadingCoupons && !couponApplied ? (
-                    <div className="flex gap-2 overflow-hidden pb-1">
-                       <div className="w-[160px] h-[48px] bg-surface border border-border rounded-xl animate-pulse shrink-0"></div>
-                       <div className="w-[160px] h-[48px] bg-surface border border-border rounded-xl animate-pulse shrink-0"></div>
-                    </div>
-                 ) : !couponApplied && availableCoupons.length > 0 && (
+                 {!loadingCoupons && !couponApplied && availableCoupons.length > 0 && (
                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none snap-x">
                      {availableCoupons.map((c, i) => (
                        <button

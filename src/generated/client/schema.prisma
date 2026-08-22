@@ -159,13 +159,14 @@ model Order {
   shippingCountry String @default("IN")
 
   // Status & tracking
-  status           String    @default("PENDING")
+  status             String    @default("PENDING")
   // PENDING | CONFIRMED | PACKED | DISPATCHED | DELIVERED | CANCELLED
   // RETURN_REQUESTED | RETURN_APPROVED | RETURN_PICKED | RETURN_RECEIVED | RETURN_REJECTED | RETURNED
-  deliveryDate     DateTime?
-  deliveredAt      DateTime? // Actual delivery timestamp
-  trackingId       String?
-  returnWindowDays Int       @default(7) // Days after delivery to allow return
+  deliveryDate       DateTime?
+  deliveredAt        DateTime? // Actual delivery timestamp
+  trackingId         String?
+  returnWindowDays   Int       @default(7) // Days after delivery to allow return
+  cancellationReason String?   @db.Text // Remark from vendor/admin when cancelled
 
   // Shiprocket logistics
   shiprocketOrderId    Int? // Shiprocket's order ID

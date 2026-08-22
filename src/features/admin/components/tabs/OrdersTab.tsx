@@ -262,6 +262,17 @@ export function OrdersTab({
               </div>
             </div>
 
+            {/* Cancellation Remark */}
+            {activeOrder.status === "CANCELLED" && activeOrder.cancellationReason && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 flex items-start gap-2">
+                <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-red-400 uppercase tracking-wider">Cancellation Remark</h4>
+                  <p className="text-sm text-red-200 mt-1">{activeOrder.cancellationReason}</p>
+                </div>
+              </div>
+            )}
+
             {/* Grid 1: Customer & Shipping Details + Payment Gateway Audit */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               

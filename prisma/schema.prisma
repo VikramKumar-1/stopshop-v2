@@ -166,6 +166,7 @@ model Order {
   deliveredAt     DateTime?                   // Actual delivery timestamp
   trackingId      String?
   returnWindowDays Int         @default(7)    // Days after delivery to allow return
+  cancellationReason String?   @db.Text       // Remark from vendor/admin when cancelled
   
   // Shiprocket logistics
   shiprocketOrderId   Int?                    // Shiprocket's order ID

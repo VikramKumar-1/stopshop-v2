@@ -7500,6 +7500,7 @@ export namespace Prisma {
     deliveredAt: Date | null
     trackingId: string | null
     returnWindowDays: number | null
+    cancellationReason: string | null
     shiprocketOrderId: number | null
     shiprocketShipmentId: number | null
     awbCode: string | null
@@ -7551,6 +7552,7 @@ export namespace Prisma {
     deliveredAt: Date | null
     trackingId: string | null
     returnWindowDays: number | null
+    cancellationReason: string | null
     shiprocketOrderId: number | null
     shiprocketShipmentId: number | null
     awbCode: string | null
@@ -7603,6 +7605,7 @@ export namespace Prisma {
     deliveredAt: number
     trackingId: number
     returnWindowDays: number
+    cancellationReason: number
     shiprocketOrderId: number
     shiprocketShipmentId: number
     awbCode: number
@@ -7692,6 +7695,7 @@ export namespace Prisma {
     deliveredAt?: true
     trackingId?: true
     returnWindowDays?: true
+    cancellationReason?: true
     shiprocketOrderId?: true
     shiprocketShipmentId?: true
     awbCode?: true
@@ -7743,6 +7747,7 @@ export namespace Prisma {
     deliveredAt?: true
     trackingId?: true
     returnWindowDays?: true
+    cancellationReason?: true
     shiprocketOrderId?: true
     shiprocketShipmentId?: true
     awbCode?: true
@@ -7795,6 +7800,7 @@ export namespace Prisma {
     deliveredAt?: true
     trackingId?: true
     returnWindowDays?: true
+    cancellationReason?: true
     shiprocketOrderId?: true
     shiprocketShipmentId?: true
     awbCode?: true
@@ -7934,6 +7940,7 @@ export namespace Prisma {
     deliveredAt: Date | null
     trackingId: string | null
     returnWindowDays: number
+    cancellationReason: string | null
     shiprocketOrderId: number | null
     shiprocketShipmentId: number | null
     awbCode: string | null
@@ -8005,6 +8012,7 @@ export namespace Prisma {
     deliveredAt?: boolean
     trackingId?: boolean
     returnWindowDays?: boolean
+    cancellationReason?: boolean
     shiprocketOrderId?: boolean
     shiprocketShipmentId?: boolean
     awbCode?: boolean
@@ -8063,6 +8071,7 @@ export namespace Prisma {
     deliveredAt?: boolean
     trackingId?: boolean
     returnWindowDays?: boolean
+    cancellationReason?: boolean
     shiprocketOrderId?: boolean
     shiprocketShipmentId?: boolean
     awbCode?: boolean
@@ -8131,6 +8140,7 @@ export namespace Prisma {
       deliveredAt: Date | null
       trackingId: string | null
       returnWindowDays: number
+      cancellationReason: string | null
       shiprocketOrderId: number | null
       shiprocketShipmentId: number | null
       awbCode: string | null
@@ -8553,6 +8563,7 @@ export namespace Prisma {
     readonly deliveredAt: FieldRef<"Order", 'DateTime'>
     readonly trackingId: FieldRef<"Order", 'String'>
     readonly returnWindowDays: FieldRef<"Order", 'Int'>
+    readonly cancellationReason: FieldRef<"Order", 'String'>
     readonly shiprocketOrderId: FieldRef<"Order", 'Int'>
     readonly shiprocketShipmentId: FieldRef<"Order", 'Int'>
     readonly awbCode: FieldRef<"Order", 'String'>
@@ -26919,6 +26930,7 @@ export namespace Prisma {
     deliveredAt: 'deliveredAt',
     trackingId: 'trackingId',
     returnWindowDays: 'returnWindowDays',
+    cancellationReason: 'cancellationReason',
     shiprocketOrderId: 'shiprocketOrderId',
     shiprocketShipmentId: 'shiprocketShipmentId',
     awbCode: 'awbCode',
@@ -27890,6 +27902,7 @@ export namespace Prisma {
     deliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     trackingId?: StringNullableFilter<"Order"> | string | null
     returnWindowDays?: IntFilter<"Order"> | number
+    cancellationReason?: StringNullableFilter<"Order"> | string | null
     shiprocketOrderId?: IntNullableFilter<"Order"> | number | null
     shiprocketShipmentId?: IntNullableFilter<"Order"> | number | null
     awbCode?: StringNullableFilter<"Order"> | string | null
@@ -27946,6 +27959,7 @@ export namespace Prisma {
     deliveredAt?: SortOrderInput | SortOrder
     trackingId?: SortOrderInput | SortOrder
     returnWindowDays?: SortOrder
+    cancellationReason?: SortOrderInput | SortOrder
     shiprocketOrderId?: SortOrderInput | SortOrder
     shiprocketShipmentId?: SortOrderInput | SortOrder
     awbCode?: SortOrderInput | SortOrder
@@ -28005,6 +28019,7 @@ export namespace Prisma {
     deliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     trackingId?: StringNullableFilter<"Order"> | string | null
     returnWindowDays?: IntFilter<"Order"> | number
+    cancellationReason?: StringNullableFilter<"Order"> | string | null
     shiprocketOrderId?: IntNullableFilter<"Order"> | number | null
     shiprocketShipmentId?: IntNullableFilter<"Order"> | number | null
     awbCode?: StringNullableFilter<"Order"> | string | null
@@ -28061,6 +28076,7 @@ export namespace Prisma {
     deliveredAt?: SortOrderInput | SortOrder
     trackingId?: SortOrderInput | SortOrder
     returnWindowDays?: SortOrder
+    cancellationReason?: SortOrderInput | SortOrder
     shiprocketOrderId?: SortOrderInput | SortOrder
     shiprocketShipmentId?: SortOrderInput | SortOrder
     awbCode?: SortOrderInput | SortOrder
@@ -28121,6 +28137,7 @@ export namespace Prisma {
     deliveredAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     trackingId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     returnWindowDays?: IntWithAggregatesFilter<"Order"> | number
+    cancellationReason?: StringNullableWithAggregatesFilter<"Order"> | string | null
     shiprocketOrderId?: IntNullableWithAggregatesFilter<"Order"> | number | null
     shiprocketShipmentId?: IntNullableWithAggregatesFilter<"Order"> | number | null
     awbCode?: StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -30460,6 +30477,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -30516,6 +30534,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -30570,6 +30589,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -30626,6 +30646,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -30681,6 +30702,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -30732,6 +30754,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -30784,6 +30807,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33415,6 +33439,7 @@ export namespace Prisma {
     deliveredAt?: SortOrder
     trackingId?: SortOrder
     returnWindowDays?: SortOrder
+    cancellationReason?: SortOrder
     shiprocketOrderId?: SortOrder
     shiprocketShipmentId?: SortOrder
     awbCode?: SortOrder
@@ -33484,6 +33509,7 @@ export namespace Prisma {
     deliveredAt?: SortOrder
     trackingId?: SortOrder
     returnWindowDays?: SortOrder
+    cancellationReason?: SortOrder
     shiprocketOrderId?: SortOrder
     shiprocketShipmentId?: SortOrder
     awbCode?: SortOrder
@@ -33535,6 +33561,7 @@ export namespace Prisma {
     deliveredAt?: SortOrder
     trackingId?: SortOrder
     returnWindowDays?: SortOrder
+    cancellationReason?: SortOrder
     shiprocketOrderId?: SortOrder
     shiprocketShipmentId?: SortOrder
     awbCode?: SortOrder
@@ -36276,6 +36303,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -36330,6 +36358,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -36649,6 +36678,7 @@ export namespace Prisma {
     deliveredAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     trackingId?: StringNullableFilter<"Order"> | string | null
     returnWindowDays?: IntFilter<"Order"> | number
+    cancellationReason?: StringNullableFilter<"Order"> | string | null
     shiprocketOrderId?: IntNullableFilter<"Order"> | number | null
     shiprocketShipmentId?: IntNullableFilter<"Order"> | number | null
     awbCode?: StringNullableFilter<"Order"> | string | null
@@ -37962,6 +37992,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -38017,6 +38048,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -38156,6 +38188,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38211,6 +38244,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38340,6 +38374,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -38395,6 +38430,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -38464,6 +38500,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38519,6 +38556,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38572,6 +38610,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -38627,6 +38666,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -38696,6 +38736,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38751,6 +38792,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40737,6 +40779,7 @@ export namespace Prisma {
     deliveredAt?: Date | string | null
     trackingId?: string | null
     returnWindowDays?: number
+    cancellationReason?: string | null
     shiprocketOrderId?: number | null
     shiprocketShipmentId?: number | null
     awbCode?: string | null
@@ -40942,6 +40985,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40996,6 +41040,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -41050,6 +41095,7 @@ export namespace Prisma {
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trackingId?: NullableStringFieldUpdateOperationsInput | string | null
     returnWindowDays?: IntFieldUpdateOperationsInput | number
+    cancellationReason?: NullableStringFieldUpdateOperationsInput | string | null
     shiprocketOrderId?: NullableIntFieldUpdateOperationsInput | number | null
     shiprocketShipmentId?: NullableIntFieldUpdateOperationsInput | number | null
     awbCode?: NullableStringFieldUpdateOperationsInput | string | null

@@ -1372,7 +1372,7 @@ export const VendorDashboard = () => {
     }
   };
 
-  const handleUpdateDirectOrderStatus = async (orderId: string, status: string, deliveryDate?: string) => {
+  const handleUpdateDirectOrderStatus = async (orderId: string, status: string, deliveryDate?: string, cancellationReason?: string) => {
     if (savingOrderId) return;
     setSavingOrderId(orderId);
     setUpdatingStatus(true);
@@ -1385,7 +1385,7 @@ export const VendorDashboard = () => {
     const optimisticStatus = nextStatusMap[status] || status;
     setDirectOrders(prev => prev.map(o =>
       o.id === orderId
-        ? { ...o, status: optimisticStatus, ...(deliveryDate ? { deliveryDate } : {}) }
+        ? { ...o, status: optimisticStatus, ...(deliveryDate ? { deliveryDate } : {}), ...(cancellationReason ? { cancellationReason } : {}) }
         : o
     ));
 
@@ -1393,7 +1393,7 @@ export const VendorDashboard = () => {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, deliveryDate }),
+        body: JSON.stringify({ status, deliveryDate, cancellationReason }),
       });
 
       if (res.ok) {

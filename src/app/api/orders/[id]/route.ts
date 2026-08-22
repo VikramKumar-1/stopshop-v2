@@ -43,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (admin instanceof NextResponse) return admin;
 
     const body = await req.json();
-    const { status, deliveryDate } = body;
+    const { status, deliveryDate, cancellationReason } = body;
 
     if (!status) {
        return NextResponse.json({ success: false, error: "Status is required" }, { status: 400 });
@@ -56,6 +56,37 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     if (deliveryDate !== undefined) {
        updates.deliveryDate = deliveryDate ? new Date(deliveryDate) : null;
+    }
+
+    if (status === "CANCELLED") {
+       if (cancellationReason) {
+         updates.cancellationReason = cancellationReason;
+       }
+       // Auto-refund for paid orders
+       if (order.paymentStatus === "PAID" || order.paymentStatus === "COMPLETED") {
+          if (order.paymentGateway === "razorpay" && order.paymentOrderId) {
+             try {
+                const Razorpay = (await import("razorpay")).default;
+                const { RAZORPAY_CONFIG, isRazorpayConfigured } = await import("@/lib/paymentConfig");
+                if (isRazorpayConfigured()) {
+                   const razorpay = new Razorpay({
+                     key_id: RAZORPAY_CONFIG.keyId,
+                     key_secret: RAZORPAY_CONFIG.keySecret,
+                   });
+                   await razorpay.payments.refund(order.razorpayPaymentId || order.paymentOrderId, {
+                     amount: order.totalPaise,
+                     notes: { reason: cancellationReason || "Order Cancelled by Vendor/Admin" }
+                   });
+                   updates.paymentStatus = "REFUNDED";
+                }
+             } catch (refundError) {
+                console.error("Auto-refund failed:", refundError);
+                // We still cancel the order but maybe append a note
+                updates.cancellationReason = (updates.cancellationReason || "") + " [REFUND FAILED - MANUAL INTERVENTION REQUIRED]";
+             }
+          }
+          // TODO: PayU refund logic
+       }
     }
 
     if (status === "DELIVERED" && order.status !== "DELIVERED") {

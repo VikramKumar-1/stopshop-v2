@@ -40,23 +40,10 @@ function CheckoutSuccessContent() {
       const cached = sessionStorage.getItem("last_placed_order");
       if (cached) return JSON.parse(cached);
     } catch (e) {}
-    return {
-      orderNumber: `SS-${Date.now().toString().slice(-8)}`,
-      paymentMethod: "ONLINE",
-      subtotalPaise: 400000,
-      discountPaise: 39920,
-      couponCode: "MONSOON10",
-      shippingPaise: 0,
-      codChargePaise: 0,
-      totalPaise: 360080,
-      shippingName: "Customer",
-      shippingCity: "India",
-      items: [{ productName: "Handcrafted brass diya set", quantity: 1, productImage: "/logo4.jpg" }]
-    };
+    return null;
   });
   
-  // Zero loading delay: never block UI with a spinner!
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!order);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -64,6 +51,7 @@ function CheckoutSuccessContent() {
 
     // Fetch official details silently in background without blocking UI
     if (orderId) {
+      setLoading(true);
       fetch(`/api/orders/${orderId}`)
         .then(res => res.json())
         .then(data => {
@@ -73,10 +61,24 @@ function CheckoutSuccessContent() {
         })
         .catch(err => {
           console.error("Failed to load official order details in background", err);
+        })
+        .finally(() => {
+          setLoading(false);
         });
+    } else {
+      setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
+
+  if (loading || !order) {
+    return (
+      <div className="min-h-[85vh] w-full bg-[#101012] flex flex-col items-center justify-center p-3 font-sans">
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin mb-4" />
+        <h1 className="text-white text-lg font-bold">Verifying Order...</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[85vh] w-full bg-[#101012] flex items-start justify-center p-3 pt-12 sm:pt-16 pb-12 overflow-y-auto relative font-sans">

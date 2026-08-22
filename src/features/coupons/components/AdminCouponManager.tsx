@@ -58,7 +58,7 @@ export const AdminCouponManager = () => {
     if (!silent) setLoading(true);
     try {
       const [couponsRes, vendorsRes, categoriesRes, materialsRes] = await Promise.all([
-        fetch("/api/coupons?limit=50"),
+        fetch("/api/coupons?limit=50", { cache: "no-store" }),
         fetch("/api/admin/vendors"),
         fetch("/api/categories"),
         fetch("/api/materials")
