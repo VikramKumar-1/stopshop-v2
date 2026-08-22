@@ -1,0 +1,5 @@
+const { PrismaClient } = require('./src/generated/client'); 
+const prisma = new PrismaClient(); 
+prisma.product.findMany({ select: { id: true, name: true, slug: true } })
+  .then(console.log)
+  .finally(() => prisma.$disconnect());
