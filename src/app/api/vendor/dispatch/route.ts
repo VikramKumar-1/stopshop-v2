@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     if (user.role !== "vendor" && !user.parentVendorId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
     }
-    const effVendorId = user.role === "vendor" ? user.id : user.parentVendorId;
+    const effVendorId = user.role === "vendor" ? (user.userId || user.id) : user.parentVendorId;
 
     const body = await req.json();
     const { orderId, orderItemId, dispatchImages } = body;
