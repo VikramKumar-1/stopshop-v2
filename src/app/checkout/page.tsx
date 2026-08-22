@@ -444,8 +444,9 @@ useEffect(() => {
           setUserEmail(userData.user.email);
         } else {
           setIsRedirecting(true);
-          const buyNowParams = buyNowProductId ? `?productId=${buyNowProductId}&qty=${buyNowQty}` : buyNowBundleIds ? `?bundleIds=${buyNowBundleIds}&qty=${buyNowQty}` : "";
-          const redirectPath = encodeURIComponent(`/checkout${buyNowParams}`);
+          // Preserve the current URL path (works for both slug-based and query param URLs)
+          const currentPath = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/checkout";
+          const redirectPath = encodeURIComponent(currentPath);
           router.push(`/profile?redirect=${redirectPath}`);
           return;
         }

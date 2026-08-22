@@ -77,7 +77,7 @@ export default function ProductClientActions({ product, allImages, bundleProduct
   const handleBuyNow = () => {
     setIsRedirecting(true);
     setTimeout(() => {
-      router.push(`/checkout?productId=${product.id}&qty=${quantity}`);
+      router.push(product.slug ? `/checkout/${product.slug}-${product.id}?qty=${quantity}` : `/checkout?productId=${product.id}&qty=${quantity}`);
     }, 50);
   };
 

@@ -41,6 +41,24 @@ export async function middleware(request: NextRequest) {
   const baseUrl = request.nextUrl.origin;
   const ip = request.ip || request.headers.get('x-forwarded-for') || 'Unknown IP';
 
+  // SEO-friendly checkout URL rewrite: /checkout/product-slug-12345 → /checkout?productId=12345
+  if (path.startsWith('/checkout/') && path !== '/checkout/success' && path !== '/checkout/failure') {
+    const slug = path.replace('/checkout/', '');
+    const lastDash = slug.lastIndexOf('-');
+    if (lastDash !== -1) {
+      const idStr = slug.substring(lastDash + 1);
+      const productId = parseInt(idStr);
+      if (!isNaN(productId) && productId > 0) {
+        const rewriteUrl = new URL('/checkout', request.url);
+        rewriteUrl.searchParams.set('productId', String(productId));
+        // Preserve qty param if present
+        const qty = request.nextUrl.searchParams.get('qty');
+        if (qty) rewriteUrl.searchParams.set('qty', qty);
+        return NextResponse.rewrite(rewriteUrl);
+      }
+    }
+  }
+
 
 
   // 2. WAF: Check for malicious payloads in URL (XSS / SQLi)
