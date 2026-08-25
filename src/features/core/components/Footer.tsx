@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, Mail, Phone, MapPin, LifeBuoy, Instagram, Facebook, Youtube, Twitter, Linkedin, Link as LinkIcon } from "lucide-react";
+import { Globe, Mail, Phone, MapPin, LifeBuoy, Instagram, Facebook, Youtube, Twitter, Linkedin, Link as LinkIcon, ArrowRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HelpSupportModal } from "./HelpSupportModal";
 
@@ -92,9 +92,38 @@ export const Footer = ({ footerData }: { footerData?: any }) => {
   return (
     <>
     <footer className={`bg-bronze-950 text-bronze-100 [contain:paint] ${isCheckoutStatusPage ? "hidden md:block" : ""}`}>
+      {/* Mobile only Hero CTA */}
+      <div className="md:hidden bg-surface text-body px-4 py-8 border-b border-border">
+        <h2 className="text-3xl font-display font-bold tracking-tight leading-[1.1] text-heading mb-6">
+          India&apos;s Finest
+          <br />
+          <span className="text-orange-500">Kitchen & Home</span>
+          <br />
+          Essentials Crafted for the
+          <br />
+          World
+        </h2>
+
+        <div className="flex flex-col gap-3">
+          <Link
+            href="/contact"
+            className="w-full group inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg shadow-orange-500/20 text-sm"
+          >
+            Request a Quote
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/about"
+            className="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-full bg-white border border-border/60 dark:bg-surface-card text-heading font-semibold text-sm shadow-sm"
+          >
+            Explore Export Program
+          </Link>
+        </div>
+      </div>
+
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-y-10 gap-x-6 sm:gap-8 lg:gap-10">
 
           {/* Brand — full width on mobile, 2 cols on lg */}
           <div className="col-span-2 md:col-span-4 lg:col-span-2 space-y-5">
@@ -223,7 +252,7 @@ export const Footer = ({ footerData }: { footerData?: any }) => {
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4 sm:mb-5">
               Categories
             </h4>
-            <ul className="space-y-2.5">
+            <ul className="grid grid-cols-2 sm:grid-cols-1 gap-y-2.5 gap-x-4 sm:space-y-2.5 sm:gap-y-0 sm:gap-x-0">
               {footerLinks.categories.map((link) => (
                 <li key={link.href}>
                   <Link

@@ -84,7 +84,7 @@ export const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Content */}
           <div className="space-y-5 animate-none">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-display font-bold tracking-tight leading-[1.1] text-heading">
+            <h1 className="hidden md:block text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-display font-bold tracking-tight leading-[1.1] text-heading">
               India&apos;s Finest
               <br />
               <span className="gradient-text">Kitchen & Home</span>
@@ -94,7 +94,7 @@ export const HeroSection = () => {
               <span className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl"> for the World</span>
             </h1>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="hidden md:flex flex-col sm:flex-row gap-3">
               <Link
                 href="/contact"
                 className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-bronze-500 to-bronze-600 text-white font-semibold shadow-xl shadow-bronze-500/20 hover:shadow-bronze-500/40 hover:from-bronze-400 hover:to-bronze-500 text-sm"
